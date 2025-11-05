@@ -8,6 +8,18 @@ import json
 import sys
 import os
 
+# New localization keys that must exist in Localizable.xcstrings
+NEW_KEYS: dict[str, dict[str, str]] = {
+    "Chat Templates": {
+        "en": "Chat Templates",
+        "zh-Hans": "聊天模板",
+    },
+    "Sync saved prompt templates across devices.": {
+        "en": "Sync saved prompt templates across devices.",
+        "zh-Hans": "在所有设备间同步已保存的提示模板。",
+    },
+}
+
 def update_translations(file_path):
     """Update missing translations in the xcstrings file."""
     
@@ -38,6 +50,30 @@ def update_translations(file_path):
     added_count = 0
     fixed_count = 0
     filled_count = 0
+    new_key_count = 0
+
+    # Ensure required new keys exist with translations
+    for key, translations in NEW_KEYS.items():
+        entry = strings.setdefault(key, {
+            'shouldTranslate': True,
+            'localizations': {},
+        })
+
+        if 'localizations' not in entry:
+            entry['localizations'] = {}
+
+        locs = entry['localizations']
+        # Track whether this key was newly created
+        if not locs:
+            new_key_count += 1
+
+        for lang, value in translations.items():
+            locs[lang] = {
+                'stringUnit': {
+                    'state': 'translated',
+                    'value': value,
+                }
+            }
     
     # Iterate through all strings
     for key, value in strings.items():
@@ -102,6 +138,8 @@ def update_translations(file_path):
         print(f"   - Added {added_count} missing English localizations")
         print(f"   - Fixed {fixed_count} 'new' state translations")
         print(f"   - Filled {filled_count} fallback localizations")
+        if new_key_count:
+            print(f"   - Added {new_key_count} required keys")
         return True
     except Exception as e:
         print(f"❌ Error writing file: {e}")

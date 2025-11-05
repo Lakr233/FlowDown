@@ -526,6 +526,8 @@ package extension Storage {
                 object.realObject = getObject(ModelContextServer.self, objectId: object.objectId, handle: handle)
             case Memory.tableName:
                 object.realObject = getObject(Memory.self, objectId: object.objectId, handle: handle)
+            case ChatTemplateObject.tableName:
+                object.realObject = getObject(ChatTemplateObject.self, objectId: object.objectId, handle: handle)
             case Conversation.tableName:
                 object.realObject = getObject(Conversation.self, objectId: object.objectId, handle: handle)
             case Message.tableName:
@@ -556,6 +558,7 @@ package extension Storage {
                 Message.self,
                 Attachment.self,
                 Memory.self,
+                ChatTemplateObject.self,
             ]
 
             let row = try $0.getRow(on: UploadQueue.Properties.id.max(), fromTable: UploadQueue.tableName)

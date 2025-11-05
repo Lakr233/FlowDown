@@ -55,6 +55,8 @@ package extension Storage {
             try handleRemoteDeletedModelContextServer(objectId: objectId, handle: handle)
         case Memory.tableName:
             try handleRemoteDeletedMemory(objectId: objectId, handle: handle)
+        case ChatTemplateObject.tableName:
+            try handleRemoteDeletedChatTemplate(templateId: objectId, handle: handle)
         default:
             break
         }
@@ -113,6 +115,32 @@ package extension Storage {
 
         Logger.syncEngine.info("handleRemoteDeletedMemory \(objectId)")
     }
+
+    private func handleRemoteDeletedChatTemplate(templateId: String, handle: Handle) throws {
+        try handle.delete(
+            fromTable: ChatTemplateObject.tableName,
+            where: ChatTemplateObject.Properties.objectId == templateId
+        )
+
+        Logger.syncEngine.info("handleRemoteDeletedChatTemplate \(templateId)")
+    }
+}
+
+extension ChatTemplateObject: Syncable, SyncQueryable {
+    package static let SyncQuery: SyncQueryProperties = .init(
+        objectId: ChatTemplateObject.Properties.objectId.asProperty(),
+        creation: ChatTemplateObject.Properties.creation.asProperty(),
+        modified: ChatTemplateObject.Properties.modified.asProperty(),
+        removed: ChatTemplateObject.Properties.removed.asProperty()
+    )
+
+    package func encodePayload() throws -> Data {
+        try Storage.encodePayloadSyncable(self)
+    }
+
+    package static func decodePayload(_ data: Data) throws -> Self {
+        try Storage.decodePayloadSyncable(Self.self, data)
+    }
 }
 
 package extension Storage {
@@ -157,6 +185,8 @@ package extension Storage {
             try handleRemoteUpsertModelContextServer(serverRecord: serverRecord, handle: handle)
         case Memory.tableName:
             try handleRemoteUpsertMemory(serverRecord: serverRecord, handle: handle)
+        case ChatTemplateObject.tableName:
+            try handleRemoteUpsertChatTemplate(serverRecord: serverRecord, handle: handle)
         default:
             break
         }
@@ -374,5 +404,37 @@ package extension Storage {
 
         // 云端最新的
         try? handle.insertOrReplace([remoteObject], intoTable: Memory.tableName)
+    }
+
+    private func handleRemoteUpsertChatTemplate(serverRecord: CKRecord, handle: Handle) throws {
+        guard let payload = serverRecord.payloadData else { return }
+
+        guard let remoteObject = try? ChatTemplateObject.decodePayload(payload) else {
+            Logger.syncEngine.error("handleRemoteUpsertChatTemplate decodePayload fail")
+            return
+        }
+
+        let localObject: ChatTemplateObject? = try? handle.getObject(
+            fromTable: ChatTemplateObject.tableName,
+            where: ChatTemplateObject.Properties.objectId == remoteObject.objectId
+        )
+
+        guard let localObject else {
+            try? handle.insertOrReplace([remoteObject], intoTable: ChatTemplateObject.tableName)
+            return
+        }
+
+        let localMilliseconds = localObject.modified.millisecondsSince1970
+        let lastModifiedMilliseconds = serverRecord.lastModifiedMilliseconds
+        if localMilliseconds == lastModifiedMilliseconds {
+            return
+        }
+
+        if localMilliseconds > lastModifiedMilliseconds {
+            try? pendingUploadEnqueue(sources: [(localObject, .update)], skipEnqueueHandler: true, handle: handle)
+            return
+        }
+
+        try? handle.insertOrReplace([remoteObject], intoTable: ChatTemplateObject.tableName)
     }
 }

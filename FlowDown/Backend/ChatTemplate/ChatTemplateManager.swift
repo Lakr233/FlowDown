@@ -5,8 +5,8 @@
 //  Created by 秋星桥 on 6/28/25.
 //
 
+import Combine
 import ChatClientKit
-import ConfigurableKit
 import Foundation
 import OrderedCollections
 import Storage
@@ -16,34 +16,44 @@ import XMLCoder
 class ChatTemplateManager {
     static let shared = ChatTemplateManager()
 
-    let templateSaveQueue = DispatchQueue(label: "ChatTemplateManager.SaveQueue")
-
-    @Published var templates: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:] {
-        didSet {
-            templateSaveQueue.async {
-                guard let data = try? PropertyListEncoder().encode(self.templates) else {
-                    assertionFailure()
-                    return
-                }
-                UserDefaults.standard.set(data, forKey: "ChatTemplates")
-            }
-        }
-    }
+    @Published private(set) var templates: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:]
+    private var templateRecords: OrderedDictionary<ChatTemplate.ID, ChatTemplateObject> = [:]
+    private var cancellables = Set<AnyCancellable>()
 
     private init() {
-        let data = UserDefaults.standard.data(forKey: "ChatTemplates") ?? Data()
-        if let decoded = try? PropertyListDecoder().decode(
-            OrderedDictionary<ChatTemplate.ID, ChatTemplate>.self,
-            from: data
-        ) {
-            Logger.model.infoFile("loaded \(decoded.count) chat templates")
-            templates = decoded
-        }
+        migrateLegacyTemplatesIfNeeded()
+        reloadTemplatesFromStorage()
+
+        NotificationCenter.default.publisher(for: SyncEngine.ChatTemplateChanged)
+            .debounce(for: .seconds(1), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.reloadTemplatesFromStorage()
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: SyncEngine.LocalDataDeleted)
+            .sink { [weak self] _ in
+                self?.reloadTemplatesFromStorage()
+            }
+            .store(in: &cancellables)
     }
 
     func addTemplate(_ template: ChatTemplate) {
         assert(Thread.isMainThread)
-        templates[template.id] = template
+        let object = ChatTemplateObject(deviceId: Storage.deviceId)
+        object.objectId = template.id.uuidString
+        object.name = template.name
+        object.avatar = template.avatar
+        object.prompt = template.prompt
+        object.inheritApplicationPrompt = template.inheritApplicationPrompt
+        object.sortIndex = nextSortIndex()
+        let now = Date.now
+        object.creation = now
+        object.markModified(now)
+        object.removed = false
+
+        sdb.chatTemplateSave(object)
+        reloadTemplatesFromStorage()
     }
 
     func template(for itemIdentifier: ChatTemplate.ID) -> ChatTemplate? {
@@ -54,30 +64,52 @@ class ChatTemplateManager {
     func update(_ template: ChatTemplate) {
         assert(Thread.isMainThread)
         assert(templates[template.id] != nil)
-        templates[template.id] = template
+        guard let object = templateRecords[template.id] else {
+            assertionFailure("Missing storage record for template \(template.id)")
+            return
+        }
+
+        object.name = template.name
+        object.avatar = template.avatar
+        object.prompt = template.prompt
+        object.inheritApplicationPrompt = template.inheritApplicationPrompt
+        object.markModified()
+
+        sdb.chatTemplateSave(object)
+        reloadTemplatesFromStorage()
     }
 
     func remove(_ template: ChatTemplate) {
         assert(Thread.isMainThread)
-        assert(templates[template.id] != nil)
-        templates.removeValue(forKey: template.id)
+        guard let object = templateRecords[template.id] else { return }
+        sdb.chatTemplateMarkDelete(identifier: object.objectId)
+        reloadTemplatesFromStorage()
     }
 
     func remove(for itemIdentifier: ChatTemplate.ID) {
         assert(Thread.isMainThread)
-        assert(templates[itemIdentifier] != nil)
-        templates.removeValue(forKey: itemIdentifier)
+        guard let object = templateRecords[itemIdentifier] else { return }
+        sdb.chatTemplateMarkDelete(identifier: object.objectId)
+        reloadTemplatesFromStorage()
     }
 
     func reorderTemplates(_ orderedIDs: [ChatTemplate.ID]) {
         assert(Thread.isMainThread)
-        var newTemplates: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:]
-        for id in orderedIDs {
-            if let template = templates[id] {
-                newTemplates[id] = template
+        guard !orderedIDs.isEmpty else { return }
+
+        var updates: [ChatTemplateObject] = []
+        for (index, id) in orderedIDs.enumerated() {
+            guard let object = templateRecords[id] else { continue }
+            if object.sortIndex != index {
+                object.sortIndex = index
+                object.markModified()
+                updates.append(object)
             }
         }
-        templates = newTemplates
+
+        guard !updates.isEmpty else { return }
+        sdb.chatTemplateSave(updates)
+        reloadTemplatesFromStorage()
     }
 
     func createConversationFromTemplate(_ template: ChatTemplate) -> Conversation.ID {
@@ -330,6 +362,75 @@ class ChatTemplateManager {
             prompt: prompt,
             inheritApplicationPrompt: inheritAppPrompt
         )
+    }
+}
+
+private extension ChatTemplateManager {
+    func reloadTemplatesFromStorage() {
+        assert(Thread.isMainThread)
+        let objects = sdb.chatTemplateList()
+
+        var records: OrderedDictionary<ChatTemplate.ID, ChatTemplateObject> = [:]
+        var mapped: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:]
+
+        for object in objects {
+            guard let uuid = UUID(uuidString: object.objectId) else {
+                Logger.database.error("Invalid ChatTemplate objectId: \(object.objectId)")
+                continue
+            }
+
+            records[uuid] = object
+            mapped[uuid] = ChatTemplate(
+                id: uuid,
+                name: object.name,
+                avatar: object.avatar,
+                prompt: object.prompt,
+                inheritApplicationPrompt: object.inheritApplicationPrompt
+            )
+        }
+
+        templateRecords = records
+        templates = mapped
+    }
+
+    func nextSortIndex() -> Int {
+        templateRecords.values.map(\.sortIndex).max().map { $0 + 1 } ?? 0
+    }
+
+    func migrateLegacyTemplatesIfNeeded() {
+        let existing = sdb.chatTemplateList(includeRemoved: true)
+        guard existing.isEmpty else { return }
+
+        guard let data = UserDefaults.standard.data(forKey: "ChatTemplates"),
+              let decoded = try? PropertyListDecoder().decode(
+                  OrderedDictionary<ChatTemplate.ID, ChatTemplate>.self,
+                  from: data
+              ),
+              !decoded.isEmpty
+        else {
+            return
+        }
+
+        let now = Date.now
+        var objects: [ChatTemplateObject] = []
+        for (index, pair) in decoded.enumerated() {
+            let (identifier, template) = pair
+            let object = ChatTemplateObject(deviceId: Storage.deviceId)
+            object.objectId = identifier.uuidString
+            object.name = template.name
+            object.avatar = template.avatar
+            object.prompt = template.prompt
+            object.inheritApplicationPrompt = template.inheritApplicationPrompt
+            object.sortIndex = index
+            object.creation = now
+            object.markModified(now)
+            object.removed = false
+            objects.append(object)
+        }
+
+        sdb.chatTemplateSave(objects)
+        UserDefaults.standard.removeObject(forKey: "ChatTemplates")
+        Logger.database.info("Migrated legacy chat templates: \(objects.count, privacy: .public)")
     }
 }
 

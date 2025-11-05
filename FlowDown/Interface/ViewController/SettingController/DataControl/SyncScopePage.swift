@@ -42,6 +42,13 @@ final class SyncScopePage: StackScrollController {
         )
 
         addGroupToggle(
+            icon: "list.bullet.rectangle",
+            title: String(localized: "Chat Templates"),
+            desc: String(localized: "Sync saved prompt templates across devices."),
+            group: .templates
+        )
+
+        addGroupToggle(
             icon: "brain.head.profile",
             title: "Memory",
             desc: "Sync your AI memory entries.",
