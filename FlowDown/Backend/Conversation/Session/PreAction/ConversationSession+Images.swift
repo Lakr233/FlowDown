@@ -74,7 +74,7 @@ extension ConversationSession {
         try await Task.sleep(for: .seconds(0.5)) // for animation
 
         var llmText = ""
-        let message = appendNewMessage(role: .assistant)
+        let message = appendNewMessage(role: .assistant, modelIdentifier: decision)
         for try await resp in try await ModelManager.shared.streamingInfer(
             with: decision,
             input: messages

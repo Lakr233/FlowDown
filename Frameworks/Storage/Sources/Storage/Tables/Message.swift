@@ -32,6 +32,7 @@ public final class Message: Identifiable, Codable, TableNamed, DeviceOwned, Tabl
     public package(set) var documentNodes: [MarkdownBlockNode] = []
     public package(set) var webSearchStatus: WebSearchStatus = .init()
     public package(set) var toolStatus: ToolStatus = .init()
+    public package(set) var modelIdentifier: String = ""
 
     public package(set) var removed: Bool = false
     public package(set) var modified: Date = .now
@@ -58,6 +59,7 @@ public final class Message: Identifiable, Codable, TableNamed, DeviceOwned, Tabl
             BindColumnConstraint(documentNodes, isNotNull: true, defaultTo: [MarkdownBlockNode]())
             BindColumnConstraint(webSearchStatus, isNotNull: true, defaultTo: WebSearchStatus())
             BindColumnConstraint(toolStatus, isNotNull: true, defaultTo: ToolStatus())
+            BindColumnConstraint(modelIdentifier, isNotNull: true, defaultTo: "")
             BindColumnConstraint(metadata, isNotNull: false)
 
             BindIndex(creation, namedWith: "_creationIndex")
@@ -77,6 +79,7 @@ public final class Message: Identifiable, Codable, TableNamed, DeviceOwned, Tabl
         case documentNodes
         case webSearchStatus
         case toolStatus
+        case modelIdentifier
 
         case removed
         case modified
@@ -264,6 +267,7 @@ extension Message: Equatable {
             lhs.isThinkingFold == rhs.isThinkingFold &&
             lhs.document == rhs.document &&
             lhs.webSearchStatus == rhs.webSearchStatus &&
+            lhs.modelIdentifier == rhs.modelIdentifier &&
             lhs.removed == rhs.removed &&
             lhs.modified == rhs.modified
     }
@@ -281,7 +285,7 @@ extension Message: Hashable {
         hasher.combine(isThinkingFold)
         hasher.combine(document)
         hasher.combine(webSearchStatus)
-
+        hasher.combine(modelIdentifier)
         hasher.combine(removed)
         hasher.combine(modified)
     }

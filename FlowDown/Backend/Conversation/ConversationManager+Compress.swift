@@ -56,6 +56,7 @@ extension ConversationManager {
             $0.update(\.shouldAutoRename, to: true)
         }
         let sess = ConversationSessionManager.shared.session(for: conv.id)
+        sess.models.chat = model
 
         sess.appendNewMessage(role: .hint) {
             $0.update(\.document, to: String(localized: "This conversation is created by compressing \"\(title)\"."))
@@ -97,7 +98,7 @@ extension ConversationManager {
                     with: model,
                     input: messageBody
                 )
-                let mess = sess.appendNewMessage(role: .assistant)
+                let mess = sess.appendNewMessage(role: .assistant, modelIdentifier: model)
                 for try await resp in stream where !resp.content.isEmpty {
                     mess.update(\.document, to: resp.content)
                     sess.notifyMessagesDidChange()
@@ -108,7 +109,7 @@ extension ConversationManager {
                 await MainActor.run { completion(.success(conv.id)) }
             } catch {
                 await MainActor.run {
-                    sess.appendNewMessage(role: .assistant) {
+                    sess.appendNewMessage(role: .assistant, modelIdentifier: model) {
                         $0.update(
                             \.document,
                             to: String(localized: "An error occurred during compression: \(error.localizedDescription)")

@@ -73,7 +73,7 @@ extension ConversationManager {
                     """
                 )
 
-                session.appendNewMessage(role: .assistant) {
+                session.appendNewMessage(role: .assistant, modelIdentifier: "") {
                     $0.update(\.document, to: guide)
                 }
                 session.save()

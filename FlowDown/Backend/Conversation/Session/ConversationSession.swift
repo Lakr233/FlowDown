@@ -93,13 +93,30 @@ final class ConversationSession: Identifiable {
 
     /// Appends a new message to the conversation.
     @discardableResult
-    func appendNewMessage(role: Message.Role, _ block: Storage.MessageMakeInitDataBlock? = nil) -> Message {
+    func appendNewMessage(
+        role: Message.Role,
+        modelIdentifier explicitModelIdentifier: ModelManager.ModelIdentifier? = nil,
+        _ block: Storage.MessageMakeInitDataBlock? = nil
+    ) -> Message {
+        let resolvedModelIdentifier: ModelManager.ModelIdentifier? = {
+            if let explicitModelIdentifier, !explicitModelIdentifier.isEmpty {
+                return explicitModelIdentifier
+            }
+            if role == .assistant {
+                return models.chat
+            }
+            return nil
+        }()
+
         let message = sdb.makeMessage(with: id) {
             if let block {
                 block($0)
             }
 
             $0.update(\.role, to: role)
+            if let resolvedModelIdentifier, !resolvedModelIdentifier.isEmpty {
+                $0.update(\.modelIdentifier, to: resolvedModelIdentifier)
+            }
         }
 
         messages.append(message)

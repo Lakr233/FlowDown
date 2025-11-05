@@ -113,7 +113,11 @@ extension MessageListView: ListViewAdapter {
                 let package = markdownPackageCache.package(for: message, theme: theme)
                 markdownViewForSizeCalculation.setMarkdownManually(package)
                 let boundingSize = markdownViewForSizeCalculation.boundingSize(for: containerWidth)
-                return ceil(boundingSize.height)
+                var height = ceil(boundingSize.height)
+                if let displayName = message.modelDisplayName {
+                    height += AiMessageView.badgeHeight(for: displayName, theme: theme, availableWidth: containerWidth)
+                }
+                return height
             case .hint:
                 return ceil(theme.fonts.footnote.lineHeight + 16)
             case .webSearchContent:
@@ -160,6 +164,7 @@ extension MessageListView: ListViewAdapter {
         } else if let aiMessageView = rowView as? AiMessageView {
             if case let .aiContent(_, message) = entry {
                 aiMessageView.theme = theme
+                aiMessageView.modelName = message.modelDisplayName
                 let package = markdownPackageCache.package(for: message, theme: theme)
                 aiMessageView.markdownView.setMarkdown(package)
                 aiMessageView.linkTapHandler = { [weak self] link, range, touchLocation in

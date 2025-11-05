@@ -128,7 +128,7 @@ extension ConversationSession {
             saveIfNeeded(object)
         } catch {
             logger.error("\(error.localizedDescription)")
-            let errorMessage = appendNewMessage(role: .assistant)
+            let errorMessage = appendNewMessage(role: .assistant, modelIdentifier: modelID)
             errorMessage.update(\.document, to: "*\(error.localizedDescription)*")
             await requestUpdate(view: currentMessageListView)
             await requestUpdate(view: currentMessageListView)
