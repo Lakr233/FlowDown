@@ -48,6 +48,8 @@ extension MessageListView {
         var isRevealed: Bool
         var isThinking: Bool
         var thinkingDuration: TimeInterval
+        var modelIdentifier: String?
+        var modelDisplayName: String?
 
         init(from message: Message) {
             id = message.objectId
@@ -57,6 +59,14 @@ extension MessageListView {
             isRevealed = true
             isThinking = false
             thinkingDuration = 0
+            modelIdentifier = message.modelIdentifier
+            if let identifier = modelIdentifier {
+                let displayName = ModelManager.shared.modelName(identifier: identifier)
+                let trimmedDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+                modelDisplayName = trimmedDisplayName.isEmpty || trimmedDisplayName == "-" ? nil : trimmedDisplayName
+            } else {
+                modelDisplayName = nil
+            }
         }
     }
 

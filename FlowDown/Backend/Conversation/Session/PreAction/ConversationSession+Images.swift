@@ -75,6 +75,7 @@ extension ConversationSession {
 
         var llmText = ""
         let message = appendNewMessage(role: .assistant)
+        message.modelIdentifier = decision
         for try await resp in try await ModelManager.shared.streamingInfer(
             with: decision,
             input: messages

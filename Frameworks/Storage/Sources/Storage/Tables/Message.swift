@@ -92,6 +92,78 @@ public final class Message: Identifiable, Codable, TableNamed, DeviceOwned, Tabl
     }
 }
 
+public extension Message {
+    private struct MetadataPayload: Codable, Equatable {
+        var modelIdentifier: String?
+
+        var isEmpty: Bool {
+            if let modelIdentifier,
+               !modelIdentifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            {
+                return false
+            }
+            return true
+        }
+    }
+
+    private static let metadataDecoder: JSONDecoder = .init()
+    private static let metadataEncoder: JSONEncoder = .init()
+
+    private var currentMetadataPayload: MetadataPayload {
+        guard
+            let metadata,
+            !metadata.isEmpty,
+            let payload = try? Self.metadataDecoder.decode(MetadataPayload.self, from: metadata)
+        else {
+            return .init()
+        }
+        return payload
+    }
+
+    private func updateMetadataPayload(_ transform: (inout MetadataPayload) -> Void) {
+        var payload = currentMetadataPayload
+        let previous = payload
+        transform(&payload)
+
+        if payload == previous {
+            return
+        }
+
+        if payload.isEmpty {
+            if metadata != nil {
+                metadata = nil
+                markModified()
+            }
+            return
+        }
+
+        guard let data = try? Self.metadataEncoder.encode(payload) else {
+            return
+        }
+
+        metadata = data
+        markModified()
+    }
+
+    var modelIdentifier: String? {
+        get {
+            let identifier = currentMetadataPayload.modelIdentifier?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let identifier, !identifier.isEmpty else { return nil }
+            return identifier
+        }
+        set {
+            updateMetadataPayload { payload in
+                let trimmed = newValue?.trimmingCharacters(in: .whitespacesAndNewlines)
+                payload.modelIdentifier = {
+                    guard let trimmed, !trimmed.isEmpty else { return nil }
+                    return trimmed
+                }()
+            }
+        }
+    }
+}
+
 extension Message: Updatable {
     @discardableResult
     public func update<Value: Equatable>(_ keyPath: ReferenceWritableKeyPath<Message, Value>, to newValue: Value) -> Bool {

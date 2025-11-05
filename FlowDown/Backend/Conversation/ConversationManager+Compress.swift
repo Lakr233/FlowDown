@@ -98,6 +98,7 @@ extension ConversationManager {
                     input: messageBody
                 )
                 let mess = sess.appendNewMessage(role: .assistant)
+                mess.modelIdentifier = model
                 for try await resp in stream where !resp.content.isEmpty {
                     mess.update(\.document, to: resp.content)
                     sess.notifyMessagesDidChange()
@@ -108,12 +109,13 @@ extension ConversationManager {
                 await MainActor.run { completion(.success(conv.id)) }
             } catch {
                 await MainActor.run {
-                    sess.appendNewMessage(role: .assistant) {
+                    let message = sess.appendNewMessage(role: .assistant) {
                         $0.update(
                             \.document,
                             to: String(localized: "An error occurred during compression: \(error.localizedDescription)")
                         )
                     }
+                    message.modelIdentifier = model
                     sess.notifyMessagesDidChange()
                     sess.save()
                     completion(.failure(error))

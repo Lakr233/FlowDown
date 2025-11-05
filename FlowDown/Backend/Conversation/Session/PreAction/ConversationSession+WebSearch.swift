@@ -482,18 +482,20 @@ extension ConversationSession {
 
         if let required = searchRequired, !required {
             Logger.network.infoFile("model determined no web search is needed")
-            _ = appendNewMessage(role: .assistant) {
+            let message = appendNewMessage(role: .assistant) {
                 $0.update(\.document, to: String(localized: "I have determined that no web search is needed for this query."))
             }
+            message.modelIdentifier = models.auxiliary
             await requestUpdate(view: currentMessageListView)
             return
         }
 
         guard !searchQueries.isEmpty else {
             Logger.network.errorFile("failed to generate search queries")
-            _ = appendNewMessage(role: .assistant) {
+            let message = appendNewMessage(role: .assistant) {
                 $0.update(\.document, to: String(localized: "I was unable to generate appropriate search queries for this request."))
             }
+            message.modelIdentifier = models.auxiliary
             await requestUpdate(view: currentMessageListView)
             return
         }

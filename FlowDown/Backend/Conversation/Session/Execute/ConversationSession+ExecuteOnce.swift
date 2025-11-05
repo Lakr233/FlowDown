@@ -24,6 +24,7 @@ extension ConversationSession {
         await currentMessageListView.loading()
 
         let message = appendNewMessage(role: .assistant)
+        message.modelIdentifier = modelID
 
         let stream = try await ModelManager.shared.streamingInfer(
             with: modelID,
