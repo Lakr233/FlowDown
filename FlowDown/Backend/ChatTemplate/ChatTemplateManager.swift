@@ -16,34 +16,44 @@ import XMLCoder
 class ChatTemplateManager {
     static let shared = ChatTemplateManager()
 
-    let templateSaveQueue = DispatchQueue(label: "ChatTemplateManager.SaveQueue")
+    @Published private(set) var templates: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:]
 
-    @Published var templates: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:] {
-        didSet {
-            templateSaveQueue.async {
-                guard let data = try? PropertyListEncoder().encode(self.templates) else {
-                    assertionFailure()
-                    return
-                }
-                UserDefaults.standard.set(data, forKey: "ChatTemplates")
-            }
-        }
+    private let storage: Storage
+    private var observers: [Any] = []
+    private var cachedRecords: [ChatTemplate.ID: ChatTemplateRecord] = [:]
+    private var maxSortIndex: Int = -1
+
+    private init(storage: Storage = sdb) {
+        self.storage = storage
+        migrateLegacyTemplatesIfNeeded()
+        reloadFromStorage()
+        registerObservers()
     }
 
-    private init() {
-        let data = UserDefaults.standard.data(forKey: "ChatTemplates") ?? Data()
-        if let decoded = try? PropertyListDecoder().decode(
-            OrderedDictionary<ChatTemplate.ID, ChatTemplate>.self,
-            from: data
-        ) {
-            Logger.model.infoFile("loaded \(decoded.count) chat templates")
-            templates = decoded
-        }
+    deinit {
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
     }
 
     func addTemplate(_ template: ChatTemplate) {
         assert(Thread.isMainThread)
-        templates[template.id] = template
+        let sortIndex = nextSortIndex()
+        let record = ChatTemplateRecord(
+            objectId: template.id.uuidString,
+            deviceId: Storage.deviceId,
+            name: template.name,
+            prompt: template.prompt,
+            inheritApplicationPrompt: template.inheritApplicationPrompt,
+            avatarData: template.avatar,
+            sortIndex: sortIndex,
+            creation: .now
+        )
+
+        do {
+            try storage.insertChatTemplate(record)
+            reloadFromStorage()
+        } catch {
+            Logger.model.errorFile("Failed to insert chat template: \(error.localizedDescription)")
+        }
     }
 
     func template(for itemIdentifier: ChatTemplate.ID) -> ChatTemplate? {
@@ -53,31 +63,211 @@ class ChatTemplateManager {
 
     func update(_ template: ChatTemplate) {
         assert(Thread.isMainThread)
-        assert(templates[template.id] != nil)
-        templates[template.id] = template
+        guard let existing = cachedRecords[template.id] else {
+            Logger.model.errorFile("Attempted to update unknown template \(template.id)")
+            return
+        }
+
+        let record = ChatTemplateRecord(
+            objectId: existing.objectId,
+            deviceId: existing.deviceId,
+            name: template.name,
+            prompt: template.prompt,
+            inheritApplicationPrompt: template.inheritApplicationPrompt,
+            avatarData: template.avatar,
+            sortIndex: existing.sortIndex,
+            creation: existing.creation,
+            modified: existing.modified,
+            removed: false
+        )
+
+        do {
+            try storage.updateChatTemplate(record)
+            reloadFromStorage()
+        } catch {
+            Logger.model.errorFile("Failed to update chat template: \(error.localizedDescription)")
+        }
     }
 
     func remove(_ template: ChatTemplate) {
         assert(Thread.isMainThread)
-        assert(templates[template.id] != nil)
-        templates.removeValue(forKey: template.id)
+        remove(for: template.id)
     }
 
     func remove(for itemIdentifier: ChatTemplate.ID) {
         assert(Thread.isMainThread)
-        assert(templates[itemIdentifier] != nil)
-        templates.removeValue(forKey: itemIdentifier)
+        do {
+            try storage.markChatTemplateRemoved(id: itemIdentifier.uuidString)
+            reloadFromStorage()
+        } catch {
+            Logger.model.errorFile("Failed to remove chat template: \(error.localizedDescription)")
+        }
     }
 
     func reorderTemplates(_ orderedIDs: [ChatTemplate.ID]) {
         assert(Thread.isMainThread)
-        var newTemplates: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:]
-        for id in orderedIDs {
-            if let template = templates[id] {
-                newTemplates[id] = template
+        guard !orderedIDs.isEmpty else { return }
+
+        var orderMap: [String: Int] = [:]
+        for (index, identifier) in orderedIDs.enumerated() {
+            orderMap[identifier.uuidString] = index
+        }
+
+        do {
+            try storage.updateChatTemplateOrders(orderMap)
+            reloadFromStorage()
+        } catch {
+            Logger.model.errorFile("Failed to reorder chat templates: \(error.localizedDescription)")
+        }
+    }
+
+    private func migrateLegacyTemplatesIfNeeded() {
+        let defaults = UserDefaults.standard
+        let legacyKey = "ChatTemplates"
+
+        do {
+            let existing = try storage.fetchAllChatTemplates(includeRemoved: true)
+            if !existing.isEmpty {
+                defaults.removeObject(forKey: legacyKey)
+                return
+            }
+        } catch {
+            Logger.model.errorFile("Failed to inspect existing templates: \(error.localizedDescription)")
+            return
+        }
+
+        guard let data = defaults.data(forKey: legacyKey), !data.isEmpty else {
+            return
+        }
+
+        do {
+            let legacyTemplates = try PropertyListDecoder().decode(
+                OrderedDictionary<ChatTemplate.ID, ChatTemplate>.self,
+                from: data
+            )
+
+            guard !legacyTemplates.isEmpty else {
+                defaults.removeObject(forKey: legacyKey)
+                return
+            }
+
+            var records: [ChatTemplateRecord] = []
+            let now = Date.now
+            for (index, element) in legacyTemplates.enumerated() {
+                let (identifier, template) = element
+                let record = ChatTemplateRecord(
+                    objectId: identifier.uuidString,
+                    deviceId: Storage.deviceId,
+                    name: template.name,
+                    prompt: template.prompt,
+                    inheritApplicationPrompt: template.inheritApplicationPrompt,
+                    avatarData: template.avatar,
+                    sortIndex: index,
+                    creation: now
+                )
+                records.append(record)
+            }
+
+            if !records.isEmpty {
+                try storage.insertChatTemplates(records)
+            }
+
+            defaults.removeObject(forKey: legacyKey)
+            Logger.model.infoFile("Migrated legacy chat templates: \(records.count)")
+        } catch {
+            Logger.model.errorFile("Failed to migrate legacy templates: \(error.localizedDescription)")
+        }
+    }
+
+    private func registerObservers() {
+        let center = NotificationCenter.default
+
+        let templateObserver = center.addObserver(
+            forName: SyncEngine.ChatTemplateChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.reloadFromStorage()
+        }
+        observers.append(templateObserver)
+
+        let localDeletionObserver = center.addObserver(
+            forName: SyncEngine.LocalDataDeleted,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.reloadFromStorage()
+        }
+        observers.append(localDeletionObserver)
+
+        let serverDeletionObserver = center.addObserver(
+            forName: SyncEngine.ServerDataDeleted,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let success = notification.userInfo?["success"] as? Bool else {
+                self?.reloadFromStorage()
+                return
+            }
+
+            if success {
+                self?.reloadFromStorage()
             }
         }
-        templates = newTemplates
+        observers.append(serverDeletionObserver)
+    }
+
+    private func reloadFromStorage() {
+        assert(Thread.isMainThread)
+        do {
+            let records = try storage.fetchAllChatTemplates()
+            var ordered: OrderedDictionary<ChatTemplate.ID, ChatTemplate> = [:]
+            var newCache: [ChatTemplate.ID: ChatTemplateRecord] = [:]
+            var newMax = -1
+
+            for record in records {
+                guard let template = template(from: record) else { continue }
+                ordered[template.id] = template
+                let copy = ChatTemplateRecord(
+                    objectId: record.objectId,
+                    deviceId: record.deviceId,
+                    name: record.name,
+                    prompt: record.prompt,
+                    inheritApplicationPrompt: record.inheritApplicationPrompt,
+                    avatarData: record.avatarData,
+                    sortIndex: record.sortIndex,
+                    creation: record.creation,
+                    modified: record.modified,
+                    removed: record.removed
+                )
+                newCache[template.id] = copy
+                newMax = max(newMax, record.sortIndex)
+            }
+
+            cachedRecords = newCache
+            maxSortIndex = newMax
+            templates = ordered
+        } catch {
+            Logger.model.errorFile("Failed to reload chat templates: \(error.localizedDescription)")
+        }
+    }
+
+    private func template(from record: ChatTemplateRecord) -> ChatTemplate? {
+        guard let identifier = UUID(uuidString: record.objectId) else {
+            return nil
+        }
+
+        return ChatTemplate(
+            id: identifier,
+            name: record.name,
+            avatar: record.avatarData,
+            prompt: record.prompt,
+            inheritApplicationPrompt: record.inheritApplicationPrompt
+        )
+    }
+
+    private func nextSortIndex() -> Int {
+        maxSortIndex + 1
     }
 
     func createConversationFromTemplate(_ template: ChatTemplate) -> Conversation.ID {

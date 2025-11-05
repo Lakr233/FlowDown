@@ -17,6 +17,7 @@ public enum SyncPreferences {
     private static let groupMemoryKey = "com.flowdown.storage.sync.group.memory"
     private static let groupMCPKey = "com.flowdown.storage.sync.group.mcp"
     private static let groupModelsKey = "com.flowdown.storage.sync.group.models"
+    private static let groupTemplatesKey = "com.flowdown.storage.sync.group.templates"
 
     // MARK: - Manual Mode
 
@@ -32,6 +33,7 @@ public enum SyncPreferences {
         case memory // Memory
         case mcp // ModelContextServer
         case models // CloudModel
+        case templates // ChatTemplateRecord
     }
 
     public static func isGroupEnabled(_ group: Group) -> Bool {
@@ -44,6 +46,8 @@ public enum SyncPreferences {
             UserDefaults.standard.object(forKey: groupMCPKey) as? Bool ?? true
         case .models:
             UserDefaults.standard.object(forKey: groupModelsKey) as? Bool ?? true
+        case .templates:
+            UserDefaults.standard.object(forKey: groupTemplatesKey) as? Bool ?? true
         }
     }
 
@@ -53,6 +57,7 @@ public enum SyncPreferences {
         case .memory: groupMemoryKey
         case .mcp: groupMCPKey
         case .models: groupModelsKey
+        case .templates: groupTemplatesKey
         }
         UserDefaults.standard.set(enabled, forKey: key)
     }
@@ -68,6 +73,8 @@ public enum SyncPreferences {
             .mcp
         case CloudModel.tableName:
             .models
+        case ChatTemplateRecord.tableName:
+            .templates
         default:
             nil
         }
@@ -100,6 +107,10 @@ public enum SyncPreferences {
 
         if SyncPreferences.isGroupEnabled(.mcp) {
             tables.append(ModelContextServer.tableName)
+        }
+
+        if SyncPreferences.isGroupEnabled(.templates) {
+            tables.append(ChatTemplateRecord.tableName)
         }
 
         return tables

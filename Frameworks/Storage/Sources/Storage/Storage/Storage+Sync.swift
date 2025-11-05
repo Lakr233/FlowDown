@@ -55,6 +55,8 @@ package extension Storage {
             try handleRemoteDeletedModelContextServer(objectId: objectId, handle: handle)
         case Memory.tableName:
             try handleRemoteDeletedMemory(objectId: objectId, handle: handle)
+        case ChatTemplateRecord.tableName:
+            try handleRemoteDeletedChatTemplate(objectId: objectId, handle: handle)
         default:
             break
         }
@@ -113,6 +115,15 @@ package extension Storage {
 
         Logger.syncEngine.info("handleRemoteDeletedMemory \(objectId)")
     }
+
+    private func handleRemoteDeletedChatTemplate(objectId: String, handle: Handle) throws {
+        try handle.delete(
+            fromTable: ChatTemplateRecord.tableName,
+            where: ChatTemplateRecord.Properties.objectId == objectId
+        )
+
+        Logger.syncEngine.info("handleRemoteDeletedChatTemplate \(objectId)")
+    }
 }
 
 package extension Storage {
@@ -157,6 +168,8 @@ package extension Storage {
             try handleRemoteUpsertModelContextServer(serverRecord: serverRecord, handle: handle)
         case Memory.tableName:
             try handleRemoteUpsertMemory(serverRecord: serverRecord, handle: handle)
+        case ChatTemplateRecord.tableName:
+            try handleRemoteUpsertChatTemplate(serverRecord: serverRecord, handle: handle)
         default:
             break
         }
@@ -222,7 +235,7 @@ package extension Storage {
 
         if localMilliseconds > lastModifiedMilliseconds {
             // 本地是最新的
-            try? pendingUploadEnqueue(sources: [(localObject, .update)], skipEnqueueHandler: true, handle: handle)
+            try? pendingUploadEnqueue(sources: [(source: localObject, changes: .update)], skipEnqueueHandler: true, handle: handle)
             return
         }
 
@@ -374,5 +387,39 @@ package extension Storage {
 
         // 云端最新的
         try? handle.insertOrReplace([remoteObject], intoTable: Memory.tableName)
+    }
+
+    private func handleRemoteUpsertChatTemplate(serverRecord: CKRecord, handle: Handle) throws {
+        guard let payload = serverRecord.payloadData else { return }
+
+        guard let remoteObject = try? ChatTemplateRecord.decodePayload(payload) else {
+            Logger.syncEngine.error("handleRemoteUpsertChatTemplate decodePayload fail")
+            return
+        }
+
+        let localObject: ChatTemplateRecord? = try? handle.getObject(
+            fromTable: ChatTemplateRecord.tableName,
+            where: ChatTemplateRecord.Properties.objectId == remoteObject.objectId
+        )
+
+        guard let localObject else {
+            try? handle.insertOrReplace([remoteObject], intoTable: ChatTemplateRecord.tableName)
+            return
+        }
+
+        let localMilliseconds = localObject.modified.millisecondsSince1970
+        let lastModifiedMilliseconds = serverRecord.lastModifiedMilliseconds
+        if localMilliseconds == lastModifiedMilliseconds {
+            return
+        }
+
+        if localMilliseconds > lastModifiedMilliseconds {
+            // 本地是最新的
+            try? pendingUploadEnqueue(sources: [(localObject, .update)], skipEnqueueHandler: true, handle: handle)
+            return
+        }
+
+        // 云端最新的
+        try? handle.insertOrReplace([remoteObject], intoTable: ChatTemplateRecord.tableName)
     }
 }

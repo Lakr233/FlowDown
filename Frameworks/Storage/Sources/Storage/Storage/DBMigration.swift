@@ -391,6 +391,7 @@ struct MigrationV1ToV2: DBMigration {
             Message.self,
             Attachment.self,
             Memory.self,
+            ChatTemplateRecord.self,
         ]
 
         let row = try db.getRow(on: UploadQueue.Properties.id.max(), fromTable: UploadQueue.tableName)
@@ -500,6 +501,24 @@ struct MigrationV3ToV4: DBMigration {
 
         // Add bodyFields column to CloudModel table
         try db.create(table: CloudModel.tableName, of: CloudModel.self)
+
+        try db.exec(StatementPragma().pragma(.userVersion).to(toVersion.rawValue))
+
+        let elapsed = Date.now.timeIntervalSince(start) * 1000.0
+        Logger.database.info("[*] migrate version \(fromVersion.rawValue) -> \(toVersion.rawValue) end elapsed \(Int(elapsed), privacy: .public)ms")
+    }
+}
+
+struct MigrationV4ToV5: DBMigration {
+    let fromVersion: DBVersion = .Version4
+    let toVersion: DBVersion = .Version5
+    let requiresDataMigration: Bool = false
+
+    func migrate(db: Database) throws {
+        let start = Date.now
+        Logger.database.info("[*] migrate version \(fromVersion.rawValue) -> \(toVersion.rawValue) begin")
+
+        try db.create(table: ChatTemplateRecord.tableName, of: ChatTemplateRecord.self)
 
         try db.exec(StatementPragma().pragma(.userVersion).to(toVersion.rawValue))
 

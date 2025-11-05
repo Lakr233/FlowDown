@@ -62,6 +62,13 @@ final class SyncScopePage: StackScrollController {
             group: .models
         )
 
+        addGroupToggle(
+            icon: "doc.on.doc",
+            title: "Chat Templates",
+            desc: "Sync your saved chat templates across devices.",
+            group: .templates
+        )
+
         stackView.addArrangedSubviewWithMargin(
             ConfigurableSectionHeaderView().with(
                 header: "Shortcuts"
