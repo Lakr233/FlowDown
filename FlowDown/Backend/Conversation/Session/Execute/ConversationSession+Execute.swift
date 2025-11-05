@@ -17,6 +17,8 @@ extension ConversationSession {
         modelID: ModelManager.ModelIdentifier,
         currentMessageListView: MessageListView,
         inputObject: RichEditorView.Object,
+        contextLimitMessageID: Message.ID? = nil,
+        reuseUserMessageID: Message.ID? = nil,
         completion: @escaping () -> Void
     ) {
         cancelCurrentTask { [self] in
@@ -56,7 +58,9 @@ extension ConversationSession {
                 await doInfereExecute(
                     modelID: modelID,
                     currentMessageListView: currentMessageListView,
-                    inputObject: inputObject
+                    inputObject: inputObject,
+                    contextLimitMessageID: contextLimitMessageID,
+                    reuseUserMessageID: reuseUserMessageID
                 )
                 self.currentTask = nil
                 // Check if there's a pending refresh after task completion
@@ -83,7 +87,9 @@ extension ConversationSession {
     private nonisolated func doInfereExecute(
         modelID: ModelManager.ModelIdentifier,
         currentMessageListView: MessageListView,
-        inputObject: RichEditorView.Object
+        inputObject: RichEditorView.Object,
+        contextLimitMessageID: Message.ID?,
+        reuseUserMessageID: Message.ID?
     ) async {
         var object = inputObject
 
@@ -111,7 +117,11 @@ extension ConversationSession {
         // MARK: - 上下文转译到请求体 不包含当前编辑框中的附件
 
         var requestMessages: [ChatRequestBody.Message] = []
-        buildInitialRequestMessages(&requestMessages, modelCapabilities)
+        buildInitialRequestMessages(
+            &requestMessages,
+            modelCapabilities,
+            limitToMessageId: contextLimitMessageID
+        )
 
         do {
             try await doInfereExecuteCore(
@@ -123,7 +133,8 @@ extension ConversationSession {
                 modelWillExecuteTools,
                 modelWillGoSearchWeb,
                 modelContextLength,
-                modelID
+                modelID,
+                reuseUserMessageID
             )
             saveIfNeeded(object)
         } catch {
@@ -172,7 +183,8 @@ extension ConversationSession {
         _ modelWillExecuteTools: Bool,
         _ modelWillGoSearchWeb: Bool,
         _ modelContextLength: Int,
-        _ modelID: ModelManager.ModelIdentifier
+        _ modelID: ModelManager.ModelIdentifier,
+        _ reuseUserMessageID: Message.ID?
     ) async throws {
         try checkCancellation()
         await currentMessageListView.loading()
@@ -180,10 +192,21 @@ extension ConversationSession {
         // MARK: - 添加用户的消息到储存框架
 
         let document = object.text
-        let userMessage = appendNewMessage(role: .user)
-        userMessage.update(\.document, to: document)
 
-        addAttachments(object.attachments, to: userMessage)
+        let userMessage: Message
+        if let reuseUserMessageID,
+           let existingUserMessage = message(for: reuseUserMessageID),
+           existingUserMessage.role == .user
+        {
+            userMessage = existingUserMessage
+            object.text = existingUserMessage.document
+        } else {
+            let newUserMessage = appendNewMessage(role: .user)
+            newUserMessage.update(\.document, to: document)
+            addAttachments(object.attachments, to: newUserMessage)
+            userMessage = newUserMessage
+        }
+
         await requestUpdate(view: currentMessageListView)
 
         // MARK: - 添加 Attachment 数据到持久化内容
@@ -277,6 +300,7 @@ extension ConversationSession {
                 &requestMessages,
                 toolsDefinitions,
                 modelWillExecuteTools,
+                parentUserMessageId: userMessage.objectId,
                 linkedContents: linkedContents,
                 requestLinkContentIndex: requestLinkContentIndex
             )

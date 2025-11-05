@@ -17,13 +17,22 @@ extension ConversationSession {
         _ requestMessages: inout [ChatRequestBody.Message],
         _ tools: [ChatRequestBody.Tool]?,
         _ modelWillExecuteTools: Bool,
+        parentUserMessageId: Message.ID?,
         linkedContents: [Int: URL],
         requestLinkContentIndex: @escaping (URL) -> Int
     ) async throws -> Bool {
         await requestUpdate(view: currentMessageListView)
         await currentMessageListView.loading()
 
+        let attemptIndex = parentUserMessageId.map { nextAttemptIndex(forParent: $0) }
         let message = appendNewMessage(role: .assistant)
+        if let parentUserMessageId, let attemptIndex {
+            message.replyMetadata = .init(
+                parentUserMessageId: parentUserMessageId,
+                attemptIndex: attemptIndex,
+                isHistorical: false
+            )
+        }
 
         let stream = try await ModelManager.shared.streamingInfer(
             with: modelID,

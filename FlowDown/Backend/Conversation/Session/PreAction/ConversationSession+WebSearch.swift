@@ -457,8 +457,16 @@ extension ConversationSession {
 
         // 获取更完整的上下文信息，包括角色和时间戳
         let prevMsgs = messages
-            .filter { [.user, .assistant].contains($0.role) }
-            .filter { !$0.document.isEmpty }
+            .filter { message in
+                switch message.role {
+                case .user:
+                    return !message.document.isEmpty
+                case .assistant:
+                    return !message.isHistoricalReply && !message.document.isEmpty
+                default:
+                    return false
+                }
+            }
             .suffix(5) // 限制最近 n 条消息避免上下文过长
             .map { message in
                 let rolePrefix = message.role == .user ? "[User]" : "[Assistant]"

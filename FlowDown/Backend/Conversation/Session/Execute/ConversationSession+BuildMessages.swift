@@ -13,9 +13,13 @@ import Storage
 extension ConversationSession {
     func buildInitialRequestMessages(
         _ requestMessages: inout [ChatRequestBody.Message],
-        _ modelCapabilities: Set<ModelCapabilities>
+        _ modelCapabilities: Set<ModelCapabilities>,
+        limitToMessageId: Message.ID?
     ) {
         for message in messages {
+            if let limitToMessageId, message.objectId == limitToMessageId {
+                break
+            }
             switch message.role {
             case .system:
                 guard !message.document.isEmpty else { continue }
@@ -48,6 +52,9 @@ extension ConversationSession {
                     assertionFailure()
                 }
             case .assistant:
+                if message.isHistoricalReply {
+                    continue
+                }
                 guard !message.document.isEmpty else { continue }
                 requestMessages.append(.assistant(content: .text(message.document)))
             default:

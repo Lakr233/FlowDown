@@ -317,11 +317,64 @@ final class ConversationSession: Identifiable {
         return nil
     }
 
+    func nextAttemptIndex(forParent parentUserMessageId: Message.ID) -> Int {
+        let attempts = messages.compactMap { message -> Int? in
+            guard message.role == .assistant,
+                  let metadata = message.replyMetadata,
+                  metadata.parentUserMessageId == parentUserMessageId
+            else {
+                return nil
+            }
+            return metadata.attemptIndex
+        }
+        let maxAttempt = attempts.max() ?? 0
+        return maxAttempt + 1
+    }
+
+    private func markAssistantMessageHistorical(
+        _ assistantMessage: Message,
+        parentUserMessage: Message
+    ) {
+        let parentId = parentUserMessage.objectId
+        let attemptIndex: Int
+        if let metadata = assistantMessage.replyMetadata {
+            attemptIndex = metadata.attemptIndex
+        } else {
+            let attempts = messages.compactMap { message -> Int? in
+                guard message.role == .assistant,
+                      let metadata = message.replyMetadata,
+                      metadata.parentUserMessageId == parentId
+                else {
+                    return nil
+                }
+                return metadata.attemptIndex
+            }
+            attemptIndex = max(attempts.max() ?? 0, 0) + 1
+        }
+
+        assistantMessage.replyMetadata = .init(
+            parentUserMessageId: parentId,
+            attemptIndex: attemptIndex,
+            isHistorical: true
+        )
+        sdb.messagePut(messages: [assistantMessage])
+        notifyMessagesDidChange(scrolling: false)
+    }
+
     func retry(byClearAfter messageIdentifier: Message.ID, currentMessageListView: MessageListView) {
+        guard let assistantMessage = message(for: messageIdentifier),
+              assistantMessage.role == .assistant
+        else {
+            assertionFailure()
+            return
+        }
+
         guard let nearestUserMessage = nearestUserMessage(beforeOrEqual: messageIdentifier) else {
             assertionFailure()
             return
         }
+
+        markAssistantMessageHistorical(assistantMessage, parentUserMessage: nearestUserMessage)
 
         let messageContent = nearestUserMessage.document
         let messageAttachments = attachments(for: nearestUserMessage.objectId)
@@ -329,8 +382,7 @@ final class ConversationSession: Identifiable {
         var editorObject = ConversationManager.shared.getRichEditorObject(identifier: id) ?? .init()
         editorObject.text = messageContent
 
-        editorObject.attachments = messageAttachments.compactMap {
-            attachment -> RichEditorView.Object.Attachment? in
+        editorObject.attachments = messageAttachments.compactMap { attachment -> RichEditorView.Object.Attachment? in
             guard let type = RichEditorView
                 .Object
                 .Attachment
@@ -353,12 +405,12 @@ final class ConversationSession: Identifiable {
             return
         }
 
-        deleteCurrentAndAfter(messageIdentifier: nearestUserMessage.objectId) {
-            self.doInfere(
-                modelID: modelID,
-                currentMessageListView: currentMessageListView,
-                inputObject: editorObject
-            ) {}
-        }
+        doInfere(
+            modelID: modelID,
+            currentMessageListView: currentMessageListView,
+            inputObject: editorObject,
+            contextLimitMessageID: nearestUserMessage.objectId,
+            reuseUserMessageID: nearestUserMessage.objectId
+        ) {}
     }
 }
