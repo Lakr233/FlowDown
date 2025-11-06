@@ -16,8 +16,11 @@ open class RemoteChatClient: ChatService {
     /// The required section should be in alphabetical order.
     public let model: String
     public var baseURL: String?
-    public var path: String?
     public var apiKey: String?
+
+    /// The format handler for API requests and responses
+    public let format: ChatFormatProtocol
+    public var debugLogging: Bool = false
 
     public enum Error: Swift.Error {
         case invalidURL
@@ -32,61 +35,87 @@ open class RemoteChatClient: ChatService {
 
     public init(
         model: String,
+        format: ChatFormatProtocol,
         baseURL: String? = nil,
-        path: String? = nil,
         apiKey: String? = nil,
         additionalHeaders: [String: String] = [:],
         additionalBodyField: [String: Any] = [:]
     ) {
         self.model = model
+        self.format = format
         self.baseURL = baseURL
-        self.path = path
         self.apiKey = apiKey
         self.additionalHeaders = additionalHeaders
         additionalField = additionalBodyField
     }
 
+    /// Convenience initializer using OpenAI Chat Completion format
+    public convenience init(
+        model: String,
+        baseURL: String? = nil,
+        apiKey: String? = nil,
+        additionalHeaders: [String: String] = [:],
+        additionalBodyField: [String: Any] = [:]
+    ) {
+        self.init(
+            model: model,
+            format: OpenAIChatCompletionFormat(),
+            baseURL: baseURL,
+            apiKey: apiKey,
+            additionalHeaders: additionalHeaders,
+            additionalBodyField: additionalBodyField
+        )
+    }
+
     public func chatCompletionRequest(body: ChatRequestBody) async throws -> ChatResponseBody {
-        let model = model
-        logger.info("starting non-streaming request to model: \(model) with \(body.messages.count) messages")
-        let startTime = Date()
         var body = body
         body.model = model
         body.stream = false
         body.streamOptions = nil
         let request = try request(for: body, additionalField: additionalField)
-        let (data, _) = try await session.data(for: request)
-        logger.debug("received response data: \(data.count) bytes")
-        var response = try JSONDecoder().decode(ChatResponseBody.self, from: data)
-        response.choices = response.choices.map { choice in
-            var choice = choice
-            choice.message = extractReasoningContent(from: choice.message)
-            return choice
+        let (data, response) = try await session.data(for: request)
+        if debugLogging {
+            if let http = response as? HTTPURLResponse {
+                print("[RemoteChatClient] Response status: \(http.statusCode)")
+                print("[RemoteChatClient] Response headers: \(http.allHeaderFields)")
+            }
+            if let raw = String(data: data, encoding: .utf8) {
+                print("[RemoteChatClient] Raw response (truncated 2k): \(raw.prefix(2048))")
+            } else {
+                print("[RemoteChatClient] Raw response: <non-utf8 data, \(data.count) bytes>")
+            }
         }
-        let duration = Date().timeIntervalSince(startTime)
-        let contentLength = response.choices.first?.message.content?.count ?? 0
-        logger.info("completed non-streaming request in \(String(format: "%.2f", duration))s, content length: \(contentLength)")
-        return response
+        do {
+            var response = try format.parseResponse(from: data)
+            response.choices = response.choices.map { choice in
+                var choice = choice
+                choice.message = extractReasoningContent(from: choice.message)
+                return choice
+            }
+            return response
+        } catch {
+            if let decodedError = format.parseError(from: data) {
+                collectedErrors = decodedError.localizedDescription
+                throw decodedError
+            }
+            collectedErrors = error.localizedDescription
+            throw error
+        }
     }
 
     private func processReasoningContent(
         _ content: [String],
         _ reasoningContent: [String],
         _ isInsideReasoningContent: inout Bool,
-        _ contentBuffer: inout String,
         _ response: inout ChatCompletionChunk
     ) {
         // now we can decode <think> and </think> tag for that purpose
         // transfer all content to buffer, and begin our process
-        let previousBuffer = contentBuffer
-        var hasProcessedReasoningToken = isInsideReasoningContent
-        let bufferContent = contentBuffer + content.joined() // 将缓冲区内容和新内容合并
+        let bufferContent = content.joined() // 将内容数组合并为单个字符串
         assert(reasoningContent.isEmpty)
-        contentBuffer = "" // 清空缓冲区
 
         if !isInsideReasoningContent {
             if let range = bufferContent.range(of: REASONING_START_TOKEN) {
-                hasProcessedReasoningToken = true
                 let beforeReasoning = String(bufferContent[..<range.lowerBound])
                     .trimmingCharactersFromEnd(in: .whitespacesAndNewlines)
                 let afterReasoningBegin = String(bufferContent[range.upperBound...])
@@ -100,43 +129,35 @@ open class RemoteChatClient: ChatService {
                     let remainingText = String(afterReasoningBegin[endRange.upperBound...])
                         .trimmingCharactersFromStart(in: .whitespacesAndNewlines)
 
-                    // 只发送一个delta，避免多delta丢失问题
+                    // 更新响应数据
+                    var delta = [ChatCompletionChunk.Choice.Delta]()
                     if !beforeReasoning.isEmpty {
-                        response = .init(choices: [.init(delta: .init(content: beforeReasoning))])
-                        // 将reasoning和remaining放回buffer，下次处理
-                        if !reasoningText.isEmpty || !remainingText.isEmpty {
-                            contentBuffer = "<think>\(reasoningText)</think>\(remainingText)"
-                        }
-                    } else if !reasoningText.isEmpty {
-                        response = .init(choices: [.init(delta: .init(reasoningContent: reasoningText))])
-                        // 将remaining放到buffer
-                        if !remainingText.isEmpty {
-                            contentBuffer = remainingText
-                        }
-                    } else if !remainingText.isEmpty {
-                        response = .init(choices: [.init(delta: .init(content: remainingText))])
-                    } else {
-                        response = .init(choices: [])
+                        delta.append(.init(content: beforeReasoning))
                     }
+                    if !reasoningText.isEmpty {
+                        delta.append(.init(reasoningContent: reasoningText))
+                    }
+                    if !remainingText.isEmpty {
+                        delta.append(.init(content: remainingText))
+                    }
+                    response = .init(choices: delta.map { .init(delta: $0) })
                 } else {
                     // 有开始标记但没有结束标记 - 进入推理内容
                     isInsideReasoningContent = true
+                    var delta = [ChatCompletionChunk.Choice.Delta]()
                     if !beforeReasoning.isEmpty {
-                        response = .init(choices: [.init(delta: .init(content: beforeReasoning))])
-                        // 将reasoning内容放回buffer
-                        if !afterReasoningBegin.isEmpty {
-                            contentBuffer = afterReasoningBegin
-                        }
-                    } else if !afterReasoningBegin.isEmpty {
-                        response = .init(choices: [.init(delta: .init(reasoningContent: afterReasoningBegin))])
-                    } else {
-                        response = .init(choices: [])
+                        delta.append(.init(content: beforeReasoning))
                     }
+                    if !afterReasoningBegin.isEmpty {
+                        delta.append(.init(reasoningContent: afterReasoningBegin))
+                    }
+                    response = .init(choices: delta.map { .init(delta: $0) })
+                    // 如果刚好在 </think> 前面截断了 那就只有服务器知道要不要 cut 了
+                    // UI 上面可以处理一下
                 }
             }
         } else {
             // 我们已经在推理内容中，检查是否有结束标记
-            hasProcessedReasoningToken = true
             if let range = bufferContent.range(of: REASONING_END_TOKEN) {
                 // 找到结束标记 - 退出推理模式
                 isInsideReasoningContent = false
@@ -146,16 +167,11 @@ open class RemoteChatClient: ChatService {
                 let remainingText = String(bufferContent[range.upperBound...])
                     .trimmingCharactersFromStart(in: .whitespacesAndNewlines)
 
-                // 只发送reasoning，remainingText放到buffer避免丢失
-                if !reasoningText.isEmpty {
-                    response = .init(choices: [.init(delta: .init(reasoningContent: reasoningText))])
-                } else {
-                    response = .init(choices: [])
-                }
-                // 将remaining内容放到buffer，下次作为普通内容发送
-                if !remainingText.isEmpty {
-                    contentBuffer = remainingText
-                }
+                // 更新响应数据
+                response = .init(choices: [
+                    .init(delta: .init(reasoningContent: reasoningText)),
+                    .init(delta: .init(content: remainingText)),
+                ])
             } else {
                 // 仍在推理内容中
                 response = .init(choices: [.init(delta: .init(
@@ -163,85 +179,11 @@ open class RemoteChatClient: ChatService {
                 ))])
             }
         }
-
-        if !hasProcessedReasoningToken,
-           !previousBuffer.isEmpty,
-           !previousBuffer.contains(REASONING_START_TOKEN),
-           !previousBuffer.contains(REASONING_END_TOKEN)
-        {
-            if response.choices.isEmpty {
-                response = .init(choices: [.init(delta: .init(content: previousBuffer))])
-            } else {
-                var updatedChoices = response.choices
-                let firstChoice = updatedChoices[0]
-                let mergedContent = previousBuffer + (firstChoice.delta.content ?? "")
-                let updatedDelta = ChatCompletionChunk.Choice.Delta(
-                    content: mergedContent,
-                    reasoning: firstChoice.delta.reasoning,
-                    reasoningContent: firstChoice.delta.reasoningContent,
-                    refusal: firstChoice.delta.refusal,
-                    role: firstChoice.delta.role,
-                    toolCalls: firstChoice.delta.toolCalls
-                )
-                updatedChoices[0] = .init(
-                    delta: updatedDelta,
-                    finishReason: firstChoice.finishReason,
-                    index: firstChoice.index
-                )
-                response.choices = updatedChoices
-            }
-        }
-    }
-
-    private func flushBufferedContent(
-        _ contentBuffer: inout String,
-        isInsideReasoningContent: inout Bool,
-        continuation: AsyncStream<ChatServiceStreamObject>.Continuation
-    ) {
-        guard !contentBuffer.isEmpty else { return }
-
-        if isInsideReasoningContent {
-            continuation.yield(.chatCompletionChunk(chunk: .init(
-                choices: [.init(delta: .init(reasoningContent: contentBuffer))]
-            )))
-            contentBuffer = ""
-            isInsideReasoningContent = false
-            return
-        }
-
-        while !contentBuffer.isEmpty {
-            let pendingBuffer = contentBuffer
-            var response = ChatCompletionChunk(choices: [])
-            processReasoningContent([], [], &isInsideReasoningContent, &contentBuffer, &response)
-
-            if !response.choices.isEmpty {
-                continuation.yield(.chatCompletionChunk(chunk: response))
-                continue
-            }
-
-            if pendingBuffer.contains(REASONING_START_TOKEN) || pendingBuffer.contains(REASONING_END_TOKEN) {
-                let sanitized = pendingBuffer
-                    .replacingOccurrences(of: REASONING_START_TOKEN, with: "")
-                    .replacingOccurrences(of: REASONING_END_TOKEN, with: "")
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                if !sanitized.isEmpty {
-                    continuation.yield(.chatCompletionChunk(chunk: .init(
-                        choices: [.init(delta: .init(reasoningContent: sanitized))]
-                    )))
-                }
-            } else {
-                continuation.yield(.chatCompletionChunk(chunk: .init(
-                    choices: [.init(delta: .init(content: pendingBuffer))]
-                )))
-            }
-            contentBuffer = ""
-        }
     }
 
     public func streamingChatCompletionRequest(
         body: ChatRequestBody
     ) async throws -> AnyAsyncSequence<ChatServiceStreamObject> {
-        let model = model
         var body = body
         body.model = model
         body.stream = true
@@ -249,7 +191,7 @@ open class RemoteChatClient: ChatService {
         // streamOptions is not supported when running up on cohere api
         // body.streamOptions = .init(includeUsage: true)
         let request = try request(for: body, additionalField: additionalField)
-        logger.info("starting streaming request to model: \(model) with \(body.messages.count) messages, temperature: \(body.temperature ?? 1.0)")
+        logger.info("starting streaming request with \(body.messages.count) messages")
 
         let stream = AsyncStream<ChatServiceStreamObject> { continuation in
             Task.detached {
@@ -257,10 +199,7 @@ open class RemoteChatClient: ChatService {
 
                 var canDecodeReasoningContent = true
                 var isInsideReasoningContent = false
-                var contentBuffer = "" // 用于缓存跨chunk的内容
                 let toolCallCollector: ToolCallCollector = .init()
-                var chunkCount = 0
-                var totalContentLength = 0
 
                 let eventSource = EventSource()
                 let dataTask = eventSource.dataTask(for: request)
@@ -273,45 +212,37 @@ open class RemoteChatClient: ChatService {
                         logger.error("received an error: \(error)")
                         self.collect(error: error)
                     case let .event(event):
+                        if self.debugLogging {
+                            print("[RemoteChatClient][SSE] event=\(event.event ?? "message"), id=\(event.id ?? "")")
+                            if let d = event.data { print("[RemoteChatClient][SSE] data: \(d)") }
+                        }
                         guard let data = event.data?.data(using: .utf8) else {
                             continue
                         }
-                        if let text = String(data: data, encoding: .utf8) {
-                            if text.lowercased() == "[DONE]".lowercased() {
-                                logger.debug("received done from upstream")
+                        do {
+                            guard let parsedResponse = try self.format.parseStreamingChunk(from: data) else {
                                 continue
                             }
-                        }
-                        do {
-                            var response = try JSONDecoder().decode(ChatCompletionChunk.self, from: data)
-
-                            // Extract reasoning content from API (if any)
+                            print(parsedResponse)
+                            var response = parsedResponse
                             let reasoningContent = [
                                 response.choices.map(\.delta).compactMap(\.reasoning),
                                 response.choices.map(\.delta).compactMap(\.reasoningContent),
-                            ].flatMap(\.self).filter { !$0.isEmpty }
+                            ].flatMap(\.self)
+                            let content = response.choices.map(\.delta).compactMap(\.content)
 
-                            // If API provides non-empty reasoning content, it has native support
-                            if canDecodeReasoningContent, !reasoningContent.isEmpty {
-                                canDecodeReasoningContent = false
-                            }
+                            if canDecodeReasoningContent { canDecodeReasoningContent = reasoningContent.isEmpty }
 
-                            // Only process <think> tags if API doesn't have native reasoning support
                             if canDecodeReasoningContent {
-                                let content = response.choices.map(\.delta).compactMap(\.content)
-                                self.processReasoningContent(content, [], &isInsideReasoningContent, &contentBuffer, &response)
+                                self.processReasoningContent(content, reasoningContent, &isInsideReasoningContent, &response)
                             }
 
                             for delta in response.choices {
                                 for toolDelta in delta.delta.toolCalls ?? [] {
                                     toolCallCollector.submit(delta: toolDelta)
                                 }
-                                if let content = delta.delta.content {
-                                    totalContentLength += content.count
-                                }
                             }
 
-                            chunkCount += 1
                             continuation.yield(.chatCompletionChunk(chunk: response))
                         } catch {
                             if let text = String(data: data, encoding: .utf8) {
@@ -319,7 +250,7 @@ open class RemoteChatClient: ChatService {
                             }
                             self.collect(error: error)
                         }
-                        if let decodeError = self.extractError(fromInput: data) {
+                        if let decodeError = self.format.parseError(from: data) {
                             self.collect(error: decodeError)
                         }
                     case .closed:
@@ -327,14 +258,10 @@ open class RemoteChatClient: ChatService {
                     }
                 }
 
-                // 刷新缓冲区中剩余的内容
-                self.flushBufferedContent(&contentBuffer, isInsideReasoningContent: &isInsideReasoningContent, continuation: continuation)
-
                 toolCallCollector.finalizeCurrentDeltaContent()
                 for call in toolCallCollector.pendingRequests {
                     continuation.yield(.tool(call: call))
                 }
-                logger.info("streaming completed: received \(chunkCount) chunks, total content length: \(totalContentLength), tool calls: \(toolCallCollector.pendingRequests.count)")
                 continuation.finish()
             }
         }
@@ -347,7 +274,7 @@ open class RemoteChatClient: ChatService {
             case .undefinedConnectionError:
                 collectedErrors = String(localized: "Unable to connect to the server.", bundle: .module)
             case let .connectionError(statusCode, response):
-                if let decodedError = extractError(fromInput: response) {
+                if let decodedError = format.parseError(from: response) {
                     collectedErrors = decodedError.localizedDescription
                 } else {
                     collectedErrors = String(localized: "Connection error: \(statusCode)", bundle: .module)
@@ -361,84 +288,106 @@ open class RemoteChatClient: ChatService {
         logger.error("collected error: \(error.localizedDescription)")
     }
 
-    private func extractError(fromInput input: Data) -> Swift.Error? {
-        let dic = try? JSONSerialization.jsonObject(with: input, options: []) as? [String: Any]
-        guard let dic else { return nil }
-
-        let errorDic = dic["error"] as? [String: Any]
-        guard let errorDic else { return nil }
-
-        var message = errorDic["message"] as? String ?? String(localized: "Unknown Error", bundle: .module)
-        let code = errorDic["code"] as? Int ?? 403
-
-        // check for metadata property, read there if find
-        if let metadata = errorDic["metadata"] as? [String: Any],
-           let metadataMessage = metadata["message"] as? String
-        {
-            message += " \(metadataMessage)"
-        }
-
-        return NSError(domain: String(localized: "Server Error"), code: code, userInfo: [
-            NSLocalizedDescriptionKey: String(localized: "Server returns an error: \(code) \(message)", bundle: .module),
-        ])
-    }
-
     private func request(for body: ChatRequestBody, additionalField: [String: Any] = [:]) throws -> URLRequest {
         guard let baseURL else {
-            logger.error("invalid base URL")
             throw Error.invalidURL
         }
         guard let apiKey else {
-            logger.error("invalid API key")
             throw Error.invalidApiKey
         }
 
-        var path = path ?? ""
-        if !path.isEmpty, !path.starts(with: "/") {
-            path = "/\(path)"
+        let url: URL
+
+        // Prefer explicit endpoint if provided
+        if baseURL.hasSuffix("/responses") || baseURL.hasSuffix("/chat/completions") {
+            guard let directURL = URL(string: baseURL) else { throw Error.invalidURL }
+            url = directURL
+        } else {
+            // Compose base and apiPath robustly without duplicating /v1
+            let base = baseURL.hasSuffix("/") ? String(baseURL.dropLast()) : baseURL
+            let apiPath = format.apiPath
+            let lowercasedBase = base.lowercased()
+            let isChatGPTCodex = lowercasedBase.contains("chatgpt.com") && lowercasedBase.contains("/backend-api/codex")
+
+            if isChatGPTCodex {
+                // ChatGPT Codex uses `/backend-api/codex/responses` (no /v1)
+                let path = base.hasSuffix("/responses") ? "" : "/responses"
+                guard let composed = URL(string: base + path) else { throw Error.invalidURL }
+                url = composed
+            } else if apiPath.hasPrefix("/v1/"), base.hasSuffix("/v1") {
+                let trimmed = String(apiPath.dropFirst(3)) // remove leading "/v1"
+                guard let composed = URL(string: base + trimmed) else { throw Error.invalidURL }
+                url = composed
+            } else {
+                let sep = apiPath.hasPrefix("/") ? "" : "/"
+                guard let composed = URL(string: base + sep + apiPath) else { throw Error.invalidURL }
+                url = composed
+            }
         }
 
-        guard var urlComponents = URLComponents(string: baseURL),
-              let pathComponents = URLComponents(string: path)
-        else {
-            logger.error("failed to parse URL components from baseURL: \(baseURL), path: \(path)")
-            throw Error.invalidURL
-        }
-
-        urlComponents.path += pathComponents.path
-        urlComponents.queryItems = pathComponents.queryItems
-
-        guard let url = urlComponents.url else {
-            logger.error("failed to construct final URL from components")
-            throw Error.invalidURL
-        }
-
-        logger.debug("constructed request URL: \(url.absoluteString)")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.httpBody = try JSONEncoder().encode(body)
+        let prepared = try format.prepareRequest(from: body, model: model, additionalFields: additionalField)
+        // Sanitize request body by removing fields not needed/unsupported by Codex
+        // Fields to drop (snake_case to match wire format):
+        // temperature, top_p, max_output_tokens, user, text_formatting, truncation, text, service_tier
+        if let obj = try? JSONSerialization.jsonObject(with: prepared) as? [String: Any] {
+            var sanitized = obj
+            let fieldsToRemove: Set<String> = [
+                "temperature",
+                "top_p",
+                "max_output_tokens",
+                "user",
+                "text_formatting",
+                "truncation",
+                "text",
+                "service_tier",
+            ]
+            for key in fieldsToRemove {
+                sanitized.removeValue(forKey: key)
+            }
+            if let data = try? JSONSerialization.data(withJSONObject: sanitized) {
+                request.httpBody = data
+            } else {
+                request.httpBody = prepared
+            }
+        } else {
+            request.httpBody = prepared
+        }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        // Add ChatGPT Codex-specific headers by default if targeting that host
+        if let host = url.host?.lowercased(), host.contains("chatgpt.com"), url.absoluteString.contains("/backend-api/codex/") {
+            if request.value(forHTTPHeaderField: "OpenAI-Beta") == nil {
+                request.setValue("responses=experimental", forHTTPHeaderField: "OpenAI-Beta")
+            }
+            if request.value(forHTTPHeaderField: "Codex-Task-Type") == nil {
+                request.setValue("standard", forHTTPHeaderField: "Codex-Task-Type")
+            }
+        }
 
         // additionalHeaders can override default headers including Authorization
         for (key, value) in additionalHeaders {
             request.setValue(value, forHTTPHeaderField: key)
         }
 
-        if !additionalField.isEmpty {
-            var originalDictionary: [String: Any] = [:]
-            if let data = request.httpBody,
-               let dic = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            {
-                originalDictionary = dic
+        if debugLogging {
+            let masked = (request.allHTTPHeaderFields ?? [:]).reduce(into: [String: String]()) { acc, kv in
+                let (k, v) = kv
+                if k.lowercased() == "authorization" {
+                    acc[k] = "Bearer ***masked***"
+                } else {
+                    acc[k] = v
+                }
             }
-            for (key, value) in additionalField {
-                originalDictionary[key] = value
+            print("[RemoteChatClient] Request URL: \(url.absoluteString)")
+            print("[RemoteChatClient] Request headers: \(masked)")
+            if let body = request.httpBody, let bodyStr = String(data: body, encoding: .utf8) {
+                print("[RemoteChatClient] Request body: \(bodyStr)")
+            } else if let body = request.httpBody {
+                print("[RemoteChatClient] Request body bytes: \(body.count)")
             }
-            request.httpBody = try JSONSerialization.data(
-                withJSONObject: originalDictionary,
-                options: []
-            )
         }
 
         return request
@@ -468,24 +417,30 @@ open class RemoteChatClient: ChatService {
             return choice
         }
 
-        guard let startRange = content.range(of: REASONING_START_TOKEN),
-              let endRange = content.range(of: REASONING_END_TOKEN, range: startRange.upperBound ..< content.endIndex)
-        else {
+        let reasoningContentRef: Reference<String> = .init()
+        let remainingContentRef: Reference<String> = .init()
+        let regex = Regex {
+            ZeroOrMore(.whitespace)
+            REASONING_START_TOKEN
+            Capture(as: reasoningContentRef) {
+                ZeroOrMore(.any)
+            } transform: {
+                String($0.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            REASONING_END_TOKEN
+            Capture(as: remainingContentRef) {
+                ZeroOrMore(.any)
+            } transform: {
+                String($0.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+        }
+        guard let match = content.wholeMatch(of: regex) else {
             // No reasoning content found, return the original choice.
             return choice
         }
 
-        let reasoningRange = startRange.upperBound ..< endRange.lowerBound
-
-        let leading = content[..<startRange.lowerBound]
-        let trailing = content[endRange.upperBound...]
-
-        let reasoningContent = content[reasoningRange]
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let remainingContent = String(
-            (leading + trailing)
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-        )
+        let reasoningContent = match[reasoningContentRef]
+        let remainingContent = match[remainingContentRef]
 
         var newChoice = choice
         newChoice.content = remainingContent
@@ -519,7 +474,7 @@ class ToolCallCollector {
             return
         }
         let call = ToolCallRequest(name: functionName, args: functionArguments)
-        logger.debug("tool call finalized: \(call.name) with args: \(call.args)")
+        print(call)
         pendingRequests.append(call)
         functionName = ""
         functionArguments = ""

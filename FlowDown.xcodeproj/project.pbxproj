@@ -37,6 +37,7 @@
 		50DDB1712DDF16F200351E46 /* ListViewKit in Frameworks */ = {isa = PBXBuildFile; productRef = 50DDB1702DDF16F200351E46 /* ListViewKit */; };
 		50E3FA092D6D7FB8000405BD /* GPTEncoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50E3FA082D6D7FB8000405BD /* GPTEncoder */; };
 		50FBFC6C2DEA2E5400098EC4 /* XMLCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50FBFC6B2DEA2E5400098EC4 /* XMLCoder */; };
+		8699C6F02EBBB24400DB7701 /* OAuthKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8699C6EF2EBBB24400DB7701 /* OAuthKit */; };
 		86B4FDC22E1190C000C6DC8F /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = 86B4FDC12E1190C000C6DC8F /* MCP */; };
 		ED16359C2D5C5BDA0081BD0B /* ChatClientKit in Frameworks */ = {isa = PBXBuildFile; productRef = ED16359B2D5C5BDA0081BD0B /* ChatClientKit */; };
 		EDF9A13E2D67788A001D183C /* Respring in Frameworks */ = {isa = PBXBuildFile; productRef = EDF9A13D2D67788A001D183C /* Respring */; };
@@ -120,6 +121,7 @@
 				50B4CDAC2D4794F90028EB33 /* Digger in Frameworks */,
 				50C9035B2D428DAD00E6E3A8 /* Storage in Frameworks */,
 				501C98E12D3E52CE00CD8E11 /* RichEditor in Frameworks */,
+				8699C6F02EBBB24400DB7701 /* OAuthKit in Frameworks */,
 				505FC6192D4945E500F4CB17 /* SPIndicator in Frameworks */,
 				505742472E1B8B8100A26090 /* DpkgVersion in Frameworks */,
 				5050EB0B2D46DCB900634B81 /* MLXLMCommon in Frameworks */,
@@ -259,6 +261,7 @@
 				86B4FDC12E1190C000C6DC8F /* MCP */,
 				505742462E1B8B8100A26090 /* DpkgVersion */,
 				502272D12EB3DE3200AF9D28 /* UIEffectKit */,
+				8699C6EF2EBBB24400DB7701 /* OAuthKit */,
 			);
 			productName = FlowDown;
 			productReference = 503498BD2D23053D004672BD /* FlowDown.app */;
@@ -311,6 +314,7 @@
 				86B4FDBE2E1190AD00C6DC8F /* XCRemoteSwiftPackageReference "swift-sdk" */,
 				505742432E1B8B2A00A26090 /* XCRemoteSwiftPackageReference "DpkgVersion" */,
 				502272D02EB3DE3200AF9D28 /* XCRemoteSwiftPackageReference "UIEffectKit" */,
+				8699C6EE2EBBB24400DB7701 /* XCLocalSwiftPackageReference "Frameworks/OAuthKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
@@ -392,7 +396,7 @@
 				CODE_SIGN_IDENTITY = "$(inherited)";
 				CODE_SIGN_STYLE = "$(inherited)";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "$(inherited)";
+				DEVELOPMENT_TEAM = HUAKL3MKPR;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -431,6 +435,8 @@
 				);
 				MARKETING_VERSION = 3.10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = dev.nvme0n1p.flow;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = dev.nvme0n1p.flow;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
@@ -659,6 +665,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		8699C6EE2EBBB24400DB7701 /* XCLocalSwiftPackageReference "Frameworks/OAuthKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Frameworks/OAuthKit;
+		};
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
 		50014D7B2D8A98F900C10932 /* XCRemoteSwiftPackageReference "ScrubberKit" */ = {
@@ -953,6 +966,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 50FBFC6A2DEA2E5400098EC4 /* XCRemoteSwiftPackageReference "XMLCoder" */;
 			productName = XMLCoder;
+		};
+		8699C6EF2EBBB24400DB7701 /* OAuthKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OAuthKit;
 		};
 		86B4FDC12E1190C000C6DC8F /* MCP */ = {
 			isa = XCSwiftPackageProductDependency;

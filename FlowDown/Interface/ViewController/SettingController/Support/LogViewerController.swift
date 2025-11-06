@@ -45,7 +45,6 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
                components[1].hasPrefix("["), components[1].hasSuffix("]"), // Level in brackets
                components[2].hasPrefix("["), components[2].hasSuffix("]")
             { // Category in brackets
-
                 timestamp = components[0]
 
                 // Extract level

@@ -50,15 +50,8 @@ class PollinationsService {
     }
 
     func createCloudModel(from pollinationsModel: PollinationsModel) -> CloudModel {
-        var capabilities: Set<ModelCapabilities> = []
-
-        if pollinationsModel.tools == true {
-            capabilities.insert(.tool)
-        }
-
-        if pollinationsModel.vision == true {
-            capabilities.insert(.visual)
-        }
+        // Enable both tools and vision by default
+        var capabilities: Set<ModelCapabilities> = [.tool, .visual]
 
         let comment = String(
             localized: "This service is provided free of charge by pollinations.ai and includes rate limits. It may be unavailable in certain countries or regions. If you encounter issues, please set up your own model service."
@@ -69,7 +62,7 @@ class PollinationsService {
             objectId: "pollinations_model_\(pollinationsModel.name)",
             model_identifier: pollinationsModel.name,
             endpoint: openaiEndpoint,
-            context: .medium_64k,
+            context: .long_100k,
             capabilities: capabilities,
             comment: comment
         )

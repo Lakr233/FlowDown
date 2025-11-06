@@ -26,6 +26,18 @@ public struct ChatUsage: Decodable {
         case totalTokens = "total_tokens"
         case completionTokensDetails = "completion_tokens_details"
     }
+
+    public init(
+        completionTokens: Int? = nil,
+        promptTokens: Int? = nil,
+        totalTokens: Int? = nil,
+        completionTokensDetails: Details? = nil
+    ) {
+        self.completionTokens = completionTokens
+        self.promptTokens = promptTokens
+        self.totalTokens = totalTokens
+        self.completionTokensDetails = completionTokensDetails
+    }
 }
 
 public extension ChatUsage {

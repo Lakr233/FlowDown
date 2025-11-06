@@ -201,14 +201,14 @@ public extension EventSource {
                 #if compiler(>=6.0)
                     continuation.onTermination = { @Sendable [weak self] _ in
                         sessionDelegateTask.cancel()
-                        logger.debug("cancelling event source dataTask due to task termination")
+                        print("[-] cancelling event source dataTask due to task termination")
                         urlSession.invalidateAndCancel()
                         Task { self?.close(stream: continuation, urlSession: urlSession) }
                     }
                 #else
                     continuation.onTermination = { @Sendable _ in
                         sessionDelegateTask.cancel()
-                        logger.debug("cancelling event source dataTask due to task termination")
+                        print("[-] cancelling event source dataTask due to task termination")
                         urlSession.invalidateAndCancel()
                         Task { [weak self] in
                             await self?.close(stream: continuation, urlSession: urlSession)

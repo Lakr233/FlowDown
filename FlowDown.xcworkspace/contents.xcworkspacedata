@@ -19,4 +19,7 @@
    <FileRef
       location = "group:Frameworks/RunestoneEditor">
    </FileRef>
+   <FileRef
+      location = "group:Frameworks/OAuthKit">
+   </FileRef>
 </Workspace>

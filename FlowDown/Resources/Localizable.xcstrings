@@ -462,6 +462,9 @@
         }
       }
     },
+    "After completing login, paste the full callback URL here." : {
+
+    },
     "After creating a copy, you can choose a new model. This is useful if the endpoint provides multiple models." : {
       "localizations" : {
         "en" : {
@@ -814,6 +817,9 @@
           }
         }
       }
+    },
+    "API Version" : {
+
     },
     "Appearance" : {
       "localizations" : {
@@ -1680,6 +1686,9 @@
         }
       }
     },
+    "Choose the API protocol for this model." : {
+
+    },
     "Choose the default model for new conversations." : {
       "localizations" : {
         "en" : {
@@ -2352,6 +2361,9 @@
           }
         }
       }
+    },
+    "Continue" : {
+
     },
     "Conversation" : {
       "localizations" : {
@@ -3873,6 +3885,9 @@
           }
         }
       }
+    },
+    "Edit API Version" : {
+
     },
     "Edit Branding Name" : {
       "localizations" : {
@@ -5819,6 +5834,9 @@
           }
         }
       }
+    },
+    "http://localhost:1455/auth/callback?code=...&state=..." : {
+
     },
     "https://" : {
       "shouldTranslate" : false
@@ -8468,6 +8486,15 @@
         }
       }
     },
+    "Now only supports openai@v1." : {
+
+    },
+    "OAuth Complete" : {
+
+    },
+    "OAuth Error: %@" : {
+
+    },
     "Objects" : {
       "comment" : "Emoji Category",
       "localizations" : {
@@ -8677,6 +8704,9 @@
         }
       }
     },
+    "openai@v1" : {
+
+    },
     "Operation Cancelled" : {
       "localizations" : {
         "en" : {
@@ -8820,6 +8850,9 @@
           }
         }
       }
+    },
+    "Paste Callback URL" : {
+
     },
     "Pause automatic background syncing. Use Refresh to pull changes when needed." : {
       "extractionState" : "manual",
@@ -10830,6 +10863,9 @@
           }
         }
       }
+    },
+    "Start OAuth" : {
+
     },
     "Start: %@" : {
       "localizations" : {
@@ -14071,6 +14107,9 @@
           }
         }
       }
+    },
+    "We will open the authorization page in your browser. After login, copy the redirected URL and paste it back here." : {
+
     },
     "Web Content from: %@\nTitle: %@\n\n%@" : {
       "localizations" : {

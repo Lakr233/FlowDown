@@ -9,6 +9,7 @@ import AlertController
 import Combine
 import ConfigurableKit
 import Foundation
+import OAuthKit
 import Storage
 import UIKit
 
@@ -169,6 +170,114 @@ class CloudModelEditorController: StackScrollController {
             return buildModelIdentifierMenu(for: identifier, view: modelIdentifierView)
         }
         stackView.addArrangedSubviewWithMargin(modelIdentifierView)
+        stackView.addArrangedSubview(SeparatorView())
+
+        // API Version
+        let apiVersionView = ConfigurableInfoView().setTapBlock { view in
+            guard let current = ModelManager.shared.cloudModel(identifier: model?.id) else { return }
+            let input = AlertInputViewController(
+                title: "Edit API Version",
+                message: "Now only supports openai@v1.",
+                placeholder: "openai@v1",
+                text: ""
+            ) { text in
+                let lowered = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                view.configure(value: lowered)
+                if lowered == "openai@v1" {
+                    ModelManager.shared.editCloudModel(identifier: current.id) { $0.update(\.api_version, to: .oai_completion) }
+                } else if lowered == "openai@oauth" {
+                    print("You've got the hidden feature!")
+                    ModelManager.shared.editCloudModel(identifier: current.id) { $0.update(\.api_version, to: .oai_response) }
+                    // Set default endpoint and model identifier for OpenAI OAuth
+                    ModelManager.shared.editCloudModel(identifier: current.id) {
+                        $0.update(\.endpoint, to: "https://chatgpt.com/backend-api/codex/responses")
+                        $0.update(\.model_identifier, to: "gpt-5")
+                        $0.update(\.context, to: .long_100k)
+                        $0.update(\.capabilities, to: [.visual, .tool])
+                    }
+
+                    // Begin OAuth flow
+                    let oauthConfig = OAuthConfiguration(
+                        clientId: "app_EMoamEEZ73f0CkXaXp7hrann",
+                        authorizationEndpoint: URL(string: "https://auth.openai.com/oauth/authorize")!,
+                        tokenEndpoint: URL(string: "https://auth.openai.com/oauth/token")!,
+                        redirectURI: URL(string: "http://localhost:1455/auth/callback")!,
+                        scope: "openid profile email offline_access",
+                        additionalParameters: [
+                            "id_token_add_organizations": "true",
+                            "codex_cli_simplified_flow": "true",
+                        ],
+                        usePKCE: true,
+                        pkceMethod: .sha256
+                    )
+                    let oauthClient = OAuthClient(configuration: oauthConfig)
+
+                    let alert = AlertViewController(
+                        title: "Start OAuth",
+                        message: "We will open the authorization page in your browser. After login, copy the redirected URL and paste it back here."
+                    ) { context in
+                        context.addAction(title: "Cancel") { context.dispose() }
+                        context.addAction(title: "Continue", attribute: .accent) {
+                            context.dispose {
+                                do {
+                                    let url = try oauthClient.buildAuthorizationURL()
+                                    UIApplication.shared.open(url)
+
+                                    let paste = AlertInputViewController(
+                                        title: "Paste Callback URL",
+                                        message: "After completing login, paste the full callback URL here.",
+                                        placeholder: "http://localhost:1455/auth/callback?code=...&state=...",
+                                        text: ""
+                                    ) { callback in
+                                        guard let callbackURL = URL(string: callback),
+                                              let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
+                                              let items = components.queryItems
+                                        else { return }
+
+                                        var code: String?
+                                        var state: String?
+                                        for item in items {
+                                            if item.name == "code" { code = item.value }
+                                            if item.name == "state" { state = item.value }
+                                            if item.name == "error" {
+                                                Indicator.present(title: "OAuth Error: \(item.value ?? "Unknown Error")")
+                                                return
+                                            }
+                                        }
+                                        guard let code else { return }
+                                        Task { @MainActor in
+                                            do {
+                                                _ = try await oauthClient.exchangeCodeForToken(code: code, state: state)
+                                                let token = try await oauthClient.getValidToken()
+                                                ModelManager.shared.editCloudModel(identifier: current.id) { $0.update(\.token, to: token.accessToken) }
+                                                Indicator.present(title: "OAuth Complete")
+                                            } catch {
+                                                Indicator.present(title: "\(error.localizedDescription)")
+                                            }
+                                        }
+                                    }
+                                    self.present(paste, animated: true)
+                                } catch {
+                                    Indicator.present(title: "\(error.localizedDescription)")
+                                }
+                            }
+                        }
+                    }
+                    view.parentViewController?.present(alert, animated: true)
+                }
+            }
+            view.parentViewController?.present(input, animated: true)
+        }
+        apiVersionView.configure(icon: UIImage(systemName: "arrow.triangle.2.circlepath"))
+        apiVersionView.configure(title: "API Version")
+        apiVersionView.configure(description: "Choose the API protocol for this model.")
+        let apiValue = switch model?.api_version ?? .oai_completion {
+        case .oai_completion: "openai@v1"
+        case .oai_response: "OpenAI OAuth"
+        case .claude: "Claude"
+        }
+        apiVersionView.configure(value: apiValue)
+        stackView.addArrangedSubviewWithMargin(apiVersionView)
         stackView.addArrangedSubview(SeparatorView())
 
         stackView.addArrangedSubviewWithMargin(

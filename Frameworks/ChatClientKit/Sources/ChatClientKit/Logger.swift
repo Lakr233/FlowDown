@@ -4,7 +4,6 @@
 //
 
 import Foundation
+import os
 
-@_exported import Logger
-
-let logger = Logger.chatService
+let logger = Logger(subsystem: "ChatClientKit", category: "general")

@@ -82,6 +82,7 @@ public class Storage {
                 MigrationV1ToV2(deviceId: Storage.deviceId, requiresDataMigration: true),
                 MigrationV2ToV3(),
                 MigrationV3ToV4(),
+                MigrationV4ToV5(),
             ]
         } else {
             initVersion = .Version1
@@ -89,6 +90,7 @@ public class Storage {
                 MigrationV1ToV2(deviceId: Storage.deviceId, requiresDataMigration: false),
                 MigrationV2ToV3(),
                 MigrationV3ToV4(),
+                MigrationV4ToV5(),
             ]
         }
 

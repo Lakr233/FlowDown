@@ -8,6 +8,12 @@
 import Foundation
 import WCDBSwift
 
+public enum ModelAPIVersion: String, Codable, CaseIterable, Equatable {
+    case oai_completion
+    case oai_response
+    case claude
+}
+
 public final class CloudModel: Identifiable, Codable, Equatable, Hashable, TableNamed, DeviceOwned, TableCodable {
     public static let tableName: String = "CloudModel"
 
@@ -26,6 +32,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
     public package(set) var token: String = ""
     public package(set) var headers: [String: String] = [:] // additional headers
     public package(set) var bodyFields: String = "" // additional body fields as JSON string
+    public package(set) var api_version: ModelAPIVersion = .oai_completion
     public package(set) var capabilities: Set<ModelCapabilities> = []
     public package(set) var context: ModelContextLength = .short_8k
     public package(set) var temperature_preference: ModelTemperaturePreference = .inherit
@@ -53,6 +60,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
             BindColumnConstraint(token, isNotNull: true, defaultTo: "")
             BindColumnConstraint(headers, isNotNull: true, defaultTo: [String: String]())
             BindColumnConstraint(bodyFields, isNotNull: true, defaultTo: "")
+            BindColumnConstraint(api_version, isNotNull: true, defaultTo: ModelAPIVersion.oai_completion)
             BindColumnConstraint(capabilities, isNotNull: true, defaultTo: Set<ModelCapabilities>())
             BindColumnConstraint(context, isNotNull: true, defaultTo: ModelContextLength.short_8k)
             BindColumnConstraint(comment, isNotNull: true, defaultTo: "")
@@ -74,6 +82,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         case headers
         case bodyFields
         case capabilities
+        case api_version
         case context
         case comment
         case name
@@ -114,6 +123,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         self.token = token
         self.headers = headers
         self.bodyFields = bodyFields
+        api_version = .oai_completion
         self.capabilities = capabilities
         self.comment = comment
         self.name = name
@@ -134,6 +144,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         token = try container.decodeIfPresent(String.self, forKey: .token) ?? ""
         headers = try container.decodeIfPresent([String: String].self, forKey: .headers) ?? [:]
         bodyFields = try container.decodeIfPresent(String.self, forKey: .bodyFields) ?? ""
+        api_version = try container.decodeIfPresent(ModelAPIVersion.self, forKey: .api_version) ?? .oai_completion
         capabilities = try container.decodeIfPresent(Set<ModelCapabilities>.self, forKey: .capabilities) ?? []
         context = try container.decodeIfPresent(ModelContextLength.self, forKey: .context) ?? .short_8k
         comment = try container.decodeIfPresent(String.self, forKey: .comment) ?? ""
@@ -163,6 +174,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         hasher.combine(token)
         hasher.combine(headers)
         hasher.combine(bodyFields)
+        hasher.combine(api_version)
         hasher.combine(capabilities)
         hasher.combine(context)
         hasher.combine(comment)
@@ -212,6 +224,21 @@ extension ModelCapabilities: ColumnCodable {
     public init?(with value: WCDBSwift.Value) {
         let text = value.stringValue
         self.init(rawValue: text)
+    }
+
+    public func archivedValue() -> WCDBSwift.Value {
+        .init(rawValue)
+    }
+
+    public static var columnType: ColumnType {
+        .text
+    }
+}
+
+extension ModelAPIVersion: ColumnCodable {
+    public init?(with value: WCDBSwift.Value) {
+        let text = value.stringValue
+        self = ModelAPIVersion(rawValue: text) ?? .oai_completion
     }
 
     public func archivedValue() -> WCDBSwift.Value {

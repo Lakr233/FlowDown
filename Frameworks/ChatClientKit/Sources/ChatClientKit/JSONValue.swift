@@ -148,3 +148,48 @@ extension JSONValue: ExpressibleByDictionaryLiteral {
         self = .object(.init(uniqueKeysWithValues: elements))
     }
 }
+
+public extension JSONValue {
+    /// Extract the underlying value from JSONValue enum
+    var value: Any {
+        switch self {
+        case let .null(null):
+            null
+        case let .bool(bool):
+            bool
+        case let .int(int):
+            int
+        case let .double(double):
+            double
+        case let .string(string):
+            string
+        case let .array(array):
+            array.map(\.value)
+        case let .object(object):
+            object.mapValues { $0.value }
+        }
+    }
+
+    /// Convenience initializer to create JSONValue from Any
+    init(_ value: Any) {
+        switch value {
+        case let null as NSNull:
+            self = .null(null)
+        case let bool as Bool:
+            self = .bool(bool)
+        case let int as Int:
+            self = .int(int)
+        case let double as Double:
+            self = .double(double)
+        case let string as String:
+            self = .string(string)
+        case let array as [Any]:
+            self = .array(array.map { JSONValue($0) })
+        case let dict as [String: Any]:
+            self = .object(dict.mapValues { JSONValue($0) })
+        default:
+            // Fallback to string representation for unknown types
+            self = .string(String(describing: value))
+        }
+    }
+}
