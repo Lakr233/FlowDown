@@ -799,35 +799,54 @@ class CloudModelEditorController: StackScrollController {
             menuElements.append(copyAction)
         }
 
-        let deferredElement = UIDeferredMenuElement.uncached { completion in
-            guard let model = ModelManager.shared.cloudModel(identifier: modelId) else {
-                completion([])
-                return
+        if model.api_version == .oai_response {
+            // OpenAI OAuth: provide fixed options and do not fetch from server
+            let options = ["gpt-5-codex", "gpt-5"]
+            let actions = options.map { option in
+                UIAction(title: option, state: model.model_identifier == option ? .on : .off) { _ in
+                    ModelManager.shared.editCloudModel(identifier: model.id) { editable in
+                        editable.update(\.model_identifier, to: option)
+                    }
+                    view.configure(value: option)
+                }
             }
-
-            ModelManager.shared.fetchModelList(identifier: model.id) { list in
-                if list.isEmpty {
-                    completion([UIAction(
-                        title: String(localized: "(None)"),
-                        attributes: .disabled
-                    ) { _ in }])
+            menuElements.append(UIMenu(
+                title: String(localized: "Select Model supported by codex"),
+                image: UIImage(systemName: "rectangle.3.group"),
+                options: [.displayInline],
+                children: actions
+            ))
+        } else {
+            let deferredElement = UIDeferredMenuElement.uncached { completion in
+                guard let model = ModelManager.shared.cloudModel(identifier: modelId) else {
+                    completion([])
                     return
                 }
-                let menuElements = self.buildModelSelectionMenu(from: list) { selection in
-                    ModelManager.shared.editCloudModel(identifier: model.id) {
-                        $0.update(\.model_identifier, to: selection)
-                    }
-                    view.configure(value: selection)
-                }
-                completion(menuElements)
-            }
-        }
 
-        menuElements.append(UIMenu(
-            title: String(localized: "Select from Server"),
-            image: UIImage(systemName: "icloud.and.arrow.down"),
-            children: [deferredElement]
-        ))
+                ModelManager.shared.fetchModelList(identifier: model.id) { list in
+                    if list.isEmpty {
+                        completion([UIAction(
+                            title: String(localized: "(None)"),
+                            attributes: .disabled
+                        ) { _ in }])
+                        return
+                    }
+                    let menuElements = self.buildModelSelectionMenu(from: list) { selection in
+                        ModelManager.shared.editCloudModel(identifier: model.id) {
+                            $0.update(\.model_identifier, to: selection)
+                        }
+                        view.configure(value: selection)
+                    }
+                    completion(menuElements)
+                }
+            }
+
+            menuElements.append(UIMenu(
+                title: String(localized: "Select from Server"),
+                image: UIImage(systemName: "icloud.and.arrow.down"),
+                children: [deferredElement]
+            ))
+        }
 
         return menuElements
     }

@@ -10333,6 +10333,9 @@
         }
       }
     },
+    "Select Model (OAuth)" : {
+
+    },
     "Send a message and get the model's response." : {
       "localizations" : {
         "en" : {
