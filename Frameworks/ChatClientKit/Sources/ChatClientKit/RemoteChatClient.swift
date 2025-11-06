@@ -21,6 +21,8 @@ open class RemoteChatClient: ChatService {
     /// The format handler for API requests and responses
     public let format: ChatFormatProtocol
     public var debugLogging: Bool = false
+    /// Last Responses API response id observed during streaming.
+    public var lastResponseId: String?
 
     public enum Error: Swift.Error {
         case invalidURL
@@ -201,6 +203,7 @@ open class RemoteChatClient: ChatService {
                 var isInsideReasoningContent = false
                 let toolCallCollector: ToolCallCollector = .init()
 
+                self.lastResponseId = nil
                 let eventSource = EventSource()
                 let dataTask = eventSource.dataTask(for: request)
 
@@ -220,6 +223,12 @@ open class RemoteChatClient: ChatService {
                             continue
                         }
                         do {
+                            if let responsesFormat = self.format as? OpenAIResponsesFormat,
+                               let rawChunk = try? responsesFormat.parseResponsesStreamingChunk(from: data),
+                               let rid = rawChunk.id, !rid.isEmpty
+                            {
+                                self.lastResponseId = rid
+                            }
                             guard let parsedResponse = try self.format.parseStreamingChunk(from: data) else {
                                 continue
                             }
@@ -255,6 +264,157 @@ open class RemoteChatClient: ChatService {
                         }
                     case .closed:
                         logger.info("connection was closed.")
+                    }
+                }
+
+                toolCallCollector.finalizeCurrentDeltaContent()
+                for call in toolCallCollector.pendingRequests {
+                    continuation.yield(.tool(call: call))
+                }
+                continuation.finish()
+            }
+        }
+        return stream.eraseToAnyAsyncSequence()
+    }
+
+    // MARK: - Responses API Streaming (function_call_output follow-up)
+
+    public func streamingResponsesRequest(
+        body: ResponsesRequestBody,
+        additionalField: [String: Any] = [:]
+    ) async throws -> AnyAsyncSequence<ChatServiceStreamObject> {
+        guard let baseURL else { throw Error.invalidURL }
+        guard let apiKey else { throw Error.invalidApiKey }
+        // build responses streaming body separately (immutable struct)
+        let streamingBody = ResponsesRequestBody(
+            background: body.background,
+            conversation: body.conversation,
+            include: body.include,
+            input: body.input,
+            instructions: body.instructions,
+            maxOutputTokens: body.maxOutputTokens,
+            maxToolCalls: body.maxToolCalls,
+            metadata: body.metadata,
+            model: body.model ?? model,
+            parallelToolCalls: body.parallelToolCalls,
+            previousResponseId: body.previousResponseId,
+            prompt: body.prompt,
+            promptCacheKey: body.promptCacheKey,
+            reasoning: body.reasoning,
+            safetyIdentifier: body.safetyIdentifier,
+            serviceTier: body.serviceTier,
+            store: body.store,
+            stream: true,
+            streamOptions: body.streamOptions,
+            temperature: body.temperature,
+            text: body.text,
+            toolChoice: body.toolChoice,
+            tools: body.tools,
+            topLogprobs: body.topLogprobs,
+            topP: body.topP,
+            truncation: body.truncation,
+            user: body.user
+        )
+
+        let url: URL = {
+            if baseURL.hasSuffix("/responses") || baseURL.hasSuffix("/chat/completions") {
+                return URL(string: baseURL)!
+            }
+            let base = baseURL.hasSuffix("/") ? String(baseURL.dropLast()) : baseURL
+            let apiPath = format.apiPath
+            let lowercasedBase = base.lowercased()
+            let isChatGPTCodex = lowercasedBase.contains("chatgpt.com") && lowercasedBase.contains("/backend-api/codex")
+            if isChatGPTCodex {
+                let path = base.hasSuffix("/responses") ? "" : "/responses"
+                return URL(string: base + path)!
+            } else if apiPath.hasPrefix("/v1/"), base.hasSuffix("/v1") {
+                let trimmed = String(apiPath.dropFirst(3))
+                return URL(string: base + trimmed)!
+            } else {
+                let sep = apiPath.hasPrefix("/") ? "" : "/"
+                return URL(string: base + sep + apiPath)!
+            }
+        }()
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        var mergedAdditional = additionalField
+        // Align with instance-level additionalField defaults
+        for (k, v) in self.additionalField {
+            mergedAdditional[k] = v
+        }
+        req.httpBody = try (format as! OpenAIResponsesFormat).prepareResponsesRequest(from: streamingBody, additionalFields: mergedAdditional)
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        for (key, value) in additionalHeaders {
+            req.setValue(value, forHTTPHeaderField: key)
+        }
+
+        if debugLogging, let body = req.httpBody, let str = String(data: body, encoding: .utf8) {
+            print("[RemoteChatClient] Responses(stream) body: \(str)")
+        }
+
+        let stream = AsyncStream<ChatServiceStreamObject> { continuation in
+            Task.detached {
+                var canDecodeReasoningContent = true
+                var isInsideReasoningContent = false
+                let toolCallCollector: ToolCallCollector = .init()
+
+                self.lastResponseId = nil
+                let eventSource = EventSource()
+                let dataTask = eventSource.dataTask(for: req)
+
+                for await event in dataTask.events() {
+                    switch event {
+                    case .open:
+                        logger.info("responses connection was opened.")
+                    case let .error(error):
+                        logger.error("responses received an error: \(error)")
+                        self.collect(error: error)
+                    case let .event(event):
+                        if self.debugLogging {
+                            print("[RemoteChatClient][SSE][responses] event=\(event.event ?? "message"), id=\(event.id ?? "")")
+                            if let d = event.data { print("[RemoteChatClient][SSE][responses] data: \(d)") }
+                        }
+                        guard let data = event.data?.data(using: .utf8) else { continue }
+                        do {
+                            if let responsesFormat = self.format as? OpenAIResponsesFormat,
+                               let rawChunk = try? responsesFormat.parseResponsesStreamingChunk(from: data),
+                               let rid = rawChunk.id, !rid.isEmpty
+                            {
+                                self.lastResponseId = rid
+                            }
+                            guard let parsedResponse = try self.format.parseStreamingChunk(from: data) else { continue }
+                            var response = parsedResponse
+                            let reasoningContent = [
+                                response.choices.map(\.delta).compactMap(\.reasoning),
+                                response.choices.map(\.delta).compactMap(\.reasoningContent),
+                            ].flatMap(\.self)
+                            let content = response.choices.map(\.delta).compactMap(\.content)
+
+                            if canDecodeReasoningContent { canDecodeReasoningContent = reasoningContent.isEmpty }
+                            if canDecodeReasoningContent {
+                                self.processReasoningContent(content, reasoningContent, &isInsideReasoningContent, &response)
+                            }
+
+                            for delta in response.choices {
+                                for toolDelta in delta.delta.toolCalls ?? [] {
+                                    toolCallCollector.submit(delta: toolDelta)
+                                }
+                            }
+
+                            continuation.yield(.chatCompletionChunk(chunk: response))
+                        } catch {
+                            if let text = String(data: data, encoding: .utf8) {
+                                logger.log("text content associated with this responses error \(text)")
+                            }
+                            self.collect(error: error)
+                        }
+                        if let decodeError = self.format.parseError(from: data) {
+                            self.collect(error: decodeError)
+                        }
+                    case .closed:
+                        logger.info("responses connection was closed.")
                     }
                 }
 
@@ -393,6 +553,72 @@ open class RemoteChatClient: ChatService {
         return request
     }
 
+    // MARK: - Direct Responses API request (for tool results follow-up)
+
+    public func sendResponsesRequest(body: ResponsesRequestBody, additionalField: [String: Any] = [:]) async throws -> ChatResponseBody {
+        guard let baseURL else { throw Error.invalidURL }
+        guard let apiKey else { throw Error.invalidApiKey }
+
+        let url: URL = {
+            if baseURL.hasSuffix("/responses") || baseURL.hasSuffix("/chat/completions") {
+                return URL(string: baseURL)!
+            }
+            let base = baseURL.hasSuffix("/") ? String(baseURL.dropLast()) : baseURL
+            let apiPath = format.apiPath
+            let lowercasedBase = base.lowercased()
+            let isChatGPTCodex = lowercasedBase.contains("chatgpt.com") && lowercasedBase.contains("/backend-api/codex")
+            if isChatGPTCodex {
+                let path = base.hasSuffix("/responses") ? "" : "/responses"
+                return URL(string: base + path)!
+            } else if apiPath.hasPrefix("/v1/"), base.hasSuffix("/v1") {
+                let trimmed = String(apiPath.dropFirst(3))
+                return URL(string: base + trimmed)!
+            } else {
+                let sep = apiPath.hasPrefix("/") ? "" : "/"
+                return URL(string: base + sep + apiPath)!
+            }
+        }()
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        var mergedAdditional = additionalField
+        // Align with instance-level additionalField defaults
+        for (k, v) in self.additionalField {
+            mergedAdditional[k] = v
+        }
+        req.httpBody = try (format as! OpenAIResponsesFormat).prepareResponsesRequest(from: body, additionalFields: mergedAdditional)
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        for (key, value) in additionalHeaders {
+            req.setValue(value, forHTTPHeaderField: key)
+        }
+
+        if debugLogging, let body = req.httpBody, let str = String(data: body, encoding: .utf8) {
+            print("[RemoteChatClient] Responses body: \(str)")
+        }
+
+        let (data, response) = try await session.data(for: req)
+        if debugLogging {
+            if let http = response as? HTTPURLResponse {
+                print("[RemoteChatClient] Responses status: \(http.statusCode)")
+                print("[RemoteChatClient] Responses headers: \(http.allHeaderFields)")
+            }
+            if let raw = String(data: data, encoding: .utf8) {
+                print("[RemoteChatClient] Responses raw (truncated 2k): \(raw.prefix(2048))")
+            }
+        }
+        do {
+            return try format.parseResponse(from: data)
+        } catch {
+            if let decoded = format.parseError(from: data) {
+                collectedErrors = decoded.localizedDescription
+                throw decoded
+            }
+            collectedErrors = error.localizedDescription
+            throw error
+        }
+    }
+
     /// Extracts or preserves the reasoning content within a `ChoiceMessage`.
     ///
     /// This function inspects the provided `ChoiceMessage` to determine if it already contains
@@ -452,6 +678,7 @@ open class RemoteChatClient: ChatService {
 class ToolCallCollector {
     var functionName: String = ""
     var functionArguments: String = ""
+    var functionCallId: String?
     var currentId: Int?
     var pendingRequests: [ToolCallRequest] = []
 
@@ -467,16 +694,20 @@ class ToolCallCollector {
         if let arguments = function.arguments {
             functionArguments.append(arguments)
         }
+        if let cid = delta.id, !cid.isEmpty {
+            functionCallId = cid
+        }
     }
 
     func finalizeCurrentDeltaContent() {
         guard !functionName.isEmpty || !functionArguments.isEmpty else {
             return
         }
-        let call = ToolCallRequest(name: functionName, args: functionArguments)
+        let call = ToolCallRequest(callId: functionCallId, name: functionName, args: functionArguments)
         print(call)
         pendingRequests.append(call)
         functionName = ""
         functionArguments = ""
+        functionCallId = nil
     }
 }

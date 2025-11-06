@@ -173,6 +173,8 @@ public extension JSONValue {
     /// Convenience initializer to create JSONValue from Any
     init(_ value: Any) {
         switch value {
+        case let json as JSONValue:
+            self = json
         case let null as NSNull:
             self = .null(null)
         case let bool as Bool:
