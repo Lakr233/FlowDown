@@ -8,6 +8,20 @@ import json
 import sys
 import os
 
+# you can modify this script to populate localization strings as needed
+# just remember to remove the entries from NEW_STRINGS after committing
+NEW_STRINGS: dict[str, dict[str, str]] = {
+    "Search saved conversations by keyword and return formatted summaries.": {
+        "zh-Hans": "按关键字搜索已保存的会话，并返回格式化摘要。",
+    },
+    "Result Limit": {
+        "zh-Hans": "结果上限",
+    },
+    "How many results should FlowDown return?": {
+        "zh-Hans": "FlowDown 应返回多少条结果？",
+    },
+}
+
 def update_translations(file_path):
     """Update missing translations in the xcstrings file."""
     
@@ -23,6 +37,28 @@ def update_translations(file_path):
         sys.exit(1)
     
     strings = data['strings']
+
+    # Ensure new strings exist with provided translations
+    for key, translations in NEW_STRINGS.items():
+        entry = strings.setdefault(key, {})
+        if entry.get('shouldTranslate') is False:
+            entry.pop('shouldTranslate', None)
+
+        locs = entry.setdefault('localizations', {})
+        locs.setdefault('en', {
+            'stringUnit': {
+                'state': 'translated',
+                'value': key,
+            }
+        })
+
+        for language, value in translations.items():
+            locs[language] = {
+                'stringUnit': {
+                    'state': 'translated',
+                    'value': value,
+                }
+            }
 
     # Determine all languages present in the file (excluding ones marked shouldTranslate=false)
     languages: set[str] = set()
@@ -110,10 +146,10 @@ def update_translations(file_path):
 if __name__ == '__main__':
     # Default path to the Localizable.xcstrings file
     default_file_path = os.path.join(
-        os.path.dirname(__file__), 
-        '..', '..', 
-        'FlowDown', 
-        'Resources', 
+        os.path.dirname(__file__),
+        '..', '..', '..',
+        'FlowDown',
+        'Resources',
         'Localizable.xcstrings'
     )
     

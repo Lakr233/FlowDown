@@ -318,6 +318,59 @@ public class MemoryStore: ObservableObject {
         }
     }
 
+    func formattedProactiveMemoryContext() async -> String? {
+        await formattedProactiveMemoryContext(for: MemoryProactiveProvisionSetting.currentScope)
+    }
+
+    func formattedProactiveMemoryContext(for scope: MemoryProactiveProvisionScope) async -> String? {
+        switch scope.filter {
+        case .none:
+            return nil
+        default:
+            break
+        }
+
+        do {
+            let memories = try await getAllMemoriesAsync()
+
+            let filteredMemories: [Memory]
+            switch scope.filter {
+            case .none:
+                assertionFailure()
+                return nil
+            case let .timeInterval(interval):
+                let threshold = Date().addingTimeInterval(-interval)
+                filteredMemories = memories.filter { $0.creation >= threshold }
+            case let .count(limit):
+                filteredMemories = Array(memories.prefix(limit))
+            case .all:
+                filteredMemories = memories
+            }
+
+            guard !filteredMemories.isEmpty else { return nil }
+
+            let header = String(localized: "Proactive Memory Context")
+            let scopeDescription = String(localized: scope.briefDescription)
+            let scopeLine = String(localized: "Scope: \(scopeDescription)")
+            let note = String(localized: "This summary is provided automatically according to the user's proactive memory setting, even when memory tools are disabled.")
+
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .short
+
+            let body = filteredMemories.enumerated().map { index, memory -> String in
+                let timestamp = dateFormatter.string(from: memory.creation)
+                return String(localized: "\(index + 1). [\(timestamp)] \(memory.content)")
+            }
+            .joined(separator: "\n")
+
+            return [header, scopeLine, note, "", body].joined(separator: "\n")
+        } catch {
+            Logger.database.errorFile("MemoryStore failed to build proactive memory context: \(error)")
+            return nil
+        }
+    }
+
     private func updateMemoryCount() async {
         do {
             let count = try await getMemoryCount()

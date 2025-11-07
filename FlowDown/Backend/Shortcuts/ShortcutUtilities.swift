@@ -12,7 +12,7 @@ enum ShortcutUtilitiesError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unableToCreateURL:
-            String(localized: "Unable to construct FlowDown URL.")
+            String(localized: "Unable to construct URL.")
         case .invalidMessageEncoding:
             String(localized: "Unable to encode the provided message.")
         case .conversationNotFound:

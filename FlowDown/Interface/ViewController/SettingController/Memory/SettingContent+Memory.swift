@@ -32,6 +32,24 @@ extension SettingController.SettingContent {
             super.setupContentViews()
             stackView.addArrangedSubview(SeparatorView())
 
+            // Proactive Memory Section
+            stackView.addArrangedSubviewWithMargin(
+                ConfigurableSectionHeaderView().with(
+                    header: "Proactive Memory"
+                )
+            ) { $0.bottom /= 2 }
+            stackView.addArrangedSubview(SeparatorView())
+
+            stackView.addArrangedSubviewWithMargin(MemoryProactiveProvisionSetting.configurableObject.createView())
+            stackView.addArrangedSubview(SeparatorView())
+
+            stackView.addArrangedSubviewWithMargin(
+                ConfigurableSectionFooterView().with(
+                    footer: "When enabled, we will include stored memories in system prompts even if memory tools are disabled."
+                )
+            ) { $0.top /= 2 }
+            stackView.addArrangedSubview(SeparatorView())
+
             // Memory Tools Section
             stackView.addArrangedSubviewWithMargin(
                 ConfigurableSectionHeaderView().with(

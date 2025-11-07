@@ -4,7 +4,7 @@ import Foundation
 enum ShortcutsEntities {
     struct ModelEntity: AppEntity, Identifiable {
         static var typeDisplayRepresentation: TypeDisplayRepresentation {
-            .init(name: LocalizedStringResource("Model", defaultValue: "Model"))
+            .init(name: LocalizedStringResource("Model"))
         }
 
         static var defaultQuery: ShortcutsEntities.ModelQuery { .init() }
@@ -17,11 +17,11 @@ enum ShortcutsEntities {
             var localizedDescription: LocalizedStringResource {
                 switch self {
                 case .local:
-                    LocalizedStringResource("Local", defaultValue: "Local")
+                    LocalizedStringResource("Local")
                 case .cloud:
-                    LocalizedStringResource("Cloud", defaultValue: "Cloud")
+                    LocalizedStringResource("Cloud")
                 case .apple:
-                    LocalizedStringResource("Apple Intelligence", defaultValue: "Apple Intelligence")
+                    LocalizedStringResource("Apple Intelligence")
                 }
             }
         }
@@ -153,32 +153,6 @@ enum ShortcutsEntities {
                         lhs.displayName.localizedCaseInsensitiveCompare(rhs.displayName) == .orderedAscending
                     }
             }
-        }
-    }
-}
-
-enum FlowDownShortcutError: LocalizedError {
-    case emptyMessage
-    case modelUnavailable
-    case emptyResponse
-    case imageNotAllowed
-    case imageNotSupportedByModel
-    case invalidImage
-
-    var errorDescription: String? {
-        switch self {
-        case .emptyMessage:
-            String(localized: "Empty message.")
-        case .modelUnavailable:
-            String(localized: "Unable to find the selected model.")
-        case .emptyResponse:
-            String(localized: "The model did not return any content.")
-        case .imageNotAllowed:
-            String(localized: "This shortcut does not accept images.")
-        case .imageNotSupportedByModel:
-            String(localized: "The selected model does not support image inputs.")
-        case .invalidImage:
-            String(localized: "The provided image could not be processed.")
         }
     }
 }

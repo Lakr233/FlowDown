@@ -3,18 +3,17 @@ import Foundation
 
 struct SetConversationModelIntent: AppIntent {
     static var title: LocalizedStringResource {
-        LocalizedStringResource("Set Conversation Model", defaultValue: "Set Conversation Model")
+        LocalizedStringResource("Set Conversation Model")
     }
 
     static var description = IntentDescription(
         LocalizedStringResource(
-            "Choose the default model for new conversations.",
-            defaultValue: "Choose the default model for new conversations."
+            "Choose the default model for new conversations."
         )
     )
 
     @Parameter(
-        title: LocalizedStringResource("Model", defaultValue: "Model"),
+        title: LocalizedStringResource("Model"),
         requestValueDialog: IntentDialog("Which model should be the default?")
     )
     var model: ShortcutsEntities.ModelEntity

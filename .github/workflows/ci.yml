@@ -1,0 +1,79 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: ios
+            scheme: FlowDown
+            destination: "generic/platform=iOS"
+            archive_path: BuildArtifacts/ios.xcarchive
+          - target: macos
+            scheme: FlowDown
+            destination: "generic/platform=macOS,variant=Mac Catalyst"
+            archive_path: BuildArtifacts/macos.xcarchive
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26.0
+        run: sudo xcode-select -s /Applications/Xcode_26.0.app/Contents/Developer
+
+      - name: Resolve Packages (${{ matrix.target }})
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace FlowDown.xcworkspace \
+            -scheme "${{ matrix.scheme }}" \
+            -resolvePackageDependencies \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | xcbeautify --is-ci --disable-colored-output --disable-logging
+
+      - name: Archive (${{ matrix.target }})
+        run: |
+          set -o pipefail
+          mkdir -p BuildArtifacts
+          xcodebuild \
+            -workspace FlowDown.xcworkspace \
+            -scheme "${{ matrix.scheme }}" \
+            -configuration Release \
+            -destination '${{ matrix.destination }}' \
+            archive \
+            -archivePath "${{ matrix.archive_path }}" \
+            -resultBundlePath "BuildArtifacts/${{ matrix.target }}.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | xcbeautify --is-ci --disable-colored-output --disable-logging
+
+      - name: Compress Archive (${{ matrix.target }})
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent "${{ matrix.archive_path }}" "BuildArtifacts/${{ matrix.target }}.xcarchive.zip"
+
+      - name: Upload Build Artifact (${{ matrix.target }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}-xcresult
+          path: BuildArtifacts/${{ matrix.target }}.xcresult
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Archive Artifact (${{ matrix.target }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}-xcarchive
+          path: BuildArtifacts/${{ matrix.target }}.xcarchive.zip
+          if-no-files-found: error
+          retention-days: 7

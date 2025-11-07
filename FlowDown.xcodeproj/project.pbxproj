@@ -11,7 +11,6 @@
 		500373C52D62757700585574 /* ScrubberKit in Frameworks */ = {isa = PBXBuildFile; productRef = 500373C42D62757700585574 /* ScrubberKit */; };
 		501C98E12D3E52CE00CD8E11 /* RichEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 501C98E02D3E52CE00CD8E11 /* RichEditor */; };
 		502272D22EB3DE3200AF9D28 /* UIEffectKit in Frameworks */ = {isa = PBXBuildFile; productRef = 502272D12EB3DE3200AF9D28 /* UIEffectKit */; };
-		502B98062D535F25003200B6 /* Emoji.json in Resources */ = {isa = PBXBuildFile; fileRef = 502B98052D535F25003200B6 /* Emoji.json */; };
 		502BCBD12D43DB2B00500180 /* ConfigurableKit in Frameworks */ = {isa = PBXBuildFile; productRef = 502BCBD02D43DB2B00500180 /* ConfigurableKit */; };
 		50383CEA2D2E1E0D00426941 /* BetterCodable in Frameworks */ = {isa = PBXBuildFile; productRef = 50383CE92D2E1E0D00426941 /* BetterCodable */; };
 		5050EACF2D46D41400634B81 /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = 5050EACE2D46D41400634B81 /* MLX */; };
@@ -19,7 +18,6 @@
 		5050EB0B2D46DCB900634B81 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 5050EB0A2D46DCB900634B81 /* MLXLMCommon */; };
 		5050EB7C2D4789A300634B81 /* Transformers in Frameworks */ = {isa = PBXBuildFile; productRef = 5050EB7B2D4789A300634B81 /* Transformers */; };
 		505535BC2D72F38900F54B28 /* AlignedCollectionViewFlowLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 505535BB2D72F38900F54B28 /* AlignedCollectionViewFlowLayout */; };
-		505535C12D72F7EF00F54B28 /* PrivacyPolicy.md in Resources */ = {isa = PBXBuildFile; fileRef = 505535C02D72F7EF00F54B28 /* PrivacyPolicy.md */; };
 		505742472E1B8B8100A26090 /* DpkgVersion in Frameworks */ = {isa = PBXBuildFile; productRef = 505742462E1B8B8100A26090 /* DpkgVersion */; };
 		505BC6F92D42A73600894BB0 /* AlertController in Frameworks */ = {isa = PBXBuildFile; productRef = 505BC6F82D42A73600894BB0 /* AlertController */; };
 		505FC6192D4945E500F4CB17 /* SPIndicator in Frameworks */ = {isa = PBXBuildFile; productRef = 505FC6182D4945E500F4CB17 /* SPIndicator */; };
@@ -33,7 +31,7 @@
 		50B5149B2D2316EC0092284C /* SwifterSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 50B5149A2D2316EC0092284C /* SwifterSwift */; };
 		50C9035B2D428DAD00E6E3A8 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 50C9035A2D428DAD00E6E3A8 /* Storage */; };
 		50CB4E752DE30A57009C58E1 /* Digger in Frameworks */ = {isa = PBXBuildFile; productRef = 50CB4E742DE30A57009C58E1 /* Digger */; };
-		50D2848C2D72E8EE0048CE31 /* OpenSourceLicenses.md in Resources */ = {isa = PBXBuildFile; fileRef = 50D2848B2D72E8EE0048CE31 /* OpenSourceLicenses.md */; };
+		50D6C7832EBDFC850037488A /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 50D6C7822EBDFC820037488A /* BundledResources */; };
 		50DDB1712DDF16F200351E46 /* ListViewKit in Frameworks */ = {isa = PBXBuildFile; productRef = 50DDB1702DDF16F200351E46 /* ListViewKit */; };
 		50E3FA092D6D7FB8000405BD /* GPTEncoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50E3FA082D6D7FB8000405BD /* GPTEncoder */; };
 		50FBFC6C2DEA2E5400098EC4 /* XMLCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50FBFC6B2DEA2E5400098EC4 /* XMLCoder */; };
@@ -44,26 +42,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		502B98052D535F25003200B6 /* Emoji.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Emoji.json; sourceTree = "<group>"; };
 		503498BD2D23053D004672BD /* FlowDown.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlowDown.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		505535BF2D72F7EF00F54B28 /* en */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = en; path = en.lproj/PrivacyPolicy.md; sourceTree = "<group>"; };
-		505535C22D72F7F200F54B28 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = "zh-Hans"; path = "zh-Hans.lproj/PrivacyPolicy.md"; sourceTree = "<group>"; };
 		50B5146A2D2305F20092284C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		50D2848B2D72E8EE0048CE31 /* OpenSourceLicenses.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = OpenSourceLicenses.md; sourceTree = "<group>"; };
-		EDFAC1BB2D6B874A00D1890C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
-		EDFAC1BD2D6B874A00D1890C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		50D6C7822EBDFC820037488A /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
+		50D6CB1C2EBDFCB50037488A /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		506C2E872DA2547F00E370BE /* Exceptions for "Resources" folder in "FlowDown" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"InfoPlist/Info-Catalyst.plist",
-				"InfoPlist/Info-iOS.plist",
-			);
-			target = 503498BC2D23053D004672BD /* FlowDown */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3C2409992E97803B0055F162 /* Configuration */ = {
@@ -88,9 +71,6 @@
 		};
 		50B514682D2305E30092284C /* Resources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				506C2E872DA2547F00E370BE /* Exceptions for "Resources" folder in "FlowDown" target */,
-			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
@@ -152,21 +132,10 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		502B98042D535F13003200B6 /* BundledResources */ = {
-			isa = PBXGroup;
-			children = (
-				505535C02D72F7EF00F54B28 /* PrivacyPolicy.md */,
-				50D2848B2D72E8EE0048CE31 /* OpenSourceLicenses.md */,
-				502B98052D535F25003200B6 /* Emoji.json */,
-			);
-			path = BundledResources;
-			sourceTree = "<group>";
-		};
 		502BCBCF2D43DB2B00500180 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				EDFAC1BB2D6B874A00D1890C /* WidgetKit.framework */,
-				EDFAC1BD2D6B874A00D1890C /* SwiftUI.framework */,
+				50D6CB1C2EBDFCB50037488A /* UIKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -200,7 +169,7 @@
 				50B514732D23133F0092284C /* Extension */,
 				50D148142D71F292008E9F03 /* PlatformSupport */,
 				50B514682D2305E30092284C /* Resources */,
-				502B98042D535F13003200B6 /* BundledResources */,
+				50D6C7822EBDFC820037488A /* BundledResources */,
 			);
 			path = FlowDown;
 			sourceTree = "<group>";
@@ -275,7 +244,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					503498BC2D23053D004672BD = {
 						CreatedOnToolsVersion = 16.2;
@@ -330,9 +299,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				50D2848C2D72E8EE0048CE31 /* OpenSourceLicenses.md in Resources */,
-				505535C12D72F7EF00F54B28 /* PrivacyPolicy.md in Resources */,
-				502B98062D535F25003200B6 /* Emoji.json in Resources */,
+				50D6C7832EBDFC850037488A /* BundledResources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,18 +338,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXVariantGroup section */
-		505535C02D72F7EF00F54B28 /* PrivacyPolicy.md */ = {
-			isa = PBXVariantGroup;
-			children = (
-				505535BF2D72F7EF00F54B28 /* en */,
-				505535C22D72F7F200F54B28 /* zh-Hans */,
-			);
-			name = PrivacyPolicy.md;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
 		503498D12D23053E004672BD /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -391,6 +346,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = "UIKit AppKit";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "$(CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "$(inherited)";
@@ -433,7 +389,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.10.10;
+				LOCALIZED_STRING_SWIFTUI_SUPPORT = YES;
+				MARKETING_VERSION = 3.10.11;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = dev.nvme0n1p.flow;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = dev.nvme0n1p.flow;
@@ -457,6 +414,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = "UIKit AppKit";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "$(CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_IDENTITY = "$(inherited)";
@@ -499,7 +457,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.10.10;
+				LOCALIZED_STRING_SWIFTUI_SUPPORT = YES;
+				MARKETING_VERSION = 3.10.11;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

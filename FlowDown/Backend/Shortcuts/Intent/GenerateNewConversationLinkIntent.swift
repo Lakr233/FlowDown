@@ -3,18 +3,17 @@ import Foundation
 
 struct GenerateNewConversationLinkIntent: AppIntent {
     static var title: LocalizedStringResource {
-        LocalizedStringResource("Create Conversation Link", defaultValue: "Create Conversation Link")
+        LocalizedStringResource("Create Conversation Link")
     }
 
     static var description = IntentDescription(
         LocalizedStringResource(
-            "Create a FlowDown deep link that starts a new conversation.",
-            defaultValue: "Create a FlowDown deep link that starts a new conversation."
+            "Create a FlowDown deep link that starts a new conversation."
         )
     )
 
     @Parameter(
-        title: LocalizedStringResource("Initial Message", defaultValue: "Initial Message"),
+        title: LocalizedStringResource("Initial Message"),
         requestValueDialog: IntentDialog("What message should FlowDown pre-fill?")
     )
     var message: String?

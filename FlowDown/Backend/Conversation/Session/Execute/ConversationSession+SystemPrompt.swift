@@ -16,6 +16,8 @@ extension ConversationSession {
         _ modelWillExecuteTools: Bool,
         _ object: RichEditorView.Object
     ) async {
+        var proactiveMemoryProvided = false
+
         if ModelManager.shared.includeDynamicSystemInfo {
             let runtimeContent = String(localized:
                 """
@@ -29,6 +31,11 @@ extension ConversationSession {
                 """
             )
             requestMessages.append(.system(content: .text(runtimeContent)))
+        }
+
+        if let proactiveMemoryContext = await MemoryStore.shared.formattedProactiveMemoryContext() {
+            requestMessages.append(.system(content: .text(proactiveMemoryContext)))
+            proactiveMemoryProvided = true
         }
 
         if case .bool(true) = object.options[.browsing] {
@@ -60,32 +67,12 @@ extension ConversationSession {
             }
 
             if memoryToolsEnabled {
+                toolGuidance += "\n\n" + MemoryStore.memoryToolsPrompt
+            }
+
+            if proactiveMemoryProvided {
                 toolGuidance += "\n\n" +
-                    """
-                    Memory Tools Available:
-
-                    STORE MEMORY - Use store_memory proactively to save important user information like:
-                    • Personal details: "User is a software engineer", "User prefers dark mode"
-                    • Project context: "Working on iOS app called FlowDown", "Using Swift and UIKit"
-                    • Preferences: "User likes detailed explanations", "User prefers concise responses"
-                    • Goals: "Learning SwiftUI", "Building a chat application"
-                    • Important facts: "User's timezone is PST", "User works remotely"
-
-                    FORMAT: Store memories in third person format (e.g., "User is a student" not "I'm a student")
-                    WHEN: Immediately when user shares personal info, preferences, or important context
-
-                    RECALL MEMORY - Use recall_memory to get context:
-                    • At conversation start to understand user background
-                    • When you need context about user preferences or past discussions
-                    • Before making recommendations to personalize them
-
-                    MANAGE MEMORY - Use list_memories, update_memory, delete_memory to maintain accuracy:
-                    • List memories when you need to update or remove specific information
-                    • Update memories when information changes or becomes more specific
-                    • Delete memories when information becomes outdated or incorrect
-
-                    Be proactive about memory management to provide personalized, contextually aware assistance. Always format stored information clearly and in third person perspective.
-                    """
+                    String(localized: "A proactive memory summary has been provided above according to the user's setting. Treat it as reliable context and keep it updated through memory tools when necessary.")
             }
 
             requestMessages.append(

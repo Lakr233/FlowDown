@@ -7,6 +7,22 @@
     "..." : {
       "shouldTranslate" : false
     },
+    "(No Content)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(No Content)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "（无内容）"
+          }
+        }
+      }
+    },
     "(None)" : {
       "localizations" : {
         "en" : {
@@ -39,6 +55,22 @@
         }
       }
     },
+    "[%@] %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[%@] %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[%@] %@"
+          }
+        }
+      }
+    },
     "**Welcome to FlowDown🐦**, a blazing fast and smooth client app for LLMs with respect of your privacy.\n\nFree models included. You can also _configure cloud models_ or _run local models_ on device.\n\n💡 For more information, check out [our wiki](https://apps.qaq.wiki/docs/flowdown/).\n\n---\n**What to do next?**\n\n1. Select or _add a new model_, and **create a new conversation**.\n2. Later, you can go to **Settings** to customize your experience.\n3. For any issues, feel free to [contact us](https://discord.gg/UHKMRyJcgc).\n\n✨ **Enjoy your FlowDown experience!**" : {
       "localizations" : {
         "en" : {
@@ -57,6 +89,22 @@
     },
     "%@" : {
       "shouldTranslate" : false
+    },
+    "%@ • %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ • %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ • %@"
+          }
+        }
+      }
     },
     "%@ Copy" : {
       "localizations" : {
@@ -138,6 +186,38 @@
         }
       }
     },
+    "%d conversation(s) matched your criteria." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d conversation(s) matched your criteria."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "符合条件的对话数：%d。"
+          }
+        }
+      }
+    },
+    "%d. [%@] %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d. [%@] %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d. [%@] %@"
+          }
+        }
+      }
+    },
     "%lld" : {
       "shouldTranslate" : false
     },
@@ -172,6 +252,17 @@
           }
         }
       }
+    },
+    "%lld. [%@] %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld. [%2$@] %3$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "5 Pages" : {
       "localizations" : {
@@ -253,6 +344,22 @@
         }
       }
     },
+    "A proactive memory summary has been provided above according to the user's setting. Treat it as reliable context and keep it updated through memory tools when necessary." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A proactive memory summary has been provided above according to the user's setting. Treat it as reliable context and keep it updated through memory tools when necessary."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "根据用户的设置，上方已提供主动记忆摘要。请将其视为可靠的上下文，并在需要时通过记忆工具保持更新。"
+          }
+        }
+      }
+    },
     "A tool model is required for browsing." : {
       "localizations" : {
         "en" : {
@@ -314,6 +421,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加"
+          }
+        }
+      }
+    },
+    "Add any additional details for the classification." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add any additional details for the classification."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请补充任何额外的分类细节。"
           }
         }
       }
@@ -545,6 +668,22 @@
         }
       }
     },
+    "All Memories" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Memories"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有"
+          }
+        }
+      }
+    },
     "All memory data is stored locally on your device. Export operations allow you to backup your memory data." : {
       "localizations" : {
         "en" : {
@@ -557,6 +696,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "所有记忆数据都本地存储在您的设备上。导出操作可让您备份记忆数据。"
+          }
+        }
+      }
+    },
+    "All stored memories." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All stored memories."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含所有已存储的记忆。"
           }
         }
       }
@@ -765,6 +920,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "操作出现了错误：%@"
+          }
+        }
+      }
+    },
+    "An image is provided with this request. Consider the visual details when selecting the candidate." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An image is provided with this request. Consider the visual details when selecting the candidate."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此请求附带图像。选择候选项时请参考视觉细节。"
           }
         }
       }
@@ -1173,6 +1344,38 @@
         }
       }
     },
+    "At least one candidate is required." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At least one candidate is required."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少需要一个候选项。"
+          }
+        }
+      }
+    },
+    "Attachment shared via Shortcut." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attachment shared via Shortcut."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过快捷指令分享的附件。"
+          }
+        }
+      }
+    },
     "Audio" : {
       "localizations" : {
         "en" : {
@@ -1510,6 +1713,38 @@
         }
       }
     },
+    "Candidates" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Candidates"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "候选项"
+          }
+        }
+      }
+    },
+    "Candidates:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Candidates:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "候选项："
+          }
+        }
+      }
+    },
     "Capabilities" : {
       "localizations" : {
         "en" : {
@@ -1670,6 +1905,22 @@
         }
       }
     },
+    "Choose how we proactively shares stored memories with the model during conversations and automations. This includes system Shortcuts." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose how we proactively shares stored memories with the model during conversations and automations. This includes system Shortcuts."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择在对话与快捷指令自动化中向模型主动提供记忆的方式。"
+          }
+        }
+      }
+    },
     "Choose Template" : {
       "localizations" : {
         "en" : {
@@ -1717,6 +1968,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "城市：%@"
+          }
+        }
+      }
+    },
+    "Classify" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classify"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类"
+          }
+        }
+      }
+    },
+    "Classify %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classify %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类 %@"
+          }
+        }
+      }
+    },
+    "Classify + Image" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classify + Image"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类 + 图像"
+          }
+        }
+      }
+    },
+    "Classify ${content}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classify ${content}"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类 ${content}"
+          }
+        }
+      }
+    },
+    "Classify ${image}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classify ${image}"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类 ${image}"
+          }
+        }
+      }
+    },
+    "Classify Content" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classify Content"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类内容"
+          }
+        }
+      }
+    },
+    "Classify Content with Image" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classify Content with Image"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类内容（含图像）"
           }
         }
       }
@@ -2326,6 +2689,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "过长的内容已被截断。"
+          }
+        }
+      }
+    },
+    "Content:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内容："
           }
         }
       }
@@ -4261,6 +4640,22 @@
         }
       }
     },
+    "Enable Memory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Memory"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用记忆"
+          }
+        }
+      }
+    },
     "Enable this to automatically collapse reasoning content after the reasoning is completed. This is useful for keeping the chat interface clean and focused on the final response." : {
       "localizations" : {
         "en" : {
@@ -5835,8 +6230,21 @@
         }
       }
     },
-    "http://localhost:1455/auth/callback?code=...&state=..." : {
-
+    "How many results should FlowDown return?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How many results should FlowDown return?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown 应返回多少条结果？"
+          }
+        }
+      }
     },
     "https://" : {
       "shouldTranslate" : false
@@ -6868,6 +7276,22 @@
         }
       }
     },
+    "Keyword" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyword"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关键词"
+          }
+        }
+      }
+    },
     "Large" : {
       "comment" : "Font Size",
       "localizations" : {
@@ -6897,6 +7321,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最后同步于 %@"
+          }
+        }
+      }
+    },
+    "Latest 15 Items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest 15 Items"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近 15 项"
+          }
+        }
+      }
+    },
+    "Latest 30 Items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest 30 Items"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近 30 项"
           }
         }
       }
@@ -7479,6 +7935,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "记忆已清除"
+          }
+        }
+      }
+    },
+    "Memories saved within the past 7 days." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memories saved within the past 7 days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含过去 7 天内保存的记忆。"
+          }
+        }
+      }
+    },
+    "Memories saved within the past 24 hours." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memories saved within the past 24 hours."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含过去 24 小时内保存的记忆。"
+          }
+        }
+      }
+    },
+    "Memories saved within the past 30 days." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memories saved within the past 30 days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含过去 30 天内保存的记忆。"
+          }
+        }
+      }
+    },
+    "Memories saved within the past year." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memories saved within the past year."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含过去一年内保存的记忆。"
           }
         }
       }
@@ -8214,6 +8734,22 @@
         }
       }
     },
+    "No conversations found." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No conversations found."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到对话。"
+          }
+        }
+      }
+    },
     "No conversations were found." : {
       "localizations" : {
         "en" : {
@@ -8508,6 +9044,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "物品"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
           }
         }
       }
@@ -8831,6 +9383,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "参数"
+          }
+        }
+      }
+    },
+    "Past Day" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past Day"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 天内"
+          }
+        }
+      }
+    },
+    "Past Month" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past Month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 个月内"
+          }
+        }
+      }
+    },
+    "Past Week" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past Week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 周内"
+          }
+        }
+      }
+    },
+    "Past Year" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past Year"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 年内"
           }
         }
       }
@@ -9322,6 +9938,54 @@
         }
       }
     },
+    "Proactive Memory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proactive Memory"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主动提供记忆"
+          }
+        }
+      }
+    },
+    "Proactive Memory Context" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proactive Memory Context"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主动提供的记忆摘要"
+          }
+        }
+      }
+    },
+    "Proactive memory sharing is disabled." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proactive memory sharing is disabled."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关闭主动提供记忆。"
+          }
+        }
+      }
+    },
     "Process %@..." : {
       "localizations" : {
         "en" : {
@@ -9381,7 +10045,23 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提示词"
+            "value" : "提示"
+          }
+        }
+      }
+    },
+    "Provide the candidate labels." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provide the candidate labels."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请提供候选标签。"
           }
         }
       }
@@ -9414,6 +10094,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "快速回复"
+          }
+        }
+      }
+    },
+    "Quick Reply %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Reply %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速回复 %@"
           }
         }
       }
@@ -9821,6 +10517,22 @@
         }
       }
     },
+    "Respond with exactly one candidate string from the list above. If you are unsure, respond with '%@'." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Respond with exactly one candidate string from the list above. If you are unsure, respond with '%@'."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从上述列表中仅返回一个候选项字符串。如果不确定，请返回“%@”。"
+          }
+        }
+      }
+    },
     "Restricted" : {
       "localizations" : {
         "en" : {
@@ -9833,6 +10545,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "受限"
+          }
+        }
+      }
+    },
+    "Result Limit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Result Limit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结果上限"
           }
         }
       }
@@ -10109,6 +10837,38 @@
         }
       }
     },
+    "Save to Conversation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save to Conversation"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存到对话"
+          }
+        }
+      }
+    },
+    "Scope: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scope: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "范围：%@"
+          }
+        }
+      }
+    },
     "Search" : {
       "localizations" : {
         "en" : {
@@ -10121,6 +10881,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜索"
+          }
+        }
+      }
+    },
+    "Search Chats" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Chats"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索聊天"
+          }
+        }
+      }
+    },
+    "Search conversations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search conversations"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索对话"
           }
         }
       }
@@ -10221,6 +11013,22 @@
         }
       }
     },
+    "Search saved conversations by keyword and return formatted summaries." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search saved conversations by keyword and return formatted summaries."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按关键字搜索已保存的会话，并返回格式化摘要。"
+          }
+        }
+      }
+    },
     "Search Strategy" : {
       "localizations" : {
         "en" : {
@@ -10265,6 +11073,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已找到 %lld 个网站，正在获取数据"
+          }
+        }
+      }
+    },
+    "Select an image to accompany the request." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select an image to accompany the request."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择要随请求附上的图像。"
           }
         }
       }
@@ -11788,6 +12612,38 @@
         }
       }
     },
+    "The most recent 15 memories." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The most recent 15 memories."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含最近的 15 条记忆。"
+          }
+        }
+      }
+    },
+    "The most recent 30 memories." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The most recent 30 memories."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含最近的 30 条记忆。"
+          }
+        }
+      }
+    },
     "The name of the model to be used." : {
       "localizations" : {
         "en" : {
@@ -12216,6 +13072,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此快捷指令不接受图像。"
+          }
+        }
+      }
+    },
+    "This summary is provided automatically according to the user's proactive memory setting, even when memory tools are disabled." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This summary is provided automatically according to the user's proactive memory setting, even when memory tools are disabled."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该摘要根据用户的主动记忆设置自动提供，即使记忆工具未启用也会附带。"
           }
         }
       }
@@ -12735,18 +13607,18 @@
         }
       }
     },
-    "Unable to construct FlowDown URL." : {
+    "Unable to construct URL." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to construct FlowDown URL."
+            "value" : "Unable to construct URL."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法构建 FlowDown URL。"
+            "value" : "无法构建资源链接。"
           }
         }
       }
@@ -13451,6 +14323,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不使用"
+          }
+        }
+      }
+    },
+    "Use the model to classify content into one of the provided candidates. If the model cannot decide, the first candidate is returned." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the model to classify content into one of the provided candidates. If the model cannot decide, the first candidate is returned."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用模型将内容分类到提供的候选项之一。如果模型无法决定，则返回第一个候选项。"
+          }
+        }
+      }
+    },
+    "Use the model to classify content with the help of an accompanying image. If the model cannot decide, the first candidate is returned." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the model to classify content with the help of an accompanying image. If the model cannot decide, the first candidate is returned."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用模型结合附带的图像对内容进行分类。如果模型无法决定，则返回第一个候选项。"
           }
         }
       }
@@ -14290,6 +15194,22 @@
         }
       }
     },
+    "What content should be classified?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What content should be classified?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要分类的内容是什么？"
+          }
+        }
+      }
+    },
     "What do you want to ask?" : {
       "localizations" : {
         "en" : {
@@ -14366,6 +15286,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "如果启用，粘贴进编辑器的大段文本将会被转换成附件，以提供更流畅的编辑体验。你可以点击附件来编辑内容。"
+          }
+        }
+      }
+    },
+    "When enabled, we will include stored memories in system prompts even if memory tools are disabled." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When enabled, we will include stored memories in system prompts even if memory tools are disabled."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启后，即使未启用记忆工具，也会在系统提示词与快捷指令推理中提供已存储的记忆。"
           }
         }
       }
@@ -14562,6 +15498,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "昨天"
+          }
+        }
+      }
+    },
+    "You are a classification assistant. Choose the best candidate for the provided content." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You are a classification assistant. Choose the best candidate for the provided content."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你是一名分类助手。请为提供的内容选择最合适的候选项。"
           }
         }
       }

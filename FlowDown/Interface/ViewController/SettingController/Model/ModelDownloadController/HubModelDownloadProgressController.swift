@@ -437,7 +437,6 @@ class HubModelDownloadProgressController: UIViewController {
         let totalSize = Double(progress.overall.totalUnitCount)
         let isOversize = totalSize > ramSize * 0.8
 
-        // Use spring animation to match SwiftUI's .spring animation
         UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: [.curveEaseInOut]) {
             self.oversizeWarningLabel.alpha = isOversize ? 1 : 0
         }

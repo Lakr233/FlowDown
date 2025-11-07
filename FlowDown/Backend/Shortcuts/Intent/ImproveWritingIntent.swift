@@ -3,24 +3,23 @@ import Foundation
 
 struct ImproveWritingMoreProfessionalIntent: AppIntent {
     static var title: LocalizedStringResource {
-        LocalizedStringResource("Improve Writing - Professional", defaultValue: "Improve Writing - Professional")
+        LocalizedStringResource("Improve Writing - Professional")
     }
 
     static var description = IntentDescription(
         LocalizedStringResource(
-            "Rewrite text in a more professional tone while preserving meaning.",
-            defaultValue: "Rewrite text in a more professional tone while preserving meaning."
+            "Rewrite text in a more professional tone while preserving meaning."
         )
     )
 
     @Parameter(
-        title: LocalizedStringResource("Model", defaultValue: "Model"),
+        title: LocalizedStringResource("Model"),
         requestValueDialog: IntentDialog("Which model should rewrite the text?")
     )
     var model: ShortcutsEntities.ModelEntity?
 
     @Parameter(
-        title: LocalizedStringResource("Content", defaultValue: "Content"),
+        title: LocalizedStringResource("Content"),
         requestValueDialog: IntentDialog("What text should be rewritten?")
     )
     var text: String
@@ -50,24 +49,23 @@ struct ImproveWritingMoreProfessionalIntent: AppIntent {
 
 struct ImproveWritingMoreFriendlyIntent: AppIntent {
     static var title: LocalizedStringResource {
-        LocalizedStringResource("Improve Writing - Friendly", defaultValue: "Improve Writing - Friendly")
+        LocalizedStringResource("Improve Writing - Friendly")
     }
 
     static var description = IntentDescription(
         LocalizedStringResource(
-            "Rewrite text with a warmer and more approachable tone.",
-            defaultValue: "Rewrite text with a warmer and more approachable tone."
+            "Rewrite text with a warmer and more approachable tone."
         )
     )
 
     @Parameter(
-        title: LocalizedStringResource("Model", defaultValue: "Model"),
+        title: LocalizedStringResource("Model"),
         requestValueDialog: IntentDialog("Which model should rewrite the text?")
     )
     var model: ShortcutsEntities.ModelEntity?
 
     @Parameter(
-        title: LocalizedStringResource("Content", defaultValue: "Content"),
+        title: LocalizedStringResource("Content"),
         requestValueDialog: IntentDialog("What text should be rewritten?")
     )
     var text: String
@@ -97,24 +95,23 @@ struct ImproveWritingMoreFriendlyIntent: AppIntent {
 
 struct ImproveWritingMoreConciseIntent: AppIntent {
     static var title: LocalizedStringResource {
-        LocalizedStringResource("Improve Writing - Concise", defaultValue: "Improve Writing - Concise")
+        LocalizedStringResource("Improve Writing - Concise")
     }
 
     static var description = IntentDescription(
         LocalizedStringResource(
-            "Trim text to be more concise without losing the key message.",
-            defaultValue: "Trim text to be more concise without losing the key message."
+            "Trim text to be more concise without losing the key message."
         )
     )
 
     @Parameter(
-        title: LocalizedStringResource("Model", defaultValue: "Model"),
+        title: LocalizedStringResource("Model"),
         requestValueDialog: IntentDialog("Which model should rewrite the text?")
     )
     var model: ShortcutsEntities.ModelEntity?
 
     @Parameter(
-        title: LocalizedStringResource("Content", defaultValue: "Content"),
+        title: LocalizedStringResource("Content"),
         requestValueDialog: IntentDialog("What text should be rewritten?")
     )
     var text: String
@@ -149,7 +146,7 @@ enum ImproveWritingIntentHelper {
         directive: String
     ) async throws -> String {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw FlowDownShortcutError.emptyMessage }
+        guard !trimmed.isEmpty else { throw ShortcutError.emptyMessage }
 
         let message = [
             directive,
