@@ -10,6 +10,7 @@ import UIKit
 class TextEditorContentController: UIViewController {
     var text: String = ""
     var callback: ((String) -> Void) = { _ in }
+    var cancelCallback: (() -> Void)?
 
     let textView = UITextView()
     var bottomOffset: CGFloat = 0
@@ -87,6 +88,7 @@ class TextEditorContentController: UIViewController {
 
     open func cancelDone() {
         textView.text = text // just in case
+        cancelCallback?()
         navigationController?.popViewController(animated: true)
     }
 }

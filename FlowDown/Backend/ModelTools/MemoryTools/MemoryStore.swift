@@ -36,7 +36,7 @@ public class MemoryStore: ObservableObject {
 
     // MARK: - Public Async API
 
-    func storeAsync(content: String, conversationId: String? = nil) async throws {
+    func storeMemoryAsync(content: String, conversationId: String? = nil) async throws -> Memory {
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedContent.isEmpty else {
             throw MemoryStoreError.invalidContent("Memory content cannot be empty")
@@ -48,7 +48,7 @@ public class MemoryStore: ObservableObject {
 
         let contextId = conversationId ?? getCurrentConversationId()
 
-        try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { continuation in
             queue.async {
                 do {
                     let storage = try Storage.db()
@@ -61,7 +61,9 @@ public class MemoryStore: ObservableObject {
                         await self.updateMemoryCount()
                     }
 
-                    continuation.resume()
+                    continuation.resume(returning: memory)
+                } catch let error as Storage.MemoryError {
+                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
                 } catch {
                     continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
                 }

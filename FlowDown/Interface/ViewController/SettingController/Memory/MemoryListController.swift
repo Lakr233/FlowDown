@@ -15,6 +15,7 @@ class MemoryListController: UIViewController {
     private let searchController = UISearchController(searchResultsController: nil)
     private var memories: [Memory] = []
     private var filteredMemories: [Memory] = []
+    private static let newMemoryPlaceholder = String(localized: "Memory")
 
     private var isSearching: Bool {
         let text = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -46,6 +47,12 @@ class MemoryListController: UIViewController {
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         navigationItem.preferredSearchBarPlacement = .stacked
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            systemItem: .add,
+            target: self,
+            action: #selector(addMemoryTapped)
+        )
+        navigationItem.rightBarButtonItem?.accessibilityIdentifier = "memory-list.add-memory"
 
         tableView.delegate = self
         tableView.dataSource = self
@@ -103,6 +110,35 @@ class MemoryListController: UIViewController {
 
     private func currentMemories() -> [Memory] {
         isSearching ? filteredMemories : memories
+    }
+
+    @objc
+    private func addMemoryTapped() {
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let newMemory = try await MemoryStore.shared.storeMemoryAsync(content: Self.newMemoryPlaceholder)
+                let refreshed = try await MemoryStore.shared.getAllMemoriesAsync()
+                await MainActor.run {
+                    guard let self else { return }
+                    self.updateDataSource(with: refreshed)
+                    self.presentEditor(for: newMemory, isNew: true)
+                }
+            } catch {
+                await MainActor.run {
+                    guard let self else { return }
+                    let errorAlert = AlertViewController(
+                        title: "Error",
+                        message: "Failed to create memory: \(error.localizedDescription)"
+                    ) { context in
+                        context.addAction(title: "OK", attribute: .accent) {
+                            context.dispose()
+                        }
+                    }
+                    self.present(errorAlert, animated: true)
+                }
+            }
+        }
     }
 
     private func deleteMemory(at indexPath: IndexPath) {
@@ -327,10 +363,10 @@ class MemoryCell: UITableViewCell {
 }
 
 private extension MemoryListController {
-    func presentEditor(for memory: Memory) {
+    func presentEditor(for memory: Memory, isNew: Bool = false) {
         let controller = TextEditorContentController()
         controller.title = String(localized: "Memory")
-        controller.text = memory.content
+        controller.text = isNew ? "" : memory.content
         controller.callback = { [weak self] text in
             guard let self else { return }
             Task {
@@ -338,16 +374,12 @@ private extension MemoryListController {
                     try await MemoryStore.shared.updateMemoryAsync(id: memory.id, newContent: text)
                     let refreshed = try await MemoryStore.shared.getAllMemoriesAsync()
                     await MainActor.run {
-                        self.memories = refreshed
-                        if self.isSearching {
-                            self.searchMemories(query: self.searchController.searchBar.text ?? "")
-                        } else {
-                            self.filteredMemories = refreshed
-                            self.tableView.reloadData()
-                        }
+                        guard let self else { return }
+                        self.updateDataSource(with: refreshed)
                     }
                 } catch {
                     await MainActor.run {
+                        guard let self else { return }
                         let errorAlert = AlertViewController(
                             title: "Error",
                             message: "Failed to update memory: \(error.localizedDescription)"
@@ -361,6 +393,38 @@ private extension MemoryListController {
                 }
             }
         }
+
+        if isNew {
+            controller.cancelCallback = { [weak self] in
+                guard let self else { return }
+                Task {
+                    do {
+                        try await MemoryStore.shared.deleteMemoryAsync(id: memory.id)
+                        let refreshed = try await MemoryStore.shared.getAllMemoriesAsync()
+                        await MainActor.run {
+                            guard let self else { return }
+                            self.updateDataSource(with: refreshed)
+                        }
+                    } catch {
+                        await MainActor.run {
+                            guard let self else { return }
+                            let errorAlert = AlertViewController(
+                                title: "Error",
+                                message: "Failed to delete memory: \(error.localizedDescription)"
+                            ) { context in
+                                context.addAction(title: "OK", attribute: .accent) {
+                                    context.dispose()
+                                }
+                            }
+                            self.present(errorAlert, animated: true)
+                        }
+                    }
+                }
+            }
+        } else {
+            controller.cancelCallback = nil
+        }
+
         navigationController?.pushViewController(controller, animated: true)
     }
 
@@ -368,5 +432,16 @@ private extension MemoryListController {
         let displayed = currentMemories()
         guard let row = displayed.firstIndex(where: { $0.id == memory.id }) else { return nil }
         return IndexPath(row: row, section: 0)
+    }
+
+    @MainActor
+    func updateDataSource(with refreshed: [Memory]) {
+        memories = refreshed
+        if isSearching {
+            searchMemories(query: searchController.searchBar.text ?? "")
+        } else {
+            filteredMemories = refreshed
+            tableView.reloadData()
+        }
     }
 }
