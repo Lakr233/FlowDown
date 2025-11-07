@@ -58,24 +58,29 @@ class ChatSelection {
         let conversations = sdb.conversationList()
         if let firstConversation = conversations.first {
             subject.send(.conversation(id: firstConversation.id))
-        } else {
-            let initialConversation = ConversationManager.shared.createNewConversation(autoSelect: false)
-            subject.send(.conversation(id: initialConversation.id))
         }
 
-        // Listen for conversation list changes and auto-create conversation if list becomes empty
+        // Listen for conversation list changes and keep selection in sync
         ConversationManager.shared.conversations
             .receive(on: DispatchQueue.main)
             .sink { [weak self] conversationDict in
                 guard let self else { return }
-                guard conversationDict.isEmpty else { return }
-                if case .none = subject.value {
+                if conversationDict.isEmpty {
+                    if case .none = subject.value { return }
+                    Logger.ui.infoFile("No conversations left, clearing selection")
+                    subject.send(.none)
                     return
                 }
 
-                Logger.ui.infoFile("No conversations left, auto-creating a new conversation")
-                let newConversation = ConversationManager.shared.createNewConversation(autoSelect: false)
-                subject.send(.conversation(id: newConversation.id))
+                if case let .conversation(currentId, _) = subject.value,
+                   conversationDict[currentId] != nil
+                {
+                    return
+                }
+
+                guard let nextConversation = conversationDict.values.first else { return }
+                Logger.ui.infoFile("Selecting first available conversation id: \(nextConversation.id)")
+                subject.send(.conversation(id: nextConversation.id))
             }
             .store(in: &cancellables)
     }

@@ -20,15 +20,17 @@ extension ConversationManager {
         conversations.send(dic)
     }
 
-    func initialConversation() -> Conversation {
-        if let firstItem = conversations.value.values.first,
-           message(within: firstItem.id).isEmpty
-        {
-            Logger.database.debugFile("using first empty conversation id: \(firstItem.id)")
-            return firstItem
+    func initialConversation() -> Conversation? {
+        guard let firstItem = conversations.value.values.first else {
+            Logger.database.infoFile("no existing conversation available for initial load")
+            return nil
         }
-        Logger.database.infoFile("creating a new conversation")
-        return createNewConversation()
+        if message(within: firstItem.id).isEmpty {
+            Logger.database.debugFile("using first empty conversation id: \(firstItem.id)")
+        } else {
+            Logger.database.debugFile("using existing conversation id: \(firstItem.id)")
+        }
+        return firstItem
     }
 
     func createNewConversation(_ block: Storage.ConversationMakeInitDataBlock? = nil, autoSelect: Bool = false) -> Conversation {

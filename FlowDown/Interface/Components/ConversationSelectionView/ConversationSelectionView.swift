@@ -122,7 +122,8 @@ class ConversationSelectionView: UIView {
     func updateDataSource() {
         let list = ConversationManager.shared.conversations.value.values
         guard !list.isEmpty else {
-            _ = ConversationManager.shared.initialConversation()
+            var snapshot = Snapshot()
+            dataSource.apply(snapshot, animatingDifferences: true)
             return
         }
 
