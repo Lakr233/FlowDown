@@ -39,7 +39,11 @@ public class OAuthClient {
                 urlBuilder.addQueryItem(name: "code_challenge_method", value: session.challenge.method.rawValue)
                 urlBuilder.addQueryItem(name: "state", value: session.state)
             } catch {
-                throw OAuthError.pkceError(error as! PKCEError)
+                if let pkceError = error as? PKCEError {
+                    throw OAuthError.pkceError(pkceError)
+                } else {
+                    throw error
+                }
             }
         }
 
