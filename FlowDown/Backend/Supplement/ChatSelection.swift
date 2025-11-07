@@ -58,6 +58,9 @@ class ChatSelection {
         let conversations = sdb.conversationList()
         if let firstConversation = conversations.first {
             subject.send(.conversation(id: firstConversation.id))
+        } else {
+            let initialConversation = ConversationManager.shared.createNewConversation(autoSelect: false)
+            subject.send(.conversation(id: initialConversation.id))
         }
 
         // Listen for conversation list changes and keep selection in sync
