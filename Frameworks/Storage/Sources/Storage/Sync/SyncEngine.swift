@@ -828,26 +828,36 @@ private extension SyncEngine {
     ) async {
         var newPendingDatabaseChanges = [CKSyncEngine.PendingDatabaseChange]()
         var removePendingRecordZoneChanges = [CKSyncEngine.PendingRecordZoneChange]()
-        let deviceId = Storage.deviceId
         // 发送成功的，需要更新本地UploadQueue 状态
         if !savedRecords.isEmpty {
-            var savedLocalQueueIds: [(queueId: UploadQueue.ID, objectId: String, tableName: String)] = []
+            var queueCandidates: [(queueId: UploadQueue.ID, objectId: String, tableName: String)] = []
             var metadatas: [SyncMetadata] = []
             for savedRecord in savedRecords {
-                guard let (_, tableName) = UploadQueue.parseCKRecordID(savedRecord.recordID.recordName) else { continue }
-                guard let value = savedRecord.sentQueueId, let (localQueueId, objectId, sentDeviceId) = SyncEngine.parseCKRecordSentQueueId(value) else { continue }
-                if sentDeviceId == deviceId {
-                    savedLocalQueueIds.append((localQueueId, objectId, tableName))
-                    metadatas.append(SyncMetadata(record: savedRecord))
-                    // 清理临时文件
-                    savedRecord.clearTemporaryAssets(prefix: SyncEngine.temporaryAssetStorage)
-                }
+                guard let (objectId, tableName) = UploadQueue.parseCKRecordID(savedRecord.recordID.recordName) else { continue }
+                guard let value = savedRecord.sentQueueId, let (localQueueId, _, _) = SyncEngine.parseCKRecordSentQueueId(value) else { continue }
+
+                queueCandidates.append((localQueueId, objectId, tableName))
+                metadatas.append(SyncMetadata(record: savedRecord))
+
+                // 清理临时文件
+                savedRecord.clearTemporaryAssets(prefix: SyncEngine.temporaryAssetStorage)
             }
 
-            Logger.syncEngine.info("Sent save success record zone: \(savedLocalQueueIds, privacy: .public)")
-            try? storage.runTransaction {
-                try self.storage.syncMetadataUpdate(metadatas, handle: $0)
-                try self.storage.pendingUploadDequeue(by: savedLocalQueueIds, handle: $0)
+            if !queueCandidates.isEmpty || !metadatas.isEmpty {
+                Logger.syncEngine.info("Sent save success record zone candidates: \(queueCandidates, privacy: .public)")
+                try? storage.runTransaction { handle in
+                    if !metadatas.isEmpty {
+                        try self.storage.syncMetadataUpdate(metadatas, handle: handle)
+                    }
+
+                    guard !queueCandidates.isEmpty else { return }
+                    let existingQueues = queueCandidates.filter {
+                        self.storage.pendingUploadExists(queueId: $0.queueId, tableName: $0.tableName, objectId: $0.objectId, handle: handle)
+                    }
+
+                    guard !existingQueues.isEmpty else { return }
+                    try self.storage.pendingUploadDequeue(by: existingQueues, handle: handle)
+                }
             }
         }
 

@@ -111,7 +111,7 @@ package extension UploadQueue {
     convenience init<T: Syncable>(source: T, changes: Changes) throws {
         self.init()
         objectId = source.objectId
-        deviceId = source.deviceId
+        deviceId = Storage.deviceId
         tableName = T.tableName
         creation = source.creation
         modified = source.modified

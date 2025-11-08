@@ -112,6 +112,7 @@ public class Storage {
         try setup(db: db)
 
         try resetUploadQueueMaxID()
+        try normalizeUploadQueueDeviceId()
 
         // 将上传中/上传失败的同步记录重置为Pending
         try db.run(transaction: { [unowned self] in
@@ -195,6 +196,19 @@ public class Storage {
             .where(nameColumn == UploadQueue.tableName)
 
         try db.exec(updateTableSequence)
+    }
+
+    /// 确保上传队列上的记录归属于当前设备。
+    /// 较旧版本会使用对象来源的 deviceId，从而导致 CloudKit 回调后无法匹配本地队列。
+    private func normalizeUploadQueueDeviceId() throws {
+        let localDeviceId = Storage.deviceId
+        let update = StatementUpdate()
+            .update(table: UploadQueue.tableName)
+            .set(UploadQueue.Properties.deviceId)
+            .to(localDeviceId)
+            .where(UploadQueue.Properties.deviceId != localDeviceId)
+
+        try db.exec(update)
     }
 }
 

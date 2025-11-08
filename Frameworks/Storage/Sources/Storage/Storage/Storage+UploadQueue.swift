@@ -500,6 +500,36 @@ package extension Storage {
         return objects
     }
 
+    /// 检查指定上传队列记录是否仍然存在。
+    /// - Parameters:
+    ///   - queueId: 队列主键
+    ///   - tableName: 同步表名
+    ///   - objectId: 对象ID
+    ///   - handle: 数据库句柄
+    /// - Returns: 若存在返回 true
+    func pendingUploadExists(queueId: UploadQueue.ID, tableName: String, objectId: String, handle: Handle? = nil) -> Bool {
+        let condition: Condition =
+            UploadQueue.Properties.id == queueId
+                && UploadQueue.Properties.tableName == tableName
+                && UploadQueue.Properties.objectId == objectId
+
+        let value: Value? = if let handle {
+            try? handle.getValue(
+                on: UploadQueue.Properties.id.count(),
+                fromTable: UploadQueue.tableName,
+                where: condition
+            )
+        } else {
+            try? db.getValue(
+                on: UploadQueue.Properties.id.count(),
+                fromTable: UploadQueue.tableName,
+                where: condition
+            )
+        }
+
+        return (value?.int64Value ?? 0) > 0
+    }
+
     /// 查询上传队列关联的真实数据对象
     /// - Parameters:
     ///   - objects: 上传队列
