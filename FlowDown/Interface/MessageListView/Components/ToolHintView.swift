@@ -45,6 +45,7 @@ final class ToolHintView: MessageListRowView {
 
     private let decoratedView: UIImageView = .init(image: .init(named: "tools"))
     private var isClickable: Bool = false
+    private var cachedContentSize: CGSize = .zero
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -73,25 +74,64 @@ final class ToolHintView: MessageListRowView {
         super.layoutSubviews()
 
         let labelSize = label.intrinsicContentSize
+        
+        // Validate dimensions to prevent layout crashes
+        guard labelSize.width > 0, labelSize.height > 0,
+              contentView.bounds.height > 0 else {
+            return
+        }
 
-        symbolView.frame = .init(
-            x: 12,
-            y: (contentView.bounds.height - labelSize.height) / 2,
-            width: labelSize.height, // 1:1
+        let symbolSize = labelSize.height
+        let symbolX: CGFloat = 12
+        let labelX = symbolX + symbolSize + 8
+        let decoratedX = labelX + labelSize.width + 6
+        
+        // Calculate total width needed
+        let totalWidth = decoratedX + 12
+        
+        // Update cached size for intrinsicContentSize
+        cachedContentSize = CGSize(width: totalWidth, height: contentView.bounds.height)
+        
+        // Position subviews within contentView bounds
+        let centerY = (contentView.bounds.height - labelSize.height) / 2
+
+        symbolView.frame = CGRect(
+            x: symbolX,
+            y: centerY,
+            width: symbolSize,
+            height: symbolSize
+        )
+
+        label.frame = CGRect(
+            x: labelX,
+            y: centerY,
+            width: min(labelSize.width, contentView.bounds.width - labelX - 18),
             height: labelSize.height
         )
 
-        label.frame = .init(
-            x: symbolView.frame.maxX + 8,
-            y: (contentView.bounds.height - labelSize.height) / 2,
-            width: labelSize.width,
-            height: labelSize.height
+        decoratedView.frame = CGRect(
+            x: min(decoratedX, contentView.bounds.width - 12),
+            y: -4,
+            width: 16,
+            height: 16
         )
-
-        contentView.frame.size.width = label.frame.maxX + 18
-        decoratedView.frame = .init(x: contentView.bounds.width - 12, y: -4, width: 16, height: 16)
+        
         backgroundGradientLayer.frame = contentView.bounds
         backgroundGradientLayer.cornerRadius = contentView.layer.cornerRadius
+    }
+    
+    override var intrinsicContentSize: CGSize {
+        if cachedContentSize.width > 0 {
+            return cachedContentSize
+        }
+        
+        let labelSize = label.intrinsicContentSize
+        guard labelSize.width > 0, labelSize.height > 0 else {
+            return CGSize(width: UIView.noIntrinsicMetric, height: 44)
+        }
+        
+        let totalWidth = 12 + labelSize.height + 8 + labelSize.width + 18
+        return CGSize(width: totalWidth, height: 44)
     }
 
     override func themeDidUpdate() {
@@ -151,6 +191,8 @@ final class ToolHintView: MessageListRowView {
     func postUpdate() {
         label.invalidateIntrinsicContentSize()
         label.sizeToFit()
+        cachedContentSize = .zero // Reset cached size to force recalculation
+        invalidateIntrinsicContentSize()
         setNeedsLayout()
 
         doWithAnimation {

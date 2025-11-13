@@ -244,6 +244,9 @@ final class ShimmerTextLabel: UILabel {
 
     private func createTextMaskLayer() -> CALayer? {
         guard let text, !text.isEmpty else { return nil }
+        
+        // Validate bounds to prevent crash with zero or invalid size
+        guard bounds.width > 0, bounds.height > 0 else { return nil }
 
         // Render text to image using UIGraphicsImageRenderer
         let renderer = UIGraphicsImageRenderer(size: bounds.size)
