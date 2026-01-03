@@ -6,8 +6,8 @@ let package = Package(
     name: "Logger",
     platforms: [
         .macOS(.v11),
-        .iOS(.v17),
-        .macCatalyst(.v17),
+        .iOS(.v16),
+        .macCatalyst(.v16),
     ],
 
     products: [
