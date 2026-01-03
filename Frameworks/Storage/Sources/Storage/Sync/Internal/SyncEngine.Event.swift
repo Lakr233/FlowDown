@@ -7,7 +7,7 @@
 
 import CloudKit
 
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 package extension SyncEngine {
     enum Event: CustomStringConvertible, Sendable {
         case stateUpdate(stateSerialization: CKSyncEngine.State.Serialization)

@@ -7,7 +7,7 @@
 
 import CloudKit
 
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 package protocol SyncEngineDelegate: AnyObject, Sendable {
     func handleEvent(_ event: SyncEngine.Event, syncEngine: any SyncEngineProtocol) async
     func nextRecordZoneChangeBatch(
@@ -33,7 +33,7 @@ extension SyncEngineDelegate {
     }
 }
 
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 package protocol SyncEngineProtocol<Database, State>: AnyObject, Sendable, CustomStringConvertible {
     associatedtype State: CKSyncEngineStateProtocol
     associatedtype Database: CloudDatabase
@@ -48,7 +48,7 @@ package protocol SyncEngineProtocol<Database, State>: AnyObject, Sendable, Custo
     func performingSendChanges(_ options: CKSyncEngine.SendChangesOptions) async throws
 }
 
-@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 package protocol CKSyncEngineStateProtocol: Sendable {
     var pendingRecordZoneChanges: [CKSyncEngine.PendingRecordZoneChange] { get }
     var pendingDatabaseChanges: [CKSyncEngine.PendingDatabaseChange] { get }
@@ -58,6 +58,7 @@ package protocol CKSyncEngineStateProtocol: Sendable {
     func remove(pendingDatabaseChanges: [CKSyncEngine.PendingDatabaseChange])
 }
 
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 extension CKSyncEngine: SyncEngineProtocol {
     package func performingFetchChanges() async throws {
         try await fetchChanges()
@@ -76,4 +77,5 @@ extension CKSyncEngine: SyncEngineProtocol {
     }
 }
 
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 extension CKSyncEngine.State: CKSyncEngineStateProtocol {}

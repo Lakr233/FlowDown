@@ -8,6 +8,7 @@
 import CloudKit
 import OrderedCollections
 
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 package final class MockSyncEngine: SyncEngineProtocol {
     package let database: MockCloudDatabase
     package let parentSyncEngine: SyncEngine
@@ -262,6 +263,7 @@ package final class MockSyncEngine: SyncEngineProtocol {
     }
 }
 
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 package final class MockSyncEngineState: CKSyncEngineStateProtocol {
     package let _pendingRecordZoneChanges = LockIsolated<
         OrderedSet<CKSyncEngine.PendingRecordZoneChange>,
