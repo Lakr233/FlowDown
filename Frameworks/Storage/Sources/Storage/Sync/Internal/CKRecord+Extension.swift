@@ -89,3 +89,9 @@ package extension UploadQueue {
         return (String(splits[0]), String(splits[1]))
     }
 }
+
+extension CKRecord: @unchecked @retroactive Sendable {}
+
+extension CKRecordZone: @unchecked @retroactive Sendable {}
+
+extension CKRecordZone.ID: @unchecked @retroactive Sendable {}

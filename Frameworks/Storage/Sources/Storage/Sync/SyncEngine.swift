@@ -494,11 +494,6 @@ private extension SyncEngine {
             return
         }
 
-        guard #available(iOS 17, macCatalyst 17, *) else {
-            _syncEngine = nil
-            return
-        }
-
         guard let createSyncEngine else {
             _syncEngine = nil
             return
@@ -1293,9 +1288,7 @@ extension SyncEngine: SyncEngineDelegate {
         case .didFetchChanges:
             await dequeueFetchingChanges()
             // 调度下一批
-            if #available(iOS 17, macCatalyst 17, *) {
-                try? await scheduleUploadIfNeeded()
-            }
+            try? await scheduleUploadIfNeeded()
 
         case .willSendChanges:
             await enqueueSendingChanges()
@@ -1303,9 +1296,7 @@ extension SyncEngine: SyncEngineDelegate {
         case .didSendChanges:
             await dequeueSendingChanges()
             // 调度下一批
-            if #available(iOS 17, macCatalyst 17, *) {
-                try? await scheduleUploadIfNeeded()
-            }
+            try? await scheduleUploadIfNeeded()
 
         @unknown default:
             break
