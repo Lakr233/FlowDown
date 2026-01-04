@@ -21997,6 +21997,52 @@
         }
       }
     },
+    "iCloud sync is not available on this iOS version." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud sync is not available on this iOS version."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die iCloud-Synchronisierung ist auf dieser iOS-Version nicht verfügbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sincronización de iCloud no está disponible en esta versión de iOS."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La synchronisation iCloud n’est pas disponible sur cette version d’iOS."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このiOSバージョンではiCloud同期を利用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 iOS 버전에서는 iCloud 동기화를 사용할 수 없습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 iOS 版本不支持 iCloud 同步。"
+          }
+        }
+      }
+    },
     "iCloud synchronization is not enabled" : {
       "localizations" : {
         "de" : {
@@ -31571,6 +31617,52 @@
         }
       }
     },
+    "Not available on this iOS version." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not available on this iOS version."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf dieser iOS-Version nicht verfügbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No disponible en esta versión de iOS."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non disponible sur cette version d’iOS."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このiOSバージョンでは利用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 iOS 버전에서는 사용할 수 없습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 iOS 版本不可用。"
+          }
+        }
+      }
+    },
     "Not Configured" : {
       "localizations" : {
         "de" : {
@@ -38567,48 +38659,48 @@
         }
       }
     },
-    "Seamlessly sync conversations across iPhone, iPad, and Mac." : {
+    "Seamlessly sync conversations across iPhone, iPad, and Mac (requires iOS 17+)." : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unterhaltungen nahtlos über iPhone, iPad und Mac synchronisieren."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seamlessly sync conversations across iPhone, iPad, and Mac."
+            "value" : "Seamlessly sync conversations across iPhone, iPad, and Mac (requires iOS 17+)."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisiere Unterhaltungen nahtlos zwischen iPhone, iPad und Mac (erfordert iOS 17+)."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sincroniza conversaciones sin interrupciones entre iPhone, iPad y Mac."
+            "value" : "Sincroniza conversaciones sin esfuerzo entre iPhone, iPad y Mac (requiere iOS 17+)."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronisez vos conversations sans effort entre iPhone, iPad et Mac."
+            "value" : "Synchronisez vos conversations de façon fluide entre iPhone, iPad et Mac (iOS 17+ requis)."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iPhone、iPad、Mac で会話をシームレスに同期します。"
+            "value" : "iPhone、iPad、Mac間で会話をシームレスに同期（iOS 17以降が必要）。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iPhone, iPad, Mac 전반에 대화를 끊김 없이 동기화합니다。"
+            "value" : "iPhone, iPad, Mac 간 대화를 원활하게 동기화합니다(iOS 17 이상 필요)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 iPhone、iPad 和 Mac 间无缝同步会话。"
+            "value" : "在 iPhone、iPad 和 Mac 之间无缝同步对话（需要 iOS 17 及以上）。"
           }
         }
       }
