@@ -286,8 +286,14 @@ extension SettingController.SettingContent {
                 calendarUsage.configure(value: String(localized: "Not Determined"))
                 calendarUsage.setTapBlock { [weak self] _ in
                     let eventStore = EKEventStore()
-                    eventStore.requestFullAccessToEvents { _, _ in
-                        Task { @MainActor in self?.updateValues() }
+                    if #available(iOS 17, macCatalyst 17, *) {
+                        eventStore.requestFullAccessToEvents { _, _ in
+                            Task { @MainActor in self?.updateValues() }
+                        }
+                    } else {
+                        eventStore.requestAccess(to: .event) { _, _ in
+                            Task { @MainActor in self?.updateValues() }
+                        }
                     }
                 }
             case .restricted:

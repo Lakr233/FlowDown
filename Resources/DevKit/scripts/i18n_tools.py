@@ -9,10 +9,10 @@ and remove duplication across per-locale entrypoints.
 import json
 import os
 import sys
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 # Languages we keep without auto-filling from English
-DEFAULT_KEEP_LANGUAGES: set[str] = {"ja", "de", "fr", "es", "ko", "zh-Hans"}
+DEFAULT_KEEP_LANGUAGES = {"ja", "de", "fr", "es", "ko", "zh-Hans"}
 
 
 def default_file_path() -> str:
@@ -98,9 +98,9 @@ def merge_new_strings(strings: Dict[str, Any], new_strings: Dict[str, Dict[str, 
     return applied
 
 
-def collect_languages(strings: Dict[str, Any]) -> set[str]:
+def collect_languages(strings: Dict[str, Any]) -> set:
     """Collect language codes present in any string entry."""
-    languages: set[str] = set()
+    languages = set()
     for value in strings.values():
         locs = value.get("localizations", {})
         languages.update(locs.keys())
@@ -109,8 +109,8 @@ def collect_languages(strings: Dict[str, Any]) -> set[str]:
 
 def update_missing_translations(
     data: Dict[str, Any],
-    new_strings: Dict[str, Dict[str, str]] | None = None,
-    keep_languages: Iterable[str] | None = None,
+    new_strings: Optional[Dict[str, Dict[str, str]]] = None,
+    keep_languages: Optional[Iterable[str]] = None,
 ) -> Dict[str, int]:
     """
     Fill missing English anchors and apply explicit translations.
@@ -212,8 +212,8 @@ def apply_translation_map(
 
 def find_untranslated(
     data: Dict[str, Any],
-    target_langs: Iterable[str] | None = None,
-    exceptions: Iterable[str] | None = None,
+    target_langs: Optional[Iterable[str]] = None,
+    exceptions: Optional[Iterable[str]] = None,
 ) -> List[Dict[str, Any]]:
     """Return entries where target languages are missing or have empty values."""
     target_langs = set(target_langs or DEFAULT_KEEP_LANGUAGES)

@@ -43,9 +43,11 @@ class BlockButton: UIButton {
         let gesture = UITapGestureRecognizer(target: self, action: #selector(onTapped))
         addGestureRecognizer(gesture)
 
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
-            self.applyDefaultAppearance()
-            self.updateAppearanceAfterTraitChange()
+        if #available(iOS 17, macCatalyst 17, *) {
+            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+                self.applyDefaultAppearance()
+                self.updateAppearanceAfterTraitChange()
+            }
         }
     }
 

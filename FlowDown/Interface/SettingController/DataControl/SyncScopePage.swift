@@ -81,6 +81,18 @@ final class SyncScopePage: StackScrollController {
             title: "Fetch Updates Now",
             explain: "This will request the latest changes from iCloud immediately, but depending on the amount of data and network conditions, it may take some time to complete",
             ephemeralAnnotation: .action { controller in
+                guard SyncEngine.isCloudSyncSupported else {
+                    let alert = AlertViewController(
+                        title: "Unavailable",
+                        message: "iCloud sync is not available on this iOS version.",
+                    ) { context in
+                        context.allowSimpleDispose()
+                        context.addAction(title: "OK", attribute: .accent) { context.dispose() }
+                    }
+                    controller.present(alert, animated: true)
+                    return
+                }
+
                 guard SyncEngine.isSyncEnabled else {
                     let alert = AlertViewController(
                         title: "Error Occurred",

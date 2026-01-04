@@ -43,57 +43,69 @@ extension SettingController.SettingContent {
             ) { $0.bottom /= 2 }
             stackView.addArrangedSubview(SeparatorView())
 
-            let syncToggle = ConfigurableToggleActionView()
-            syncToggle.configure(icon: UIImage(systemName: "icloud"))
-            syncToggle.configure(title: "Enable iCloud Sync")
-            syncToggle.configure(
-                description: "Enable iCloud sync to keep data consistent across your devices. Turning off does not delete existing data.",
-            )
-            syncToggle.boolValue = SyncEngine.isSyncEnabled
-            syncToggle.actionBlock = { [weak self] value in
-                guard let self else { return }
-                if value {
-                    SyncEngine.setSyncEnabled(true)
-                    // After re‑enabling, force reload full state before continuing
-                    Task {
-                        try? await syncEngine.stopSyncIfNeeded()
-                        try? await syncEngine.reloadDataForcefully()
-                    }
-                } else {
-                    presentSyncDisableAlert { confirmed in
-                        if confirmed {
-                            SyncEngine.setSyncEnabled(false)
-                            Task { await self.pauseSync() }
-                            syncToggle.boolValue = false
-                        } else {
-                            syncToggle.boolValue = true
+            if SyncEngine.isCloudSyncSupported {
+                let syncToggle = ConfigurableToggleActionView()
+                syncToggle.configure(icon: UIImage(systemName: "icloud"))
+                syncToggle.configure(title: "Enable iCloud Sync")
+                syncToggle.configure(
+                    description: "Enable iCloud sync to keep data consistent across your devices. Turning off does not delete existing data.",
+                )
+                syncToggle.boolValue = SyncEngine.isSyncEnabled
+                syncToggle.actionBlock = { [weak self] value in
+                    guard let self else { return }
+                    if value {
+                        SyncEngine.setSyncEnabled(true)
+                        // After re‑enabling, force reload full state before continuing
+                        Task {
+                            try? await syncEngine.stopSyncIfNeeded()
+                            try? await syncEngine.reloadDataForcefully()
+                        }
+                    } else {
+                        presentSyncDisableAlert { confirmed in
+                            if confirmed {
+                                SyncEngine.setSyncEnabled(false)
+                                Task { await self.pauseSync() }
+                                syncToggle.boolValue = false
+                            } else {
+                                syncToggle.boolValue = true
+                            }
                         }
                     }
                 }
+                stackView.addArrangedSubviewWithMargin(syncToggle)
+                stackView.addArrangedSubview(SeparatorView())
+
+                // Sync scope submenu
+                let syncScopeMenu = ConfigurableObject(
+                    icon: "slider.horizontal.3",
+                    title: "Sync Scope",
+                    explain: "Configure which data groups sync with iCloud.",
+                    ephemeralAnnotation: .action { [weak self] _ in
+                        guard let self else { return }
+                        let controller = SyncScopePage()
+                        navigationController?.pushViewController(controller, animated: true)
+                    },
+                ).createView()
+                stackView.addArrangedSubviewWithMargin(syncScopeMenu)
+                stackView.addArrangedSubview(SeparatorView())
+
+                stackView.addArrangedSubviewWithMargin(
+                    ConfigurableSectionFooterView().with(
+                        footer: "When sync is off, no new changes are shared. Existing data remains intact. Re‑enable sync to fetch the latest state before resuming.",
+                    ),
+                ) { $0.top /= 2 }
+                stackView.addArrangedSubview(SeparatorView())
+            } else {
+                let unavailableLabel = ConfigurableObject(
+                    icon: "icloud.slash",
+                    title: "iCloud Sync",
+                    explain: "Not available on this iOS version.",
+                    ephemeralAnnotation: .action { _ in },
+                ).createView()
+                unavailableLabel.isUserInteractionEnabled = false
+                stackView.addArrangedSubviewWithMargin(unavailableLabel)
+                stackView.addArrangedSubview(SeparatorView())
             }
-            stackView.addArrangedSubviewWithMargin(syncToggle)
-            stackView.addArrangedSubview(SeparatorView())
-
-            // Sync scope submenu
-            let syncScopeMenu = ConfigurableObject(
-                icon: "slider.horizontal.3",
-                title: "Sync Scope",
-                explain: "Configure which data groups sync with iCloud.",
-                ephemeralAnnotation: .action { [weak self] _ in
-                    guard let self else { return }
-                    let controller = SyncScopePage()
-                    navigationController?.pushViewController(controller, animated: true)
-                },
-            ).createView()
-            stackView.addArrangedSubviewWithMargin(syncScopeMenu)
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionFooterView().with(
-                    footer: "When sync is off, no new changes are shared. Existing data remains intact. Re‑enable sync to fetch the latest state before resuming.",
-                ),
-            ) { $0.top /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
 
             addSettingsBackupSection()
 
@@ -272,45 +284,57 @@ extension SettingController.SettingContent {
             stackView.addArrangedSubview(SeparatorView())
 
             // Bring back Delete iCloud Data (dangerous)
-            let deleteICloud = ConfigurableObject(
-                icon: "icloud.slash",
-                title: "Delete iCloud Data ...",
-                explain: "Delete data stored in iCloud.",
-                ephemeralAnnotation: .action { controller in
-                    guard SyncEngine.isSyncEnabled else {
+            if SyncEngine.isCloudSyncSupported {
+                let deleteICloud = ConfigurableObject(
+                    icon: "icloud.slash",
+                    title: "Delete iCloud Data ...",
+                    explain: "Delete data stored in iCloud.",
+                    ephemeralAnnotation: .action { controller in
+                        guard SyncEngine.isSyncEnabled else {
+                            let alert = AlertViewController(
+                                title: "Error Occurred",
+                                message: "iCloud synchronization is not enabled",
+                            ) { context in
+                                context.addAction(title: "OK", attribute: .accent) {
+                                    context.dispose()
+                                }
+                            }
+                            controller.present(alert, animated: true)
+                            return
+                        }
+
                         let alert = AlertViewController(
-                            title: "Error Occurred",
-                            message: "iCloud synchronization is not enabled",
+                            title: "Delete iCloud Data",
+                            message: "This will remove your synced data from iCloud for this app. Local data on this device will remain.",
                         ) { context in
-                            context.addAction(title: "OK", attribute: .accent) {
+                            context.addAction(title: "Cancel") {
                                 context.dispose()
                             }
-                        }
-                        controller.present(alert, animated: true)
-                        return
-                    }
-
-                    let alert = AlertViewController(
-                        title: "Delete iCloud Data",
-                        message: "This will remove your synced data from iCloud for this app. Local data on this device will remain.",
-                    ) { context in
-                        context.addAction(title: "Cancel") {
-                            context.dispose()
-                        }
-                        context.addAction(title: "Delete", attribute: .accent) {
-                            context.dispose {
-                                Indicator.progress(title: "Deleting...", controller: controller) { completion in
-                                    try await syncEngine.deleteServerData()
-                                    await completion {}
+                            context.addAction(title: "Delete", attribute: .accent) {
+                                context.dispose {
+                                    Indicator.progress(title: "Deleting...", controller: controller) { completion in
+                                        try await syncEngine.deleteServerData()
+                                        await completion {}
+                                    }
                                 }
                             }
                         }
-                    }
-                    controller.present(alert, animated: true)
-                },
-            ).createView()
-            stackView.addArrangedSubviewWithMargin(deleteICloud)
-            stackView.addArrangedSubview(SeparatorView())
+                        controller.present(alert, animated: true)
+                    },
+                ).createView()
+                stackView.addArrangedSubviewWithMargin(deleteICloud)
+                stackView.addArrangedSubview(SeparatorView())
+            } else {
+                let deleteICloud = ConfigurableObject(
+                    icon: "icloud.slash",
+                    title: "Delete iCloud Data ...",
+                    explain: "Not available on this iOS version.",
+                    ephemeralAnnotation: .action { _ in },
+                ).createView()
+                deleteICloud.isUserInteractionEnabled = false
+                stackView.addArrangedSubviewWithMargin(deleteICloud)
+                stackView.addArrangedSubview(SeparatorView())
+            }
 
             let resetApp = ConfigurableObject(
                 icon: "arrow.counterclockwise",

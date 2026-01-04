@@ -23,6 +23,7 @@ package protocol SyncEngineDelegate: AnyObject, Sendable {
     ) async -> CKSyncEngine.FetchChangesOptions
 }
 
+@available(iOS 17, macCatalyst 17, macOS 14, tvOS 17, watchOS 10, *)
 extension SyncEngineDelegate {
     func nextFetchChangesOptions(
         reason _: CKSyncEngine.SyncReason,

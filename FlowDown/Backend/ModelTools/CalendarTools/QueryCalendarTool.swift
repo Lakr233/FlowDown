@@ -142,31 +142,44 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
     func queryWithUserInteraction(startDate: Date, endDate: Date, includeAllDayEvents: Bool, controller: UIViewController) async throws -> String {
         try await withCheckedThrowingContinuation { cont in
             let eventStore = EKEventStore()
-            eventStore.requestFullAccessToEvents { granted, error in
+
+            let handleAuthResult: (Bool, Error?) -> Void = { granted, error in
                 Task { @MainActor [weak self] in
                     guard let self else {
                         let errorMessage = error?.localizedDescription ?? "Unknown error"
                         cont.resume(returning: String(localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."))
                         return
                     }
-                    if granted {
-                        fetchCalendarEvents(
-                            startDate: startDate,
-                            endDate: endDate,
-                            includeAllDayEvents: includeAllDayEvents,
-                        ) { result, error in
-                            if let error {
-                                cont.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                                    NSLocalizedDescriptionKey: String(localized: "Failed to query calendar: \(error.localizedDescription)"),
-                                ]))
-                            } else {
-                                self.showQueryResults(result: result, controller: controller, continuation: cont)
-                            }
-                        }
-                    } else {
+
+                    guard granted else {
                         let errorMessage = error?.localizedDescription ?? "Unknown error"
                         cont.resume(returning: String(localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."))
+                        return
                     }
+
+                    fetchCalendarEvents(
+                        startDate: startDate,
+                        endDate: endDate,
+                        includeAllDayEvents: includeAllDayEvents,
+                    ) { result, error in
+                        if let error {
+                            cont.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
+                                NSLocalizedDescriptionKey: String(localized: "Failed to query calendar: \(error.localizedDescription)"),
+                            ]))
+                        } else {
+                            self.showQueryResults(result: result, controller: controller, continuation: cont)
+                        }
+                    }
+                }
+            }
+
+            if #available(iOS 17, macCatalyst 17, *) {
+                eventStore.requestFullAccessToEvents { granted, error in
+                    handleAuthResult(granted, error)
+                }
+            } else {
+                eventStore.requestAccess(to: .event) { granted, error in
+                    handleAuthResult(granted, error)
                 }
             }
         }

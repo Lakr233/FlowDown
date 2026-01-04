@@ -95,7 +95,8 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
     func addWithUserInteractions(name: String, icsFile: String, controller: UIViewController) async throws -> String {
         try await withCheckedThrowingContinuation { cont in
             let eventStore = EKEventStore()
-            eventStore.requestFullAccessToEvents { granted, _ in
+
+            let handleAuthResult: (Bool) -> Void = { granted in
                 Task { @MainActor [weak self] in
                     guard let self else {
                         cont.resume(returning: String(localized: "Calendar access denied. Please enable calendar access in Settings."))
@@ -106,6 +107,16 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
                     } else {
                         cont.resume(returning: String(localized: "Calendar access denied. Please enable calendar access in Settings."))
                     }
+                }
+            }
+
+            if #available(iOS 17, macCatalyst 17, *) {
+                eventStore.requestFullAccessToEvents { granted, _ in
+                    handleAuthResult(granted)
+                }
+            } else {
+                eventStore.requestAccess(to: .event) { granted, _ in
+                    handleAuthResult(granted)
                 }
             }
         }

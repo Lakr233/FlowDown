@@ -51,7 +51,7 @@ extension WelcomePageViewController.Configuration {
                 .init(
                     icon: UIImage(systemName: "icloud.fill")!,
                     title: "iCloud Sync",
-                    detail: "Seamlessly sync conversations across iPhone, iPad, and Mac.",
+                    detail: "Seamlessly sync conversations across iPhone, iPad, and Mac (requires iOS 17+).",
                 ),
 
                 // MARK: - Model Ecosystem (模型生态)

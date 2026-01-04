@@ -47,7 +47,11 @@ extension SimpleSpeechController {
 
     private func startTranscriptEx() throws {
         SFSpeechRecognizer.requestAuthorization { _ in }
-        AVAudioApplication.requestRecordPermission(completionHandler: { _ in })
+        if #available(iOS 17, macCatalyst 17, *) {
+            AVAudioApplication.requestRecordPermission(completionHandler: { _ in })
+        } else {
+            AVAudioSession.sharedInstance().requestRecordPermission { _ in }
+        }
 
         guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
             throw NSError(domain: "SpeechRecognizer", code: 0, userInfo: [
@@ -55,7 +59,13 @@ extension SimpleSpeechController {
             ])
         }
 
-        guard AVAudioApplication.shared.recordPermission == .granted else {
+        let micPermissionGranted: Bool = if #available(iOS 17, macCatalyst 17, *) {
+            AVAudioApplication.shared.recordPermission == .granted
+        } else {
+            AVAudioSession.sharedInstance().recordPermission == .granted
+        }
+
+        guard micPermissionGranted else {
             throw NSError(domain: "SpeechRecognizer", code: 0, userInfo: [
                 NSLocalizedDescriptionKey: NSLocalizedString("Microphone is not authorized.", comment: ""),
             ])
