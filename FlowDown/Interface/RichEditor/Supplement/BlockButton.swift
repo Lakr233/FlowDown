@@ -34,21 +34,15 @@ class BlockButton: UIButton {
         addSubview(borderView)
         addSubview(iconView)
         addSubview(textLabel)
-        iconView.image = UIImage(named: icon)?
-            .withRenderingMode(.alwaysTemplate)
+
+        iconView.image = UIImage(named: icon)?.withRenderingMode(.alwaysTemplate)
         textLabel.text = text
+
         applyDefaultAppearance()
 
         isUserInteractionEnabled = true
         let gesture = UITapGestureRecognizer(target: self, action: #selector(onTapped))
         addGestureRecognizer(gesture)
-
-        if #available(iOS 17, macCatalyst 17, *) {
-            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
-                self.applyDefaultAppearance()
-                self.updateAppearanceAfterTraitChange()
-            }
-        }
     }
 
     @available(*, unavailable)
@@ -65,6 +59,7 @@ class BlockButton: UIButton {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+
         borderView.frame = bounds
         iconView.frame = .init(
             x: inset,
@@ -78,6 +73,15 @@ class BlockButton: UIButton {
             width: bounds.width - iconView.frame.maxX - spacing - inset,
             height: bounds.height - inset * 2,
         )
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else { return }
+
+        applyDefaultAppearance()
+        updateAppearanceAfterTraitChange()
     }
 
     @objc private func onTapped() {
@@ -94,24 +98,32 @@ class BlockButton: UIButton {
         borderView.layer.borderWidth = 1
         borderView.layer.cornerRadius = 8
         borderView.layer.cornerCurve = .continuous
+
         iconView.tintColor = .label
         iconView.contentMode = .scaleAspectFit
+
         textLabel.font = font
         textLabel.textColor = .label
         textLabel.numberOfLines = 1
         textLabel.textAlignment = .center
+
+        updateStrikes()
     }
 
     func updateStrikes() {
-        let attrText = textLabel.attributedText?.mutableCopy() as? NSMutableAttributedString
-        attrText?.addAttribute(
+        let baseText = textLabel.text ?? ""
+        let attributed = (textLabel.attributedText?.mutableCopy() as? NSMutableAttributedString)
+            ?? NSMutableAttributedString(string: baseText)
+
+        attributed.addAttribute(
             .strikethroughStyle,
             value: strikeThrough ? 1 : 0,
-            range: NSRange(location: 0, length: attrText?.length ?? 0),
+            range: NSRange(location: 0, length: attributed.length),
         )
-        textLabel.attributedText = attrText
+
+        textLabel.attributedText = attributed
     }
 
-    /// 给子类留出在 trait change 之后更新 UI 的入口。
+    /// Entry point for subclasses to update UI after trait changes.
     func updateAppearanceAfterTraitChange() {}
 }
