@@ -45,7 +45,7 @@ extension CloudModelEditorController {
         }
     }
 
-    private enum ReasoningEffort: String, CaseIterable {
+    private enum ReasoningBudgetPreset: String, CaseIterable {
         case minimal
         case low
         case medium
@@ -61,6 +61,15 @@ extension CloudModelEditorController {
         }
 
         var title: String.LocalizationValue { "Set Budget to \(thinkingBudgetTokens) Tokens" }
+    }
+
+    private enum ReasoningEffortPreset: String, CaseIterable {
+        case xhigh
+        case high
+        case medium
+        case low
+        case minimal
+        case none
     }
 
     func buildExtraBodyEditorMenu(controller: JsonEditorController) -> UIMenu {
@@ -130,7 +139,7 @@ extension CloudModelEditorController {
                 )
             }
 
-            let budgetActions = ReasoningEffort.allCases.map { effort in
+            let budgetActions = ReasoningBudgetPreset.allCases.map { effort in
                 UIAction(title: String(localized: effort.title)) { _ in
                     controller.updateValue { dictionary in
                         switch key {
@@ -152,10 +161,58 @@ extension CloudModelEditorController {
             )
         }()
 
+        let reasoningEffortMenu: UIMenu = {
+            let effortActions = ReasoningEffortPreset.allCases.map { effort -> UIAction in
+                UIAction(
+                    title: String(localized: "Set \("reasoning.effort") to \(effort.rawValue)"),
+                    image: UIImage(systemName: "bolt.circle"),
+                ) { _ in
+                    let dictionary = controller.currentDictionary
+                    let existingKeys = ReasoningParametersType.allCases.filter { dictionary.keys.contains($0.rawValue) }
+
+                    let apply: () -> Void = {
+                        controller.updateValue { dictionary in
+                            for existing in existingKeys where existing != .reasoning {
+                                dictionary.removeValue(forKey: existing.rawValue)
+                            }
+
+                            var reasoning = dictionary["reasoning"] as? [String: Any] ?? [:]
+                            reasoning["effort"] = effort.rawValue
+                            dictionary["reasoning"] = reasoning
+                        }
+                    }
+
+                    if !existingKeys.isEmpty, existingKeys != [.reasoning] {
+                        let alert = AlertViewController(
+                            title: "Duplicated Content",
+                            message: "Another key already exists, which usually causes errors. You can choose to replace it.",
+                        ) { context in
+                            context.addAction(title: "Cancel") { context.dispose() }
+                            context.addAction(title: "Replace", attribute: .accent) {
+                                context.dispose {
+                                    apply()
+                                }
+                            }
+                        }
+                        controller.present(alert, animated: true)
+                    } else {
+                        apply()
+                    }
+                }
+            }
+
+            return UIMenu(
+                title: String(localized: "Reasoning Effort"),
+                image: UIImage(systemName: "bolt.circle"),
+                options: [.displayInline],
+                children: effortActions,
+            )
+        }()
+
         return UIMenu(
             title: String(localized: "Reasoning Parameters"),
             image: UIImage(systemName: "brain.head.profile"),
-            children: [reasoningKeysMenu, reasoningBudgetMenu],
+            children: [reasoningKeysMenu, reasoningBudgetMenu, reasoningEffortMenu],
         )
     }
 

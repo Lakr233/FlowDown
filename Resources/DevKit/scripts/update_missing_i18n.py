@@ -17,7 +17,16 @@ from i18n_tools import (
 
 # Populate this map with explicit translations when introducing new keys.
 # Format: {"Key": {"zh-Hans": "示例", "es": "Ejemplo"}}
-NEW_STRINGS: dict[str, dict[str, str]] = { }
+NEW_STRINGS: dict[str, dict[str, str]] = {
+    "Reasoning Effort": {
+        "de": "Reasoning-Aufwand",
+        "es": "Esfuerzo de razonamiento",
+        "fr": "Effort de raisonnement",
+        "ja": "推論の労力",
+        "ko": "추론 노력",
+        "zh-Hans": "推理强度",
+    },
+}
 
 if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else default_file_path()
@@ -31,4 +40,3 @@ if __name__ == "__main__":
     save_strings(file_path, data)
 
     print_update_summary(file_path, counts)
-
