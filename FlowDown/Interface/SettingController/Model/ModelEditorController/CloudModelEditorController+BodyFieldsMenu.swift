@@ -70,6 +70,8 @@ extension CloudModelEditorController {
         case low
         case minimal
         case none
+
+        var title: String.LocalizationValue { "Set \("reasoning.effort") to \(rawValue)" }
     }
 
     func buildExtraBodyEditorMenu(controller: JsonEditorController) -> UIMenu {
@@ -139,15 +141,15 @@ extension CloudModelEditorController {
                 )
             }
 
-            let budgetActions = ReasoningBudgetPreset.allCases.map { effort in
-                UIAction(title: String(localized: effort.title)) { _ in
+            let budgetActions = ReasoningBudgetPreset.allCases.map { preset in
+                UIAction(title: String(localized: preset.title)) { _ in
                     controller.updateValue { dictionary in
                         switch key {
                         case .thinkingMode, .thinking, .enableThinking:
-                            dictionary["thinking_budget"] = effort.thinkingBudgetTokens
+                            dictionary["thinking_budget"] = preset.thinkingBudgetTokens
                         case .reasoning:
                             var value = dictionary[key.rawValue, default: [:]] as? [String: Any] ?? [:]
-                            value["max_tokens"] = effort.thinkingBudgetTokens
+                            value["max_tokens"] = preset.thinkingBudgetTokens
                             dictionary[key.rawValue] = value
                         }
                     }
@@ -164,7 +166,7 @@ extension CloudModelEditorController {
         let reasoningEffortMenu: UIMenu = {
             let effortActions = ReasoningEffortPreset.allCases.map { effort -> UIAction in
                 UIAction(
-                    title: String(localized: "Set \("reasoning.effort") to \(effort.rawValue)"),
+                    title: String(localized: effort.title),
                     image: UIImage(systemName: "bolt.circle"),
                 ) { _ in
                     let dictionary = controller.currentDictionary
