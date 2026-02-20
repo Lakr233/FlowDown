@@ -290,7 +290,7 @@ package extension Storage {
             try db.getRow(on: UploadQueue.Properties.id.max(), fromTable: UploadQueue.tableName)
         }
 
-        var maxId = row[0].int64Value + 1
+        var maxId = (row.count > 0 ? row[0].int64Value : 0) + 1
 
         let queues = try sources.map {
             let value = try UploadQueue(source: $0.source, changes: $0.changes)
