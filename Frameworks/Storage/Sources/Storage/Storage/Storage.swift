@@ -332,11 +332,7 @@ public extension Storage {
             }
             if let error = getError { throw error }
 
-            let sem = DispatchSemaphore(value: 0)
-            try exportStorage.db.close {
-                sem.signal()
-            }
-            sem.wait()
+            exportStorage.db.close()
         } catch {
             try? FileManager.default.removeItem(at: exportDir)
             return .failure(error)
