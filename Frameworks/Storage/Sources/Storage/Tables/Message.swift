@@ -200,8 +200,13 @@ public extension Message {
         }
 
         public func archivedValue() -> WCDBSwift.Value {
-            let data = try! JSONEncoder().encode(self)
-            return .init(data)
+            do {
+                let data = try JSONEncoder().encode(self)
+                return .init(data)
+            } catch {
+                assertionFailure("failed to encode Message.WebSearchStatus: \(error)")
+                return .init(Data())
+            }
         }
 
         public static var columnType: WCDBSwift.ColumnType {
@@ -229,8 +234,13 @@ public extension Message {
         }
 
         public func archivedValue() -> WCDBSwift.Value {
-            let data = try! JSONEncoder().encode(self)
-            return .init(data)
+            do {
+                let data = try JSONEncoder().encode(self)
+                return .init(data)
+            } catch {
+                assertionFailure("failed to encode Message.ToolStatus: \(error)")
+                return .init(Data())
+            }
         }
 
         public static var columnType: WCDBSwift.ColumnType {

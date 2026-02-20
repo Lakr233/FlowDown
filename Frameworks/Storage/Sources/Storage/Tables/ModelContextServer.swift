@@ -277,8 +277,13 @@ public extension ModelContextServer {
         }
 
         public func archivedValue() -> WCDBSwift.Value {
-            let data = try! JSONEncoder().encode(self)
-            return .init(data)
+            do {
+                let data = try JSONEncoder().encode(self)
+                return .init(data)
+            } catch {
+                assertionFailure("failed to encode ModelContextServer.EnableCodable: \(error)")
+                return .init(Data())
+            }
         }
 
         public static var columnType: WCDBSwift.ColumnType {
