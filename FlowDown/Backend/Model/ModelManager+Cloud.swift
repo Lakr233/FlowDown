@@ -9,6 +9,32 @@ import CommonCrypto
 import Foundation
 import Storage
 
+private enum CloudModelListFetchError: LocalizedError {
+    case modelNotFound
+    case invalidEndpoint
+    case requestFailed(Error)
+    case badStatus(Int)
+    case emptyBody
+    case invalidJSON
+
+    var errorDescription: String? {
+        switch self {
+        case .modelNotFound:
+            "cloud model not found"
+        case .invalidEndpoint:
+            "invalid model list endpoint"
+        case let .requestFailed(error):
+            error.localizedDescription
+        case let .badStatus(code):
+            "unexpected http status: \(code)"
+        case .emptyBody:
+            "empty response body"
+        case .invalidJSON:
+            "invalid json response"
+        }
+    }
+}
+
 extension CloudModel {
     var modelDisplayName: String {
         // Use custom name if available
@@ -114,8 +140,13 @@ extension ModelManager {
         cloudModels.send(scanCloudModels())
     }
 
-    func fetchModelList(identifier: CloudModelIdentifier?, block: @escaping ([String]) -> Void) {
+    func fetchModelList(
+        identifier: CloudModelIdentifier?,
+        block: @escaping ([String]) -> Void,
+        errorBlock: ((Error) -> Void)? = nil
+    ) {
         guard let model = cloudModel(identifier: identifier) else {
+            errorBlock?(CloudModelListFetchError.modelNotFound)
             block([])
             return
         }
@@ -123,12 +154,14 @@ extension ModelManager {
         var model_list_endpoint = model.model_list_endpoint
         if model_list_endpoint.contains("$INFERENCE_ENDPOINT$") {
             if model.endpoint.isEmpty {
+                errorBlock?(CloudModelListFetchError.invalidEndpoint)
                 block([])
                 return
             }
             model_list_endpoint = model_list_endpoint.replacingOccurrences(of: "$INFERENCE_ENDPOINT$", with: endpoint)
         }
         guard !model_list_endpoint.isEmpty, let url = URL(string: model_list_endpoint)?.standardized else {
+            errorBlock?(CloudModelListFetchError.invalidEndpoint)
             block([])
             return
         }
@@ -143,21 +176,33 @@ extension ModelManager {
                 block(input)
             }
         }
+        let deliverError: (Error) -> Void = { error in
+            Task { @MainActor in
+                errorBlock?(error)
+            }
+        }
         URLSession.shared.dataTask(with: request) { data, response, error in
-            guard error == nil else {
-                Logger.network.errorFile("[fetchModelList] request error: \(error!.localizedDescription)")
+            if let error {
+                Logger.network.errorFile("[fetchModelList] request error: \(error.localizedDescription)")
+                deliverError(CloudModelListFetchError.requestFailed(error))
                 return deliver([])
             }
             if let http = response as? HTTPURLResponse {
-                if http.statusCode != 200 {
+                if !(200 ... 299).contains(http.statusCode) {
                     Logger.network.errorFile("[fetchModelList] non-200 status: \(http.statusCode) for URL: \(url.absoluteString)")
+                    deliverError(CloudModelListFetchError.badStatus(http.statusCode))
+                    return deliver([])
                 }
             }
-            guard let data else { return deliver([]) }
+            guard let data else {
+                deliverError(CloudModelListFetchError.emptyBody)
+                return deliver([])
+            }
             guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else {
                 if let str = String(data: data, encoding: .utf8) {
                     Logger.network.errorFile("[fetchModelList] non-JSON response: \(str.prefix(256))...")
                 }
+                deliverError(CloudModelListFetchError.invalidJSON)
                 return deliver([])
             }
             let value = self.scrubModel(fromDic: json).sorted()
