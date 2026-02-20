@@ -117,6 +117,61 @@ jobs:
             echo "[+] licenses updated"
           fi
 
+      - name: Resolve Packages
+        if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace FlowDown.xcworkspace \
+            -scheme FlowDown \
+            -resolvePackageDependencies \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | xcbeautify --is-ci --disable-colored-output --disable-logging
+
+      - name: Disable CloudKit for CI Testing
+        if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
+        run: |
+          echo '' >> FlowDown/Configuration/DevelopmentDeveloper.xcconfig
+          echo 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) TEST_SIMULATOR_DISABLE_CLOUD_KIT' >> FlowDown/Configuration/DevelopmentDeveloper.xcconfig
+
+      - name: Build (iOS)
+        if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
+        run: |
+          set -o pipefail
+          DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
+          xcodebuild \
+            -workspace FlowDown.xcworkspace \
+            -scheme FlowDown \
+            -configuration Debug \
+            -destination "$DESTINATION" \
+            build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | xcbeautify --is-ci --disable-colored-output --disable-logging
+
+      - name: Run Unit Tests
+        if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
+        run: |
+          set -o pipefail
+          DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
+          xcodebuild \
+            -workspace FlowDown.xcworkspace \
+            -scheme FlowDownUnitTests \
+            -configuration Debug \
+            -destination "$DESTINATION" \
+            test \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | xcbeautify --is-ci --disable-colored-output --disable-logging
+
+      - name: Revert CI-only Config Changes
+        if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
+        run: git checkout -- FlowDown/Configuration/DevelopmentDeveloper.xcconfig
+
       - name: Create Pull Request
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
         uses: peter-evans/create-pull-request@v7
