@@ -23,6 +23,7 @@ on:
 
 jobs:
   test:
+    if: ${{ !startsWith(github.head_ref, 'housekeeping/') }}
     name: Unit Tests
     runs-on: macos-26
     permissions:

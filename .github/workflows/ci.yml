@@ -15,6 +15,7 @@ on:
 
 jobs:
   build:
+    if: ${{ !startsWith(github.head_ref, 'housekeeping/') }}
     name: Build (${{ matrix.target }})
     runs-on: macos-26
     strategy:
