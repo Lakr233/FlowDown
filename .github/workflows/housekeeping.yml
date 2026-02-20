@@ -121,6 +121,7 @@ jobs:
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           xcodebuild \
             -workspace FlowDown.xcworkspace \
             -scheme FlowDown \
@@ -140,6 +141,7 @@ jobs:
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
           xcodebuild \
             -workspace FlowDown.xcworkspace \
@@ -156,6 +158,7 @@ jobs:
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
           xcodebuild \
             -workspace FlowDown.xcworkspace \

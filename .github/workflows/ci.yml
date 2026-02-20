@@ -44,6 +44,7 @@ jobs:
       - name: Resolve Packages (${{ matrix.target }})
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           xcodebuild \
             -workspace FlowDown.xcworkspace \
             -scheme "${{ matrix.scheme }}" \
@@ -56,6 +57,7 @@ jobs:
       - name: Archive (${{ matrix.target }})
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           mkdir -p BuildArtifacts
           xcodebuild \
             -workspace FlowDown.xcworkspace \

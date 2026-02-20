@@ -42,6 +42,7 @@ jobs:
       - name: Resolve Packages
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           xcodebuild \
             -workspace FlowDown.xcworkspace \
             -scheme FlowDown \
@@ -61,6 +62,7 @@ jobs:
       - name: Build FlowDown (for codegen)
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
           xcodebuild \
             -workspace FlowDown.xcworkspace \
@@ -76,6 +78,7 @@ jobs:
       - name: Run Unit Tests
         run: |
           set -o pipefail
+          xcodebuild -downloadComponent MetalToolchain
           DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
           xcodebuild \
             -workspace FlowDown.xcworkspace \
