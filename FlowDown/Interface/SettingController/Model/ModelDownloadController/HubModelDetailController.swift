@@ -67,7 +67,14 @@ class HubModelDetailController: StackScrollController {
         let result = MarkdownParser().parse(markdown)
         var theme = MarkdownTheme()
         theme.align(to: UIFont.preferredFont(forTextStyle: .subheadline).pointSize)
-        let package = MarkdownTextView.PreprocessedContent(parserResult: result, theme: theme)
+        let blocks = result.documentByRepairingInlineMathPlaceholders()
+        let rendered: RenderedTextContent.Map = result.render(theme: theme)
+        let highlightMaps: [Int: CodeHighlighter.HighlightMap] = result.render(theme: theme)
+        let package = MarkdownTextView.PreprocessedContent(
+            blocks: blocks,
+            rendered: rendered,
+            highlightMaps: highlightMaps
+        )
         let markdownView = MarkdownTextView().with {
             $0.theme = theme
             $0.bindContentOffset(from: scrollView)
