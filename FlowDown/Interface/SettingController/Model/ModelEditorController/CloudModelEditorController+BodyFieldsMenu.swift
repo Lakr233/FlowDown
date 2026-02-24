@@ -29,6 +29,7 @@ extension CloudModelEditorController {
 extension CloudModelEditorController {
     private enum ReasoningParametersType: String, CaseIterable {
         case reasoning
+        case reasoningEffort = "reasoning_effort"
         case enableThinking = "enable_thinking"
         case thinkingMode = "thinking_mode"
         case thinking
@@ -42,7 +43,8 @@ extension CloudModelEditorController {
             case .enableThinking: dic[rawValue] = true
             case .thinkingMode: dic[rawValue] = ["type": "enabled"]
             case .thinking: dic[rawValue] = ["type": "enabled"]
-            case .reasoning: dic[rawValue] = ["enabled": true]
+            case .reasoning: dic[rawValue] = ["effort": "high"]
+            case .reasoningEffort: dic[rawValue] = "high"
             }
         }
     }
@@ -157,6 +159,8 @@ extension CloudModelEditorController {
                             var value = dictionary[key.rawValue, default: [:]] as? [String: Any] ?? [:]
                             value["max_tokens"] = preset.thinkingBudgetTokens
                             dictionary[key.rawValue] = value
+                        case .reasoningEffort:
+                            dictionary["max_tokens"] = preset.thinkingBudgetTokens
                         }
                     }
                 }
@@ -180,17 +184,23 @@ extension CloudModelEditorController {
 
                     let apply: () -> Void = {
                         controller.updateValue { dictionary in
-                            for existing in existingKeys where existing != .reasoning {
+                            for existing in existingKeys where existing != .reasoning && existing != .reasoningEffort {
                                 dictionary.removeValue(forKey: existing.rawValue)
                             }
 
-                            var reasoning = dictionary["reasoning"] as? [String: Any] ?? [:]
-                            reasoning["effort"] = effort.rawValue
-                            dictionary["reasoning"] = reasoning
+                            if existingKeys.contains(.reasoningEffort) {
+                                dictionary.removeValue(forKey: ReasoningParametersType.reasoning.rawValue)
+                                dictionary[ReasoningParametersType.reasoningEffort.rawValue] = effort.rawValue
+                            } else {
+                                dictionary.removeValue(forKey: ReasoningParametersType.reasoningEffort.rawValue)
+                                var reasoning = dictionary["reasoning"] as? [String: Any] ?? [:]
+                                reasoning["effort"] = effort.rawValue
+                                dictionary["reasoning"] = reasoning
+                            }
                         }
                     }
 
-                    if !existingKeys.isEmpty, existingKeys != [.reasoning] {
+                    if !existingKeys.isEmpty, existingKeys != [.reasoning], existingKeys != [.reasoningEffort] {
                         let alert = AlertViewController(
                             title: "Duplicated Content",
                             message: "Another key already exists, which usually causes errors. You can choose to replace it.",
