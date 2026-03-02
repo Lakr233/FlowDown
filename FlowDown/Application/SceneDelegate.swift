@@ -28,8 +28,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 titlebar.titleVisibility = .hidden
                 titlebar.toolbar = nil
             }
+            windowScene.sizeRestrictions?.minimumSize = CGSize(width: 650, height: 650)
         #endif
-        windowScene.sizeRestrictions?.minimumSize = CGSize(width: 650, height: 650)
         let window = UIWindow(windowScene: windowScene)
         defer {
             window.makeKeyAndVisible()
