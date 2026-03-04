@@ -420,13 +420,17 @@ class MainController: UIViewController {
     @objc func handleEdgePan(_ gesture: UIScreenEdgePanGestureRecognizer) {
         guard isSidebarCollapsed else { return }
         let translation = gesture.translation(in: view)
+        let velocity = gesture.velocity(in: view)
         let progress = min(translation.x / 100, 1.0)
 
         switch gesture.state {
         case .began, .changed:
+            // Only update layout for rightward swipes
+            guard velocity.x >= 0 else { return }
             updateLayoutGuide(withOffset: translation.x)
         case .ended, .cancelled:
-            if progress > 0.5 || gesture.velocity(in: view).x > 300 {
+            if progress > 0.5 || velocity.x > 300 {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 view.doWithAnimation { self.isSidebarCollapsed = false }
             }
             updateLayoutGuideToOriginalStatus()
