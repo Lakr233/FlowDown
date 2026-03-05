@@ -101,13 +101,6 @@ class MainController: UIViewController {
             object: nil,
         )
 
-        #if !targetEnvironment(macCatalyst)
-            let edgePanGesture = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan(_:)))
-            edgePanGesture.edges = .left
-            edgePanGesture.delegate = self
-            view.addGestureRecognizer(edgePanGesture)
-        #endif
-
         sidebarDragger.$currentValue
             .removeDuplicates()
             .map { CGFloat($0) }
@@ -150,6 +143,13 @@ class MainController: UIViewController {
 
         sidebarLayoutView.contentView.addSubview(sidebar)
         contentView.contentView.addSubview(chatView)
+
+        #if !targetEnvironment(macCatalyst)
+            let edgePanGesture = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan(_:)))
+            edgePanGesture.edges = .left
+            edgePanGesture.delegate = self
+            view.addGestureRecognizer(edgePanGesture)
+        #endif
 
         setupViews()
     }
@@ -417,28 +417,6 @@ class MainController: UIViewController {
         view.doWithAnimation { self.isSidebarCollapsed = false }
     }
 
-    @objc func handleEdgePan(_ gesture: UIScreenEdgePanGestureRecognizer) {
-        guard isSidebarCollapsed else { return }
-        let translation = gesture.translation(in: view)
-        let velocity = gesture.velocity(in: view)
-        let progress = min(translation.x / 100, 1.0)
-
-        switch gesture.state {
-        case .began, .changed:
-            // Only update layout for rightward swipes
-            guard velocity.x >= 0 else { return }
-            updateLayoutGuide(withOffset: translation.x)
-        case .ended, .cancelled:
-            if progress > 0.5 || velocity.x > 300 {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                view.doWithAnimation { self.isSidebarCollapsed = false }
-            }
-            updateLayoutGuideToOriginalStatus()
-        default:
-            break
-        }
-    }
-
     @objc func searchConversationsFromMenu(_: Any? = nil) {
         sidebar.searchButton.delegate?.searchButtonDidTap()
     }
@@ -446,7 +424,7 @@ class MainController: UIViewController {
 
 extension MainController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
+        gestureRecognizer is UIScreenEdgePanGestureRecognizer
     }
 
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
