@@ -2,6 +2,8 @@
 
 One place for context windows, temperature/sampling, and Reasoning/Thinking toggles. Settings apply per model profile and take effect immediately (synced via iCloud and backups).
 
+For local, on-device inference, FlowDown supports MLX model profiles only. GGUF and Core ML files are not supported as direct local model formats in the app.
+
 ## Where to edit
 
 1. Go to **Settings → Model** and pick a profile.
