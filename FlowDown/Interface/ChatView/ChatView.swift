@@ -30,15 +30,7 @@ class ChatView: UIView {
     #endif
 
     let editor = RichEditorView()
-    let editorBackgroundView = UIView().with {
-        $0.backgroundColor = .background
-        let sep = SeparatorView()
-        $0.addSubview(sep)
-        sep.snp.makeConstraints { make in
-            make.left.top.right.equalToSuperview()
-            make.height.equalTo(1)
-        }
-    }
+    let editorBackgroundView: UIVisualEffectView = .adaptive()
 
     let sessionManager = ConversationSessionManager.shared
     private var messageListViews: [Conversation.ID: MessageListView] = [:]
@@ -77,16 +69,20 @@ class ChatView: UIView {
         addSubview(editor)
 
         #if !targetEnvironment(macCatalyst)
-            addSubview(escapeButton)
-            defer { bringSubviewToFront(escapeButton) }
+            let escapeButtonGlass = escapeButton.wrappedInGlassEffect(cornerStyle: .capsule)
+            addSubview(escapeButtonGlass)
         #endif
 
         addSubview(title)
 
+        #if !targetEnvironment(macCatalyst)
+            bringSubviewToFront(escapeButtonGlass)
+        #endif
+
         editor.handlerColor = handlerColor
         editor.delegate = self
         editor.snp.makeConstraints { make in
-            make.bottom.equalToSuperview()
+            make.bottom.equalTo(safeAreaLayoutGuide)
             make.centerX.equalToSuperview()
             make.width.lessThanOrEqualTo(750)
             make.width.lessThanOrEqualToSuperview()
@@ -108,14 +104,14 @@ class ChatView: UIView {
 
         #if !targetEnvironment(macCatalyst)
             escapeButton.backgroundColor = .clear
-            escapeButton.snp.makeConstraints { make in
+            escapeButtonGlass.snp.makeConstraints { make in
                 make.top.equalTo(safeAreaLayoutGuide).inset(10)
                 make.leading.equalTo(safeAreaLayoutGuide).inset(10)
                 make.width.height.equalTo(40)
             }
             title.snp.makeConstraints { make in
                 make.left.top.right.equalToSuperview()
-                make.bottom.equalTo(escapeButton).offset(10)
+                make.bottom.equalTo(escapeButtonGlass).offset(10)
             }
         #else
             setupTitleLayout()
@@ -296,8 +292,8 @@ extension ChatView {
             $0.showsMenuAsPrimaryAction = true
         }
 
-        let bg = UIView().with { $0.backgroundColor = .background }
-        let sep = SeparatorView()
+        let edgeEffectView = ChatHeaderEdgeEffectView()
+        let backgroundContainer = ChatHeaderGlassBackgroundContainerView()
 
         let rightClick = RightClickFinder()
         var cancellables: Set<AnyCancellable> = .init()
@@ -308,26 +304,26 @@ extension ChatView {
         init() {
             super.init(frame: .zero)
             translatesAutoresizingMaskIntoConstraints = false
+            clipsToBounds = false
 
             snp.makeConstraints { make in
                 make.height.equalTo(40).priority(.low)
             }
 
-            addSubview(bg)
-            bg.snp.makeConstraints { make in
-                make.left.bottom.right.equalToSuperview()
-                make.top.equalToSuperview().offset(-128)
-            }
-            addSubview(sep)
-            sep.snp.makeConstraints { make in
-                make.left.right.equalToSuperview()
-                make.bottom.equalToSuperview()
-                make.height.equalTo(1)
-            }
+            addSubview(edgeEffectView)
+            addSubview(backgroundContainer)
 
-            addSubview(icon)
-            addSubview(textLabel)
-            addSubview(menuButton)
+            backgroundContainer.contentView.addSubview(icon)
+            backgroundContainer.contentView.addSubview(textLabel)
+
+            let menuButtonGlass = menuButton.wrappedInGlassEffect(cornerStyle: .capsule)
+            backgroundContainer.contentView.addSubview(menuButtonGlass)
+
+            menuButtonGlass.snp.makeConstraints { make in
+                make.centerY.equalToSuperview()
+                make.right.equalToSuperview().inset(12)
+                make.width.height.equalTo(34)
+            }
 
             icon.snp.makeConstraints { make in
                 make.centerY.equalToSuperview()
@@ -335,17 +331,12 @@ extension ChatView {
                 make.width.height.equalTo(24)
             }
             textLabel.snp.makeConstraints { make in
-                make.center.equalToSuperview()
+                make.centerX.equalToSuperview()
+                make.centerY.equalToSuperview()
                 make.top.greaterThanOrEqualToSuperview()
                 make.bottom.lessThanOrEqualToSuperview()
                 make.left.greaterThanOrEqualTo(icon.snp.right).offset(8)
-                make.right.lessThanOrEqualTo(menuButton.snp.left).offset(-8)
-            }
-
-            menuButton.snp.makeConstraints { make in
-                make.centerY.equalToSuperview()
-                make.right.equalToSuperview().inset(20)
-                make.width.height.equalTo(18)
+                make.right.lessThanOrEqualTo(menuButtonGlass.snp.left).offset(-8)
             }
 
             #if !targetEnvironment(macCatalyst)
@@ -364,6 +355,11 @@ extension ChatView {
                     self?.use(identifier: self?.conv)
                 }
                 .store(in: &cancellables)
+
+            _ = registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: TitleBar, _: UITraitCollection) in
+                view.updateBackgroundInterfaceStyle()
+            }
+            updateBackgroundInterfaceStyle()
         }
 
         @available(*, unavailable)
@@ -371,12 +367,67 @@ extension ChatView {
             fatalError()
         }
 
+        override func layoutSubviews() {
+            super.layoutSubviews()
+
+            let safeTop = safeAreaInsets.top
+
+            let usesUnifiedBackdrop: Bool
+            if #available(iOS 26.0, macCatalyst 26.0, *) {
+                usesUnifiedBackdrop = false
+            } else {
+                usesUnifiedBackdrop = true
+            }
+
+            if usesUnifiedBackdrop {
+                backgroundContainer.frame = CGRect(
+                    x: 0,
+                    y: 0,
+                    width: bounds.width,
+                    height: bounds.height
+                )
+                backgroundContainer.setContentTopOffset(safeTop)
+            } else {
+                backgroundContainer.frame = CGRect(
+                    x: 0,
+                    y: safeTop,
+                    width: bounds.width,
+                    height: max(0, bounds.height - safeTop)
+                )
+                backgroundContainer.setContentTopOffset(0)
+            }
+
+            let edgeHeight = bounds.height + 14
+            edgeEffectView.update(
+                content: .background,
+                blur: !usesUnifiedBackdrop,
+                alpha: 0.85,
+                rect: CGRect(x: 0, y: 0, width: bounds.width, height: edgeHeight),
+                edge: .top,
+                edgeSize: min(54, edgeHeight)
+            )
+        }
+
         deinit {
             cancellables.forEach { $0.cancel() }
             cancellables.removeAll()
         }
 
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            updateBackgroundInterfaceStyle()
+        }
+
         private var conv: Conversation.ID?
+
+        private func updateBackgroundInterfaceStyle() {
+            backgroundContainer.update(isDark: traitCollection.userInterfaceStyle == .dark)
+        }
+
+        func setDecorativeBackgroundHidden(_ isHidden: Bool) {
+            backgroundContainer.setVisualEffectEnabled(!isHidden)
+            edgeEffectView.isHidden = isHidden
+        }
 
         func use(identifier: Conversation.ID?) {
             conv = identifier

@@ -5,7 +5,65 @@
 //  Created by 秋星桥 on 2025/1/2.
 //
 
+import SnapKit
 import UIKit
+
+// MARK: - Glass Effect
+
+enum GlassEffectCornerStyle {
+    case none
+    case fixed(CGFloat)
+    case capsule
+}
+
+extension UIView {
+    func wrappedInGlassEffect(
+        interactive: Bool = true,
+        cornerStyle: GlassEffectCornerStyle = .none
+    ) -> UIView {
+        if #available(iOS 26, *) {
+            let effect = UIGlassEffect()
+            effect.isInteractive = interactive
+            let container = UIVisualEffectView(effect: effect)
+            container.clipsToBounds = true
+            switch cornerStyle {
+            case .none:
+                break
+            case let .fixed(radius):
+                container.cornerConfiguration = .corners(radius: .fixed(radius))
+            case .capsule:
+                container.cornerConfiguration = .capsule()
+            }
+            container.contentView.addSubview(self)
+            self.snp.makeConstraints { $0.edges.equalToSuperview() }
+            return container
+        }
+
+        let container = LegacyGlassBackdropView(blurRadius: 4.0)
+        switch cornerStyle {
+        case .none:
+            break
+        case let .fixed(radius):
+            container.layer.cornerRadius = radius
+        case .capsule:
+            container.setCapsuleCorners()
+        }
+        container.contentView.addSubview(self)
+        self.snp.makeConstraints { $0.edges.equalToSuperview() }
+        return container
+    }
+}
+
+extension UIVisualEffectView {
+    static func adaptive(style: UIBlurEffect.Style = .systemMaterial) -> UIVisualEffectView {
+        if #available(iOS 26, *) {
+            return UIVisualEffectView(effect: UIGlassEffect())
+        }
+        return UIVisualEffectView(effect: UIBlurEffect(style: style))
+    }
+}
+
+// MARK: - Animation
 
 extension UIView {
     func doWithAnimation(duration: TimeInterval = 0.5, _ execute: @escaping () -> Void, completion: @escaping () -> Void = {}) {

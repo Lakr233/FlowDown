@@ -1,5 +1,61 @@
 import UIKit
 
+private enum RichEditorShadowStyle {
+    case glass
+    case legacy(UIColor)
+
+    static func resolve(handlerColor: UIColor) -> Self {
+        if #available(iOS 26, *) {
+            .glass
+        } else {
+            .legacy(handlerColor)
+        }
+    }
+
+    func applyAppearance(
+        to shadowContainer: UIView,
+        colorfulShadow: ColorfulShadowView
+    ) {
+        switch self {
+        case .glass:
+            shadowContainer.backgroundColor = .clear
+            colorfulShadow.isHidden = true
+        case let .legacy(color):
+            shadowContainer.backgroundColor = color
+            colorfulShadow.isHidden = false
+        }
+    }
+
+    func applyGeometry(
+        containerFrame: CGRect,
+        cornerRadius: CGFloat,
+        to colorfulShadow: ColorfulShadowView
+    ) {
+        switch self {
+        case .glass:
+            colorfulShadow.frame = .zero
+        case .legacy:
+            let shadowInset: CGFloat = 8
+            let shadowBlur: CGFloat = 8
+            colorfulShadow.frame = containerFrame.insetBy(
+                dx: -shadowInset - shadowBlur,
+                dy: -shadowInset - shadowBlur
+            )
+            colorfulShadow.updateGeometry(.init(
+                innerRect: CGRect(
+                    x: shadowInset + shadowBlur,
+                    y: shadowInset + shadowBlur,
+                    width: containerFrame.width,
+                    height: containerFrame.height
+                ),
+                cornerRadius: cornerRadius,
+                blur: shadowBlur,
+                offset: .zero
+            ))
+        }
+    }
+}
+
 class RichEditorView: EditorSectionView {
     var storage: TemporaryStorage = .init(id: "-1")
 
@@ -58,7 +114,7 @@ class RichEditorView: EditorSectionView {
             .gray.withAlphaComponent(0.1)
         }
     } {
-        didSet { shadowContainer.backgroundColor = handlerColor }
+        didSet { applyShadowStyle() }
     }
 
     override func initializeViews() {
@@ -71,6 +127,7 @@ class RichEditorView: EditorSectionView {
         shadowContainer.backgroundColor = handlerColor
         shadowContainer.clipsToBounds = false
         addSubview(shadowContainer)
+        applyShadowStyle()
 
         dropContainer.clipsToBounds = true
         dropContainer.layer.cornerRadius = shadowContainer.layer.cornerRadius
@@ -149,20 +206,7 @@ class RichEditorView: EditorSectionView {
             shadowContainer.frame = inputEditor.frame
         }
 
-        let shadowInset: CGFloat = 8
-        let shadowBlur: CGFloat = 8
-        colorfulShadow.frame = shadowContainer.frame.insetBy(dx: -shadowInset - shadowBlur, dy: -shadowInset - shadowBlur)
-        colorfulShadow.updateGeometry(.init(
-            innerRect: CGRect(
-                x: shadowInset + shadowBlur,
-                y: shadowInset + shadowBlur,
-                width: shadowContainer.frame.width,
-                height: shadowContainer.frame.height,
-            ),
-            cornerRadius: shadowContainer.layer.cornerRadius,
-            blur: shadowBlur,
-            offset: .zero,
-        ))
+        updateShadowGeometry()
 
         attachmentSeprator.frame = .init(
             x: shadowContainer.frame.minX,
@@ -193,6 +237,25 @@ class RichEditorView: EditorSectionView {
 
     func updateModelName() {
         updateModelinfoFile()
+    }
+
+    private var shadowStyle: RichEditorShadowStyle {
+        .resolve(handlerColor: handlerColor)
+    }
+
+    private func applyShadowStyle() {
+        shadowStyle.applyAppearance(
+            to: shadowContainer,
+            colorfulShadow: colorfulShadow
+        )
+    }
+
+    private func updateShadowGeometry() {
+        shadowStyle.applyGeometry(
+            containerFrame: shadowContainer.frame,
+            cornerRadius: shadowContainer.layer.cornerRadius,
+            to: colorfulShadow
+        )
     }
 
     func prepareForReuse() {

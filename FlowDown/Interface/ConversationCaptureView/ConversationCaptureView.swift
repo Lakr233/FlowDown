@@ -51,7 +51,7 @@ class ConversationCaptureView: UIView {
         translatesAutoresizingMaskIntoConstraints = false
 
         titleBar.textLabel.textColor = .label
-        titleBar.bg.backgroundColor = .clear
+        titleBar.setDecorativeBackgroundHidden(true)
         titleBar.icon.alpha = 1
         titleBar.overrideUserInterfaceStyle = .light
         titleBar.use(identifier: session.id)

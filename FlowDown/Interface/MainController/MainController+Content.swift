@@ -47,6 +47,14 @@ extension MainController {
             make.edges.equalToSuperview()
         }
 
+        #if !targetEnvironment(macCatalyst)
+            contentView.keyboardLayoutGuide.usesBottomSafeArea = false
+            contentView.contentView.snp.remakeConstraints { make in
+                make.left.right.top.equalToSuperview()
+                make.bottom.equalTo(contentView.keyboardLayoutGuide.snp.top)
+            }
+        #endif
+
         setupChatSelectionSubscription()
 
         sidebar.newChatButton.delegate = self
