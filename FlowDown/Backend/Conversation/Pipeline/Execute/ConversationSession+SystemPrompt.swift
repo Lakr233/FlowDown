@@ -36,6 +36,10 @@ extension ConversationSession {
             proactiveMemoryProvided = true
         }
 
+        if let recentSummaries = await ConversationSummarizer.shared.formattedRecentSummaries(limit: 15) {
+            requestMessages.append(.system(content: .text(recentSummaries)))
+        }
+
         if case .bool(true) = object.options[.browsing] {
             let sensitivity = ModelManager.shared.searchSensitivity
             requestMessages.append(

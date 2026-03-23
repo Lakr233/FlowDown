@@ -118,7 +118,7 @@ enum MemoryProactiveProvisionSetting {
         title: "Proactive Memory Context",
         explain: "Choose how we proactively shares stored memories with the model during conversations and automations. This includes system Shortcuts.",
         key: storageKey,
-        defaultValue: MemoryProactiveProvisionScope.off.rawValue,
+        defaultValue: MemoryProactiveProvisionScope.recent30.rawValue,
         annotation: .menu {
             MemoryProactiveProvisionScope.allCases.map { scope in
                 .init(
@@ -135,6 +135,6 @@ enum MemoryProactiveProvisionSetting {
         if let raw, let scope = MemoryProactiveProvisionScope(rawValue: raw) {
             return scope
         }
-        return .off
+        return .recent30
     }
 }

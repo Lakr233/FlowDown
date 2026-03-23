@@ -274,6 +274,34 @@ extension ConversationSession {
 
         Logger.app.infoFile("inference done")
 
+        // MARK: - 自动记忆提取和对话摘要
+
+        let isEphemeral: Bool = {
+            if case let .bool(value) = object.options[.ephemeral] { return value }
+            return false
+        }()
+
+        if !isEphemeral {
+            let recentMessages = Array(messages.suffix(6))
+            let auxModel = models.auxiliary ?? models.chat
+            let convId = id
+            let allMessages = messages
+            await MainActor.run {
+                Task {
+                    await MemoryExtractor.shared.extractIfNeeded(
+                        from: recentMessages,
+                        conversationId: convId.description,
+                        using: auxModel
+                    )
+                    await ConversationSummarizer.shared.summarizeIfNeeded(
+                        conversationId: convId,
+                        messages: allMessages,
+                        using: auxModel
+                    )
+                }
+            }
+        }
+
         // MARK: - 生成标题和图标
 
         try checkCancellation()

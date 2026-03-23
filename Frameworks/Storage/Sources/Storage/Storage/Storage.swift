@@ -98,6 +98,7 @@ public class Storage {
                 MigrationV2ToV3(),
                 MigrationV3ToV4(),
                 MigrationV4ToV5(),
+                MigrationV5ToV6(),
             ]
         } else {
             initVersion = .Version1
@@ -106,6 +107,7 @@ public class Storage {
                 MigrationV2ToV3(),
                 MigrationV3ToV4(),
                 MigrationV4ToV5(),
+                MigrationV5ToV6(),
             ]
         }
 
@@ -179,6 +181,7 @@ public class Storage {
             try $0.delete(fromTable: SyncMetadata.tableName)
             try $0.delete(fromTable: UploadQueue.tableName)
             try $0.delete(fromTable: ChatTemplateRecord.tableName)
+            try $0.delete(fromTable: ConversationSummary.tableName)
 
             let nameColumn = WCDBSwift.Column(named: "name")
             let seqColumn = WCDBSwift.Column(named: "seq")
@@ -260,6 +263,7 @@ public extension Storage {
                     try $0.delete(fromTable: Memory.tableName, where: Memory.Properties.modified <= deleteAt && Memory.Properties.removed == true)
                     try $0.delete(fromTable: ModelContextServer.tableName, where: ModelContextServer.Properties.modified <= deleteAt && ModelContextServer.Properties.removed == true)
                     try $0.delete(fromTable: ChatTemplateRecord.tableName, where: ChatTemplateRecord.Properties.modified <= deleteAt && ChatTemplateRecord.Properties.removed == true)
+                    try $0.delete(fromTable: ConversationSummary.tableName, where: ConversationSummary.Properties.modified <= deleteAt && ConversationSummary.Properties.removed == true)
 
                     try $0.delete(fromTable: CloudModel.tableName, where: CloudModel.Properties.objectId == "")
 
@@ -324,6 +328,8 @@ public extension Storage {
                     try expdb.insert(mems, intoTable: Memory.tableName)
                     let templates: [ChatTemplateRecord] = try db.getObjects(fromTable: ChatTemplateRecord.tableName)
                     try expdb.insert(templates, intoTable: ChatTemplateRecord.tableName)
+                    let summaries: [ConversationSummary] = try db.getObjects(fromTable: ConversationSummary.tableName)
+                    try expdb.insert(summaries, intoTable: ConversationSummary.tableName)
                     return true
                 } catch {
                     getError = error

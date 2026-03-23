@@ -125,6 +125,7 @@ extension ConversationManager {
         let session = ConversationSessionManager.shared.session(for: identifier)
         session.cancelCurrentTask {}
         sdb.conversationRemove(conversationWith: identifier)
+        try? Storage.db().deleteSummary(forConversation: identifier.description)
         setRichEditorObject(identifier: identifier, nil)
         scanAll()
         // Invalidate session cache so next access reloads from DB
