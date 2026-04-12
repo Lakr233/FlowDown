@@ -1,0 +1,41 @@
+name: Online E2E
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
+
+jobs:
+  online-e2e:
+    name: Online E2E
+    runs-on: macos-26
+    env:
+      XCODE_VERSION: "26.3"
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Select Newest Xcode
+        run: |
+          chmod +x Resources/DevKit/scripts/select_newest_xcode.sh
+          ./Resources/DevKit/scripts/select_newest_xcode.sh
+
+      - name: Run Online E2E
+        run: |
+          chmod +x Resources/DevKit/scripts/run_online_e2e_tests.sh
+          ./Resources/DevKit/scripts/run_online_e2e_tests.sh
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-e2e-results
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/*/Logs/Test/*.xcresult
+          if-no-files-found: warn
+          retention-days: 7
