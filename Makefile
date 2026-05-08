@@ -54,7 +54,7 @@ endef
 .PHONY: all help \
 	build build-ios build-catalyst build-extension \
 	test test-unit test-online-e2e \
-	package-resolve scan-license \
+	package-resolve package-update scan-license \
 	localization-check localization-stale-check \
 	archive archive-ios archive-macos \
 	chore clean clean-build
@@ -75,6 +75,7 @@ help:
 	@echo ""
 	@echo "Packages & licenses:"
 	@echo "  package-resolve       Resolve SwiftPM packages"
+	@echo "  package-update        Upgrade SwiftPM packages"
 	@echo "  scan-license          Refresh open source licenses"
 	@echo ""
 	@echo "Localization:"
@@ -133,6 +134,9 @@ test-online-e2e:
 
 package-resolve:
 	./Resources/DevKit/scripts/resolve-packages.sh
+
+package-update:
+	./Resources/DevKit/scripts/update-packages.sh
 
 scan-license:
 	./Resources/DevKit/scripts/scan.license.sh
