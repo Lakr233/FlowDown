@@ -32,6 +32,12 @@ export default function Navigation() {
               Documentation
             </Link>
             <Link
+              href="/compare"
+              className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
+            >
+              Compare
+            </Link>
+            <Link
               href="https://github.com/Lakr233/FlowDown"
               target="_blank"
               className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
@@ -91,6 +97,13 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 Documentation
+              </Link>
+              <Link
+                href="/compare"
+                className="text-xl font-medium text-[#242424]"
+                onClick={() => setIsOpen(false)}
+              >
+                Compare
               </Link>
               <Link
                 href="https://github.com/Lakr233/FlowDown"

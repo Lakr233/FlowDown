@@ -1,0 +1,49 @@
+{
+  "schema_version": "0.1.0",
+  "name": "FlowDown AI",
+  "description": "Native Apple-platform AI workspace with local models, OpenAI-compatible providers, MCP client support, web search, attachments, memory, and Shortcuts automation.",
+  "url": "https://flowdown.ai",
+  "provider": {
+    "name": "FlowDown Team",
+    "url": "https://flowdown.ai/about",
+    "email": "flowdownapp@qaq.wiki"
+  },
+  "version": "2026-05-09",
+  "documentationUrl": "https://flowdown.ai/docs",
+  "iconUrl": "https://flowdown.ai/icon-primary.png",
+  "skills": [
+    {
+      "id": "configure-openai-compatible-models",
+      "name": "Configure OpenAI-compatible models",
+      "description": "Guide users through adding custom base URLs, tokens, headers, model names, modalities, and additional request body fields.",
+      "inputModes": ["text"],
+      "outputModes": ["text"],
+      "documentationUrl": "https://flowdown.ai/docs/documents/models/cloud_models_setup"
+    },
+    {
+      "id": "connect-mcp-client",
+      "name": "Connect MCP servers in FlowDown",
+      "description": "Guide users through adding Streamable HTTP MCP servers, headers, verification, import, export, and tool auditing.",
+      "inputModes": ["text"],
+      "outputModes": ["text"],
+      "documentationUrl": "https://flowdown.ai/docs/documents/capabilities/mcp_integration"
+    },
+    {
+      "id": "automate-with-shortcuts",
+      "name": "Automate FlowDown with Apple Shortcuts",
+      "description": "Guide users through FlowDown Shortcuts actions for generating responses, opening conversations, and creating conversation links.",
+      "inputModes": ["text"],
+      "outputModes": ["text"],
+      "documentationUrl": "https://flowdown.ai/docs/documents/guides/apple_shortcuts"
+    }
+  ],
+  "authentication": {
+    "type": "none",
+    "description": "Public discovery resources use anonymous read access. Provider and MCP credentials are configured by the user inside the installed app."
+  },
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false,
+    "stateTransitionHistory": true
+  }
+}

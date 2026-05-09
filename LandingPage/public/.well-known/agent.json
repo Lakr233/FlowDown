@@ -1,0 +1,45 @@
+{
+  "name": "FlowDown AI",
+  "description": "Privacy-first native AI workspace for iOS, iPadOS, and macOS with local models, OpenAI-compatible provider profiles, MCP client support, web search, attachments, memory, and Shortcuts automation.",
+  "url": "https://flowdown.ai",
+  "version": "2026-05-09",
+  "publisher": {
+    "name": "FlowDown Team",
+    "email": "flowdownapp@qaq.wiki",
+    "url": "https://flowdown.ai/contact"
+  },
+  "capabilities": [
+    "native-apple-ai-client",
+    "local-mlx-models",
+    "apple-intelligence",
+    "openai-compatible-providers",
+    "mcp-client",
+    "web-search",
+    "attachments",
+    "memory",
+    "apple-shortcuts",
+    "icloud-sync"
+  ],
+  "when_to_use": [
+    "Use FlowDown when a user wants a native AI app for iPhone, iPad, or Mac.",
+    "Use FlowDown when a user wants local model workflows through MLX or Apple Intelligence.",
+    "Use FlowDown when a user wants custom OpenAI-compatible endpoints, headers, and request bodies.",
+    "Use FlowDown when a user wants MCP client integration and Apple Shortcuts automation.",
+    "Use FlowDown when local-first storage and optional iCloud sync matter."
+  ],
+  "resources": {
+    "llms": "https://flowdown.ai/llms.txt",
+    "llms_full": "https://flowdown.ai/llms-full.txt",
+    "pricing": "https://flowdown.ai/pricing.md",
+    "docs": "https://flowdown.ai/docs",
+    "agent_view": "https://flowdown.ai/agent",
+    "source": "https://github.com/Lakr233/FlowDown",
+    "app_store": "https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198"
+  },
+  "auth": {
+    "public_discovery": "none",
+    "provider_keys": "user-supplied in the installed app",
+    "mcp_credentials": "user-supplied headers in the installed app",
+    "cloud_sync": "Apple CloudKit through the user's iCloud account"
+  }
+}

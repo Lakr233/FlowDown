@@ -119,13 +119,31 @@ export default function Footer() {
                 <p className="text-sm font-medium text-[#242424]">Others</p>
                 <div className="flex flex-col gap-3 text-sm font-medium text-[#454545]">
                   <Link
-                    href="/docs/documents/pricing_timeline"
+                    href="/pricing"
                     className="hover:text-[#242424] transition-colors"
                   >
                     Price
                   </Link>
                   <Link
-                    href="/docs/documents/legal/privacy"
+                    href="/compare"
+                    className="hover:text-[#242424] transition-colors"
+                  >
+                    Compare
+                  </Link>
+                  <Link
+                    href="/about"
+                    className="hover:text-[#242424] transition-colors"
+                  >
+                    About
+                  </Link>
+                  <Link
+                    href="/contact"
+                    className="hover:text-[#242424] transition-colors"
+                  >
+                    Contact
+                  </Link>
+                  <Link
+                    href="/privacy"
                     className="hover:text-[#242424] transition-colors"
                   >
                     Privacy

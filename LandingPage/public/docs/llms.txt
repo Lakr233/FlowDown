@@ -1,0 +1,34 @@
+# FlowDown AI Documentation Context
+
+Docs home: https://flowdown.ai/docs
+
+## Start here
+
+- Welcome: https://flowdown.ai/docs/documents/welcome
+- Basic usage: https://flowdown.ai/docs/documents/quickstart/basic_usage
+- FAQ: https://flowdown.ai/docs/documents/troubleshooting/faq
+- Report issue: https://flowdown.ai/docs/documents/troubleshooting/report_issue
+
+## Model setup
+
+- Cloud models setup: https://flowdown.ai/docs/documents/models/cloud_models_setup
+- Inference configuration: https://flowdown.ai/docs/documents/models/inference_configuration
+- Auxiliary tasks: https://flowdown.ai/docs/documents/models/auxiliary_tasks
+- Vision: https://flowdown.ai/docs/documents/models/vision
+
+## Capabilities
+
+- Tools and automation: https://flowdown.ai/docs/documents/capabilities/tools_automation
+- MCP tools: https://flowdown.ai/docs/documents/capabilities/mcp_integration
+- Web search: https://flowdown.ai/docs/documents/capabilities/web_search
+- Attachments: https://flowdown.ai/docs/documents/capabilities/attachments
+- Apple Shortcuts: https://flowdown.ai/docs/documents/guides/apple_shortcuts
+- Calendar workflow: https://flowdown.ai/docs/documents/guides/calendar_workflow
+
+## Architecture and legal
+
+- Chat pipeline: https://flowdown.ai/docs/documents/architecture/chat_pipeline
+- Message normalization: https://flowdown.ai/docs/documents/architecture/message_normalization
+- Model exchange: https://flowdown.ai/docs/documents/architecture/model_exchange
+- Privacy: https://flowdown.ai/docs/documents/legal/privacy
+- Software license: https://flowdown.ai/docs/documents/legal/software_license

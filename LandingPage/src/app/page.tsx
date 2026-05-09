@@ -3,6 +3,7 @@ import {
   HeroSection,
   FeaturesSection,
   FAQSection,
+  AgentResourcesSection,
   TestimonialsSection,
   TeamSection,
   Footer,
@@ -15,6 +16,7 @@ export default function LandingPage() {
       <HeroSection />
       <FeaturesSection />
       <FAQSection />
+      <AgentResourcesSection />
       <TestimonialsSection />
       <TeamSection />
       <Footer />

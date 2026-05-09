@@ -284,6 +284,77 @@ export default function FAQSection() {
             }
           />
         </StaggerItem>
+
+        <StaggerItem>
+          <FAQItem
+            question="Is FlowDown free?"
+            isOpen={openFAQ === 5}
+            onClick={() => setOpenFAQ(openFAQ === 5 ? -1 : 5)}
+            answer={
+              <div className="space-y-4">
+                <p>
+                  FlowDown follows a public App Store pricing timeline. The US
+                  storefront price steps down to a zero-dollar base app on June
+                  10, 2026, while regional App Store pricing remains the final
+                  purchase source.
+                </p>
+                <ul className="list-disc ml-6 space-y-1">
+                  <li>Core chat, model configuration, and local storage are included.</li>
+                  <li>
+                    Users can bring their own provider keys for OpenAI-compatible
+                    services.
+                  </li>
+                  <li>
+                    Future personalization features may use separate pricing.
+                  </li>
+                </ul>
+                <Link
+                  href="/pricing"
+                  className="text-base font-medium text-black inline-block mt-3"
+                >
+                  VIEW PRICING →
+                </Link>
+              </div>
+            }
+          />
+        </StaggerItem>
+
+        <StaggerItem>
+          <FAQItem
+            question="How do I configure a custom API key?"
+            isOpen={openFAQ === 6}
+            onClick={() => setOpenFAQ(openFAQ === 6 ? -1 : 6)}
+            answer={
+              <div className="space-y-4">
+                <p>
+                  Add a cloud model profile, enter the OpenAI-compatible base
+                  URL, paste the provider token, add any required headers or
+                  body fields, then verify the model before chatting.
+                </p>
+                <ul className="list-disc ml-6 space-y-1">
+                  <li>
+                    Use headers for provider auth, tenant IDs, or gateway
+                    routing.
+                  </li>
+                  <li>
+                    Use body fields for reasoning toggles, modalities, sampling
+                    settings, and provider flags.
+                  </li>
+                  <li>
+                    Keep one profile per provider or model family for easier
+                    switching.
+                  </li>
+                </ul>
+                <Link
+                  href="/docs/documents/models/cloud_models_setup"
+                  className="text-base font-medium text-black inline-block mt-3"
+                >
+                  READ SETUP GUIDE →
+                </Link>
+              </div>
+            }
+          />
+        </StaggerItem>
       </StaggerContainer>
     </section>
   );

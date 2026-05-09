@@ -1,0 +1,25 @@
+/*
+  Link: </sitemap.xml>; rel="sitemap", </index.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"; type="text/plain", </pricing.md>; rel="pricing"; type="text/markdown", </.well-known/agent.json>; rel="service-meta"; type="application/json", </.well-known/agent-card.json>; rel="service-meta"; type="application/json"
+  Vary: Accept
+  X-Content-Type-Options: nosniff
+
+/index.md
+  Content-Type: text/markdown; charset=utf-8
+
+/pricing.md
+  Content-Type: text/markdown; charset=utf-8
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/llms-full.txt
+  Content-Type: text/plain; charset=utf-8
+
+/docs/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/.well-known/agent.json
+  Content-Type: application/json; charset=utf-8
+
+/.well-known/agent-card.json
+  Content-Type: application/json; charset=utf-8
