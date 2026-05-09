@@ -54,7 +54,7 @@ endef
 .PHONY: all help \
 	build build-ios build-catalyst build-extension \
 	test test-unit test-online-e2e \
-	package-resolve package-update scan-license \
+	install-metal-toolchain package-resolve package-update scan-license \
 	localization-check localization-stale-check \
 	archive archive-ios archive-macos \
 	chore clean clean-build
@@ -74,6 +74,7 @@ help:
 	@echo "  test-online-e2e       Run online e2e tests"
 	@echo ""
 	@echo "Packages & licenses:"
+	@echo "  install-metal-toolchain  Install the Xcode Metal toolchain"
 	@echo "  package-resolve       Resolve SwiftPM packages"
 	@echo "  package-update        Upgrade SwiftPM packages"
 	@echo "  scan-license          Refresh open source licenses"
@@ -131,6 +132,9 @@ test-unit:
 
 test-online-e2e:
 	./Resources/DevKit/scripts/run_online_e2e_tests.sh
+
+install-metal-toolchain:
+	./Resources/DevKit/scripts/install-metal-toolchain.sh
 
 package-resolve:
 	./Resources/DevKit/scripts/resolve-packages.sh

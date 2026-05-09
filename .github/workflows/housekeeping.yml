@@ -117,19 +117,13 @@ jobs:
             echo "[+] licenses updated"
           fi
 
+      - name: Install Metal Toolchain
+        if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
+        run: make install-metal-toolchain
+
       - name: Resolve Packages
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
-        run: |
-          set -o pipefail
-          xcodebuild -downloadComponent MetalToolchain
-          xcodebuild \
-            -workspace FlowDown.xcworkspace \
-            -scheme FlowDown \
-            -resolvePackageDependencies \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            | xcbeautify --is-ci --disable-colored-output --disable-logging
+        run: make package-resolve
 
       - name: Disable CloudKit for CI Testing
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
@@ -140,40 +134,16 @@ jobs:
       - name: Build (iOS)
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
         run: |
-          set -o pipefail
-          xcodebuild -downloadComponent MetalToolchain
           DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
-          xcodebuild \
-            -workspace FlowDown.xcworkspace \
-            -scheme FlowDown \
-            -configuration Debug \
-            -destination "$DESTINATION" \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            | xcbeautify --is-ci --disable-colored-output --disable-logging
+          make build-ios IOS_DESTINATION="$DESTINATION"
 
       - name: Run Unit Tests
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
-        run: |
-          set -o pipefail
-          xcodebuild -downloadComponent MetalToolchain
-          DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
-          xcodebuild \
-            -workspace FlowDown.xcworkspace \
-            -scheme FlowDownUnitTests \
-            -configuration Debug \
-            -destination "$DESTINATION" \
-            test \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            | xcbeautify --is-ci --disable-colored-output --disable-logging
+        run: make test-unit
 
-      - name: Revert CI-only Config Changes
+      - name: Remove CI-only Config
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
-        run: git checkout -- FlowDown/Configuration/DevelopmentDeveloper.xcconfig
+        run: rm -f FlowDown/Configuration/DevelopmentDeveloper.xcconfig
 
       - name: Create Pull Request
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
