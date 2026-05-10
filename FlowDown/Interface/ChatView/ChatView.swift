@@ -253,6 +253,7 @@ class ChatView: UIView {
 
         let isExecuting = sessionManager.isSessionExecuting(conversation)
         editor.setProcessingMode(isExecuting)
+        updateCurrentMessageListInsets()
 
         offloadModelsToSession(modelIdentifier: modelIdentifier())
         removeUnusedListViews()
@@ -263,11 +264,23 @@ class ChatView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        updateCurrentMessageListInsets()
+    }
 
-        currentMessageListView?.contentSafeAreaInsets = .init(
+    private func updateCurrentMessageListInsets() {
+        guard let currentMessageListView else { return }
+        let visibleEditorTop = min(editor.frame.minY, editorBackgroundView.frame.minY)
+
+        currentMessageListView.contentSafeAreaInsets = .init(
             top: title.frame.maxY + 16,
             left: 0,
-            bottom: bounds.height - editor.frame.minY + 16,
+            bottom: bounds.height - visibleEditorTop + 16,
+            right: 0,
+        )
+        currentMessageListView.scrollIndicatorInsets = .init(
+            top: title.frame.maxY,
+            left: 0,
+            bottom: bounds.height - visibleEditorTop,
             right: 0,
         )
     }

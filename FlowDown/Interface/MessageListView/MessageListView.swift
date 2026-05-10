@@ -65,6 +65,12 @@ final class MessageListView: UIView {
         }
     }
 
+    var scrollIndicatorInsets: UIEdgeInsets = .zero {
+        didSet {
+            setNeedsLayout()
+        }
+    }
+
     static let listRowInsets: UIEdgeInsets = .init(top: 0, left: 20, bottom: 16, right: 20)
     var theme: MarkdownTheme = .default {
         didSet {
@@ -84,7 +90,7 @@ final class MessageListView: UIView {
         listView.alwaysBounceVertical = true
         listView.alwaysBounceHorizontal = false
         listView.contentInsetAdjustmentBehavior = .never
-        listView.showsVerticalScrollIndicator = false
+        listView.automaticallyAdjustsScrollIndicatorInsets = false
         listView.showsHorizontalScrollIndicator = false
         addSubview(listView)
         listView.snp.makeConstraints { make in
@@ -117,6 +123,7 @@ final class MessageListView: UIView {
         super.layoutSubviews()
 
         listView.contentInset = contentSafeAreaInsets
+        listView.scrollIndicatorInsets = scrollIndicatorInsets
 
         if isAutoScrollingToBottom || wasNearBottom {
             let targetOffset = listView.maximumContentOffset
