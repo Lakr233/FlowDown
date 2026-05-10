@@ -25,9 +25,11 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         .function(
             name: "query_reminders",
             description: """
-            Query reminders from the user's system Reminders. Filter by completion status and optionally by due-date range and Reminders list name. Reminders without a due date are included regardless of date range.
-            Date range cannot exceed 365 days. All dates are ISO 8601 UTC.
-            Pass empty strings for any optional filter you don't want applied.
+            Query reminders from the user's system Reminders. Filter by completion status, by Reminders list name, and optionally by independent date ranges on the reminder's due date, alarm/alert time, and completion date.
+            Each range is applied independently with AND semantics: a reminder is returned only when every *active* range matches (a range is active when at least one of its bounds is non-empty). Reminders missing the field that an active range targets are excluded by that range (e.g. an incomplete reminder is excluded by any active completed_* range; a reminder with no alarms is excluded by any active alert_* range).
+            The alert range matches when *any* alarm on the reminder has an absolute date inside the range. The completed range is only meaningful for completed reminders.
+            Each individual range cannot exceed 365 days, and start must be on or before end. All dates are ISO 8601 UTC.
+            Pass empty strings for any range you don't want to apply.
             """,
             parameters: [
                 "type": "object",
@@ -37,20 +39,41 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
                         "enum": ["incomplete", "completed", "all"],
                         "description": "Which reminders to return.",
                     ],
-                    "start_date": [
-                        "type": "string",
-                        "description": "Lower bound of due-date filter in ISO 8601 UTC. Pass empty string to skip the lower bound.",
-                    ],
-                    "end_date": [
-                        "type": "string",
-                        "description": "Upper bound of due-date filter in ISO 8601 UTC. Pass empty string to skip the upper bound.",
-                    ],
                     "list_name": [
                         "type": "string",
                         "description": "Restrict to a single Reminders list by name. Pass empty string to query all lists.",
                     ],
+                    "due_start_date": [
+                        "type": "string",
+                        "description": "Lower bound for the reminder's due date, ISO 8601 UTC. Pass empty string to skip.",
+                    ],
+                    "due_end_date": [
+                        "type": "string",
+                        "description": "Upper bound for the reminder's due date, ISO 8601 UTC. Pass empty string to skip.",
+                    ],
+                    "alert_start_date": [
+                        "type": "string",
+                        "description": "Lower bound for any alarm/alert time on the reminder, ISO 8601 UTC. Pass empty string to skip.",
+                    ],
+                    "alert_end_date": [
+                        "type": "string",
+                        "description": "Upper bound for any alarm/alert time on the reminder, ISO 8601 UTC. Pass empty string to skip.",
+                    ],
+                    "completed_start_date": [
+                        "type": "string",
+                        "description": "Lower bound for the reminder's completion date, ISO 8601 UTC. Pass empty string to skip.",
+                    ],
+                    "completed_end_date": [
+                        "type": "string",
+                        "description": "Upper bound for the reminder's completion date, ISO 8601 UTC. Pass empty string to skip.",
+                    ],
                 ],
-                "required": ["status", "start_date", "end_date", "list_name"],
+                "required": [
+                    "status", "list_name",
+                    "due_start_date", "due_end_date",
+                    "alert_start_date", "alert_end_date",
+                    "completed_start_date", "completed_end_date",
+                ],
                 "additionalProperties": false,
             ],
             strict: true,
@@ -80,32 +103,23 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         }
 
         let status = (json["status"] as? String) ?? "incomplete"
-        let startDateString = (json["start_date"] as? String) ?? ""
-        let endDateString = (json["end_date"] as? String) ?? ""
         let listName = (json["list_name"] as? String) ?? ""
 
-        let startDate = startDateString.isEmpty ? nil : ReminderToolsShared.parseISODate(startDateString)
-        let endDate = endDateString.isEmpty ? nil : ReminderToolsShared.parseISODate(endDateString)
-
-        if !startDateString.isEmpty, startDate == nil {
-            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
-            ])
-        }
-        if !endDateString.isEmpty, endDate == nil {
-            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
-            ])
-        }
-
-        if let startDate, let endDate {
-            let days = Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
-            if days > 365 {
-                throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Date range cannot exceed 365 days"),
-                ])
-            }
-        }
+        let dueRange = try Self.parseRange(
+            prefix: "due",
+            startString: (json["due_start_date"] as? String) ?? "",
+            endString: (json["due_end_date"] as? String) ?? "",
+        )
+        let alertRange = try Self.parseRange(
+            prefix: "alert",
+            startString: (json["alert_start_date"] as? String) ?? "",
+            endString: (json["alert_end_date"] as? String) ?? "",
+        )
+        let completedRange = try Self.parseRange(
+            prefix: "completed",
+            startString: (json["completed_start_date"] as? String) ?? "",
+            endString: (json["completed_end_date"] as? String) ?? "",
+        )
 
         guard let viewController = await view.parentViewController else {
             throw NSError(domain: "MTQueryReminderTool", code: 500, userInfo: [
@@ -115,19 +129,70 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
 
         return try await queryWithUserInteraction(
             status: status,
-            startDate: startDate,
-            endDate: endDate,
             listName: listName,
+            due: dueRange,
+            alert: alertRange,
+            completed: completedRange,
             controller: viewController,
         )
+    }
+
+    private struct DateRange {
+        let start: Date?
+        let end: Date?
+
+        var isActive: Bool { start != nil || end != nil }
+
+        func contains(_ date: Date) -> Bool {
+            if let start, date < start { return false }
+            if let end, date > end { return false }
+            return true
+        }
+    }
+
+    private static func parseRange(
+        prefix: String,
+        startString: String,
+        endString: String,
+    ) throws -> DateRange {
+        let start = startString.isEmpty ? nil : ReminderToolsShared.parseISODate(startString)
+        let end = endString.isEmpty ? nil : ReminderToolsShared.parseISODate(endString)
+
+        if !startString.isEmpty, start == nil {
+            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
+                NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
+            ])
+        }
+        if !endString.isEmpty, end == nil {
+            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
+                NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
+            ])
+        }
+
+        if let start, let end {
+            if end < start {
+                throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
+                    NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "start_date must be on or before end_date."),
+                ])
+            }
+            let days = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
+            if days > 365 {
+                throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
+                    NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Date range cannot exceed 365 days"),
+                ])
+            }
+        }
+
+        return DateRange(start: start, end: end)
     }
 
     @MainActor
     private func queryWithUserInteraction(
         status: String,
-        startDate: Date?,
-        endDate: Date?,
         listName: String,
+        due: DateRange,
+        alert: DateRange,
+        completed: DateRange,
         controller: UIViewController,
     ) async throws -> String {
         try await withCheckedThrowingContinuation { cont in
@@ -144,9 +209,10 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
 
                     self.fetchReminders(
                         status: status,
-                        startDate: startDate,
-                        endDate: endDate,
                         listName: listName,
+                        due: due,
+                        alert: alert,
+                        completed: completed,
                     ) { result in
                         // EventKit's fetchReminders callback fires on a background
                         // queue; hop back to the main actor before touching UI.
@@ -165,9 +231,10 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
 
     private func fetchReminders(
         status: String,
-        startDate: Date?,
-        endDate: Date?,
         listName: String,
+        due: DateRange,
+        alert: DateRange,
+        completed: DateRange,
         completion: @escaping (String) -> Void,
     ) {
         let eventStore = EKEventStore()
@@ -187,38 +254,66 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
             calendars = nil
         }
 
+        // EventKit's status-specific predicates can take a date range, but they
+        // bind it to a specific field (due date for incomplete, completion date
+        // for completed). The tool exposes three independent ranges that are
+        // ANDed together, so we always fetch the full status set and apply the
+        // ranges in Swift below.
         let predicate: NSPredicate
         switch status {
         case "completed":
             predicate = eventStore.predicateForCompletedReminders(
-                withCompletionDateStarting: startDate,
-                ending: endDate,
+                withCompletionDateStarting: nil,
+                ending: nil,
                 calendars: calendars,
             )
         case "all":
             predicate = eventStore.predicateForReminders(in: calendars)
         default:
             predicate = eventStore.predicateForIncompleteReminders(
-                withDueDateStarting: startDate,
-                ending: endDate,
+                withDueDateStarting: nil,
+                ending: nil,
                 calendars: calendars,
             )
         }
 
         eventStore.fetchReminders(matching: predicate) { reminders in
             let list = reminders ?? []
-            let filtered: [EKReminder]
-            if status == "all", let startDate, let endDate {
-                filtered = list.filter { reminder in
-                    guard let components = reminder.dueDateComponents,
-                          let date = Calendar.current.date(from: components)
-                    else { return true }
-                    return date >= startDate && date <= endDate
-                }
-            } else {
-                filtered = list
-            }
+            let filtered = Self.applyDateFilters(
+                list,
+                due: due,
+                alert: alert,
+                completed: completed,
+            )
             completion(ReminderToolsShared.formatReminders(filtered))
+        }
+    }
+
+    private static func applyDateFilters(
+        _ reminders: [EKReminder],
+        due: DateRange,
+        alert: DateRange,
+        completed: DateRange,
+    ) -> [EKReminder] {
+        if !due.isActive, !alert.isActive, !completed.isActive {
+            return reminders
+        }
+
+        return reminders.filter { reminder in
+            if due.isActive {
+                guard let components = reminder.dueDateComponents,
+                      let date = Calendar.current.date(from: components),
+                      due.contains(date)
+                else { return false }
+            }
+            if alert.isActive {
+                let alarmDates = (reminder.alarms ?? []).compactMap(\.absoluteDate)
+                guard alarmDates.contains(where: alert.contains) else { return false }
+            }
+            if completed.isActive {
+                guard let date = reminder.completionDate, completed.contains(date) else { return false }
+            }
+            return true
         }
     }
 
