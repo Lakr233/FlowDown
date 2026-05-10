@@ -44982,6 +44982,52 @@
         }
       }
     },
+    "start_date must be on or before end_date." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "start_date muss vor oder gleich end_date liegen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "start_date must be on or before end_date."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "start_date debe ser igual o anterior a end_date."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "start_date doit être antérieur ou égal à end_date."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "start_date は end_date 以前である必要があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "start_date는 end_date보다 같거나 빠른 날짜여야 합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "start_date 必须早于或等于 end_date。"
+          }
+        }
+      }
+    },
     "Start: %@" : {
       "localizations" : {
         "de" : {
