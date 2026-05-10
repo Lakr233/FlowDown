@@ -708,6 +708,7 @@
     },
     "NSRemindersFullAccessUsageDescription" : {
       "comment" : "Privacy - Reminders Full Access Usage Description",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -755,6 +756,7 @@
     },
     "NSRemindersUsageDescription" : {
       "comment" : "Privacy - Reminders Usage Description",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

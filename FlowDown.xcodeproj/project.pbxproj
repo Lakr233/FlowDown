@@ -28,6 +28,7 @@
 		506837FA2EED63FB00EBF35F /* Storage in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 50C9035A2D428DAD00E6E3A8 /* Storage */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5078496A2D285B5900B1F430 /* MarkdownView in Frameworks */ = {isa = PBXBuildFile; productRef = 507849692D285B5900B1F430 /* MarkdownView */; };
 		5081A0142D6DBBBA0079ECBE /* RunestoneEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 5081A0132D6DBBBA0079ECBE /* RunestoneEditor */; };
+		509038622FB0EB8500110DDB /* iCalendarParser in Frameworks */ = {isa = PBXBuildFile; productRef = 509038612FB0EB8500110DDB /* iCalendarParser */; };
 		5097D63E2EF3E35C00850D3E /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 5097D63D2EF3E35C00850D3E /* Storage */; };
 		5097D63F2EF3E35C00850D3E /* Storage in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 5097D63D2EF3E35C00850D3E /* Storage */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5097D6422EF3E36000850D3E /* ChatClientKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5097D6412EF3E36000850D3E /* ChatClientKit */; };
@@ -227,6 +228,7 @@
 				86B4FDC22E1190C000C6DC8F /* MCP in Frameworks */,
 				50014D7F2D8A9B3C00C10932 /* GlyphixTextFx in Frameworks */,
 				50B492942D4F609E00F4D2B3 /* ZIPFoundation in Frameworks */,
+				509038622FB0EB8500110DDB /* iCalendarParser in Frameworks */,
 				50CB4E752DE30A57009C58E1 /* Digger in Frameworks */,
 				505BC6F92D42A73600894BB0 /* AlertController in Frameworks */,
 				500373C52D62757700585574 /* ScrubberKit in Frameworks */,
@@ -374,6 +376,7 @@
 				506373A52EC0DC7900C8A9FB /* ColorfulX */,
 				50AE757D2EF436FC00D2C845 /* Collections */,
 				50AE757F2EF436FC00D2C845 /* OrderedCollections */,
+				509038612FB0EB8500110DDB /* iCalendarParser */,
 			);
 			productName = FlowDown;
 			productReference = 503498BD2D23053D004672BD /* FlowDown.app */;
@@ -492,6 +495,7 @@
 				5063739F2EC0D6E200C8A9FB /* XCRemoteSwiftPackageReference "AlignedCollectionViewFlowLayout" */,
 				506373A42EC0DC7900C8A9FB /* XCRemoteSwiftPackageReference "ColorfulX" */,
 				50AE757C2EF436FC00D2C845 /* XCRemoteSwiftPackageReference "swift-collections" */,
+				509038602FB0EB8500110DDB /* XCRemoteSwiftPackageReference "iCalendarParser" */,
 			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
@@ -1186,6 +1190,14 @@
 				minimumVersion = 6.1.0;
 			};
 		};
+		509038602FB0EB8500110DDB /* XCRemoteSwiftPackageReference "iCalendarParser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/dmail-me/iCalendarParser";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.0;
+			};
+		};
 		50A350B92DE4B5C3008F094E /* XCRemoteSwiftPackageReference "MarkdownView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lakr233/MarkdownView";
@@ -1344,6 +1356,11 @@
 		5081A0132D6DBBBA0079ECBE /* RunestoneEditor */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RunestoneEditor;
+		};
+		509038612FB0EB8500110DDB /* iCalendarParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 509038602FB0EB8500110DDB /* XCRemoteSwiftPackageReference "iCalendarParser" */;
+			productName = iCalendarParser;
 		};
 		5097D63D2EF3E35C00850D3E /* Storage */ = {
 			isa = XCSwiftPackageProductDependency;

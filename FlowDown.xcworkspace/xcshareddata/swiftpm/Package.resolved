@@ -118,6 +118,15 @@
       }
     },
     {
+      "identity" : "icalendarparser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dmail-me/iCalendarParser",
+      "state" : {
+        "revision" : "f87378ca7b2d59533c9562324b17a8caf20f26a2",
+        "version" : "0.2.0"
+      }
+    },
+    {
       "identity" : "listviewkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/ListViewKit",

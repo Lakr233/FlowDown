@@ -6,450 +6,473 @@
 //
 
 import ChatClientKit
-@testable import FlowDown
 import Testing
 
+@testable import FlowDown
+
 struct ConversationSystemPromptBuilderTests {
-    struct MemoryExposureCase: CustomTestStringConvertible {
-        enum ToolSet {
-            case memory
-            case nonMemory
+  struct MemoryExposureCase: CustomTestStringConvertible {
+    enum ToolSet {
+      case memory
+      case nonMemory
+    }
+
+    let tools: ToolSet
+    let modelWillExecuteTools: Bool
+    let expectsProactiveMemory: Bool
+    let expectsProactiveProviderRequest: Bool
+
+    var testDescription: String {
+      let toolDescription =
+        switch tools {
+        case .memory: "memory tools"
+        case .nonMemory: "non-memory tools"
         }
+      return "\(toolDescription), tool execution: \(modelWillExecuteTools)"
+    }
+  }
 
-        let tools: ToolSet
-        let modelWillExecuteTools: Bool
-        let expectsProactiveMemory: Bool
-        let expectsProactiveProviderRequest: Bool
+  struct RecentConversationCase: CustomTestStringConvertible {
+    enum ToolSet {
+      case memory
+      case nonMemory
+    }
 
-        var testDescription: String {
-            let toolDescription = switch tools {
-            case .memory: "memory tools"
-            case .nonMemory: "non-memory tools"
-            }
-            return "\(toolDescription), tool execution: \(modelWillExecuteTools)"
+    let tools: ToolSet
+    let modelWillExecuteTools: Bool
+
+    var testDescription: String {
+      let toolDescription =
+        switch tools {
+        case .memory: "memory tools"
+        case .nonMemory: "non-memory tools"
         }
+      return "\(toolDescription), tool execution: \(modelWillExecuteTools)"
     }
+  }
 
-    struct RecentConversationCase: CustomTestStringConvertible {
-        enum ToolSet {
-            case memory
-            case nonMemory
-        }
+  @Test
+  func `cross conversation context is suppressed when proactive memory is off`() async {
+    let recorder = PromptContextProviderRecorder()
+    let messages = await buildMessages(
+      input: .init(
+        userText: "continue",
+        modelName: "test-model",
+        modelWillExecuteTools: true,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .off,
+        enabledTools: [MTRecallMemoryTool()],
+        recorder: recorder,
+        proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
+        recentConversationContext:
+          "Recent conversation context (for background awareness only):\n1. previous chat",
+      ),
+    )
 
-        let tools: ToolSet
-        let modelWillExecuteTools: Bool
+    let systemTexts = systemTexts(in: messages)
+    let recorderSnapshot = await recorder.snapshot()
 
-        var testDescription: String {
-            let toolDescription = switch tools {
-            case .memory: "memory tools"
-            case .nonMemory: "non-memory tools"
-            }
-            return "\(toolDescription), tool execution: \(modelWillExecuteTools)"
-        }
+    #expect(systemTexts.allSatisfy { !$0.contains("Proactive Memory Context") })
+    #expect(
+      systemTexts.allSatisfy {
+        !$0.contains("Recent conversation context (for background awareness only):")
+      })
+    #expect(recorderSnapshot.proactiveRequests == 0)
+    #expect(recorderSnapshot.recentRequests == 0)
+    #expect(messages.last?.userText == "continue")
+  }
+
+  @Test(arguments: [
+    RecentConversationCase(tools: .memory, modelWillExecuteTools: true),
+    RecentConversationCase(tools: .memory, modelWillExecuteTools: false),
+    RecentConversationCase(tools: .nonMemory, modelWillExecuteTools: true),
+    RecentConversationCase(tools: .nonMemory, modelWillExecuteTools: false),
+  ])
+  func `recent conversation context is injected whenever memory is enabled`(
+    _ testCase: RecentConversationCase
+  ) async {
+    let enabledTools: [ModelTool] =
+      switch testCase.tools {
+      case .memory:
+        [MTRecallMemoryTool()]
+      case .nonMemory:
+        [MTWebScraperTool()]
+      }
+    let recorder = PromptContextProviderRecorder()
+    let recentConversationContext =
+      "Recent conversation context (for background awareness only):\n1. previous chat"
+    let messages = await buildMessages(
+      input: .init(
+        userText: "continue",
+        modelName: "test-model",
+        modelWillExecuteTools: testCase.modelWillExecuteTools,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: enabledTools,
+        recorder: recorder,
+        recentConversationContext: recentConversationContext,
+      ),
+    )
+
+    let recorderSnapshot = await recorder.snapshot()
+
+    #expect(systemTexts(in: messages).contains(recentConversationContext))
+    #expect(recorderSnapshot.recentRequests == 1)
+  }
+
+  @Test(arguments: [
+    MemoryExposureCase(
+      tools: .memory,
+      modelWillExecuteTools: true,
+      expectsProactiveMemory: true,
+      expectsProactiveProviderRequest: true,
+    ),
+    MemoryExposureCase(
+      tools: .memory,
+      modelWillExecuteTools: false,
+      expectsProactiveMemory: false,
+      expectsProactiveProviderRequest: false,
+    ),
+    MemoryExposureCase(
+      tools: .nonMemory,
+      modelWillExecuteTools: true,
+      expectsProactiveMemory: false,
+      expectsProactiveProviderRequest: false,
+    ),
+    MemoryExposureCase(
+      tools: .nonMemory,
+      modelWillExecuteTools: false,
+      expectsProactiveMemory: false,
+      expectsProactiveProviderRequest: false,
+    ),
+  ])
+  func `proactive memory exposure requires both tool execution and a memory tool`(
+    _ testCase: MemoryExposureCase
+  ) async {
+    let enabledTools: [ModelTool] =
+      switch testCase.tools {
+      case .memory:
+        [MTRecallMemoryTool()]
+      case .nonMemory:
+        [MTWebScraperTool()]
+      }
+    let recorder = PromptContextProviderRecorder()
+
+    let messages = await buildMessages(
+      input: .init(
+        userText: "continue",
+        modelName: "test-model",
+        modelWillExecuteTools: testCase.modelWillExecuteTools,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: enabledTools,
+        recorder: recorder,
+        proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
+      ),
+    )
+
+    let hasProactiveMemory = systemTexts(in: messages).contains {
+      $0.contains("Proactive Memory Context")
     }
+    let recorderSnapshot = await recorder.snapshot()
 
-    @Test
-    func `cross conversation context is suppressed when proactive memory is off`() async {
-        let recorder = PromptContextProviderRecorder()
-        let messages = await buildMessages(
-            input: .init(
-                userText: "continue",
-                modelName: "test-model",
-                modelWillExecuteTools: true,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .off,
-                enabledTools: [MTRecallMemoryTool()],
-                recorder: recorder,
-                proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
-                recentConversationContext: "Recent conversation context (for background awareness only):\n1. previous chat",
-            ),
-        )
+    #expect(hasProactiveMemory == testCase.expectsProactiveMemory)
+    #expect(
+      recorderSnapshot.proactiveRequests == (testCase.expectsProactiveProviderRequest ? 1 : 0))
+  }
 
-        let systemTexts = systemTexts(in: messages)
-        let recorderSnapshot = await recorder.snapshot()
+  @Test
+  func `memory tool guidance remains available when proactive memory is off`() async throws {
+    let messages = await buildMessages(
+      input: .init(
+        userText: "continue",
+        modelName: "test-model",
+        modelWillExecuteTools: true,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .off,
+        enabledTools: [MTRecallMemoryTool()],
+        proactiveMemoryContext: "Proactive Memory Context\n1. hidden",
+        recentConversationContext:
+          "Recent conversation context (for background awareness only):\n1. hidden",
+      ),
+    )
 
-        #expect(systemTexts.allSatisfy { !$0.contains("Proactive Memory Context") })
-        #expect(systemTexts.allSatisfy { !$0.contains("Recent conversation context (for background awareness only):") })
-        #expect(recorderSnapshot.proactiveRequests == 0)
-        #expect(recorderSnapshot.recentRequests == 0)
-        #expect(messages.last?.userText == "continue")
-    }
+    let guidance = try #require(lastSystemText(in: messages))
 
-    @Test(arguments: [
-        RecentConversationCase(tools: .memory, modelWillExecuteTools: true),
-        RecentConversationCase(tools: .memory, modelWillExecuteTools: false),
-        RecentConversationCase(tools: .nonMemory, modelWillExecuteTools: true),
-        RecentConversationCase(tools: .nonMemory, modelWillExecuteTools: false),
-    ])
-    func `recent conversation context is injected whenever memory is enabled`(_ testCase: RecentConversationCase) async {
-        let enabledTools: [ModelTool] = switch testCase.tools {
-        case .memory:
-            [MTRecallMemoryTool()]
-        case .nonMemory:
-            [MTURLTool()]
-        }
-        let recorder = PromptContextProviderRecorder()
-        let recentConversationContext = "Recent conversation context (for background awareness only):\n1. previous chat"
-        let messages = await buildMessages(
-            input: .init(
-                userText: "continue",
-                modelName: "test-model",
-                modelWillExecuteTools: testCase.modelWillExecuteTools,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: enabledTools,
-                recorder: recorder,
-                recentConversationContext: recentConversationContext,
-            ),
-        )
+    #expect(guidance.contains("store_memory"))
+    #expect(!guidance.contains("A proactive memory summary has been provided above"))
+    #expect(systemTexts(in: messages).allSatisfy { !$0.contains("Proactive Memory Context") })
+    #expect(
+      systemTexts(in: messages).allSatisfy {
+        !$0.contains("Recent conversation context (for background awareness only):")
+      })
+  }
 
-        let recorderSnapshot = await recorder.snapshot()
+  @Test
+  func `memory tool guidance is omitted when memory tools are unavailable`() async throws {
+    let messages = await buildMessages(
+      input: .init(
+        userText: "continue",
+        modelName: "test-model",
+        modelWillExecuteTools: true,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [MTURLTool()],
+      ),
+    )
 
-        #expect(systemTexts(in: messages).contains(recentConversationContext))
-        #expect(recorderSnapshot.recentRequests == 1)
-    }
+    let guidance = try #require(lastSystemText(in: messages))
 
-    @Test(arguments: [
-        MemoryExposureCase(
-            tools: .memory,
-            modelWillExecuteTools: true,
-            expectsProactiveMemory: true,
-            expectsProactiveProviderRequest: true,
-        ),
-        MemoryExposureCase(
-            tools: .memory,
-            modelWillExecuteTools: false,
-            expectsProactiveMemory: false,
-            expectsProactiveProviderRequest: false,
-        ),
-        MemoryExposureCase(
-            tools: .nonMemory,
-            modelWillExecuteTools: true,
-            expectsProactiveMemory: false,
-            expectsProactiveProviderRequest: false,
-        ),
-        MemoryExposureCase(
-            tools: .nonMemory,
-            modelWillExecuteTools: false,
-            expectsProactiveMemory: false,
-            expectsProactiveProviderRequest: false,
-        ),
-    ])
-    func `proactive memory exposure requires both tool execution and a memory tool`(_ testCase: MemoryExposureCase) async {
-        let enabledTools: [ModelTool] = switch testCase.tools {
-        case .memory:
-            [MTRecallMemoryTool()]
-        case .nonMemory:
-            [MTURLTool()]
-        }
-        let recorder = PromptContextProviderRecorder()
+    #expect(!guidance.isEmpty)
+    #expect(!guidance.contains("store_memory"))
+  }
 
-        let messages = await buildMessages(
-            input: .init(
-                userText: "continue",
-                modelName: "test-model",
-                modelWillExecuteTools: testCase.modelWillExecuteTools,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: enabledTools,
-                recorder: recorder,
-                proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
-            ),
-        )
+  @Test
+  func `tool guidance is omitted when tool execution is disabled`() async {
+    let messages = await buildMessages(
+      input: .init(
+        userText: "continue",
+        modelName: "test-model",
+        modelWillExecuteTools: false,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [MTRecallMemoryTool()],
+      ),
+    )
 
-        let hasProactiveMemory = systemTexts(in: messages).contains {
-            $0.contains("Proactive Memory Context")
-        }
-        let recorderSnapshot = await recorder.snapshot()
+    let toolsDisabledSystemCount = systemTexts(in: messages).count
+    let toolsEnabledMessages = await buildMessages(
+      input: .init(
+        userText: "continue",
+        modelName: "test-model",
+        modelWillExecuteTools: true,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [MTRecallMemoryTool()],
+      ),
+    )
+    let toolsEnabledSystemCount = systemTexts(in: toolsEnabledMessages).count
+    #expect(toolsDisabledSystemCount < toolsEnabledSystemCount)
+  }
 
-        #expect(hasProactiveMemory == testCase.expectsProactiveMemory)
-        #expect(recorderSnapshot.proactiveRequests == (testCase.expectsProactiveProviderRequest ? 1 : 0))
-    }
+  @Test
+  func `browsing guidance is appended only when browsing is enabled`() async {
+    let browsingMessages = await buildMessages(
+      input: .init(
+        userText: "search this",
+        modelName: "test-model",
+        modelWillExecuteTools: false,
+        browsingEnabled: true,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [],
+        searchSensitivity: .proactive,
+      ),
+    )
+    let defaultMessages = await buildMessages(
+      input: .init(
+        userText: "search this",
+        modelName: "test-model",
+        modelWillExecuteTools: false,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [],
+        searchSensitivity: .proactive,
+      ),
+    )
 
-    @Test
-    func `memory tool guidance remains available when proactive memory is off`() async throws {
-        let messages = await buildMessages(
-            input: .init(
-                userText: "continue",
-                modelName: "test-model",
-                modelWillExecuteTools: true,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .off,
-                enabledTools: [MTRecallMemoryTool()],
-                proactiveMemoryContext: "Proactive Memory Context\n1. hidden",
-                recentConversationContext: "Recent conversation context (for background awareness only):\n1. hidden",
-            ),
-        )
+    #expect(
+      systemTexts(in: browsingMessages).contains {
+        $0.contains("Web Search Mode:")
+      })
+    #expect(
+      systemTexts(in: defaultMessages).allSatisfy {
+        !$0.contains("Web Search Mode:")
+      })
+  }
 
-        let guidance = try #require(lastSystemText(in: messages))
+  @Test
+  func `runtime system info is appended only when enabled`() async {
+    let enabledMessages = await buildMessages(
+      input: .init(
+        userText: "hello",
+        modelName: "test-model",
+        modelWillExecuteTools: false,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [],
+        runtimeSystemInfoProvider: { modelName in
+          "runtime info for \(modelName)"
+        },
+      ),
+    )
+    let disabledMessages = await buildMessages(
+      input: .init(
+        userText: "hello",
+        modelName: "test-model",
+        modelWillExecuteTools: false,
+        browsingEnabled: false,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [],
+        runtimeSystemInfoProvider: nil,
+      ),
+    )
 
-        #expect(guidance.contains("store_memory"))
-        #expect(!guidance.contains("A proactive memory summary has been provided above"))
-        #expect(systemTexts(in: messages).allSatisfy { !$0.contains("Proactive Memory Context") })
-        #expect(systemTexts(in: messages).allSatisfy { !$0.contains("Recent conversation context (for background awareness only):") })
-    }
+    #expect(systemTexts(in: enabledMessages).contains("runtime info for test-model"))
+    #expect(
+      systemTexts(in: disabledMessages).allSatisfy {
+        !$0.contains("runtime info for")
+      })
+  }
 
-    @Test
-    func `memory tool guidance is omitted when memory tools are unavailable`() async throws {
-        let messages = await buildMessages(
-            input: .init(
-                userText: "continue",
-                modelName: "test-model",
-                modelWillExecuteTools: true,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [MTURLTool()],
-            ),
-        )
+  @Test
+  func `user text remains the final message after all system context`() async {
+    let messages = await buildMessages(
+      input: .init(
+        userText: "final user message",
+        modelName: "test-model",
+        modelWillExecuteTools: true,
+        browsingEnabled: true,
+      ),
+      dependencies: makeDependencies(
+        proactiveMemoryScope: .recent30,
+        enabledTools: [MTRecallMemoryTool()],
+        runtimeSystemInfoProvider: { modelName in
+          "runtime info for \(modelName)"
+        },
+        proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
+        recentConversationContext:
+          "Recent conversation context (for background awareness only):\n1. previous chat",
+      ),
+    )
 
-        let guidance = try #require(lastSystemText(in: messages))
+    let systemTexts = systemTexts(in: messages)
 
-        #expect(!guidance.isEmpty)
-        #expect(!guidance.contains("store_memory"))
-    }
+    #expect(systemTexts.count == 5)
+    #expect(systemTexts[0] == "runtime info for test-model")
+    #expect(systemTexts[1].contains("Proactive Memory Context"))
+    #expect(systemTexts[2].contains("Recent conversation context (for background awareness only):"))
+    #expect(systemTexts[3].contains("Web Search Mode:"))
+    #expect(!systemTexts[4].isEmpty)
+    #expect(messages.dropLast().allSatisfy { $0.systemText != nil })
+    #expect(messages.last?.userText == "final user message")
+  }
 
-    @Test
-    func `tool guidance is omitted when tool execution is disabled`() async {
-        let messages = await buildMessages(
-            input: .init(
-                userText: "continue",
-                modelName: "test-model",
-                modelWillExecuteTools: false,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [MTRecallMemoryTool()],
-            ),
-        )
+  private func buildMessages(
+    input: ConversationSystemPromptBuilder.Input,
+    dependencies: ConversationSystemPromptBuilder.Dependencies,
+  ) async -> [ChatRequestBody.Message] {
+    var messages: [ChatRequestBody.Message] = []
+    await ConversationSystemPromptBuilder.appendMessages(
+      to: &messages,
+      input: input,
+      dependencies: dependencies,
+    )
+    return messages
+  }
 
-        let toolsDisabledSystemCount = systemTexts(in: messages).count
-        let toolsEnabledMessages = await buildMessages(
-            input: .init(
-                userText: "continue",
-                modelName: "test-model",
-                modelWillExecuteTools: true,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [MTRecallMemoryTool()],
-            ),
-        )
-        let toolsEnabledSystemCount = systemTexts(in: toolsEnabledMessages).count
-        #expect(toolsDisabledSystemCount < toolsEnabledSystemCount)
-    }
+  private func makeDependencies(
+    proactiveMemoryScope: MemoryProactiveProvisionScope,
+    enabledTools: [ModelTool],
+    searchSensitivity: ModelManager.SearchSensitivity = .balanced,
+    runtimeSystemInfoProvider: ((String) -> String)? = nil,
+    recorder: PromptContextProviderRecorder? = nil,
+    proactiveMemoryContext: String? = nil,
+    recentConversationContext: String? = nil,
+  ) -> ConversationSystemPromptBuilder.Dependencies {
+    .init(
+      enabledTools: enabledTools,
+      proactiveMemoryScope: proactiveMemoryScope,
+      searchSensitivity: searchSensitivity,
+      runtimeSystemInfoProvider: runtimeSystemInfoProvider,
+      proactiveMemoryContextProvider: {
+        await recorder?.recordProactiveRequest()
+        return proactiveMemoryContext
+      },
+      recentConversationContextProvider: { _ in
+        await recorder?.recordRecentRequest()
+        return recentConversationContext
+      },
+    )
+  }
 
-    @Test
-    func `browsing guidance is appended only when browsing is enabled`() async {
-        let browsingMessages = await buildMessages(
-            input: .init(
-                userText: "search this",
-                modelName: "test-model",
-                modelWillExecuteTools: false,
-                browsingEnabled: true,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [],
-                searchSensitivity: .proactive,
-            ),
-        )
-        let defaultMessages = await buildMessages(
-            input: .init(
-                userText: "search this",
-                modelName: "test-model",
-                modelWillExecuteTools: false,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [],
-                searchSensitivity: .proactive,
-            ),
-        )
+  private func systemTexts(in messages: [ChatRequestBody.Message]) -> [String] {
+    messages.compactMap(\.systemText)
+  }
 
-        #expect(systemTexts(in: browsingMessages).contains {
-            $0.contains("Web Search Mode:")
-        })
-        #expect(systemTexts(in: defaultMessages).allSatisfy {
-            !$0.contains("Web Search Mode:")
-        })
-    }
-
-    @Test
-    func `runtime system info is appended only when enabled`() async {
-        let enabledMessages = await buildMessages(
-            input: .init(
-                userText: "hello",
-                modelName: "test-model",
-                modelWillExecuteTools: false,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [],
-                runtimeSystemInfoProvider: { modelName in
-                    "runtime info for \(modelName)"
-                },
-            ),
-        )
-        let disabledMessages = await buildMessages(
-            input: .init(
-                userText: "hello",
-                modelName: "test-model",
-                modelWillExecuteTools: false,
-                browsingEnabled: false,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [],
-                runtimeSystemInfoProvider: nil,
-            ),
-        )
-
-        #expect(systemTexts(in: enabledMessages).contains("runtime info for test-model"))
-        #expect(systemTexts(in: disabledMessages).allSatisfy {
-            !$0.contains("runtime info for")
-        })
-    }
-
-    @Test
-    func `user text remains the final message after all system context`() async {
-        let messages = await buildMessages(
-            input: .init(
-                userText: "final user message",
-                modelName: "test-model",
-                modelWillExecuteTools: true,
-                browsingEnabled: true,
-            ),
-            dependencies: makeDependencies(
-                proactiveMemoryScope: .recent30,
-                enabledTools: [MTRecallMemoryTool()],
-                runtimeSystemInfoProvider: { modelName in
-                    "runtime info for \(modelName)"
-                },
-                proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
-                recentConversationContext: "Recent conversation context (for background awareness only):\n1. previous chat",
-            ),
-        )
-
-        let systemTexts = systemTexts(in: messages)
-
-        #expect(systemTexts.count == 5)
-        #expect(systemTexts[0] == "runtime info for test-model")
-        #expect(systemTexts[1].contains("Proactive Memory Context"))
-        #expect(systemTexts[2].contains("Recent conversation context (for background awareness only):"))
-        #expect(systemTexts[3].contains("Web Search Mode:"))
-        #expect(!systemTexts[4].isEmpty)
-        #expect(messages.dropLast().allSatisfy { $0.systemText != nil })
-        #expect(messages.last?.userText == "final user message")
-    }
-
-    private func buildMessages(
-        input: ConversationSystemPromptBuilder.Input,
-        dependencies: ConversationSystemPromptBuilder.Dependencies,
-    ) async -> [ChatRequestBody.Message] {
-        var messages: [ChatRequestBody.Message] = []
-        await ConversationSystemPromptBuilder.appendMessages(
-            to: &messages,
-            input: input,
-            dependencies: dependencies,
-        )
-        return messages
-    }
-
-    private func makeDependencies(
-        proactiveMemoryScope: MemoryProactiveProvisionScope,
-        enabledTools: [ModelTool],
-        searchSensitivity: ModelManager.SearchSensitivity = .balanced,
-        runtimeSystemInfoProvider: ((String) -> String)? = nil,
-        recorder: PromptContextProviderRecorder? = nil,
-        proactiveMemoryContext: String? = nil,
-        recentConversationContext: String? = nil,
-    ) -> ConversationSystemPromptBuilder.Dependencies {
-        .init(
-            enabledTools: enabledTools,
-            proactiveMemoryScope: proactiveMemoryScope,
-            searchSensitivity: searchSensitivity,
-            runtimeSystemInfoProvider: runtimeSystemInfoProvider,
-            proactiveMemoryContextProvider: {
-                await recorder?.recordProactiveRequest()
-                return proactiveMemoryContext
-            },
-            recentConversationContextProvider: { _ in
-                await recorder?.recordRecentRequest()
-                return recentConversationContext
-            },
-        )
-    }
-
-    private func systemTexts(in messages: [ChatRequestBody.Message]) -> [String] {
-        messages.compactMap(\.systemText)
-    }
-
-    private func lastSystemText(in messages: [ChatRequestBody.Message]) -> String? {
-        systemTexts(in: messages).last
-    }
+  private func lastSystemText(in messages: [ChatRequestBody.Message]) -> String? {
+    systemTexts(in: messages).last
+  }
 }
 
 private actor PromptContextProviderRecorder {
-    struct Snapshot {
-        let proactiveRequests: Int
-        let recentRequests: Int
-    }
+  struct Snapshot {
+    let proactiveRequests: Int
+    let recentRequests: Int
+  }
 
-    private var proactiveRequests = 0
-    private var recentRequests = 0
+  private var proactiveRequests = 0
+  private var recentRequests = 0
 
-    func recordProactiveRequest() {
-        proactiveRequests += 1
-    }
+  func recordProactiveRequest() {
+    proactiveRequests += 1
+  }
 
-    func recordRecentRequest() {
-        recentRequests += 1
-    }
+  func recordRecentRequest() {
+    recentRequests += 1
+  }
 
-    func snapshot() -> Snapshot {
-        .init(
-            proactiveRequests: proactiveRequests,
-            recentRequests: recentRequests,
-        )
-    }
+  func snapshot() -> Snapshot {
+    .init(
+      proactiveRequests: proactiveRequests,
+      recentRequests: recentRequests,
+    )
+  }
 }
 
-private extension ChatRequestBody.Message {
-    var systemText: String? {
-        switch self {
-        case let .system(content, _):
-            if case let .text(text) = content {
-                return text
-            }
-            return nil
-        default:
-            return nil
-        }
+extension ChatRequestBody.Message {
+  fileprivate var systemText: String? {
+    switch self {
+    case .system(let content, _):
+      if case .text(let text) = content {
+        return text
+      }
+      return nil
+    default:
+      return nil
     }
+  }
 
-    var userText: String? {
-        switch self {
-        case let .user(content, _):
-            if case let .text(text) = content {
-                return text
-            }
-            return nil
-        default:
-            return nil
-        }
+  fileprivate var userText: String? {
+    switch self {
+    case .user(let content, _):
+      if case .text(let text) = content {
+        return text
+      }
+      return nil
+    default:
+      return nil
     }
+  }
 }
