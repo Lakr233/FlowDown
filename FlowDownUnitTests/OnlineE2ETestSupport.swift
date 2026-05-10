@@ -12,9 +12,9 @@ enum OnlineE2ETestSupport {
     // Endpoint and token are provided via environment variables (backed by
     // GitHub secrets in CI or a local ~/.testing file). The model identifier,
     // headers, body fields, and capabilities below track the exported
-    // kimi-k2p5-turbo .fdmodel but can still be overridden via env.
+    // kimi-k2p6-turbo .fdmodel but can still be overridden via env.
     private static let embeddedFixture = EmbeddedCloudModelFixture(
-        modelIdentifier: "kimi-k2p5-turbo",
+        modelIdentifier: "kimi-k2p6-turbo",
         headers: [
             "HTTP-Referer": "https://flowdown.ai/",
             "X-Title": "FlowDown",
