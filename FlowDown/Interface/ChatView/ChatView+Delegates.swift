@@ -282,7 +282,7 @@ extension ChatView: RichEditorView.Delegate {
     let builtin: [UIAction] = [
       [
         UIAction(
-          title: String(localized: "Calendar"),
+          title: String(localized: "Calendar Tools"),
           image: UIImage(systemName: "calendar"),
           attributes: [.keepsMenuPresented],
           state: calendarToolsHasOneEnabled ? .on : .off,
@@ -296,7 +296,7 @@ extension ChatView: RichEditorView.Delegate {
       ],
       [
         UIAction(
-          title: String(localized: "Reminders"),
+          title: String(localized: "Reminder Tools"),
           image: UIImage(systemName: "checklist"),
           attributes: [.keepsMenuPresented],
           state: reminderToolsHasOneEnabled ? .on : .off,
