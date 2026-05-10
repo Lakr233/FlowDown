@@ -128,11 +128,11 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
             ReminderToolsShared.requestAccess { [weak self] granted in
                 Task { @MainActor in
                     guard let self else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.internalError("Reminder tool was deallocated before completion."))
                         return
                     }
                     guard granted else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
                         return
                     }
                     self.showConfirmation(
@@ -200,12 +200,16 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
                         )
                     }
                     if priority != 0 { reminder.priority = priority }
-                    reminder.calendar = ReminderToolsShared.resolveCalendar(named: listName, eventStore: eventStore)
-
                     do {
+                        reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
+                            named: listName,
+                            eventStore: eventStore,
+                        )
                         try eventStore.save(reminder, commit: true)
                         let id = reminder.calendarItemIdentifier
                         continuation.resume(returning: String(localized: "Reminder added: \(title) [id: \(id)]"))
+                    } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
+                        continuation.resume(throwing: error)
                     } catch {
                         continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
                             NSLocalizedDescriptionKey: String(localized: "Failed to add reminder: \(error.localizedDescription)"),

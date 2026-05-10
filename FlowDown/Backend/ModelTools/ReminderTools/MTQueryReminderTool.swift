@@ -137,7 +137,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    private struct DateRange {
+    struct DateRange: Equatable {
         let start: Date?
         let end: Date?
 
@@ -150,7 +150,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         }
     }
 
-    private static func parseRange(
+    static func parseRange(
         prefix: String,
         startString: String,
         endString: String,
@@ -199,17 +199,34 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
             ReminderToolsShared.requestAccess { [weak self] granted in
                 Task { @MainActor in
                     guard let self else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.internalError("Reminder tool was deallocated before completion."))
                         return
                     }
                     guard granted else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
                         return
                     }
 
+                    let eventStore = EKEventStore()
+                    let calendars: [EKCalendar]?
+                    if listName.isEmpty {
+                        calendars = nil
+                    } else {
+                        do {
+                            calendars = [try ReminderToolsShared.resolveCalendarRequiringName(
+                                named: listName,
+                                eventStore: eventStore,
+                            )]
+                        } catch {
+                            cont.resume(throwing: error)
+                            return
+                        }
+                    }
+
                     self.fetchReminders(
+                        eventStore: eventStore,
+                        calendars: calendars,
                         status: status,
-                        listName: listName,
                         due: due,
                         alert: alert,
                         completed: completed,
@@ -230,30 +247,14 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
     }
 
     private func fetchReminders(
+        eventStore: EKEventStore,
+        calendars: [EKCalendar]?,
         status: String,
-        listName: String,
         due: DateRange,
         alert: DateRange,
         completed: DateRange,
         completion: @escaping (String) -> Void,
     ) {
-        let eventStore = EKEventStore()
-
-        let calendars: [EKCalendar]?
-        if !listName.isEmpty {
-            let trimmed = listName.trimmingCharacters(in: .whitespacesAndNewlines)
-            let match = eventStore.calendars(for: .reminder)
-                .first { $0.title.caseInsensitiveCompare(trimmed) == .orderedSame }
-            if let match {
-                calendars = [match]
-            } else {
-                completion(String(localized: "No Reminders list named \"\(listName)\" found."))
-                return
-            }
-        } else {
-            calendars = nil
-        }
-
         // EventKit's status-specific predicates can take a date range, but they
         // bind it to a specific field (due date for incomplete, completion date
         // for completed). The tool exposes three independent ranges that are
@@ -289,7 +290,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         }
     }
 
-    private static func applyDateFilters(
+    static func applyDateFilters(
         _ reminders: [EKReminder],
         due: DateRange,
         alert: DateRange,

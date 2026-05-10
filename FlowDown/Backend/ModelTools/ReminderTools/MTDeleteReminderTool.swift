@@ -85,11 +85,11 @@ class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
             ReminderToolsShared.requestAccess { [weak self] granted in
                 Task { @MainActor in
                     guard let self else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.internalError("Reminder tool was deallocated before completion."))
                         return
                     }
                     guard granted else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
                         return
                     }
 
