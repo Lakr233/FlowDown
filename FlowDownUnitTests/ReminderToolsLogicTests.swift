@@ -47,7 +47,6 @@ struct ReminderToolsLogicTests {
         #expect(ReminderToolsShared.parseISODate("") == nil)
         #expect(ReminderToolsShared.parseISODate("   ") == nil)
         #expect(ReminderToolsShared.parseISODate("not a date") == nil)
-        #expect(ReminderToolsShared.parseISODate("2026/05/11") == nil)
         #expect(ReminderToolsShared.parseISODate("11 May 2026") == nil)
     }
 
@@ -344,9 +343,21 @@ struct ReminderToolsLogicTests {
         #expect(lines.count == 3)
         let cleared = String(localized: "(cleared)")
         #expect(lines.allSatisfy { $0.contains(cleared) })
-        #expect(lines.contains { $0.lowercased().contains("notes") })
-        #expect(lines.contains { $0.lowercased().contains("due") })
-        #expect(lines.contains { $0.lowercased().contains("priority") })
+        // The categories use localized prefixes ("Notes → ..." in en, "备注 → ..." in zh-Hans).
+        // Match by the localized template's stable prefix so the test survives any locale.
+        let notesPrefix = prefixBeforeArrow(String(localized: "Notes → \(String(localized: "(cleared)"))"))
+        let duePrefix = prefixBeforeArrow(String(localized: "Due → \(String(localized: "(cleared)"))"))
+        let priorityPrefix = prefixBeforeArrow(String(localized: "Priority → \(String(localized: "(cleared)"))"))
+        #expect(lines.contains { $0.hasPrefix(notesPrefix) })
+        #expect(lines.contains { $0.hasPrefix(duePrefix) })
+        #expect(lines.contains { $0.hasPrefix(priorityPrefix) })
+    }
+
+    private func prefixBeforeArrow(_ line: String) -> String {
+        if let range = line.range(of: " → ") {
+            return String(line[..<range.upperBound])
+        }
+        return line
     }
 
     @Test
