@@ -25,7 +25,7 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
         .function(
             name: "update_reminder",
             description: """
-            Update an existing reminder. Use query_reminders first to obtain the reminder_id. Pass empty string (or -1 for priority) to leave a field unchanged. All dates are ISO 8601 UTC.
+            Update an existing reminder. Use query_reminders first to obtain the reminder_id. To leave a field unchanged, pass empty string (or -1 for priority) and false for the matching clear_* flag. To clear a field back to empty, set the matching clear_* flag to true and pass empty string (or -1 for priority) for the value. Sending both a non-empty value and clear_*=true on the same field is rejected. list_name has no clear flag because every reminder must live in some list. All dates are ISO 8601 UTC.
             """,
             parameters: [
                 "type": "object",
@@ -42,20 +42,39 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
                         "type": "string",
                         "description": "New notes. Pass empty string to leave unchanged.",
                     ],
+                    "clear_notes": [
+                        "type": "boolean",
+                        "description": "Set true to remove existing notes. Cannot be combined with a non-empty notes value.",
+                    ],
                     "due_date": [
                         "type": "string",
                         "description": "New due date in ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z'). Pass empty string to leave unchanged.",
+                    ],
+                    "clear_due_date": [
+                        "type": "boolean",
+                        "description": "Set true to remove the existing due date. Cannot be combined with a non-empty due_date.",
                     ],
                     "priority": [
                         "type": "integer",
                         "description": "New priority (0 = none, 1 = high, 5 = medium, 9 = low). Pass -1 to leave unchanged.",
                     ],
+                    "clear_priority": [
+                        "type": "boolean",
+                        "description": "Set true to clear priority back to none (0). Cannot be combined with a priority >= 0.",
+                    ],
                     "list_name": [
                         "type": "string",
-                        "description": "Move to this Reminders list by name. Pass empty string to leave unchanged.",
+                        "description": "Move to this Reminders list by name. Pass empty string to leave unchanged. The list must already exist.",
                     ],
                 ],
-                "required": ["reminder_id", "title", "notes", "due_date", "priority", "list_name"],
+                "required": [
+                    "reminder_id",
+                    "title",
+                    "notes", "clear_notes",
+                    "due_date", "clear_due_date",
+                    "priority", "clear_priority",
+                    "list_name",
+                ],
                 "additionalProperties": false,
             ],
             strict: true,
@@ -85,22 +104,7 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
             )
         }
 
-        // Empty strings (and priority < 0) mean "leave unchanged" — strict mode
-        // requires every property in `required`, so the LLM has to provide all
-        // of them on every call.
-        let titleChange = (json["title"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        let notesChange = (json["notes"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        let dueDateChange = (json["due_date"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        let priorityRaw = (json["priority"] as? Int).flatMap { $0 < 0 ? nil : $0 }
-        let listNameChange = (json["list_name"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-
-        if let dueDateChange, ReminderToolsShared.parseISODate(dueDateChange) == nil {
-            throw NSError(
-                domain: "MTUpdateReminderTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid due_date format. Use ISO 8601 UTC."),
-                ],
-            )
-        }
+        let parsed = try Self.parseChanges(from: json)
 
         guard let viewController = await view.parentViewController else {
             throw NSError(
@@ -112,34 +116,102 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
 
         return try await updateWithUserInteraction(
             reminderId: reminderId,
+            changes: parsed,
+            controller: viewController,
+        )
+    }
+
+    struct ParsedChanges: Equatable {
+        var newTitle: String?
+        var newNotes: String?
+        var clearNotes: Bool
+        var newDueDate: String?
+        var clearDueDate: Bool
+        var newPriority: Int?
+        var clearPriority: Bool
+        var newListName: String?
+
+        var isEmpty: Bool {
+            newTitle == nil
+                && newNotes == nil && !clearNotes
+                && newDueDate == nil && !clearDueDate
+                && newPriority == nil && !clearPriority
+                && newListName == nil
+        }
+    }
+
+    static func parseChanges(from json: [String: Any]) throws -> ParsedChanges {
+        // Empty strings (and priority < 0) mean "leave unchanged" — strict mode
+        // requires every property in `required`, so the LLM has to provide all
+        // of them on every call. The boolean clear_* siblings are the explicit
+        // "set this back to empty" signal.
+        let titleChange = (json["title"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        let notesChange = (json["notes"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        let dueDateChange = (json["due_date"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        let priorityRaw = (json["priority"] as? Int).flatMap { $0 < 0 ? nil : $0 }
+        let listNameChange = (json["list_name"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+
+        let clearNotes = (json["clear_notes"] as? Bool) ?? false
+        let clearDueDate = (json["clear_due_date"] as? Bool) ?? false
+        let clearPriority = (json["clear_priority"] as? Bool) ?? false
+
+        if clearNotes, notesChange != nil {
+            throw NSError(
+                domain: "MTUpdateReminderTool", code: 400, userInfo: [
+                    NSLocalizedDescriptionKey: String(localized: "clear_notes cannot be combined with a non-empty notes value."),
+                ],
+            )
+        }
+        if clearDueDate, dueDateChange != nil {
+            throw NSError(
+                domain: "MTUpdateReminderTool", code: 400, userInfo: [
+                    NSLocalizedDescriptionKey: String(localized: "clear_due_date cannot be combined with a non-empty due_date value."),
+                ],
+            )
+        }
+        if clearPriority, priorityRaw != nil {
+            throw NSError(
+                domain: "MTUpdateReminderTool", code: 400, userInfo: [
+                    NSLocalizedDescriptionKey: String(localized: "clear_priority cannot be combined with a priority >= 0."),
+                ],
+            )
+        }
+
+        if let dueDateChange, ReminderToolsShared.parseISODate(dueDateChange) == nil {
+            throw NSError(
+                domain: "MTUpdateReminderTool", code: 400, userInfo: [
+                    NSLocalizedDescriptionKey: String(localized: "Invalid due_date format. Use ISO 8601 UTC."),
+                ],
+            )
+        }
+
+        return ParsedChanges(
             newTitle: titleChange,
             newNotes: notesChange,
+            clearNotes: clearNotes,
             newDueDate: dueDateChange,
+            clearDueDate: clearDueDate,
             newPriority: priorityRaw,
+            clearPriority: clearPriority,
             newListName: listNameChange,
-            controller: viewController,
         )
     }
 
     @MainActor
     private func updateWithUserInteraction(
         reminderId: String,
-        newTitle: String?,
-        newNotes: String?,
-        newDueDate: String?,
-        newPriority: Int?,
-        newListName: String?,
+        changes: ParsedChanges,
         controller: UIViewController,
     ) async throws -> String {
         try await withCheckedThrowingContinuation { cont in
             ReminderToolsShared.requestAccess { [weak self] granted in
                 Task { @MainActor in
                     guard let self else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.internalError("Reminder tool was deallocated before completion."))
                         return
                     }
                     guard granted else {
-                        cont.resume(returning: String(localized: "Reminders access denied. Please enable Reminders access in Settings."))
+                        cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
                         return
                     }
 
@@ -154,11 +226,7 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
                     self.showConfirmation(
                         reminder: reminder,
                         eventStore: eventStore,
-                        newTitle: newTitle,
-                        newNotes: newNotes,
-                        newDueDate: newDueDate,
-                        newPriority: newPriority,
-                        newListName: newListName,
+                        changes: changes,
                         controller: controller,
                         continuation: cont,
                     )
@@ -167,42 +235,49 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
         }
     }
 
+    static func summarizeChanges(_ changes: ParsedChanges, currentTitle: String?) -> [String] {
+        var lines: [String] = []
+        if let newTitle = changes.newTitle {
+            lines.append(String(localized: "Title: \(currentTitle ?? "-") → \(newTitle)"))
+        }
+        if changes.clearNotes {
+            lines.append(String(localized: "Notes → \(String(localized: "(cleared)"))"))
+        } else if let newNotes = changes.newNotes {
+            lines.append(String(localized: "Notes → \(newNotes)"))
+        }
+        if changes.clearDueDate {
+            lines.append(String(localized: "Due → \(String(localized: "(cleared)"))"))
+        } else if let newDueDate = changes.newDueDate {
+            lines.append(String(localized: "Due → \(newDueDate)"))
+        }
+        if changes.clearPriority {
+            lines.append(String(localized: "Priority → \(String(localized: "(cleared)"))"))
+        } else if let newPriority = changes.newPriority {
+            lines.append(String(localized: "Priority → \(ReminderToolsShared.priorityLabel(newPriority))"))
+        }
+        if let newListName = changes.newListName {
+            lines.append(String(localized: "List → \(newListName)"))
+        }
+        return lines
+    }
+
     @MainActor
     private func showConfirmation(
         reminder: EKReminder,
         eventStore: EKEventStore,
-        newTitle: String?,
-        newNotes: String?,
-        newDueDate: String?,
-        newPriority: Int?,
-        newListName: String?,
+        changes: ParsedChanges,
         controller: UIViewController,
         continuation: CheckedContinuation<String, any Swift.Error>,
     ) {
-        var changes: [String] = []
-        if let newTitle {
-            changes.append(String(localized: "Title: \(reminder.title ?? "-") → \(newTitle)"))
-        }
-        if let newNotes {
-            changes.append(String(localized: "Notes → \(newNotes)"))
-        }
-        if let newDueDate {
-            changes.append(String(localized: "Due → \(newDueDate)"))
-        }
-        if let newPriority {
-            changes.append(String(localized: "Priority → \(ReminderToolsShared.priorityLabel(newPriority))"))
-        }
-        if let newListName {
-            changes.append(String(localized: "List → \(newListName)"))
-        }
+        let summary = Self.summarizeChanges(changes, currentTitle: reminder.title)
 
-        if changes.isEmpty {
+        if summary.isEmpty {
             continuation.resume(returning: String(localized: "No changes specified; reminder left untouched."))
             return
         }
 
         let title = reminder.title ?? String(localized: "Untitled")
-        let body = title + "\n\n" + changes.joined(separator: "\n")
+        let body = title + "\n\n" + summary.joined(separator: "\n")
         let alert = AlertViewController(
             title: "Update Reminder",
             message: body,
@@ -216,26 +291,36 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
             }
             context.addAction(title: "Update", attribute: .accent) {
                 context.dispose {
-                    if let newTitle { reminder.title = newTitle }
-                    if let newNotes { reminder.notes = newNotes }
-                    if let newDueDate, let date = ReminderToolsShared.parseISODate(newDueDate) {
+                    if let newTitle = changes.newTitle { reminder.title = newTitle }
+                    if changes.clearNotes {
+                        reminder.notes = nil
+                    } else if let newNotes = changes.newNotes {
+                        reminder.notes = newNotes
+                    }
+                    if changes.clearDueDate {
+                        reminder.dueDateComponents = nil
+                    } else if let newDueDate = changes.newDueDate, let date = ReminderToolsShared.parseISODate(newDueDate) {
                         reminder.dueDateComponents = Calendar.current.dateComponents(
                             [.year, .month, .day, .hour, .minute],
                             from: date,
                         )
                     }
-                    if let newPriority {
+                    if changes.clearPriority {
+                        reminder.priority = 0
+                    } else if let newPriority = changes.newPriority {
                         reminder.priority = newPriority
                     }
-                    if let newListName,
-                       let calendar = ReminderToolsShared.resolveCalendar(named: newListName, eventStore: eventStore)
-                    {
-                        reminder.calendar = calendar
-                    }
-
                     do {
+                        if let newListName = changes.newListName {
+                            reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
+                                named: newListName,
+                                eventStore: eventStore,
+                            )
+                        }
                         try eventStore.save(reminder, commit: true)
                         continuation.resume(returning: String(localized: "Reminder updated: \(reminder.title ?? "-")"))
+                    } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
+                        continuation.resume(throwing: error)
                     } catch {
                         continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
                             NSLocalizedDescriptionKey: String(localized: "Failed to update reminder: \(error.localizedDescription)"),
