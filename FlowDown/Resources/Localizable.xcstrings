@@ -2808,53 +2808,6 @@
         }
       }
     },
-    "Allows LLM to access your calendar and reminders." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erlaubt dem LLM Zugriff auf deinen Kalender und deine Erinnerungen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allows LLM to access your calendar and reminders."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permite que el LLM acceda a tu calendario y recordatorios."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorise le LLM à accéder à votre calendrier et vos rappels."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LLM がカレンダーとリマインダーにアクセスできるようにします。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LLM이 캘린더와 미리 알림에 접근할 수 있도록 허용합니다。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "允许大语言模型访问您的日历和提醒事项。"
-          }
-        }
-      }
-    },
     "Allows LLM to access your current location information." : {
       "localizations" : {
         "de" : {
@@ -6084,53 +6037,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日历"
-          }
-        }
-      }
-    },
-    "Calendar & Reminders" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kalender & Erinnerungen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar & Reminders"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendario y Recordatorios"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendrier et Rappels"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "カレンダーとリマインダー"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "캘린더 및 미리 알림"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "日历和提醒事项"
           }
         }
       }
@@ -39364,7 +39270,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提醒事项工具"
+            "value" : "提醒工具"
           }
         }
       }
