@@ -220,10 +220,20 @@ enum OnlineE2ETestSupport {
         let currentHome = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
         let hostHome = URL(fileURLWithPath: "/Users", isDirectory: true)
             .appendingPathComponent(NSUserName(), isDirectory: true)
+        // Inside the iOS simulator, NSHomeDirectory() points at the app sandbox
+        // and NSUserName() returns the numeric uid, so the two ~/.testing
+        // candidates above never resolve to the host's secrets directory. The
+        // test wrapper at run_online_e2e_tests.sh therefore mirrors the
+        // credentials into /tmp/flowdown-online-e2e/, which the host shares
+        // with the simulator. Probe that path so live secrets reach the test
+        // runner in CI and locally.
+        let runtimeRoot = URL(fileURLWithPath: "/tmp/flowdown-online-e2e", isDirectory: true)
+        let testingPaths = [currentHome, hostHome]
+            .map { $0.appendingPathComponent(".testing").appendingPathComponent(filename) }
+        let runtimePath = runtimeRoot.appendingPathComponent(filename)
 
         var seenPaths = Set<String>()
-        return [currentHome, hostHome]
-            .map { $0.appendingPathComponent(".testing").appendingPathComponent(filename) }
+        return (testingPaths + [runtimePath])
             .filter { seenPaths.insert($0.standardizedFileURL.path).inserted }
     }
 
