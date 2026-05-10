@@ -56,6 +56,12 @@ extension SettingController.SettingContent {
             $0.configure(description: "We use calendar access to allow the assistant to view, create and modify events in your calendar. Calendar data is only accessed when you explicitly use calendar-related features.")
         }
 
+        let remindersUsage = ConfigurableInfoView().with {
+            $0.configure(icon: UIImage(systemName: "checklist"))
+            $0.configure(title: "Reminders")
+            $0.configure(description: "We use Reminders access to allow the assistant to view, create, modify, complete and delete your reminders. Reminders data is only accessed when you explicitly use reminders-related features.")
+        }
+
         let locationUsage = ConfigurableInfoView().with {
             $0.configure(icon: UIImage(systemName: "location.circle"))
             $0.configure(title: "Location")
@@ -114,6 +120,22 @@ extension SettingController.SettingContent {
             ) { $0.bottom /= 2 }
             stackView.addArrangedSubview(SeparatorView())
             stackView.addArrangedSubviewWithMargin(calendarUsage)
+            stackView.addArrangedSubview(SeparatorView())
+
+            stackView.addArrangedSubviewWithMargin(
+                ConfigurableSectionFooterView().with(
+                    footer: "Please note that if you use cloud-based models to process your request, your data may be sent to your service provider.",
+                ),
+            ) { $0.top /= 2 }
+            stackView.addArrangedSubview(SeparatorView())
+
+            stackView.addArrangedSubviewWithMargin(
+                ConfigurableSectionHeaderView().with(
+                    header: "Reminders",
+                ),
+            ) { $0.bottom /= 2 }
+            stackView.addArrangedSubview(SeparatorView())
+            stackView.addArrangedSubviewWithMargin(remindersUsage)
             stackView.addArrangedSubview(SeparatorView())
 
             stackView.addArrangedSubviewWithMargin(
@@ -311,6 +333,42 @@ extension SettingController.SettingContent {
             @unknown default:
                 calendarUsage.configure(value: String(localized: "Unknown"))
                 calendarUsage.setTapBlock { _ in UIApplication.shared.openSettings() }
+            }
+
+            // 检查提醒事项权限
+            switch EKEventStore.authorizationStatus(for: .reminder) {
+            case .authorized:
+                remindersUsage.configure(value: String(localized: "Authorized"))
+                remindersUsage.setTapBlock { _ in UIApplication.shared.openSettings() }
+            case .notDetermined:
+                remindersUsage.configure(value: String(localized: "Not Determined"))
+                remindersUsage.setTapBlock { [weak self] _ in
+                    let eventStore = EKEventStore()
+                    if #available(iOS 17, macCatalyst 17, *) {
+                        eventStore.requestFullAccessToReminders { _, _ in
+                            Task { @MainActor in self?.updateValues() }
+                        }
+                    } else {
+                        eventStore.requestAccess(to: .reminder) { _, _ in
+                            Task { @MainActor in self?.updateValues() }
+                        }
+                    }
+                }
+            case .restricted:
+                remindersUsage.configure(value: String(localized: "Restricted"))
+                remindersUsage.setTapBlock { _ in UIApplication.shared.openSettings() }
+            case .denied:
+                remindersUsage.configure(value: String(localized: "Denied"), isDestructive: true)
+                remindersUsage.setTapBlock { _ in UIApplication.shared.openSettings() }
+            case .fullAccess:
+                remindersUsage.configure(value: String(localized: "Full Access"), isDestructive: true)
+                remindersUsage.setTapBlock { _ in UIApplication.shared.openSettings() }
+            case .writeOnly:
+                remindersUsage.configure(value: String(localized: "Write Only"), isDestructive: true)
+                remindersUsage.setTapBlock { _ in UIApplication.shared.openSettings() }
+            @unknown default:
+                remindersUsage.configure(value: String(localized: "Unknown"))
+                remindersUsage.setTapBlock { _ in UIApplication.shared.openSettings() }
             }
 
             // 检查位置权限 - 使用实例方法而非静态方法

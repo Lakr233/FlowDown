@@ -186,7 +186,7 @@ class MCPService: NSObject {
         }
 
         let eligibleServerIds = Set(eligibleServers.map(\.id))
-        for (serverId, connection) in connections {
+        for (serverId, connection) in Array(connections) {
             if !eligibleServerIds.contains(serverId) {
                 connection.disconnect()
                 connections.removeValue(forKey: serverId)

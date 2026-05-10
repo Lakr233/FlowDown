@@ -40,6 +40,12 @@ class ModelToolsManager {
                 MTAddCalendarTool(),
                 MTQueryCalendarTool(),
 
+                MTAddReminderTool(),
+                MTQueryReminderTool(),
+                MTUpdateReminderTool(),
+                MTCompleteReminderTool(),
+                MTDeleteReminderTool(),
+
                 MTWebScraperTool(),
                 MTWebSearchTool(),
 
@@ -57,6 +63,12 @@ class ModelToolsManager {
             tools = [
                 MTAddCalendarTool(),
                 MTQueryCalendarTool(),
+
+                MTAddReminderTool(),
+                MTQueryReminderTool(),
+                MTUpdateReminderTool(),
+                MTCompleteReminderTool(),
+                MTDeleteReminderTool(),
 
                 MTWebScraperTool(),
                 MTWebSearchTool(),
@@ -145,6 +157,7 @@ class ModelToolsManager {
             if tool is MTListMemoriesTool { return false }
             if tool is MTUpdateMemoryTool { return false }
             if tool is MTDeleteMemoryTool { return false }
+            if tool is MTCompleteReminderTool { return false }
             return true
         }
     }

@@ -706,6 +706,100 @@
         }
       }
     },
+    "NSRemindersFullAccessUsageDescription" : {
+      "comment" : "Privacy - Reminders Full Access Usage Description",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown benötigt Zugriff auf Erinnerungen, damit du den Assistenten bitten kannst, deine Erinnerungen zu erstellen, anzusehen, zu ändern, abzuschließen oder zu löschen. Wenn du z. B. „Füge ‚Milch kaufen‘ morgen meinen Erinnerungen hinzu“ sagst, schreibt FlowDown die Erinnerung in deine Standard-Erinnerungsliste. Deine Erinnerungen werden nur lokal verarbeitet, um die Anfrage zu erfüllen, und nicht von FlowDown gespeichert. Bei einem cloudbasierten KI-Modell kann der relevante Erinnerungstext während der Verarbeitung an deinen ausgewählten Dienstanbieter gesendet werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown requires Reminders access so you can ask the assistant to create, view, change, complete, or delete your reminders. For example, when you ask \"Add buying milk to my reminders for tomorrow,\" FlowDown will write the reminder into your default Reminders list. Your reminders are only processed locally to fulfill the request and are not stored by FlowDown. If you're using a cloud-based AI model, the relevant reminder text may be sent to your chosen service provider during processing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown necesita acceso a Recordatorios para que puedas pedirle al asistente crear, ver, modificar, completar o eliminar tus recordatorios. Por ejemplo, cuando dices «Añade comprar leche a mis recordatorios para mañana», FlowDown escribirá el recordatorio en tu lista predeterminada. Tus recordatorios solo se procesan localmente para cumplir la solicitud y FlowDown no los almacena. Si usas un modelo de IA en la nube, el texto del recordatorio relevante puede enviarse a tu proveedor de servicio durante el procesamiento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown a besoin d’accéder aux Rappels pour que vous puissiez demander à l’assistant de créer, consulter, modifier, terminer ou supprimer vos rappels. Par exemple, si vous dites « Ajoute ‘acheter du lait’ demain dans mes rappels », FlowDown écrira le rappel dans votre liste par défaut. Vos rappels ne sont traités que localement pour répondre à la requête et ne sont pas stockés par FlowDown. Si vous utilisez un modèle IA dans le cloud, le texte du rappel concerné peut être envoyé à votre fournisseur de service pendant le traitement."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown は、アシスタントにリマインダーの作成・表示・変更・完了・削除を依頼できるようにするため、リマインダーへのアクセスを必要とします。例えば「明日のリマインダーに『牛乳を買う』を追加して」と頼むと、FlowDown はそのリマインダーをデフォルトのリマインダーリストに書き込みます。リマインダーのデータはこのリクエストを処理するためにローカルでのみ扱われ、FlowDown には保存されません。クラウドの AI モデルを利用する場合、関連するリマインダー本文が処理中に選択したサービスプロバイダに送信されることがあります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown은 어시스턴트가 미리 알림을 만들고 보고 수정하고 완료하고 삭제할 수 있도록 미리 알림 접근 권한이 필요합니다. 예를 들어 \"내일 미리 알림에 우유 사기 추가해줘\"라고 말하면 FlowDown은 해당 미리 알림을 기본 목록에 기록합니다. 미리 알림 데이터는 요청을 수행하기 위해 로컬에서만 처리되며 FlowDown은 저장하지 않습니다. 클라우드 기반 AI 모델을 사용하는 경우, 관련 미리 알림 텍스트가 처리 중에 선택한 서비스 제공자에게 전송될 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown 需要提醒事项权限，以便你可以让助手创建、查看、修改、完成或删除提醒事项。例如，当你说\"在我的提醒事项里加一个明天买牛奶\"时，FlowDown 会把这条提醒写入默认列表。你的提醒事项数据仅在本地处理用于完成本次请求，FlowDown 不会保存。如果你使用基于云的 AI 模型，相关提醒事项文本可能在处理过程中发送到你选择的服务提供商。"
+          }
+        }
+      }
+    },
+    "NSRemindersUsageDescription" : {
+      "comment" : "Privacy - Reminders Usage Description",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown benötigt Zugriff auf Erinnerungen, damit du den Assistenten bitten kannst, deine Erinnerungen zu erstellen, anzusehen, zu ändern, abzuschließen oder zu löschen. Wenn du z. B. „Füge ‚Milch kaufen‘ morgen meinen Erinnerungen hinzu“ sagst, schreibt FlowDown die Erinnerung in deine Standard-Erinnerungsliste. Deine Erinnerungen werden nur lokal verarbeitet, um die Anfrage zu erfüllen, und nicht von FlowDown gespeichert. Bei einem cloudbasierten KI-Modell kann der relevante Erinnerungstext während der Verarbeitung an deinen ausgewählten Dienstanbieter gesendet werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown requires Reminders access so you can ask the assistant to create, view, change, complete, or delete your reminders. For example, when you ask \"Add buying milk to my reminders for tomorrow,\" FlowDown will write the reminder into your default Reminders list. Your reminders are only processed locally to fulfill the request and are not stored by FlowDown. If you're using a cloud-based AI model, the relevant reminder text may be sent to your chosen service provider during processing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown necesita acceso a Recordatorios para que puedas pedirle al asistente crear, ver, modificar, completar o eliminar tus recordatorios. Por ejemplo, cuando dices «Añade comprar leche a mis recordatorios para mañana», FlowDown escribirá el recordatorio en tu lista predeterminada. Tus recordatorios solo se procesan localmente para cumplir la solicitud y FlowDown no los almacena. Si usas un modelo de IA en la nube, el texto del recordatorio relevante puede enviarse a tu proveedor de servicio durante el procesamiento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown a besoin d’accéder aux Rappels pour que vous puissiez demander à l’assistant de créer, consulter, modifier, terminer ou supprimer vos rappels. Par exemple, si vous dites « Ajoute ‘acheter du lait’ demain dans mes rappels », FlowDown écrira le rappel dans votre liste par défaut. Vos rappels ne sont traités que localement pour répondre à la requête et ne sont pas stockés par FlowDown. Si vous utilisez un modèle IA dans le cloud, le texte du rappel concerné peut être envoyé à votre fournisseur de service pendant le traitement."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown は、アシスタントにリマインダーの作成・表示・変更・完了・削除を依頼できるようにするため、リマインダーへのアクセスを必要とします。例えば「明日のリマインダーに『牛乳を買う』を追加して」と頼むと、FlowDown はそのリマインダーをデフォルトのリマインダーリストに書き込みます。リマインダーのデータはこのリクエストを処理するためにローカルでのみ扱われ、FlowDown には保存されません。クラウドの AI モデルを利用する場合、関連するリマインダー本文が処理中に選択したサービスプロバイダに送信されることがあります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown은 어시스턴트가 미리 알림을 만들고 보고 수정하고 완료하고 삭제할 수 있도록 미리 알림 접근 권한이 필요합니다. 예를 들어 \"내일 미리 알림에 우유 사기 추가해줘\"라고 말하면 FlowDown은 해당 미리 알림을 기본 목록에 기록합니다. 미리 알림 데이터는 요청을 수행하기 위해 로컬에서만 처리되며 FlowDown은 저장하지 않습니다. 클라우드 기반 AI 모델을 사용하는 경우, 관련 미리 알림 텍스트가 처리 중에 선택한 서비스 제공자에게 전송될 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown 需要提醒事项权限，以便你可以让助手创建、查看、修改、完成或删除提醒事项。例如，当你说\"在我的提醒事项里加一个明天买牛奶\"时，FlowDown 会把这条提醒写入默认列表。你的提醒事项数据仅在本地处理用于完成本次请求，FlowDown 不会保存。如果你使用基于云的 AI 模型，相关提醒事项文本可能在处理过程中发送到你选择的服务提供商。"
+          }
+        }
+      }
+    },
     "NSSpeechRecognitionUsageDescription" : {
       "comment" : "Privacy - Speech Recognition Usage Description",
       "localizations" : {
