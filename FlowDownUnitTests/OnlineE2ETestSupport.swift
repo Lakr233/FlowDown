@@ -14,7 +14,7 @@ enum OnlineE2ETestSupport {
     // headers, body fields, and capabilities below track the exported
     // kimi-k2p5-turbo .fdmodel but can still be overridden via env.
     private static let embeddedFixture = EmbeddedCloudModelFixture(
-        modelIdentifier: "kimi-k2p5-turbo",
+        modelIdentifier: "kimi-k2p6-turbo",
         headers: [
             "HTTP-Referer": "https://flowdown.ai/",
             "X-Title": "FlowDown",
