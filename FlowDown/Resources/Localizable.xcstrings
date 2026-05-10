@@ -8157,36 +8157,6 @@
         }
       }
     },
-    "clear_due_date cannot be combined with a non-empty due_date value." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "clear_due_date cannot be combined with a non-empty due_date value."
-          }
-        }
-      }
-    },
-    "clear_notes cannot be combined with a non-empty notes value." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "clear_notes cannot be combined with a non-empty notes value."
-          }
-        }
-      }
-    },
-    "clear_priority cannot be combined with a priority >= 0." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "clear_priority cannot be combined with a priority >= 0."
-          }
-        }
-      }
-    },
     "Close" : {
       "localizations" : {
         "de" : {
@@ -32559,16 +32529,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不收集数据。你的聊天和密钥都留在本地设备。"
-          }
-        }
-      }
-    },
-    "No default Reminders list is available." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No default Reminders list is available."
           }
         }
       }

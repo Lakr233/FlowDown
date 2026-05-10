@@ -112,6 +112,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>CLOUDKIT_SYNC_CONTAINER_IDENTIFIER</key>
+	<string>$(CLOUDKIT_SYNC_CONTAINER_IDENTIFIER)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -140,10 +142,6 @@
 	</dict>
 	<key>UIApplicationSupportsMultipleScenes</key>
 	<false/>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
-	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
-	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
@@ -339,8 +337,6 @@
 			</dict>
 		</dict>
 	</array>
-	<key>CLOUDKIT_SYNC_CONTAINER_IDENTIFIER</key>
-	<string>$(CLOUDKIT_SYNC_CONTAINER_IDENTIFIER)</string>
 	<key>com.apple.developer.translation-ui-provider.network-access</key>
 	<true/>
 </dict>

@@ -700,7 +700,10 @@
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "FlowDown requires location permissions to provide location-based assistance when you request it. For example, when you ask \"Find coffee shops near me\" or \"How long will it take to get to my next meeting,\" FlowDown will access your current location to provide relevant recommendations or travel times. Your location is only accessed when needed for specific requests and is not stored by FlowDown. This data may be sent to your chosen service provider if using a cloud-based AI model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "FlowDown requires this permission to save image for you. Your data will be saved locally.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "FlowDown requires Reminders access so you can ask the assistant to create, view, change, complete, or delete your reminders. For example, when you ask \"Add buying milk to my reminders for tomorrow,\" FlowDown will write the reminder into your default Reminders list. Your reminders are only processed locally to fulfill the request and are not stored by FlowDown. If you're using a cloud-based AI model, the relevant reminder text may be sent to your chosen service provider during processing.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -777,7 +780,10 @@
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "FlowDown requires location permissions to provide location-based assistance when you request it. For example, when you ask \"Find coffee shops near me\" or \"How long will it take to get to my next meeting,\" FlowDown will access your current location to provide relevant recommendations or travel times. Your location is only accessed when needed for specific requests and is not stored by FlowDown. This data may be sent to your chosen service provider if using a cloud-based AI model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "FlowDown requires this permission to save image for you. Your data will be saved locally.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "FlowDown requires Reminders access so you can ask the assistant to create, view, change, complete, or delete your reminders. For example, when you ask \"Add buying milk to my reminders for tomorrow,\" FlowDown will write the reminder into your default Reminders list. Your reminders are only processed locally to fulfill the request and are not stored by FlowDown. If you're using a cloud-based AI model, the relevant reminder text may be sent to your chosen service provider during processing.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";

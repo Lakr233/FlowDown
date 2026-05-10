@@ -112,6 +112,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>CLOUDKIT_SYNC_CONTAINER_IDENTIFIER</key>
+	<string>$(CLOUDKIT_SYNC_CONTAINER_IDENTIFIER)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -332,7 +334,5 @@
 			</dict>
 		</dict>
 	</array>
-	<key>CLOUDKIT_SYNC_CONTAINER_IDENTIFIER</key>
-	<string>$(CLOUDKIT_SYNC_CONTAINER_IDENTIFIER)</string>
 </dict>
 </plist>

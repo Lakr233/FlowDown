@@ -1,854 +1,805 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "CFBundleDisplayName" : {
-      "comment" : "Bundle display name",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "Bundle display name",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
-          }
-        }
-      },
-      "shouldTranslate" : false
-    },
-    "CFBundleName" : {
-      "comment" : "Bundle name",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         }
       },
-      "shouldTranslate" : false
+      "shouldTranslate": false
     },
-    "FlowDown Model Context Protocol Server Configuration File" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Model Context Protocol Server-Konfigurationsdatei"
+    "CFBundleName": {
+      "comment": "Bundle name",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Model Context Protocol Server Configuration File"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archivo de configuración del servidor del protocolo Model Context de FlowDown"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fichier de configuration du serveur du protocole Model Context de FlowDown"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown モデルコンテキストプロトコルサーバー設定ファイル"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 모델 컨텍스트 프로토콜 서버 구성 파일"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模型上下文协议服务器配置文件"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown"
+          }
+        }
+      },
+      "shouldTranslate": false
+    },
+    "NSCalendarsUsageDescription": {
+      "comment": "Privacy - Calendars Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir benötigen Kalenderzugriff, um deine Terminplanung zu nutzen, z. B. um verfügbare Meetingzeiten vorzuschlagen, Termine mit Kontakten zu planen und Erinnerungen zu senden. Wenn du z. B. fragst \"Finde einen Termin für ein Teammeeting nächste Woche\", prüfen wir deinen Kalender auf freie Zeitfenster. Deine Kalenderdaten werden nur vorübergehend zur Beantwortung verarbeitet und nicht von uns gespeichert. Wenn du ein cloudbasiertes KI-Modell verwendest, können diese Daten während der Verarbeitung an den gewählten Dienstanbieter gesendet werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We require calendar permissions to access your schedule information for features like suggesting available meeting times, scheduling appointments with contacts, and sending reminders for upcoming events. For example, when you ask \"Find a time for a team meeting next week,\" we will check your calendar to identify free slots. Your calendar data is only processed temporarily while answering your queries and is not stored by us. If you're using a cloud-based AI model, this data may be sent to your chosen service provider during processing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos permisos de calendario para acceder a tu agenda y poder sugerir horarios disponibles, programar citas con tus contactos y enviar recordatorios. Por ejemplo, si pides \"Busca una hora para una reunión de equipo la próxima semana\", revisaremos tu calendario para identificar espacios libres. Tus datos de calendario solo se procesan temporalmente para responder a tu consulta y no se almacenan por nosotros. Si usas un modelo de IA en la nube, estos datos pueden enviarse a tu proveedor de servicio durante el proceso."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous avons besoin d'accéder à votre calendrier pour suggérer des créneaux disponibles, programmer des rendez-vous et envoyer des rappels. Par exemple, si vous demandez \"Trouve un créneau pour une réunion d'équipe la semaine prochaine\", nous consulterons votre calendrier pour repérer les disponibilités. Vos données de calendrier sont uniquement traitées temporairement pour répondre à votre requête et ne sont pas stockées par nous. Si vous utilisez un modèle IA dans le cloud, ces données peuvent être envoyées à votre fournisseur de service pendant le traitement."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "予定の情報にアクセスするためにカレンダーへの許可が必要です。空き時間の提案、連絡先との予定調整、リマインダー送信などに使われます。たとえば「来週のチームミーティングの時間を探して」と依頼すると、カレンダーを確認して空き枠を探します。カレンダーのデータは回答に必要な間だけ一時的に処理され、当社では保存しません。クラウドの AI モデルを利用する場合、処理の過程で選択したサービスプロバイダに送信されることがあります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일정 정보를 활용하기 위해 캘린더 권한이 필요합니다. 사용 가능한 회의 시간 제안, 연락처와의 일정 잡기, 예정된 이벤트 알림 등에 쓰입니다. 예를 들어 \"다음 주 팀 미팅 시간을 찾아줘\"라고 요청하면 캘린더를 확인해 빈 시간을 찾습니다. 캘린더 데이터는 답변을 위해 일시적으로만 처리되며 우리가 저장하지 않습니다. 클라우드 기반 AI 모델을 사용할 경우, 처리 중에 선택한 서비스 제공자로 전송될 수 있습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要日历权限来访问您的日程信息，以提供诸如推荐可用会议时间、安排与联系人的约会以及发送即将到来的事件提醒等功能。例如，当您询问\"为下周的团队会议找一个时间\"时，将检查您的日历以确定空闲时段。您的日历数据仅在回答查询时临时处理，而不会被我们存储。如果您使用基于云的 AI 模型，这些数据可能会在处理过程中发送给您选择的服务提供商。"
           }
         }
       }
     },
-    "FlowDown Model Evaluation Manifest" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Modell-Evaluierungsmanifest"
+    "NSCameraUsageDescription": {
+      "comment": "Privacy - Camera Usage Description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir verwenden deine Kamera, um Fotos aufzunehmen. Dein Foto kann gemäß deiner Auswahl hochgeladen werden."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Model Evaluation Manifest"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We use your camera to take pictures. Your photo may be uploaded based on your choice."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manifiesto de Evaluación de Modelos FlowDown"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usamos tu cámara para tomar fotos. La imagen puede subirse según tu elección."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manifeste d'évaluation de modèles FlowDown"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous utilisons votre appareil photo pour prendre des images. La photo peut être envoyée selon votre choix."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown モデル評価マニフェスト"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写真を撮るためにカメラを使用します。アップロードするかどうかはあなたの選択によります。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 모델 평가 매니페스트"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사진 촬영을 위해 카메라를 사용합니다. 업로드 여부는 사용자가 선택합니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 模型评估清单"
-          }
-        }
-      }
-    },
-    "FlowDown Model Evaluation Result" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Modellbewertungsergebnis"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Model Evaluation Result"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resultado de evaluación del modelo de FlowDown"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Résultat d’évaluation du modèle FlowDown"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown モデル評価結果"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 모델 평가 결과"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 模型评测结果"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要相机权限来拍照。照片会按照你所请求的方式上传。"
           }
         }
       }
     },
-    "FlowDown Model File" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Modelldatei"
+    "NSHumanReadableCopyright": {
+      "comment": "Copyright (human-readable)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urheberrecht © 2025 FlowDown Team. Alle Rechte vorbehalten."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Model File"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copyright © 2025 FlowDown Team. All rights reserved."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archivo de modelo de FlowDown"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copyright © 2025 Equipo de FlowDown. Todos los derechos reservados."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fichier de modèle FlowDown"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copyright © 2025 Équipe FlowDown. Tous droits réservés."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown モデルファイル"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "著作権 © 2025 FlowDown Team. 無断転載を禁じます。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 모델 파일"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저작권 © 2025 FlowDown 팀. 모든 권리 보유."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模型配置文件"
-          }
-        }
-      }
-    },
-    "FlowDown Template File" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Vorlagendatei"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown Template File"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archivo de plantilla de FlowDown"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fichier de gabarit FlowDown"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown テンプレートファイル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 템플릿 파일"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模版文件"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "© 2025 FlowDown 团队 版权所有"
           }
         }
       }
     },
-    "NSCalendarsUsageDescription" : {
-      "comment" : "Privacy - Calendars Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown benötigt Kalenderzugriff, um deine Terminplanung zu nutzen, z. B. um verfügbare Meetingzeiten vorzuschlagen, Termine mit Kontakten zu planen und Erinnerungen zu senden. Wenn du z. B. fragst \"Finde einen Termin für ein Teammeeting nächste Woche\", prüft FlowDown deinen Kalender auf freie Zeitfenster. Deine Kalenderdaten werden nur vorübergehend zur Beantwortung verarbeitet und nicht von FlowDown gespeichert. Wenn du ein cloudbasiertes KI-Modell verwendest, können diese Daten während der Verarbeitung an den gewählten Dienstanbieter gesendet werden."
+    "NSLocalNetworkUsageDescription": {
+      "comment": "Privacy - Local Network Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir benötigen LAN-Zugriff, um mit lokalen Diensten zu kommunizieren. Wir sammeln keine Informationen aus deinem LAN."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown requires calendar permissions to access your schedule information for features like suggesting available meeting times, scheduling appointments with contacts, and sending reminders for upcoming events. For example, when you ask \"Find a time for a team meeting next week,\" FlowDown will check your calendar to identify free slots. Your calendar data is only processed temporarily while answering your queries and is not stored by FlowDown. If you're using a cloud-based AI model, this data may be sent to your chosen service provider during processing."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We require LAN access to interact with local service providers. We do not collect any information from your LAN."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown necesita permisos de calendario para acceder a tu agenda y poder sugerir horarios disponibles, programar citas con tus contactos y enviar recordatorios. Por ejemplo, si pides \"Busca una hora para una reunión de equipo la próxima semana\", FlowDown revisará tu calendario para identificar espacios libres. Tus datos de calendario solo se procesan temporalmente para responder a tu consulta y no se almacenan en FlowDown. Si usas un modelo de IA en la nube, estos datos pueden enviarse a tu proveedor de servicio durante el proceso."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos acceso a la red local para interactuar con servicios locales. No recopilamos ninguna información de tu LAN."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown a besoin d'accéder à votre calendrier pour suggérer des créneaux disponibles, programmer des rendez-vous et envoyer des rappels. Par exemple, si vous demandez \"Trouve un créneau pour une réunion d'équipe la semaine prochaine\", FlowDown consultera votre calendrier pour repérer les disponibilités. Vos données de calendrier sont uniquement traitées temporairement pour répondre à votre requête et ne sont pas stockées par FlowDown. Si vous utilisez un modèle IA dans le cloud, ces données peuvent être envoyées à votre fournisseur de service pendant le traitement."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous avons besoin d'un accès LAN pour interagir avec des services locaux. Aucune information de votre réseau local n'est collectée."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown は予定の情報にアクセスするためにカレンダーへの許可が必要です。空き時間の提案、連絡先との予定調整、リマインダー送信などに使われます。たとえば「来週のチームミーティングの時間を探して」と依頼すると、FlowDown はカレンダーを確認して空き枠を探します。カレンダーのデータは回答に必要な間だけ一時的に処理され、FlowDown に保存されません。クラウドの AI モデルを利用する場合、処理の過程で選択したサービスプロバイダに送信されることがあります。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルのサービス提供者とやり取りするために LAN へのアクセスが必要です。LAN から情報を収集することはありません。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown은 일정 정보를 활용하기 위해 캘린더 권한이 필요합니다. 사용 가능한 회의 시간 제안, 연락처와의 일정 잡기, 예정된 이벤트 알림 등에 쓰입니다. 예를 들어 \"다음 주 팀 미팅 시간을 찾아줘\"라고 요청하면 FlowDown이 캘린더를 확인해 빈 시간을 찾습니다. 캘린더 데이터는 답변을 위해 일시적으로만 처리되며 FlowDown이 저장하지 않습니다. 클라우드 기반 AI 모델을 사용할 경우, 처리 중에 선택한 서비스 제공자로 전송될 수 있습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 서비스와 통신하기 위해 LAN 접근이 필요합니다. LAN에서 어떤 정보도 수집하지 않습니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们需要日历权限来访问您的日程信息，以提供诸如推荐可用会议时间、安排与联系人的约会以及发送即将到来的事件提醒等功能。例如，当您询问\"为下周的团队会议找一个时间\"时，将检查您的日历以确定空闲时段。您的日历数据仅在回答查询时临时处理，而不会被存储。如果您使用基于云的 AI 模型，这些数据可能会在处理过程中发送给您选择的服务提供商。\n"
-          }
-        }
-      }
-    },
-    "NSCameraUsageDescription" : {
-      "comment" : "Privacy - Camera Usage Description",
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wir verwenden deine Kamera, um Fotos aufzunehmen. Dein Foto kann gemäß deiner Auswahl hochgeladen werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "We use your camera to take pictures. Your photo may be uploaded based on your choice."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usamos tu cámara para tomar fotos. La imagen puede subirse según tu elección."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nous utilisons votre appareil photo pour prendre des images. La photo peut être envoyée selon votre choix."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "写真を撮るためにカメラを使用します。アップロードするかどうかはあなたの選択によります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "사진 촬영을 위해 카메라를 사용합니다. 업로드 여부는 사용자가 선택합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们需要相机权限来拍照。照片会按照你所请求的方式上传。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要本地网络访问权限来连接到你所请求的服务提供商。我们不从你的局域网内收集任何信息。"
           }
         }
       }
     },
-    "NSHumanReadableCopyright" : {
-      "comment" : "Copyright (human-readable)",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Urheberrecht © 2025 FlowDown Team. Alle Rechte vorbehalten."
+    "NSLocationUsageDescription": {
+      "comment": "Privacy - Location Usage Description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir benötigen Standortberechtigungen, um ortsbezogene Hilfe bereitzustellen, wenn du sie anforderst. Fragst du z. B. \"Finde Cafés in meiner Nähe\" oder \"Wie lange brauche ich bis zu meinem nächsten Termin?\", greifen wir auf deinen aktuellen Standort zu, um passende Empfehlungen oder Fahrzeiten zu liefern. Dein Standort wird nur für diese konkreten Anfragen genutzt und nicht von uns gespeichert. Bei Verwendung eines cloudbasierten KI-Modells können diese Daten an deinen gewählten Dienstanbieter gesendet werden."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copyright © 2025 FlowDown Team. All rights reserved."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We require location permissions to provide location-based assistance when you request it. For example, when you ask \"Find coffee shops near me\" or \"How long will it take to get to my next meeting,\" we will access your current location to provide relevant recommendations or travel times. Your location is only accessed when needed for specific requests and is not stored by us. This data may be sent to your chosen service provider if using a cloud-based AI model."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copyright © 2025 Equipo de FlowDown. Todos los derechos reservados."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos permisos de ubicación para ofrecer ayuda basada en tu posición cuando la solicites. Por ejemplo, si preguntas \"Busca cafeterías cerca de mí\" o \"¿Cuánto tardaré en llegar a mi próxima reunión?\", usaremos tu ubicación actual para recomendar opciones o tiempos de viaje. Tu ubicación solo se usa cuando es necesaria para una solicitud específica y no se almacena por nosotros. Si utilizas un modelo de IA en la nube, estos datos pueden enviarse a tu proveedor de servicio."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copyright © 2025 Équipe FlowDown. Tous droits réservés."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous avons besoin d'autorisations de localisation pour fournir une aide basée sur votre position lorsque vous la demandez. Par exemple, si vous demandez \"Trouve des cafés près de moi\" ou \"Combien de temps pour aller à ma prochaine réunion ?\", nous utiliserons votre position actuelle pour proposer des recommandations ou des temps de trajet pertinents. Votre position n'est consultée que lorsque cela est nécessaire et n'est pas stockée par nous. Si vous utilisez un modèle IA dans le cloud, ces données peuvent être envoyées à votre fournisseur de service."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "著作権 © 2025 FlowDown Team. 無断転載を禁じます。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたの依頼に応じて位置情報を使ったサポートを行うため、位置情報の許可が必要です。たとえば「近くのカフェを探して」や「次の予定までどれくらいかかる？」と尋ねた場合、現在地にアクセスして適切なおすすめや所要時間を提示します。位置情報は必要なときにのみ参照され、当社では保存されることはありません。クラウドの AI モデルを利用する場合、これらのデータが選択したサービスプロバイダに送信される可能性があります。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "저작권 © 2025 FlowDown 팀. 모든 권리 보유."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "요청 시 위치 기반 도움을 제공하기 위해 위치 권한이 필요합니다. 예를 들어 \"내 근처 커피숍을 찾아줘\" 또는 \"다음 회의까지 얼마나 걸려?\"라고 묻으면 현재 위치를 사용해 추천이나 이동 시간을 제공합니다. 위치 정보는 필요한 경우에만 접근하며 우리가 저장하지 않습니다. 클라우드 기반 AI 모델을 사용할 경우, 이 데이터가 선택한 서비스 제공자에게 전송될 수 있습니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "© 2025 FlowDown 团队 版权所有"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要位置权限以便在您请求时提供基于位置的帮助。例如，当您询问\"查找附近的咖啡店\"或\"到达下一个会议需要多长时间\"时，将访问您的当前位置以提供相关建议或行程时间。您的位置仅在特定请求需要时被访问，而不会被我们存储。如果使用基于云的 AI 模型，这些数据可能会发送给您选择的服务提供商。"
           }
         }
       }
     },
-    "NSLocalNetworkUsageDescription" : {
-      "comment" : "Privacy - Local Network Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown benötigt LAN-Zugriff, um mit lokalen Diensten zu kommunizieren. Wir sammeln keine Informationen aus deinem LAN."
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Privacy - Location When In Use Usage Description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir benötigen diese Berechtigung, um bei Bedarf deinen Standort abzurufen. Die Daten werden für die Anfrage genutzt und können an deinen Dienstanbieter übermittelt werden."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown requires LAN access for interact with local service providers. We do not collect any information from your LAN"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We need this permission to access your location when required by AI. Your data will be available for the query and may be uploaded to your service provider."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown necesita acceso a la red local para interactuar con servicios locales. No recopilamos ninguna información de tu LAN."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos este permiso para acceder a tu ubicación cuando la IA lo requiera. Los datos se usan para la consulta y pueden enviarse a tu proveedor de servicio."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown a besoin d'un accès LAN pour interagir avec des services locaux. Aucune information de votre réseau local n'est collectée."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous avons besoin de cette autorisation pour accéder à votre position lorsque l'IA en a besoin. Vos données sont utilisées pour la requête et peuvent être envoyées à votre fournisseur de service."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown はローカルのサービス提供者とやり取りするために LAN へのアクセスが必要です。LAN から情報を収集することはありません。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI が必要とするときに位置情報へアクセスするための許可が必要です。データはクエリのために使われ、サービスプロバイダに送信される場合があります。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown은 로컬 서비스와 통신하기 위해 LAN 접근이 필요합니다. LAN에서 어떤 정보도 수집하지 않습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI가 필요할 때 위치를 사용할 수 있도록 이 권한이 필요합니다. 데이터는 요청 처리에 사용되며 서비스 제공자로 전송될 수 있습니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们需要本地网络访问权限来连接到你所请求的服务提供商。我们不从你的局域网内收集任何信息。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要此权限以便在 AI 需要时访问您的位置。您的数据将用于查询，并可能上传至您的服务提供商。"
           }
         }
       }
     },
-    "NSLocationUsageDescription" : {
-      "comment" : "Privacy - Location Usage Description",
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown benötigt Standortberechtigungen, um ortsbezogene Hilfe bereitzustellen, wenn du sie anforderst. Fragst du z. B. \"Finde Cafés in meiner Nähe\" oder \"Wie lange brauche ich bis zu meinem nächsten Termin?\", greift FlowDown auf deinen aktuellen Standort zu, um passende Empfehlungen oder Fahrzeiten zu liefern. Dein Standort wird nur für diese konkreten Anfragen genutzt und nicht von FlowDown gespeichert. Bei Verwendung eines cloudbasierten KI-Modells können diese Daten an deinen gewählten Dienstanbieter gesendet werden."
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy - Microphone Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir verwenden deine Audiodaten zur Spracherkennung. Die Daten werden vom System verarbeitet; wir sammeln sie nicht."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown requires location permissions to provide location-based assistance when you request it. For example, when you ask \"Find coffee shops near me\" or \"How long will it take to get to my next meeting,\" FlowDown will access your current location to provide relevant recommendations or travel times. Your location is only accessed when needed for specific requests and is not stored by FlowDown. This data may be sent to your chosen service provider if using a cloud-based AI model."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown necesita permisos de ubicación para ofrecer ayuda basada en tu posición cuando la solicites. Por ejemplo, si preguntas \"Busca cafeterías cerca de mí\" o \"¿Cuánto tardaré en llegar a mi próxima reunión?\", FlowDown usará tu ubicación actual para recomendar opciones o tiempos de viaje. Tu ubicación solo se usa cuando es necesaria para una solicitud específica y no se almacena en FlowDown. Si utilizas un modelo de IA en la nube, estos datos pueden enviarse a tu proveedor de servicio."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usamos tus datos de audio para el reconocimiento de voz. Los procesa el sistema; nosotros no los recopilamos."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown nécessite des autorisations de localisation pour fournir une aide basée sur votre position lorsque vous la demandez. Par exemple, si vous demandez \"Trouve des cafés près de moi\" ou \"Combien de temps pour aller à ma prochaine réunion ?\", FlowDown utilisera votre position actuelle pour proposer des recommandations ou des temps de trajet pertinents. Votre position n'est consultée que lorsque cela est nécessaire et n'est pas stockée par FlowDown. Si vous utilisez un modèle IA dans le cloud, ces données peuvent être envoyées à votre fournisseur de service."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous utilisons vos données audio pour la reconnaissance vocale. Elles sont traitées par le système et ne sont pas collectées par nous."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown は、あなたの依頼に応じて位置情報を使ったサポートを行うため、位置情報の許可が必要です。たとえば「近くのカフェを探して」や「次の予定までどれくらいかかる？」と尋ねた場合、現在地にアクセスして適切なおすすめや所要時間を提示します。位置情報は必要なときにのみ参照され、FlowDown に保存されることはありません。クラウドの AI モデルを利用する場合、これらのデータが選択したサービスプロバイダに送信される可能性があります。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声認識のために音声データを利用します。データはシステムで処理され、当社では収集しません。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown은 요청 시 위치 기반 도움을 제공하기 위해 위치 권한이 필요합니다. 예를 들어 \"내 근처 커피숍을 찾아줘\" 또는 \"다음 회의까지 얼마나 걸려?\"라고 묻으면 현재 위치를 사용해 추천이나 이동 시간을 제공합니다. 위치 정보는 필요한 경우에만 접근하며 FlowDown에서 저장하지 않습니다. 클라우드 기반 AI 모델을 사용할 경우, 이 데이터가 선택한 서비스 제공자에게 전송될 수 있습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성 인식을 위해 오디오 데이터를 사용합니다. 데이터는 시스템에서 처리되며 우리가 수집하지 않습니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们需要位置权限以便在您请求时提供基于位置的帮助。例如，当您询问\"查找附近的咖啡店\"或\"到达下一个会议需要多长时间\"时，将访问您的当前位置以提供相关建议或行程时间。您的位置仅在特定请求需要时被访问，而不会被存储。如果使用基于云的 AI 模型，这些数据可能会发送给您选择的服务提供商。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要音频输入权限来进行听写。我们不会收集你的数据，但可能会被系统上传处理。"
           }
         }
       }
     },
-    "NSLocationWhenInUseUsageDescription" : {
-      "comment" : "Privacy - Location When In Use Usage Description",
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown benötigt diese Berechtigung, um bei Bedarf deinen Standort abzurufen. Die Daten werden für die Anfrage genutzt und können an deinen Dienstanbieter übermittelt werden."
+    "NSPhotoLibraryAddUsageDescription": {
+      "comment": "Privacy - Photo Library Additions Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir benötigen diese Berechtigung, um Bilder für dich zu speichern. Deine Daten werden lokal gespeichert."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown needs this permission to access your location when required by AI. Your data will be available for the query and may be uploaded to your service provider."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We require this permission to save images for you. Your data will be saved locally."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown necesita este permiso para acceder a tu ubicación cuando la IA lo requiera. Los datos se usan para la consulta y pueden enviarse a tu proveedor de servicio."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos este permiso para guardar imágenes por ti. Tus datos se almacenarán localmente."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown a besoin de cette autorisation pour accéder à votre position lorsque l'IA en a besoin. Vos données sont utilisées pour la requête et peuvent être envoyées à votre fournisseur de service."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous avons besoin de cette autorisation pour enregistrer des images pour vous. Vos données seront conservées localement."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI が必要とするときに位置情報へアクセスするための許可が必要です。データはクエリのために使われ、サービスプロバイダに送信される場合があります。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像を保存するためにこの権限が必要です。データは端末に保存されます。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI가 필요할 때 위치를 사용할 수 있도록 이 권한이 필요합니다. 데이터는 요청 처리에 사용되며 서비스 제공자로 전송될 수 있습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미지를 저장하기 위해 이 권한이 필요합니다. 데이터는 로컬에 저장됩니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要此权限以便在 AI 需要时访问您的位置。您的数据将用于查询，并可能上传至您的服务提供商。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要这个权限来保存图片到相册。你的数据将在本地保存。"
           }
         }
       }
     },
-    "NSMicrophoneUsageDescription" : {
-      "comment" : "Privacy - Microphone Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wir verwenden deine Audiodaten zur Spracherkennung. Die Daten werden vom System verarbeitet; wir sammeln sie nicht."
+    "NSRemindersFullAccessUsageDescription": {
+      "comment": "Privacy - Reminders Full Access Usage Description",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We require Reminders access so you can ask the assistant to create, view, change, complete, or delete your reminders. For example, when you ask \"Add buying milk to my reminders for tomorrow,\" we will write the reminder into your default Reminders list. Your reminders are only processed locally to fulfill the request and are not stored by us. If you're using a cloud-based AI model, the relevant reminder text may be sent to your chosen service provider during processing."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information."
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir benötigen Zugriff auf Erinnerungen, damit du den Assistenten bitten kannst, Erinnerungen zu erstellen, anzusehen, zu ändern, abzuschließen oder zu löschen. Wenn du z. B. \"Füge Milchkauf zu meinen Erinnerungen für morgen hinzu\" sagst, schreiben wir die Erinnerung in deine Standard-Erinnerungsliste. Deine Erinnerungen werden nur lokal verarbeitet, um die Anfrage zu erfüllen, und nicht von uns gespeichert. Wenn du ein cloudbasiertes KI-Modell verwendest, kann der relevante Erinnerungstext während der Verarbeitung an deinen gewählten Dienstanbieter gesendet werden."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usamos tus datos de audio para el reconocimiento de voz. Los procesa el sistema; nosotros no los recopilamos."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos acceso a Recordatorios para que puedas pedirle al asistente que cree, vea, cambie, complete o elimine tus recordatorios. Por ejemplo, cuando dices \"Añade comprar leche a mis recordatorios para mañana\", escribiremos el recordatorio en tu lista de recordatorios predeterminada. Tus recordatorios solo se procesan localmente para cumplir con la solicitud y no los almacenamos. Si usas un modelo de IA en la nube, el texto relevante del recordatorio puede enviarse a tu proveedor de servicio durante el procesamiento."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nous utilisons vos données audio pour la reconnaissance vocale. Elles sont traitées par le système et ne sont pas collectées par nous."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous avons besoin d'un accès à Rappels pour que vous puissiez demander à l'assistant de créer, consulter, modifier, terminer ou supprimer vos rappels. Par exemple, lorsque vous demandez \"Ajoute l'achat de lait à mes rappels pour demain\", nous écrirons le rappel dans votre liste de rappels par défaut. Vos rappels sont uniquement traités localement pour satisfaire la demande et ne sont pas stockés par nous. Si vous utilisez un modèle IA dans le cloud, le texte de rappel pertinent peut être envoyé à votre fournisseur de service pendant le traitement."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声認識のために音声データを利用します。データはシステムで処理され、当社では収集しません。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リマインダーへのアクセスが必要です。アシスタントにリマインダーの作成、確認、変更、完了、削除を依頼できるようにするためです。たとえば「明日のリマインダーに牛乳を買うことを追加して」と依頼すると、デフォルトのリマインダーリストに書き込みます。リマインダーのデータはリクエストを実行するためにのみローカルで処理され、当社では保存しません。クラウドの AI モデルを利用する場合、処理の過程で関連するリマインダーのテキストが選択したサービスプロバイダに送信されることがあります。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음성 인식을 위해 오디오 데이터를 사용합니다. 데이터는 시스템에서 처리되며 우리가 수집하지 않습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "리마인더 접근 권한이 필요합니다. 어시스턴트에게 리마인더를 생성, 확인, 변경, 완료 또는 삭제하도록 요청할 수 있도록 하기 위해서입니다. 예를 들어 \"내일 리마인더에 우유 사기 추가해줘\"라고 요청하면 기본 리마인더 목록에 작성합니다. 리마인더 데이터는 요청을 수행하기 위해 로컬에서만 처리되며 우리가 저장하지 않습니다. 클라우드 기반 AI 모델을 사용할 경우, 처리 중 관련 리마인더 텍스트가 선택한 서비스 제공자에게 전송될 수 있습니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们需要音频输入权限来进行听写。我们不会收集你的数据，但可能会被系统上传处理。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要提醒事项访问权限，以便你可以要求助手创建、查看、修改、完成或删除你的提醒事项。例如，当你说\"把买牛奶加到明天的提醒事项中\"时，我们会将提醒写入你的默认提醒列表。你的提醒事项仅在本地处理以完成请求，而不会被我们存储。如果你使用基于云的 AI 模型，相关提醒文本可能会在处理过程中发送给你选择的服务提供商。"
           }
         }
       }
     },
-    "NSPhotoLibraryAddUsageDescription" : {
-      "comment" : "Privacy - Photo Library Additions Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown benötigt diese Berechtigung, um Bilder für dich zu speichern. Deine Daten werden lokal gespeichert."
+    "NSSpeechRecognitionUsageDescription": {
+      "comment": "Privacy - Speech Recognition Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir verwenden deine Audiodaten zur Spracherkennung. Die Daten werden vom System verarbeitet; wir sammeln sie nicht."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown requires this permission to save image for you. Your data will be saved locally."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown necesita este permiso para guardar imágenes por ti. Tus datos se almacenarán localmente."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usamos tus datos de audio para el reconocimiento de voz. Los procesa el sistema; nosotros no los recopilamos."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown a besoin de cette autorisation pour enregistrer des images pour vous. Vos données seront conservées localement."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous utilisons vos données audio pour la reconnaissance vocale. Elles sont traitées par le système et ne sont pas collectées par nous."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画像を保存するためにこの権限が必要です。データは端末に保存されます。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声認識のために音声データを利用します。データはシステムで処理され、当社では収集しません。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이미지를 저장하기 위해 이 권한이 필요합니다. 데이터는 로컬에 저장됩니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성 인식을 위해 오디오 데이터를 사용합니다. 데이터는 시스템에서 처리되며 우리가 수집하지 않습니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们需要这个权限来保存图片到相册。你的数据将在本地保存。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们需要音频输入权限来进行听写。我们不会收集你的数据，但可能会被系统上传处理。"
           }
         }
       }
     },
-    "NSRemindersFullAccessUsageDescription" : {
-      "comment" : "Privacy - Reminders Full Access Usage Description",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown benötigt Zugriff auf Erinnerungen, damit du den Assistenten bitten kannst, deine Erinnerungen zu erstellen, anzusehen, zu ändern, abzuschließen oder zu löschen. Wenn du z. B. „Füge ‚Milch kaufen‘ morgen meinen Erinnerungen hinzu“ sagst, schreibt FlowDown die Erinnerung in deine Standard-Erinnerungsliste. Deine Erinnerungen werden nur lokal verarbeitet, um die Anfrage zu erfüllen, und nicht von FlowDown gespeichert. Bei einem cloudbasierten KI-Modell kann der relevante Erinnerungstext während der Verarbeitung an deinen ausgewählten Dienstanbieter gesendet werden."
+    "FlowDown Model Context Protocol Server Configuration File": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Model Context Protocol Server-Konfigurationsdatei"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown requires Reminders access so you can ask the assistant to create, view, change, complete, or delete your reminders. For example, when you ask \"Add buying milk to my reminders for tomorrow,\" FlowDown will write the reminder into your default Reminders list. Your reminders are only processed locally to fulfill the request and are not stored by FlowDown. If you're using a cloud-based AI model, the relevant reminder text may be sent to your chosen service provider during processing."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Model Context Protocol Server Configuration File"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown necesita acceso a Recordatorios para que puedas pedirle al asistente crear, ver, modificar, completar o eliminar tus recordatorios. Por ejemplo, cuando dices «Añade comprar leche a mis recordatorios para mañana», FlowDown escribirá el recordatorio en tu lista predeterminada. Tus recordatorios solo se procesan localmente para cumplir la solicitud y FlowDown no los almacena. Si usas un modelo de IA en la nube, el texto del recordatorio relevante puede enviarse a tu proveedor de servicio durante el procesamiento."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo de configuración del servidor del protocolo Model Context de FlowDown"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown a besoin d’accéder aux Rappels pour que vous puissiez demander à l’assistant de créer, consulter, modifier, terminer ou supprimer vos rappels. Par exemple, si vous dites « Ajoute ‘acheter du lait’ demain dans mes rappels », FlowDown écrira le rappel dans votre liste par défaut. Vos rappels ne sont traités que localement pour répondre à la requête et ne sont pas stockés par FlowDown. Si vous utilisez un modèle IA dans le cloud, le texte du rappel concerné peut être envoyé à votre fournisseur de service pendant le traitement."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichier de configuration du serveur du protocole Model Context de FlowDown"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown は、アシスタントにリマインダーの作成・表示・変更・完了・削除を依頼できるようにするため、リマインダーへのアクセスを必要とします。例えば「明日のリマインダーに『牛乳を買う』を追加して」と頼むと、FlowDown はそのリマインダーをデフォルトのリマインダーリストに書き込みます。リマインダーのデータはこのリクエストを処理するためにローカルでのみ扱われ、FlowDown には保存されません。クラウドの AI モデルを利用する場合、関連するリマインダー本文が処理中に選択したサービスプロバイダに送信されることがあります。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown モデルコンテキストプロトコルサーバー設定ファイル"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown은 어시스턴트가 미리 알림을 만들고 보고 수정하고 완료하고 삭제할 수 있도록 미리 알림 접근 권한이 필요합니다. 예를 들어 \"내일 미리 알림에 우유 사기 추가해줘\"라고 말하면 FlowDown은 해당 미리 알림을 기본 목록에 기록합니다. 미리 알림 데이터는 요청을 수행하기 위해 로컬에서만 처리되며 FlowDown은 저장하지 않습니다. 클라우드 기반 AI 모델을 사용하는 경우, 관련 미리 알림 텍스트가 처리 중에 선택한 서비스 제공자에게 전송될 수 있습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown 모델 컨텍스트 프로토콜 서버 구성 파일"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 需要提醒事项权限，以便你可以让助手创建、查看、修改、完成或删除提醒事项。例如，当你说\"在我的提醒事项里加一个明天买牛奶\"时，FlowDown 会把这条提醒写入默认列表。你的提醒事项数据仅在本地处理用于完成本次请求，FlowDown 不会保存。如果你使用基于云的 AI 模型，相关提醒事项文本可能在处理过程中发送到你选择的服务提供商。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型上下文协议服务器配置文件"
           }
         }
       }
     },
-    "NSRemindersUsageDescription" : {
-      "comment" : "Privacy - Reminders Usage Description",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown benötigt Zugriff auf Erinnerungen, damit du den Assistenten bitten kannst, deine Erinnerungen zu erstellen, anzusehen, zu ändern, abzuschließen oder zu löschen. Wenn du z. B. „Füge ‚Milch kaufen‘ morgen meinen Erinnerungen hinzu“ sagst, schreibt FlowDown die Erinnerung in deine Standard-Erinnerungsliste. Deine Erinnerungen werden nur lokal verarbeitet, um die Anfrage zu erfüllen, und nicht von FlowDown gespeichert. Bei einem cloudbasierten KI-Modell kann der relevante Erinnerungstext während der Verarbeitung an deinen ausgewählten Dienstanbieter gesendet werden."
+    "FlowDown Model Evaluation Manifest": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Modell-Evaluierungsmanifest"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown requires Reminders access so you can ask the assistant to create, view, change, complete, or delete your reminders. For example, when you ask \"Add buying milk to my reminders for tomorrow,\" FlowDown will write the reminder into your default Reminders list. Your reminders are only processed locally to fulfill the request and are not stored by FlowDown. If you're using a cloud-based AI model, the relevant reminder text may be sent to your chosen service provider during processing."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Model Evaluation Manifest"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown necesita acceso a Recordatorios para que puedas pedirle al asistente crear, ver, modificar, completar o eliminar tus recordatorios. Por ejemplo, cuando dices «Añade comprar leche a mis recordatorios para mañana», FlowDown escribirá el recordatorio en tu lista predeterminada. Tus recordatorios solo se procesan localmente para cumplir la solicitud y FlowDown no los almacena. Si usas un modelo de IA en la nube, el texto del recordatorio relevante puede enviarse a tu proveedor de servicio durante el procesamiento."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manifiesto de Evaluación de Modelos FlowDown"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown a besoin d’accéder aux Rappels pour que vous puissiez demander à l’assistant de créer, consulter, modifier, terminer ou supprimer vos rappels. Par exemple, si vous dites « Ajoute ‘acheter du lait’ demain dans mes rappels », FlowDown écrira le rappel dans votre liste par défaut. Vos rappels ne sont traités que localement pour répondre à la requête et ne sont pas stockés par FlowDown. Si vous utilisez un modèle IA dans le cloud, le texte du rappel concerné peut être envoyé à votre fournisseur de service pendant le traitement."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manifeste d'évaluation de modèles FlowDown"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown は、アシスタントにリマインダーの作成・表示・変更・完了・削除を依頼できるようにするため、リマインダーへのアクセスを必要とします。例えば「明日のリマインダーに『牛乳を買う』を追加して」と頼むと、FlowDown はそのリマインダーをデフォルトのリマインダーリストに書き込みます。リマインダーのデータはこのリクエストを処理するためにローカルでのみ扱われ、FlowDown には保存されません。クラウドの AI モデルを利用する場合、関連するリマインダー本文が処理中に選択したサービスプロバイダに送信されることがあります。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown モデル評価マニフェスト"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown은 어시스턴트가 미리 알림을 만들고 보고 수정하고 완료하고 삭제할 수 있도록 미리 알림 접근 권한이 필요합니다. 예를 들어 \"내일 미리 알림에 우유 사기 추가해줘\"라고 말하면 FlowDown은 해당 미리 알림을 기본 목록에 기록합니다. 미리 알림 데이터는 요청을 수행하기 위해 로컬에서만 처리되며 FlowDown은 저장하지 않습니다. 클라우드 기반 AI 모델을 사용하는 경우, 관련 미리 알림 텍스트가 처리 중에 선택한 서비스 제공자에게 전송될 수 있습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown 모델 평가 매니페스트"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown 需要提醒事项权限，以便你可以让助手创建、查看、修改、完成或删除提醒事项。例如，当你说\"在我的提醒事项里加一个明天买牛奶\"时，FlowDown 会把这条提醒写入默认列表。你的提醒事项数据仅在本地处理用于完成本次请求，FlowDown 不会保存。如果你使用基于云的 AI 模型，相关提醒事项文本可能在处理过程中发送到你选择的服务提供商。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown 模型评估清单"
           }
         }
       }
     },
-    "NSSpeechRecognitionUsageDescription" : {
-      "comment" : "Privacy - Speech Recognition Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wir verwenden deine Audiodaten zur Spracherkennung. Die Daten werden vom System verarbeitet; wir sammeln sie nicht."
+    "FlowDown Model Evaluation Result": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Modellbewertungsergebnis"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "We use your audio data for speech recognition. Your data is processed by system; we do not collect that information."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Model Evaluation Result"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usamos tus datos de audio para el reconocimiento de voz. Los procesa el sistema; nosotros no los recopilamos."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resultado de evaluación del modelo de FlowDown"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nous utilisons vos données audio pour la reconnaissance vocale. Elles sont traitées par le système et ne sont pas collectées par nous."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Résultat d'évaluation du modèle FlowDown"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声認識のために音声データを利用します。データはシステムで処理され、当社では収集しません。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown モデル評価結果"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음성 인식을 위해 오디오 데이터를 사용합니다. 데이터는 시스템에서 처리되며 우리가 수집하지 않습니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown 모델 평가 결과"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们需要音频输入权限来进行听写。我们不会收集你的数据，但可能会被系统上传处理。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown 模型评测结果"
+          }
+        }
+      }
+    },
+    "FlowDown Model File": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Modelldatei"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Model File"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo de modelo de FlowDown"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichier de modèle FlowDown"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown モデルファイル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown 모델 파일"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型配置文件"
+          }
+        }
+      }
+    },
+    "FlowDown Template File": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Vorlagendatei"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown Template File"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo de plantilla de FlowDown"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichier de gabarit FlowDown"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown テンプレートファイル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FlowDown 템플릿 파일"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模版文件"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

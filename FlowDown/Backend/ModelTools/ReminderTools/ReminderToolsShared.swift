@@ -81,7 +81,7 @@ enum ReminderToolsShared {
             guard let calendar = eventStore.defaultCalendarForNewReminders() else {
                 throw NSError(
                     domain: errorDomain, code: 500, userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "No default Reminders list is available."),
+                        NSLocalizedDescriptionKey:  "No default Reminders list is available.",
                     ],
                 )
             }
