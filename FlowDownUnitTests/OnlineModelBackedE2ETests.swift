@@ -5,7 +5,7 @@ import Testing
 
 @Suite(.serialized)
 struct OnlineModelBackedE2ETests {
-    static let responseFormats: [CloudModel.ResponseFormat] = [.chatCompletions, .responses]
+    static let responseFormats = OnlineE2ETestSupport.responseFormats
 
     private func withTemporaryCloudModel<T>(
         responseFormat: CloudModel.ResponseFormat,

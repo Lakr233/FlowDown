@@ -2,7 +2,8 @@ name: Test
 
 # This workflow runs unit tests on pull requests, and online E2E tests
 # when the FLOWDOWN_ONLINE_E2E_TOKEN and FLOWDOWN_ONLINE_E2E_ENDPOINT
-# secrets are available.
+# secrets are available. Responses coverage is opt-in via
+# FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES or FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES.
 
 on:
   push:
@@ -41,50 +42,14 @@ jobs:
           chmod +x Resources/DevKit/scripts/select_newest_xcode.sh
           ./Resources/DevKit/scripts/select_newest_xcode.sh
 
-      - name: Resolve Packages
-        run: |
-          set -o pipefail
-          xcodebuild -downloadComponent MetalToolchain
-          xcodebuild \
-            -workspace FlowDown.xcworkspace \
-            -scheme FlowDown \
-            -resolvePackageDependencies \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            | xcbeautify --is-ci --disable-colored-output --disable-logging
+      - name: Install Metal Toolchain
+        run: make install-metal-toolchain
 
-      - name: Build FlowDown (for codegen)
-        run: |
-          set -o pipefail
-          xcodebuild -downloadComponent MetalToolchain
-          DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
-          xcodebuild \
-            -workspace FlowDown.xcworkspace \
-            -scheme FlowDown \
-            -configuration Debug \
-            -destination "$DESTINATION" \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            | xcbeautify --is-ci --disable-colored-output --disable-logging
+      - name: Resolve Packages
+        run: make package-resolve
 
       - name: Run Unit Tests
-        run: |
-          set -o pipefail
-          xcodebuild -downloadComponent MetalToolchain
-          DESTINATION=$(bash Resources/DevKit/scripts/get_first_ios_simulator.sh)
-          xcodebuild \
-            -workspace FlowDown.xcworkspace \
-            -scheme FlowDown \
-            -configuration Debug \
-            -destination "$DESTINATION" \
-            test \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            | xcbeautify --is-ci --disable-colored-output --disable-logging
+        run: make test-unit
 
       - name: Upload Test Results
         if: always()
@@ -104,6 +69,8 @@ jobs:
     env:
       FLOWDOWN_ONLINE_E2E_TOKEN: ${{ secrets.FLOWDOWN_ONLINE_E2E_TOKEN }}
       FLOWDOWN_ONLINE_E2E_ENDPOINT: ${{ secrets.FLOWDOWN_ONLINE_E2E_ENDPOINT }}
+      FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES: ${{ secrets.FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES }}
+      FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES: ${{ vars.FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES }}
     permissions:
       contents: read
     steps:
@@ -128,9 +95,7 @@ jobs:
 
       - name: Run Online E2E
         if: env.SKIP_E2E != 'true'
-        run: |
-          chmod +x Resources/DevKit/scripts/run_online_e2e_tests.sh
-          ./Resources/DevKit/scripts/run_online_e2e_tests.sh
+        run: make test-online-e2e
 
       - name: Upload Test Results
         if: always() && env.SKIP_E2E != 'true'

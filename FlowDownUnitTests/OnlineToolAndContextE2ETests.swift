@@ -11,7 +11,7 @@ import Testing
 /// - multi-turn context recall (prior assistant turn informs later answer)
 @Suite(.serialized)
 struct OnlineToolAndContextE2ETests {
-    static let responseFormats: [CloudModel.ResponseFormat] = [.chatCompletions, .responses]
+    static let responseFormats = OnlineE2ETestSupport.responseFormats
 
     // MARK: Tools
 
@@ -336,7 +336,7 @@ struct OnlineToolAndContextE2ETests {
                     .assistant(content: .text(turn1.text)),
                     .user(content: .text("What did I tell you my name was? Answer with just the name.")),
                 ],
-                maxCompletionTokens: 32,
+                maxCompletionTokens: 256,
                 temperature: 0,
             ),
         )
@@ -354,7 +354,7 @@ struct OnlineToolAndContextE2ETests {
                     .assistant(content: .text(turn2.text)),
                     .user(content: .text("And what is my favorite drink? Answer with just the drink name.")),
                 ],
-                maxCompletionTokens: 32,
+                maxCompletionTokens: 256,
                 temperature: 0,
             ),
         )

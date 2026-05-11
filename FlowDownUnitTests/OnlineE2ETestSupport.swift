@@ -8,6 +8,7 @@ enum OnlineE2ETestSupport {
     static let tokenEnvName = "FLOWDOWN_ONLINE_E2E_TOKEN"
     static let endpointEnvName = "FLOWDOWN_ONLINE_E2E_ENDPOINT"
     static let responsesEndpointEnvName = "FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES"
+    static let responsesEnableFlag = "FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES"
 
     // Endpoint and token are provided via environment variables (backed by
     // GitHub secrets in CI or a local ~/.testing file). The model identifier,
@@ -32,18 +33,33 @@ enum OnlineE2ETestSupport {
     }
 
     static func isEnabled(for responseFormat: CloudModel.ResponseFormat) -> Bool {
-        guard isExecutionEnabled else { return false }
         let environment = ProcessInfo.processInfo.environment
+        guard isExecutionEnabled(in: environment) else { return false }
         guard runtimeToken(in: environment) != nil else { return false }
         return runtimeEndpoint(for: responseFormat, in: environment) != nil
     }
 
     static var isExecutionEnabled: Bool {
-        let environment = ProcessInfo.processInfo.environment
+        isExecutionEnabled(in: ProcessInfo.processInfo.environment)
+    }
+
+    static func isExecutionEnabled(in environment: [String: String]) -> Bool {
         if environment[enableFlag] == "0" {
             return false
         }
         return true
+    }
+
+    static var responseFormats: [CloudModel.ResponseFormat] {
+        responseFormats(in: ProcessInfo.processInfo.environment)
+    }
+
+    static func responseFormats(in environment: [String: String]) -> [CloudModel.ResponseFormat] {
+        var formats: [CloudModel.ResponseFormat] = [.chatCompletions]
+        if runtimeEndpoint(for: .responses, in: environment) != nil {
+            formats.append(.responses)
+        }
+        return formats
     }
 
     static func runtimeCloudModel(responseFormat: CloudModel.ResponseFormat = .chatCompletions) throws -> CloudModel {
@@ -142,7 +158,7 @@ enum OnlineE2ETestSupport {
         return secretFromFiles(named: "flowdown-online-e2e.token")
     }
 
-    private static func runtimeEndpoint(
+    static func runtimeEndpoint(
         for responseFormat: CloudModel.ResponseFormat,
         in environment: [String: String],
     ) -> String? {
@@ -156,7 +172,9 @@ enum OnlineE2ETestSupport {
             if let fileValue = secretFromFiles(named: "flowdown-online-e2e.endpoint.responses") {
                 return fileValue
             }
-            if let base = primaryChatCompletionsEndpoint(in: environment) {
+            if environment[responsesEnableFlag] == "1",
+               let base = primaryChatCompletionsEndpoint(in: environment)
+            {
                 return deriveResponsesEndpoint(from: base)
             }
             return nil
@@ -170,9 +188,6 @@ enum OnlineE2ETestSupport {
         return secretFromFiles(named: "flowdown-online-e2e.endpoint")
     }
 
-    /// Swaps the trailing `/chat/completions` segment for `/responses` so a single
-    /// chat-completions secret can cover both APIs when the provider uses the
-    /// standard path layout.
     private static func deriveResponsesEndpoint(from endpoint: String) -> String? {
         guard var components = URLComponents(string: endpoint) else { return nil }
         var path = components.path

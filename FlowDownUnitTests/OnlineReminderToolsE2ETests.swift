@@ -13,7 +13,7 @@ import Testing
 /// real EventKit. Tool outputs are stubbed with placeholder strings.
 @Suite(.serialized)
 struct OnlineReminderToolsE2ETests {
-    static let responseFormats: [CloudModel.ResponseFormat] = [.chatCompletions, .responses]
+    static let responseFormats = OnlineE2ETestSupport.responseFormats
 
     // MARK: Client factory
 
@@ -170,14 +170,26 @@ struct OnlineReminderToolsE2ETests {
         let client = try makeClient(for: responseFormat)
         let tool = MTUpdateReminderTool().definition
         let prompt = """
-        The user already ran query_reminders and got a reminder whose id is "test-reminder-id-1234". Use the update_reminder tool exactly once to remove the existing notes from that reminder and set its priority to none. Leave every other field unchanged. Use the clear_* boolean flags for the fields you want to clear, and pass empty string / -1 plus clear_*=false for fields you want to leave alone. Then stop.
+        Call update_reminder exactly once with this JSON intent:
+        {
+          "reminder_id": "test-reminder-id-1234",
+          "title": "",
+          "notes": "",
+          "due_date": "",
+          "list_name": "",
+          "priority": -1,
+          "clear_notes": true,
+          "clear_due_date": false,
+          "clear_priority": true
+        }
+        Emit the tool call and stop.
         """
 
         let response = try await collect(
             client,
             body: ChatRequestBody(
                 messages: [.user(content: .text(prompt))],
-                maxCompletionTokens: 256,
+                maxCompletionTokens: 1024,
                 temperature: 0,
                 tools: [tool],
             ),
