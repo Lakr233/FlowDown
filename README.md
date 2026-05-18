@@ -80,9 +80,10 @@ The decoupled libraries used to build, or extracted from FlowDown are listed bel
 
 Please note that while the code is open source, the FlowDown name, icon, and artwork are proprietary. For commercial licensing inquiries, please contact us.
 
----
-
-© 2025-2026 FlowDown Team (@Lakr233) All Rights Reserved.
 ## Sponsor
 
 [LookInside](https://lookinside-app.com/) helps you inspect a running iOS or macOS app UI from your Mac.
+
+---
+
+© 2025-2026 FlowDown Team (@Lakr233) All Rights Reserved.
