@@ -83,3 +83,6 @@ Please note that while the code is open source, the FlowDown name, icon, and art
 ---
 
 © 2025-2026 FlowDown Team (@Lakr233) All Rights Reserved.
+## Sponsor
+
+[LookInside](https://lookinside-app.com/) helps you inspect a running iOS or macOS app UI from your Mac.
