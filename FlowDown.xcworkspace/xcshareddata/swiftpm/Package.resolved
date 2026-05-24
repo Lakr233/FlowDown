@@ -145,6 +145,15 @@
       }
     },
     {
+      "identity" : "lookinside-release",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LookInsideApp/LookInside-Release.git",
+      "state" : {
+        "revision" : "7514cfa8bd24a78f74d8b982c429e7d61ef58134",
+        "version" : "0.2.2"
+      }
+    },
+    {
       "identity" : "lrucache",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nicklockwood/LRUCache",

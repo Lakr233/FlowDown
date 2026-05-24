@@ -64,10 +64,18 @@ public final actor SyncEngine: Sendable {
     package static let CKRecordSentQueueIdSeparator: String = "##"
 
     public nonisolated static var isCloudSyncSupported: Bool {
-        if #available(iOS 17, macCatalyst 17, *) {
-            return true
-        }
-        return false
+        #if targetEnvironment(simulator)
+            return false
+        #else
+            if #available(iOS 17, macCatalyst 17, *) {
+                return true
+            }
+            return false
+        #endif
+    }
+
+    public nonisolated static func isCloudSyncSupported(containerIdentifier _: String?) -> Bool {
+        isCloudSyncSupported
     }
 
     private let createSyncEngine: (@Sendable (SyncEngine) -> AnyObject)?

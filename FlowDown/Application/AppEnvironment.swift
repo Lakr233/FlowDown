@@ -60,9 +60,9 @@ nonisolated extension AppEnvironment.Container {
     nonisolated static func live() throws -> AppEnvironment.Container {
         let storage = try Storage.db()
         let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-        let shouldUseMockSync = isRunningTests
 
-        let shouldEnableCloudSync = SyncEngine.isCloudSyncSupported
+        let shouldEnableCloudSync = SyncEngine.isCloudSyncSupported(containerIdentifier: CloudKitConfig.containerIdentifier)
+        let shouldUseMockSync = isRunningTests || !shouldEnableCloudSync
         if !shouldEnableCloudSync || shouldUseMockSync {
             SyncEngine.setSyncEnabled(false)
         }

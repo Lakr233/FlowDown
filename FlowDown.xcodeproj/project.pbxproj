@@ -159,6 +159,7 @@
 				Configuration/Version.xcconfig,
 				"Resources/InfoPlist/Info-Catalyst.plist",
 				"Resources/InfoPlist/Info-iOS.plist",
+				Resources/LookInsideServer.xcframework,
 			);
 			target = 503498BC2D23053D004672BD /* FlowDown */;
 		};
@@ -695,6 +696,10 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					"$(inherited)",
+					"LookInsideServer*",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "FlowDown/Resources/InfoPlist/Info-iOS.plist";
 				"INFOPLIST_FILE[sdk=macosx*]" = "FlowDown/Resources/InfoPlist/Info-Catalyst.plist";
