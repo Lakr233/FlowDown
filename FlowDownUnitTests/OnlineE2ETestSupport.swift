@@ -9,22 +9,25 @@ enum OnlineE2ETestSupport {
     static let endpointEnvName = "FLOWDOWN_ONLINE_E2E_ENDPOINT"
     static let responsesEndpointEnvName = "FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES"
     static let responsesEnableFlag = "FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES"
+    static let modelIDEnvName = "FLOWDOWN_ONLINE_E2E_MODEL_ID"
+    static let headersEnvName = "FLOWDOWN_ONLINE_E2E_HEADERS"
+    static let bodyFieldsEnvName = "FLOWDOWN_ONLINE_E2E_BODY_FIELDS"
 
     // Endpoint and token are provided via environment variables (backed by
     // GitHub secrets in CI or a local ~/.testing file). The model identifier,
-    // headers, body fields, and capabilities below track the exported
-    // kimi-k2p6-turbo .fdmodel but can still be overridden via env.
+    // headers, body fields, and capabilities below track the exported MiniMax
+    // DGX .fdmodel but can still be overridden via env.
     private static let embeddedFixture = EmbeddedCloudModelFixture(
-        modelIdentifier: "kimi-k2p6-turbo",
+        modelIdentifier: "MiniMax-M2.7",
         headers: [
             "HTTP-Referer": "https://flowdown.ai/",
             "X-Title": "FlowDown",
         ],
         bodyFields: "",
-        context: .long_200k,
+        context: .long_100k,
         capabilities: [.visual, .developerRole, .tool],
-        comment: "online-e2e",
-        name: "Embedded Online E2E Model",
+        comment: "DGX Spark llama.cpp CUDA, 128k server context, FlowDown long_100k import-safe context",
+        name: "MiniMax M2.7 DGX",
     )
 
     /// Convenience flag covering the default (chat completions) API path.
@@ -67,7 +70,8 @@ enum OnlineE2ETestSupport {
         let token = try resolveToken(in: environment)
         let endpoint = try resolveEndpoint(for: responseFormat, in: environment)
 
-        let fixture = embeddedFixture.overriding(with: environment)
+        let fixture = try runtimeFixture(in: environment)
+        _ = try parseAdditionalBodyFields(fixture.bodyFields)
 
         return CloudModel(
             deviceId: Storage.deviceId,
@@ -91,13 +95,14 @@ enum OnlineE2ETestSupport {
         let token = try resolveToken(in: environment)
         let endpoint = try resolveEndpoint(for: .chatCompletions, in: environment)
         let (baseURL, path) = splitEndpoint(endpoint)
-        let fixture = embeddedFixture.overriding(with: environment)
+        let fixture = try runtimeFixture(in: environment)
         return RemoteCompletionsChatClient(
             model: fixture.modelIdentifier,
             baseURL: baseURL,
             path: path,
             apiKey: token,
             additionalHeaders: fixture.headers,
+            additionalBodyField: try parseAdditionalBodyFields(fixture.bodyFields),
         )
     }
 
@@ -106,13 +111,14 @@ enum OnlineE2ETestSupport {
         let token = try resolveToken(in: environment)
         let endpoint = try resolveEndpoint(for: .responses, in: environment)
         let (baseURL, path) = splitEndpoint(endpoint)
-        let fixture = embeddedFixture.overriding(with: environment)
+        let fixture = try runtimeFixture(in: environment)
         return RemoteResponsesChatClient(
             model: fixture.modelIdentifier,
             baseURL: baseURL,
             path: path,
             apiKey: token,
             additionalHeaders: fixture.headers,
+            additionalBodyField: try parseAdditionalBodyFields(fixture.bodyFields),
         )
     }
 
@@ -202,6 +208,73 @@ enum OnlineE2ETestSupport {
         return components.string
     }
 
+    private static func runtimeFixture(in environment: [String: String]) throws -> EmbeddedCloudModelFixture {
+        let modelIdentifier = trimmedNonEmpty(environment[modelIDEnvName])
+            ?? secretFromFiles(named: "flowdown-online-e2e.model-id")
+            ?? embeddedFixture.modelIdentifier
+        let bodyFields = trimmedNonEmpty(environment[bodyFieldsEnvName])
+            ?? secretFromFiles(named: "flowdown-online-e2e.body-fields")
+            ?? embeddedFixture.bodyFields
+        let headers = try runtimeHeaders(in: environment)
+
+        return EmbeddedCloudModelFixture(
+            modelIdentifier: modelIdentifier,
+            headers: headers,
+            bodyFields: bodyFields,
+            context: embeddedFixture.context,
+            capabilities: embeddedFixture.capabilities,
+            comment: embeddedFixture.comment,
+            name: embeddedFixture.name,
+        )
+    }
+
+    private static func runtimeHeaders(in environment: [String: String]) throws -> [String: String] {
+        guard let text = trimmedNonEmpty(environment[headersEnvName])
+            ?? secretFromFiles(named: "flowdown-online-e2e.headers")
+        else {
+            return embeddedFixture.headers
+        }
+
+        guard let data = text.data(using: .utf8),
+              let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            throw NSError(
+                domain: "OnlineE2ETestSupport",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "FLOWDOWN_ONLINE_E2E_HEADERS must be a JSON object."],
+            )
+        }
+
+        var headers: [String: String] = [:]
+        for (key, value) in object {
+            guard let stringValue = value as? String else {
+                throw NSError(
+                    domain: "OnlineE2ETestSupport",
+                    code: 4,
+                    userInfo: [NSLocalizedDescriptionKey: "FLOWDOWN_ONLINE_E2E_HEADERS value for \(key) must be a string."],
+                )
+            }
+            headers[key] = stringValue
+        }
+        return headers
+    }
+
+    private static func parseAdditionalBodyFields(_ text: String) throws -> [String: Any] {
+        guard let text = trimmedNonEmpty(text) else {
+            return [:]
+        }
+        guard let data = text.data(using: .utf8),
+              let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            throw NSError(
+                domain: "OnlineE2ETestSupport",
+                code: 5,
+                userInfo: [NSLocalizedDescriptionKey: "FLOWDOWN_ONLINE_E2E_BODY_FIELDS must be a JSON object."],
+            )
+        }
+        return object
+    }
+
     private static func splitEndpoint(_ endpoint: String) -> (baseURL: String?, path: String?) {
         guard let components = URLComponents(string: endpoint), components.host != nil else {
             return (endpoint.isEmpty ? nil : endpoint, endpoint.isEmpty ? nil : "/")
@@ -267,16 +340,4 @@ private struct EmbeddedCloudModelFixture {
     let capabilities: Set<ModelCapabilities>
     let comment: String
     let name: String
-
-    func overriding(with environment: [String: String]) -> Self {
-        Self(
-            modelIdentifier: environment["FLOWDOWN_ONLINE_E2E_MODEL_ID"] ?? modelIdentifier,
-            headers: headers,
-            bodyFields: environment["FLOWDOWN_ONLINE_E2E_BODY_FIELDS"] ?? bodyFields,
-            context: context,
-            capabilities: capabilities,
-            comment: comment,
-            name: name,
-        )
-    }
 }

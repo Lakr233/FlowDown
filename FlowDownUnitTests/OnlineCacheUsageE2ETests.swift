@@ -40,7 +40,7 @@ struct OnlineCacheUsageE2ETests {
                 .system(content: .text(Self.cacheablePrefix())),
                 .user(content: .text("Reply with OK.")),
             ],
-            maxCompletionTokens: 1,
+            maxCompletionTokens: 128,
             temperature: 0,
         )
 
@@ -48,7 +48,7 @@ struct OnlineCacheUsageE2ETests {
         for attempt in 1 ... 5 {
             let usage = try await fetchUsage(body: body)
             usages.append(usage)
-            if usage.cachedInputTokens > 0 {
+            if usage.cachedInputTokens >= usage.promptTokens / 2 {
                 break
             }
             try await Task.sleep(for: .seconds(Double(attempt)))
@@ -56,7 +56,7 @@ struct OnlineCacheUsageE2ETests {
 
         let firstUsage = try #require(usages.first)
         let cacheHit = try #require(
-            usages.first { $0.cachedInputTokens > 0 },
+            usages.first { $0.cachedInputTokens >= $0.promptTokens / 2 },
             "Expected a repeated long prompt to report cached input tokens. Usages: \(usages)",
         )
 
@@ -66,6 +66,12 @@ struct OnlineCacheUsageE2ETests {
     }
 
     private func fetchUsage(body: ChatRequestBody) async throws -> ChatCompletionsUsageProbeResponse.Usage {
+        try await retryingTransientNetworkErrors {
+            try await fetchUsageOnce(body: body)
+        }
+    }
+
+    private func fetchUsageOnce(body: ChatRequestBody) async throws -> ChatCompletionsUsageProbeResponse.Usage {
         let client = try OnlineE2ETestSupport.makeCompletionsClient()
         let request = try client.makeURLRequest(body: client.resolve(body: body, stream: false))
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -85,9 +91,46 @@ struct OnlineCacheUsageE2ETests {
         return try JSONDecoder().decode(ChatCompletionsUsageProbeResponse.self, from: data).usage
     }
 
+    private func retryingTransientNetworkErrors<T>(
+        maxAttempts: Int = 3,
+        operation: @escaping () async throws -> T,
+    ) async throws -> T {
+        precondition(maxAttempts > 0)
+        var lastError: Error?
+        for attempt in 1 ... maxAttempts {
+            do {
+                return try await operation()
+            } catch {
+                lastError = error
+                guard attempt < maxAttempts, isTransientNetworkError(error) else { throw error }
+                try await Task.sleep(for: .seconds(Double(attempt)))
+            }
+        }
+        throw lastError ?? CancellationError()
+    }
+
+    private func isTransientNetworkError(_ error: Error) -> Bool {
+        let ns = error as NSError
+        if ns.domain == NSURLErrorDomain {
+            return [
+                NSURLErrorTimedOut,
+                NSURLErrorNetworkConnectionLost,
+                NSURLErrorCannotConnectToHost,
+                NSURLErrorCannotFindHost,
+                NSURLErrorDNSLookupFailed,
+                NSURLErrorResourceUnavailable,
+                NSURLErrorSecureConnectionFailed,
+            ].contains(ns.code)
+        }
+        if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? Error {
+            return isTransientNetworkError(underlying)
+        }
+        return false
+    }
+
     private static func cacheablePrefix() -> String {
         let probeID = UUID().uuidString
-        let repeated = (1 ... 2500)
+        let repeated = (1 ... 50)
             .map { "flowdown-cache-probe-\(probeID)-\($0)" }
             .joined(separator: " ")
         return """

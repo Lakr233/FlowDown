@@ -68,6 +68,7 @@ struct OnlineReminderToolsE2ETests {
                 NSURLErrorCannotFindHost,
                 NSURLErrorDNSLookupFailed,
                 NSURLErrorResourceUnavailable,
+                NSURLErrorSecureConnectionFailed,
             ].contains(ns.code)
         }
         if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? Error {
@@ -170,7 +171,8 @@ struct OnlineReminderToolsE2ETests {
         let client = try makeClient(for: responseFormat)
         let tool = MTUpdateReminderTool().definition
         let prompt = """
-        Call update_reminder exactly once with this JSON intent:
+        You must use the update_reminder tool exactly once now.
+        Do not answer in text. Do not explain. Emit one tool call with these exact arguments:
         {
           "reminder_id": "test-reminder-id-1234",
           "title": "",

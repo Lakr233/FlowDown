@@ -2,7 +2,8 @@ name: Test
 
 # This workflow runs unit tests on pull requests, and online E2E tests
 # when the FLOWDOWN_ONLINE_E2E_TOKEN and FLOWDOWN_ONLINE_E2E_ENDPOINT
-# secrets are available. Responses coverage is opt-in via
+# secrets are available. The default online E2E model is MiniMax-M2.7.
+# Responses coverage is opt-in via
 # FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES or FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES.
 
 on:
@@ -69,6 +70,7 @@ jobs:
     env:
       FLOWDOWN_ONLINE_E2E_TOKEN: ${{ secrets.FLOWDOWN_ONLINE_E2E_TOKEN }}
       FLOWDOWN_ONLINE_E2E_ENDPOINT: ${{ secrets.FLOWDOWN_ONLINE_E2E_ENDPOINT }}
+      FLOWDOWN_ONLINE_E2E_MODEL_ID: MiniMax-M2.7
       FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES: ${{ secrets.FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES }}
       FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES: ${{ vars.FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES }}
     permissions:

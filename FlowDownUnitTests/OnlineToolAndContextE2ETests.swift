@@ -101,6 +101,7 @@ struct OnlineToolAndContextE2ETests {
                 NSURLErrorCannotFindHost,
                 NSURLErrorDNSLookupFailed,
                 NSURLErrorResourceUnavailable,
+                NSURLErrorSecureConnectionFailed,
             ].contains(ns.code)
         }
         if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? Error {

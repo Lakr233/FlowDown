@@ -130,7 +130,7 @@ test-unit:
 		-destination "$$DESTINATION" \
 		test
 
-test-online-e2e:
+test-online-e2e: install-metal-toolchain package-resolve
 	./Resources/DevKit/scripts/run_online_e2e_tests.sh
 
 install-metal-toolchain:
