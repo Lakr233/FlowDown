@@ -65,6 +65,23 @@ public final class Conversation: Identifiable, Codable, TableNamed, DeviceOwned,
         self.deviceId = deviceId
     }
 
+    /// Custom decode tolerant of payloads predating `ext_data` (CloudKit sync
+    /// records, imported JSON, legacy DB rows). Round 1 codex HIGH #1.
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        objectId = try container.decodeIfPresent(String.self, forKey: .objectId) ?? UUID().uuidString
+        deviceId = try container.decodeIfPresent(String.self, forKey: .deviceId) ?? ""
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        creation = try container.decodeIfPresent(Date.self, forKey: .creation) ?? .now
+        icon = try container.decodeIfPresent(Data.self, forKey: .icon) ?? Data()
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        shouldAutoRename = try container.decodeIfPresent(Bool.self, forKey: .shouldAutoRename) ?? true
+        modelId = try container.decodeIfPresent(String.self, forKey: .modelId)
+        ext_data = try container.decodeIfPresent(ExtensionDictionary.self, forKey: .ext_data) ?? .init()
+        removed = try container.decodeIfPresent(Bool.self, forKey: .removed) ?? false
+        modified = try container.decodeIfPresent(Date.self, forKey: .modified) ?? .init()
+    }
+
     public func markModified(_ date: Date = .now) {
         modified = date
     }

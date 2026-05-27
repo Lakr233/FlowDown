@@ -72,7 +72,7 @@ enum ChatScriptingAdapter {
             "model_identifier": .string(model.model_identifier),
             "endpoint": .string(model.endpoint),
             "comment": .string(model.comment),
-            "headers": .object(model.headers.mapValues { .string($0) }),
+            "headers": .object(sanitizedHeaders(model.headers).mapValues { .string($0) }),
             "bodyFields": .string(model.bodyFields),
             "capabilities": .array(Array(model.capabilities).map { .string($0.rawValue) }),
             "context": .int(model.context.rawValue),
@@ -83,5 +83,27 @@ enum ChatScriptingAdapter {
             // not a security boundary).
         ])
         return ManifestSnapshot(payload: safe)
+    }
+
+    /// Round 1 impl-review HIGH #8 fix: model.headers can contain bearer
+    /// tokens / API keys disguised as user-set headers. Drop any header
+    /// whose name (case-insensitively) matches a known credential pattern
+    /// before exposing to the manifest. inherit=true scripts can still see
+    /// the constructed Authorization on the URLRequest; this is just
+    /// defense-in-depth for the manifest channel.
+    private static func sanitizedHeaders(_ headers: [String: String]) -> [String: String] {
+        let blockedNames: Set<String> = [
+            "authorization",
+            "proxy-authorization",
+            "x-api-key",
+            "api-key",
+            "x-auth-token",
+            "x-access-token",
+            "cookie",
+            "set-cookie",
+        ]
+        return headers.filter { key, _ in
+            !blockedNames.contains(key.lowercased())
+        }
     }
 }
