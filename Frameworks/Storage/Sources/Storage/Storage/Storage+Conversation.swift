@@ -59,50 +59,65 @@ public extension Storage {
     }
 
     func conversationUpdate(objects: [Conversation]) {
-        guard !objects.isEmpty else {
-            return
-        }
-        let modified = Date.now
-//        objects.forEach { $0.markModified(modified) }
+        try? conversationUpdateThrowing(objects: objects)
+    }
 
-        try? runTransaction { [weak self] in
+    /// 同 conversationUpdate(objects:),但**失败抛错**而非静默吞掉。
+    /// 用于像 `cck.saveContext` 这种需要"写盘失败必须可见"的场景。
+    func conversationUpdateThrowing(object: Conversation) throws {
+        try conversationUpdateThrowing(objects: [object])
+    }
+
+    func conversationUpdateThrowing(objects: [Conversation]) throws {
+        guard !objects.isEmpty else { return }
+        let modified = Date.now
+        try runTransaction { [weak self] handle in
             guard let self else { return }
 
-            let diff = try diffSyncable(objects: objects, handle: $0)
-            guard !diff.isEmpty else {
-                return
-            }
+            let diff = try diffSyncable(objects: objects, handle: handle)
+            guard !diff.isEmpty else { return }
 
-            // 恢复修改时间
             diff.insert.forEach { $0.markModified($0.creation) }
 
-            try $0.insertOrReplace(diff.insertOrReplace(), intoTable: Conversation.tableName)
+            try handle.insertOrReplace(diff.insertOrReplace(), intoTable: Conversation.tableName)
 
             if !diff.deleted.isEmpty {
                 let deletedIds = diff.deleted.map(\.objectId)
                 let update = StatementUpdate().update(table: Conversation.tableName)
-                    .set(Conversation.Properties.removed)
-                    .to(true)
-                    .set(Conversation.Properties.modified)
-                    .to(modified)
+                    .set(Conversation.Properties.removed).to(true)
+                    .set(Conversation.Properties.modified).to(modified)
                     .where(Conversation.Properties.objectId.in(deletedIds))
-
-                try $0.exec(update)
+                try handle.exec(update)
             }
 
             var changes = diff.insert.map { ($0, UploadQueue.Changes.insert) }
                 + diff.updated.map { ($0, UploadQueue.Changes.update) }
                 + diff.deleted.map { ($0, UploadQueue.Changes.delete) }
-            // 按 modified 升序
             changes.sort { $0.0.modified < $1.0.modified }
 
-            try pendingUploadEnqueue(sources: changes, handle: $0)
+            try pendingUploadEnqueue(sources: changes, handle: handle)
         }
 
-        // 触发同步
-        Task {
-            try? await syncEngine?.sendChanges()
+        Task { try? await syncEngine?.sendChanges() }
+    }
+
+    /// 写 `Conversation.ext_data[key]` 并落盘。
+    /// `Conversation.ext_data` 是 `package(set)`,跨 target 不可写,必须通过此 API。
+    /// **失败抛错**(不像 `conversationUpdate` 那样 `try?` 吞)。
+    /// 内部 `markModified()` 确保 `diffSyncable` 识别变化、upload queue 入队。
+    func conversationExtDataPut(
+        id: Conversation.ID,
+        key: String,
+        value: String?
+    ) throws {
+        guard let conv = conversationWith(identifier: id) else {
+            throw StorageError.conversationNotFound(id)
         }
+        var ext = conv.ext_data
+        ext[key] = value
+        conv.ext_data = ext
+        conv.markModified()
+        try conversationUpdateThrowing(object: conv)
     }
 
     func conversationWith(identifier: Conversation.ID) -> Conversation? {

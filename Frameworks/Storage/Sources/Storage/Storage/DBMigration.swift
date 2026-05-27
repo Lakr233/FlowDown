@@ -721,3 +721,25 @@ struct MigrationV5ToV6: DBMigration {
         Logger.database.infoFile("[*] migrate version \(fromVersion.rawValue) -> \(toVersion.rawValue) end elapsed \(Int(elapsed))ms")
     }
 }
+
+struct MigrationV6ToV7: DBMigration {
+    let fromVersion: DBVersion = .Version6
+    let toVersion: DBVersion = .Version7
+    let requiresDataMigration: Bool = false
+
+    func migrate(db: Database) throws {
+        let start = Date.now
+        Logger.database.infoFile("[*] migrate version \(fromVersion.rawValue) -> \(toVersion.rawValue) begin")
+
+        // Add `ext_data` column to CloudModel & Conversation。
+        // WCDB 的 db.create(table:of:) 对已存在表等价于 schema 对齐(补缺失列),
+        // 与 V3ToV4 加 bodyFields、V2ToV3 加 Message 字段一致的既有模式。
+        try db.create(table: CloudModel.tableName, of: CloudModel.self)
+        try db.create(table: Conversation.tableName, of: Conversation.self)
+
+        try db.exec(StatementPragma().pragma(.userVersion).to(toVersion.rawValue))
+
+        let elapsed = Date.now.timeIntervalSince(start) * 1000.0
+        Logger.database.infoFile("[*] migrate version \(fromVersion.rawValue) -> \(toVersion.rawValue) end elapsed \(Int(elapsed))ms")
+    }
+}

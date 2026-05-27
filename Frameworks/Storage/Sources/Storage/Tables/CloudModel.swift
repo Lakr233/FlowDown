@@ -46,6 +46,10 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
     /// custom display name for the model
     public package(set) var name: String = ""
 
+    /// 通用扩展容器(plist 编码,key-value 字符串)。模块通过 `ExtensionKey.*` 常量 access。
+    /// **永不 rename**。
+    public package(set) var ext_data: ExtensionDictionary = .init()
+
     public enum CodingKeys: String, CodingTableKey {
         public typealias Root = CloudModel
         public static let objectRelationalMapping = TableBinding(CodingKeys.self) {
@@ -68,6 +72,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
             BindColumnConstraint(name, isNotNull: true, defaultTo: "")
             BindColumnConstraint(temperature_preference, isNotNull: false, defaultTo: ModelTemperaturePreference.inherit)
             BindColumnConstraint(response_format, isNotNull: true, defaultTo: CloudModel.ResponseFormat.default)
+            BindColumnConstraint(ext_data, isNotNull: true, defaultTo: ExtensionDictionary())
 
             BindIndex(creation, namedWith: "_creationIndex")
             BindIndex(modified, namedWith: "_modifiedIndex")
@@ -88,6 +93,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         case comment
         case name
         case temperature_preference
+        case ext_data
 
         case removed
         case modified
@@ -149,6 +155,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         temperature_preference = try container.decodeIfPresent(ModelTemperaturePreference.self, forKey: .temperature_preference) ?? .inherit
 
         response_format = try container.decodeIfPresent(CloudModel.ResponseFormat.self, forKey: .response_format) ?? .default
+        ext_data = try container.decodeIfPresent(ExtensionDictionary.self, forKey: .ext_data) ?? .init()
         removed = try container.decodeIfPresent(Bool.self, forKey: .removed) ?? false
     }
 
@@ -176,6 +183,7 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         hasher.combine(response_format)
         hasher.combine(comment)
         hasher.combine(name)
+        hasher.combine(ext_data)
         hasher.combine(removed)
     }
 }

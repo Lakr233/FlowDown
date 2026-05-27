@@ -22,6 +22,10 @@ public final class Conversation: Identifiable, Codable, TableNamed, DeviceOwned,
     public package(set) var removed: Bool = false
     public package(set) var modified: Date = .init()
 
+    /// 通用扩展容器(plist 编码,key-value 字符串)。模块通过 `ExtensionKey.*` 常量 access。
+    /// **永不 rename**。
+    public package(set) var ext_data: ExtensionDictionary = .init()
+
     public enum CodingKeys: String, CodingTableKey {
         public typealias Root = Conversation
         public static let objectRelationalMapping = TableBinding(CodingKeys.self) {
@@ -37,6 +41,7 @@ public final class Conversation: Identifiable, Codable, TableNamed, DeviceOwned,
             BindColumnConstraint(isFavorite, isNotNull: true, defaultTo: false)
             BindColumnConstraint(shouldAutoRename, isNotNull: true, defaultTo: true)
             BindColumnConstraint(modelId, isNotNull: false, defaultTo: nil)
+            BindColumnConstraint(ext_data, isNotNull: true, defaultTo: ExtensionDictionary())
 
             BindIndex(creation, namedWith: "_creationIndex")
             BindIndex(modified, namedWith: "_modifiedIndex")
@@ -50,6 +55,7 @@ public final class Conversation: Identifiable, Codable, TableNamed, DeviceOwned,
         case isFavorite
         case shouldAutoRename
         case modelId
+        case ext_data
 
         case removed
         case modified
@@ -96,7 +102,8 @@ extension Conversation: Equatable {
             lhs.modelId == rhs.modelId &&
             lhs.objectId == rhs.objectId &&
             lhs.removed == rhs.removed &&
-            lhs.modified == rhs.modified
+            lhs.modified == rhs.modified &&
+            lhs.ext_data == rhs.ext_data
     }
 }
 
@@ -110,6 +117,7 @@ extension Conversation: Hashable {
         hasher.combine(isFavorite)
         hasher.combine(shouldAutoRename)
         hasher.combine(modelId)
+        hasher.combine(ext_data)
 
         hasher.combine(removed)
         hasher.combine(modified)

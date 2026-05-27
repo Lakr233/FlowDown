@@ -86,6 +86,24 @@ public extension Storage {
         try? cloudModelPut(objects: [object])
     }
 
+    /// 写 `CloudModel.ext_data[key]` 并落盘。
+    /// `CloudModel.ext_data` 是 `package(set)`,跨 target 不可写,必须通过此 API。
+    /// 失败抛错(symmetric to `conversationExtDataPut`)。
+    func cloudModelExtDataPut(
+        id: CloudModel.ID,
+        key: String,
+        value: String?
+    ) throws {
+        guard let model = cloudModel(with: id) else {
+            throw StorageError.cloudModelNotFound(id)
+        }
+        var ext = model.ext_data
+        ext[key] = value
+        model.ext_data = ext
+        model.markModified()
+        try cloudModelPut(model)
+    }
+
     func cloudModelRemove(identifier: CloudModel.ID, handle: Handle? = nil) {
         let object: CloudModel? = if let handle {
             try? handle.getObject(fromTable: CloudModel.tableName, where: CloudModel.Properties.objectId == identifier)
