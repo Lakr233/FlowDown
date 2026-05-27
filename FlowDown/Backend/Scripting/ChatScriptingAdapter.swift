@@ -85,25 +85,25 @@ enum ChatScriptingAdapter {
         return ManifestSnapshot(payload: safe)
     }
 
-    /// Round 1 impl-review HIGH #8 fix: model.headers can contain bearer
-    /// tokens / API keys disguised as user-set headers. Drop any header
-    /// whose name (case-insensitively) matches a known credential pattern
-    /// before exposing to the manifest. inherit=true scripts can still see
-    /// the constructed Authorization on the URLRequest; this is just
-    /// defense-in-depth for the manifest channel.
+    /// Round 1/2 impl-review fix: drop any header whose lowercased name
+    /// **contains** any of these substrings. Pattern-based deny rather
+    /// than exact-match because providers use many variants:
+    /// `x-goog-api-key`, `cf-access-client-secret`, `x-amz-security-token`,
+    /// `apikey`, `api_key`, `x-api-token`, etc.
     private static func sanitizedHeaders(_ headers: [String: String]) -> [String: String] {
-        let blockedNames: Set<String> = [
-            "authorization",
-            "proxy-authorization",
-            "x-api-key",
-            "api-key",
-            "x-auth-token",
-            "x-access-token",
-            "cookie",
-            "set-cookie",
+        let denyPatterns = [
+            "authorization", // Authorization / Proxy-Authorization
+            "cookie", // Cookie / Set-Cookie
+            "token", // x-auth-token / x-access-token / x-api-token / x-amz-security-token
+            "api-key", // x-api-key / api-key
+            "apikey", // apikey / x-goog-apikey
+            "api_key", // api_key / x_api_key
+            "secret", // client-secret / cf-access-client-secret
+            "credential", // x-aws-credential
         ]
         return headers.filter { key, _ in
-            !blockedNames.contains(key.lowercased())
+            let lower = key.lowercased()
+            return !denyPatterns.contains { lower.contains($0) }
         }
     }
 }

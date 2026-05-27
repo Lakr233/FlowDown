@@ -417,6 +417,24 @@ extension ModelManager {
                     }
                     await reasoningEmitter.wait()
                     await textEmitter.wait()
+                    // Round 2 impl-review MED #4 fix:
+                    // When scripting is active, the stream processor signals
+                    // terminal post_process failure via errorCollector +
+                    // continuation.finish() (AsyncStream can't throw). If we
+                    // only checked collectedErrors when output was empty,
+                    // partial-output cases would silently appear "successful".
+                    // Now: if a scripting handle was attached AND any error
+                    // was collected during the stream, surface it as a
+                    // throwing finish — partial output is not success when
+                    // the JS pipeline failed.
+                    if scripting != nil, let error = client.collectedErrors, !error.isEmpty {
+                        cont.finish(throwing: NSError(
+                            domain: "Model",
+                            code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: error],
+                        ))
+                        return
+                    }
                     if emotionalDamage == 0 {
                         Logger.model.debugFile("model \(modelID) generated no text output in streaming inference")
                         if let error = client.collectedErrors {
