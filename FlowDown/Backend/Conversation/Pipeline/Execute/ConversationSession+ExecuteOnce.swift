@@ -28,10 +28,15 @@ extension ConversationSession {
             "model_id": modelID,
         ])
 
+        let scripting = ChatScriptingAdapter.makeHandle(
+            modelIdentifier: modelID,
+            conversationId: id,
+        )
         let stream = try await ModelManager.shared.streamingInfer(
             with: modelID,
             input: requestMessages,
             tools: tools,
+            scripting: scripting,
         )
         defer { self.stopThinking(for: message.objectId) }
 

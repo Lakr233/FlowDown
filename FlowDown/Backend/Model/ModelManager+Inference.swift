@@ -351,6 +351,7 @@ extension ModelManager {
         maxCompletionTokens: Int? = nil,
         input: [ChatRequestBody.Message],
         tools: [ChatRequestBody.Tool]? = nil,
+        scripting: ChatScriptingHandle? = nil,
     ) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> {
         let client = try chatService(
             for: modelID,
@@ -390,7 +391,7 @@ extension ModelManager {
                 var emotionalDamage = 0
 
                 do {
-                    let sequence = try await client.streamingChat(body: body)
+                    let sequence = try await client.streamingChat(body: body, scripting: scripting)
 
                     for try await chunk in sequence {
                         switch chunk {
