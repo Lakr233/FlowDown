@@ -53,7 +53,7 @@ endef
 
 .PHONY: all help \
 	build build-ios build-catalyst build-extension \
-	test test-unit test-online-e2e \
+	test test-unit test-chatclientkit test-online-e2e \
 	install-metal-toolchain package-resolve package-update scan-license \
 	localization-check localization-stale-check \
 	archive archive-ios archive-macos \
@@ -71,6 +71,7 @@ help:
 	@echo "Test:"
 	@echo "  test                  Run the default test flow"
 	@echo "  test-unit             Run app tests on the first available iOS simulator"
+	@echo "  test-chatclientkit    Run ChatClientKit package tests"
 	@echo "  test-online-e2e       Run online e2e tests"
 	@echo ""
 	@echo "Packages & licenses:"
@@ -127,6 +128,14 @@ test-unit:
 	DESTINATION="$$(./Resources/DevKit/scripts/get_first_ios_simulator.sh)"; \
 	$(BUILD_ENV) XCBUILD_LABEL=test-unit $(XCODEBUILD) \
 		-scheme $(IOS_SCHEME) \
+		-destination "$$DESTINATION" \
+		test
+
+test-chatclientkit:
+	$(prepare-build-dirs)
+	DESTINATION="$$(./Resources/DevKit/scripts/get_first_ios_simulator.sh)"; \
+	$(BUILD_ENV) XCBUILD_LABEL=test-chatclientkit $(XCODEBUILD) \
+		-scheme ChatClientKitTests \
 		-destination "$$DESTINATION" \
 		test
 

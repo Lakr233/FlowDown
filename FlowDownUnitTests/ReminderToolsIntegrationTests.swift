@@ -261,7 +261,7 @@ final class ReminderTestEnvironment: @unchecked Sendable {
 
     private static func requestAccess(store: EKEventStore) async throws {
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            let handler: (Bool, Error?) -> Void = { granted, error in
+            let handler: @Sendable (Bool, (any Error)?) -> Void = { granted, error in
                 if let error {
                     cont.resume(throwing: error)
                 } else if !granted {
