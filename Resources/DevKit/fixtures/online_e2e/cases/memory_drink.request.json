@@ -1,0 +1,32 @@
+{
+  "max_completion_tokens": 256,
+  "messages": [
+    {
+      "content": "You answer concisely and truthfully, reusing prior facts.",
+      "role": "system"
+    },
+    {
+      "content": "Hi! Remember two things: my name is Priya and my favorite drink is oolong tea. Reply with a short acknowledgment.",
+      "role": "user"
+    },
+    {
+      "content": "Got it, Priya. I’ll remember that your favorite drink is oolong tea.",
+      "role": "assistant"
+    },
+    {
+      "content": "What did I tell you my name was? Answer with just the name.",
+      "role": "user"
+    },
+    {
+      "content": "Priya",
+      "role": "assistant"
+    },
+    {
+      "content": "And what is my favorite drink? Answer with just the drink name.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0
+}

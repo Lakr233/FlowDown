@@ -1,0 +1,75 @@
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Use the query_reminders tool exactly once to list every incomplete reminder in the user's \"Inbox\" list with no date filters applied. Pass empty strings for all date bounds. Then stop.\nEmpty string means exactly two quote characters with no spaces between them.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0,
+  "tools": [
+    {
+      "function": {
+        "description": "Query reminders from the user's system Reminders. Filter by completion status, by Reminders list name, and optionally by independent date ranges on the reminder's due date, alarm/alert time, and completion date.\nEach range is applied independently with AND semantics: a reminder is returned only when every *active* range matches (a range is active when at least one of its bounds is non-empty). Reminders missing the field that an active range targets are excluded by that range (e.g. an incomplete reminder is excluded by any active completed_* range; a reminder with no alarms is excluded by any active alert_* range).\nThe alert range matches when *any* alarm on the reminder has an absolute date inside the range. The completed range is only meaningful for completed reminders.\nEach individual range cannot exceed 365 days, and start must be on or before end. All dates are ISO 8601 UTC.\nPass empty strings for any range you don't want to apply.",
+        "name": "query_reminders",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "alert_end_date": {
+              "description": "Upper bound for any alarm/alert time on the reminder, ISO 8601 UTC. Pass empty string to skip.",
+              "type": "string"
+            },
+            "alert_start_date": {
+              "description": "Lower bound for any alarm/alert time on the reminder, ISO 8601 UTC. Pass empty string to skip.",
+              "type": "string"
+            },
+            "completed_end_date": {
+              "description": "Upper bound for the reminder's completion date, ISO 8601 UTC. Pass empty string to skip.",
+              "type": "string"
+            },
+            "completed_start_date": {
+              "description": "Lower bound for the reminder's completion date, ISO 8601 UTC. Pass empty string to skip.",
+              "type": "string"
+            },
+            "due_end_date": {
+              "description": "Upper bound for the reminder's due date, ISO 8601 UTC. Pass empty string to skip.",
+              "type": "string"
+            },
+            "due_start_date": {
+              "description": "Lower bound for the reminder's due date, ISO 8601 UTC. Pass empty string to skip.",
+              "type": "string"
+            },
+            "list_name": {
+              "description": "Restrict to a single Reminders list by name. Pass empty string to query all lists.",
+              "type": "string"
+            },
+            "status": {
+              "description": "Which reminders to return.",
+              "enum": [
+                "incomplete",
+                "completed",
+                "all"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "list_name",
+            "due_start_date",
+            "due_end_date",
+            "alert_start_date",
+            "alert_end_date",
+            "completed_start_date",
+            "completed_end_date"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
+}

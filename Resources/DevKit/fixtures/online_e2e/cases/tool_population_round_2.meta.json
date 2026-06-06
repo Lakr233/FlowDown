@@ -1,0 +1,8 @@
+{
+  "content_type": "text/event-stream",
+  "key": "tool_population_round_2",
+  "status": 200,
+  "stream": true,
+  "upstream_endpoint": "https://api.fireworks.ai/inference/v1/chat/completions",
+  "upstream_model": "accounts/fireworks/models/deepseek-v4-pro"
+}

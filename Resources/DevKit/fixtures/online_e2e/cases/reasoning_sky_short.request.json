@@ -1,0 +1,19 @@
+{
+  "max_completion_tokens": 512,
+  "messages": [
+    {
+      "content": "Briefly explain why the sky is blue, in one sentence.",
+      "role": "user"
+    },
+    {
+      "content": "The sky appears blue because air molecules scatter shorter-wavelength blue light from the sun more effectively than the longer-wavelength colors, and our eyes are more sensitive to blue than to the violet light that is also scattered.",
+      "role": "assistant"
+    },
+    {
+      "content": "Now restate that in five words or fewer.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true
+}

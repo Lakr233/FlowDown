@@ -1,0 +1,55 @@
+{
+  "max_completion_tokens": 256,
+  "messages": [
+    {
+      "content": "Use the add_reminder tool exactly once to schedule a reminder titled \"Buy oat milk\" with notes \"2 liters from the corner store\" and a due date of 2026-05-12T09:00:00Z. Use the default Reminders list (pass an empty list_name) and priority 5. Then stop.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0,
+  "tools": [
+    {
+      "function": {
+        "description": "Creates a new reminder in the user's system Reminders. Provide a title and any optional fields. Convert all dates to ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z') yourself; do not ask the user.\nPriority follows EKReminder convention: 0 = no priority, 1 = high, 5 = medium, 9 = low.\nPass an empty string for optional text fields and an empty string for due_date when not set. Pass 0 for priority when not set. Pass an empty list_name to use the default Reminders list.",
+        "name": "add_reminder",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "due_date": {
+              "description": "Due date in ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z'). Pass empty string for no due date.",
+              "type": "string"
+            },
+            "list_name": {
+              "description": "Name of the Reminders list (calendar) to add to. Pass empty string for the default list.",
+              "type": "string"
+            },
+            "notes": {
+              "description": "Free-form notes for the reminder. Pass empty string for none.",
+              "type": "string"
+            },
+            "priority": {
+              "description": "EKReminder priority (0 = none, 1 = high, 5 = medium, 9 = low).",
+              "type": "integer"
+            },
+            "title": {
+              "description": "Title of the reminder. Required and must be non-empty.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "notes",
+            "due_date",
+            "priority",
+            "list_name"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
+}

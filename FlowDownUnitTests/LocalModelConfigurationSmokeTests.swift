@@ -1,9 +1,13 @@
 @testable import FlowDown
 import Foundation
+import MLXLLM
+import MLXLMCommon
 import Storage
 import Testing
 
 struct LocalModelConfigurationSmokeTests {
+    private static let mlxValidationModelID = "mlx-community/Qwen3.5-2B-4bit"
+
     @Test
     func `root fdmodel files decode as cloud models when present`() throws {
         let repositoryRoot = URL(fileURLWithPath: #filePath)
@@ -33,5 +37,14 @@ struct LocalModelConfigurationSmokeTests {
                 #expect(inferredFormat == model.response_format)
             }
         }
+    }
+
+    @Test
+    func `selected mlx validation model supports tool calling`() {
+        let configuration = LLMRegistry.shared.configuration(id: Self.mlxValidationModelID)
+
+        #expect(configuration.name == Self.mlxValidationModelID)
+        #expect(LLMRegistry.shared.contains(id: Self.mlxValidationModelID))
+        #expect(ToolCallFormat.infer(from: "qwen3_5") == .xmlFunction)
     }
 }

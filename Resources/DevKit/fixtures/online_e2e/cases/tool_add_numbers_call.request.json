@@ -1,0 +1,37 @@
+{
+  "max_completion_tokens": 256,
+  "messages": [
+    {
+      "content": "Use the add_numbers tool exactly once with a=17 and b=25.\nFirst turn: emit the tool call and stop.\nAfter the tool result arrives, reply with the final sum and include the number 42.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0,
+  "tools": [
+    {
+      "function": {
+        "description": "Add two integers and return the sum.",
+        "name": "add_numbers",
+        "parameters": {
+          "properties": {
+            "a": {
+              "type": "integer"
+            },
+            "b": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "a",
+            "b"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
+}

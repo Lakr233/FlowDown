@@ -4,145 +4,70 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 REPO_ROOT=$(cd "$SCRIPT_DIR/../../.." && pwd -P)
-SUPPORT_DIR="$HOME/.testing"
 DERIVED_DATA="${DERIVED_DATA:-/private/tmp/flowdown-online-e2e-deriveddata}"
 BUILD_HOME="$DERIVED_DATA/home"
 XDG_CACHE_HOME="$DERIVED_DATA/xdg-cache"
 MODULE_CACHE="$DERIVED_DATA/ModuleCache.noindex"
-TOKEN_FILE="$SUPPORT_DIR/flowdown-online-e2e.token"
-ENDPOINT_FILE="$SUPPORT_DIR/flowdown-online-e2e.endpoint"
-RESPONSES_ENDPOINT_FILE="$SUPPORT_DIR/flowdown-online-e2e.endpoint.responses"
-MODEL_ID_FILE="$SUPPORT_DIR/flowdown-online-e2e.model-id"
-HEADERS_FILE="$SUPPORT_DIR/flowdown-online-e2e.headers"
-BODY_FIELDS_FILE="$SUPPORT_DIR/flowdown-online-e2e.body-fields"
 E2E_SUPPORT_DIR="/tmp/flowdown-online-e2e"
 ENABLE_MARKER="$E2E_SUPPORT_DIR/flowdown_e2e_enabled"
-RUNTIME_TOKEN_FILE="$E2E_SUPPORT_DIR/flowdown-online-e2e.token"
 RUNTIME_ENDPOINT_FILE="$E2E_SUPPORT_DIR/flowdown-online-e2e.endpoint"
-RUNTIME_RESPONSES_ENDPOINT_FILE="$E2E_SUPPORT_DIR/flowdown-online-e2e.endpoint.responses"
-RUNTIME_MODEL_ID_FILE="$E2E_SUPPORT_DIR/flowdown-online-e2e.model-id"
-RUNTIME_HEADERS_FILE="$E2E_SUPPORT_DIR/flowdown-online-e2e.headers"
-RUNTIME_BODY_FIELDS_FILE="$E2E_SUPPORT_DIR/flowdown-online-e2e.body-fields"
+FIXTURE_DIR="$REPO_ROOT/Resources/DevKit/fixtures/online_e2e"
+SERVER_PID=""
+SERVER_MODE="replay"
+SERVER_ARGS=()
 
-source_user_file() {
-    if [[ -f "$1" ]]; then
-        set +e
-        set +u
-        source "$1"
-        set -euo pipefail
+if [[ "${FLOWDOWN_ONLINE_E2E_RECORD:-0}" == "1" ]]; then
+    SERVER_MODE="record"
+    if [[ -z "${FIREWORKS_API_KEY:-}" ]]; then
+        echo "[-] FIREWORKS_API_KEY is required when FLOWDOWN_ONLINE_E2E_RECORD=1" >&2
+        exit 1
     fi
-}
+    if [[ -z "${FLOWDOWN_ONLINE_E2E_RECORD_MODEL_ID:-}" ]]; then
+        echo "[-] FLOWDOWN_ONLINE_E2E_RECORD_MODEL_ID is required when FLOWDOWN_ONLINE_E2E_RECORD=1" >&2
+        exit 1
+    fi
+    SERVER_ARGS+=("--upstream-model" "$FLOWDOWN_ONLINE_E2E_RECORD_MODEL_ID")
+fi
 
-source_user_file "$HOME/.zprofile"
-source_user_file "$HOME/.zshrc"
-
-mkdir -p "$SUPPORT_DIR"
 mkdir -p "$E2E_SUPPORT_DIR"
 mkdir -p "$BUILD_HOME" "$XDG_CACHE_HOME" "$MODULE_CACHE"
 
-if [[ -z "${FLOWDOWN_ONLINE_E2E_TOKEN:-}" && -f "$TOKEN_FILE" ]]; then
-    FLOWDOWN_ONLINE_E2E_TOKEN=$(<"$TOKEN_FILE")
-fi
-
-if [[ -z "${FLOWDOWN_ONLINE_E2E_ENDPOINT:-}" && -f "$ENDPOINT_FILE" ]]; then
-    FLOWDOWN_ONLINE_E2E_ENDPOINT=$(<"$ENDPOINT_FILE")
-fi
-
-if [[ -z "${FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES:-}" && -f "$RESPONSES_ENDPOINT_FILE" ]]; then
-    FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES=$(<"$RESPONSES_ENDPOINT_FILE")
-fi
-
-if [[ -z "${FLOWDOWN_ONLINE_E2E_MODEL_ID:-}" && -f "$MODEL_ID_FILE" ]]; then
-    FLOWDOWN_ONLINE_E2E_MODEL_ID=$(<"$MODEL_ID_FILE")
-fi
-
-if [[ -z "${FLOWDOWN_ONLINE_E2E_HEADERS:-}" && -f "$HEADERS_FILE" ]]; then
-    FLOWDOWN_ONLINE_E2E_HEADERS=$(<"$HEADERS_FILE")
-fi
-
-if [[ -z "${FLOWDOWN_ONLINE_E2E_BODY_FIELDS:-}" && -f "$BODY_FIELDS_FILE" ]]; then
-    FLOWDOWN_ONLINE_E2E_BODY_FIELDS=$(<"$BODY_FIELDS_FILE")
-fi
-
-if [[ -z "${FLOWDOWN_ONLINE_E2E_TOKEN:-}" ]]; then
-    echo "[-] FLOWDOWN_ONLINE_E2E_TOKEN is not configured" >&2
-    exit 1
-fi
-
-if [[ -z "${FLOWDOWN_ONLINE_E2E_ENDPOINT:-}" ]]; then
-    echo "[-] FLOWDOWN_ONLINE_E2E_ENDPOINT is not configured" >&2
-    exit 1
-fi
-
-export FLOWDOWN_ONLINE_E2E_TOKEN
-export FLOWDOWN_ONLINE_E2E_ENDPOINT
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES:-}" ]]; then
-    export FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES
-fi
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES:-}" ]]; then
-    export FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES
-fi
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_MODEL_ID:-}" ]]; then
-    export FLOWDOWN_ONLINE_E2E_MODEL_ID
-fi
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_HEADERS:-}" ]]; then
-    export FLOWDOWN_ONLINE_E2E_HEADERS
-fi
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_BODY_FIELDS:-}" ]]; then
-    export FLOWDOWN_ONLINE_E2E_BODY_FIELDS
-fi
-
-printf '%s\n' "$FLOWDOWN_ONLINE_E2E_TOKEN" > "$TOKEN_FILE"
-printf '%s\n' "$FLOWDOWN_ONLINE_E2E_TOKEN" > "$RUNTIME_TOKEN_FILE"
-printf '%s\n' "$FLOWDOWN_ONLINE_E2E_ENDPOINT" > "$ENDPOINT_FILE"
-printf '%s\n' "$FLOWDOWN_ONLINE_E2E_ENDPOINT" > "$RUNTIME_ENDPOINT_FILE"
-chmod 600 "$TOKEN_FILE" "$ENDPOINT_FILE" "$RUNTIME_TOKEN_FILE" "$RUNTIME_ENDPOINT_FILE"
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES:-}" ]]; then
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES" > "$RESPONSES_ENDPOINT_FILE"
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES" > "$RUNTIME_RESPONSES_ENDPOINT_FILE"
-    chmod 600 "$RESPONSES_ENDPOINT_FILE" "$RUNTIME_RESPONSES_ENDPOINT_FILE"
-fi
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_MODEL_ID:-}" ]]; then
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_MODEL_ID" > "$MODEL_ID_FILE"
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_MODEL_ID" > "$RUNTIME_MODEL_ID_FILE"
-    chmod 600 "$MODEL_ID_FILE" "$RUNTIME_MODEL_ID_FILE"
-fi
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_HEADERS:-}" ]]; then
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_HEADERS" > "$HEADERS_FILE"
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_HEADERS" > "$RUNTIME_HEADERS_FILE"
-    chmod 600 "$HEADERS_FILE" "$RUNTIME_HEADERS_FILE"
-fi
-
-if [[ -n "${FLOWDOWN_ONLINE_E2E_BODY_FIELDS:-}" ]]; then
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_BODY_FIELDS" > "$BODY_FIELDS_FILE"
-    printf '%s\n' "$FLOWDOWN_ONLINE_E2E_BODY_FIELDS" > "$RUNTIME_BODY_FIELDS_FILE"
-    chmod 600 "$BODY_FIELDS_FILE" "$RUNTIME_BODY_FIELDS_FILE"
-fi
-
-touch "$ENABLE_MARKER"
-
 cleanup() {
-    rm -f \
-        "$ENABLE_MARKER" \
-        "$RUNTIME_TOKEN_FILE" \
-        "$RUNTIME_ENDPOINT_FILE" \
-        "$RUNTIME_RESPONSES_ENDPOINT_FILE" \
-        "$RUNTIME_MODEL_ID_FILE" \
-        "$RUNTIME_HEADERS_FILE" \
-        "$RUNTIME_BODY_FIELDS_FILE"
+    rm -f "$ENABLE_MARKER" "$RUNTIME_ENDPOINT_FILE"
+    if [[ -n "$SERVER_PID" ]]; then
+        kill "$SERVER_PID" >/dev/null 2>&1 || true
+        wait "$SERVER_PID" >/dev/null 2>&1 || true
+    fi
 }
 
 trap cleanup EXIT
 
-echo "[+] running online e2e"
+echo "[+] starting local e2e fixture server in $SERVER_MODE mode"
+
+python3 "$SCRIPT_DIR/online_e2e_fixture_server.py" \
+    --fixture-dir "$FIXTURE_DIR" \
+    --port-file "$RUNTIME_ENDPOINT_FILE" \
+    --mode "$SERVER_MODE" \
+    "${SERVER_ARGS[@]}" &
+SERVER_PID=$!
+
+for _ in {1..50}; do
+    if [[ -s "$RUNTIME_ENDPOINT_FILE" ]]; then
+        break
+    fi
+    sleep 0.1
+done
+
+if [[ ! -s "$RUNTIME_ENDPOINT_FILE" ]]; then
+    echo "[-] local e2e fixture server did not start" >&2
+    exit 1
+fi
+
+touch "$ENABLE_MARKER"
+export FLOWDOWN_ONLINE_E2E_ENDPOINT="$(<"$RUNTIME_ENDPOINT_FILE")"
+export FLOWDOWN_ONLINE_E2E_MODEL_ID="flowdown-local-e2e"
+
+echo "[+] running online e2e against local fixture server"
 
 cd "$REPO_ROOT"
 
