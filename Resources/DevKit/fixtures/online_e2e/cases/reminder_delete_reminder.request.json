@@ -1,0 +1,35 @@
+{
+  "max_completion_tokens": 128,
+  "messages": [
+    {
+      "content": "The user already ran query_reminders. Use the delete_reminder tool exactly once to delete the reminder whose id is \"test-reminder-id-DELETE\". Then stop.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0,
+  "tools": [
+    {
+      "function": {
+        "description": "Permanently delete a reminder. Use query_reminders first to obtain the reminder_id. This is irreversible; the user is prompted before deletion.",
+        "name": "delete_reminder",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "reminder_id": {
+              "description": "calendarItemIdentifier of the reminder to delete, from query_reminders.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "reminder_id"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
+}

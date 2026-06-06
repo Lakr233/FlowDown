@@ -1,0 +1,110 @@
+{
+  "max_completion_tokens": 512,
+  "messages": [
+    {
+      "content": "You have two tools: lookup_population(city) and add_numbers(a, b).\n1. First, call lookup_population for \"Tokyo\" and stop.\n2. When the population result arrives, call lookup_population for \"Osaka\" and stop.\n3. After both values are known, call add_numbers with a=<tokyo> b=<osaka> and stop.\n4. Finally, report the combined population in millions, including the exact total you receive from add_numbers.\nAlways call exactly one tool per turn.",
+      "role": "user"
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"city\": \"Tokyo\"}",
+            "name": "lookup_population"
+          },
+          "id": "call_3ada605aba7f4fdfa4ab56e1",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "14",
+      "role": "tool",
+      "tool_call_id": "call_3ada605aba7f4fdfa4ab56e1"
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"city\": \"Osaka\"}",
+            "name": "lookup_population"
+          },
+          "id": "call_2dd86002044a4bf78cafa4c6",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "3",
+      "role": "tool",
+      "tool_call_id": "call_2dd86002044a4bf78cafa4c6"
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"a\": 14, \"b\": 3}",
+            "name": "add_numbers"
+          },
+          "id": "call_4b08ce2c65034a658f2da691",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "content": "17",
+      "role": "tool",
+      "tool_call_id": "call_4b08ce2c65034a658f2da691"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0,
+  "tools": [
+    {
+      "function": {
+        "description": "Returns the population for a given city name in millions (approximate).",
+        "name": "lookup_population",
+        "parameters": {
+          "properties": {
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "description": "Add two integers and return the sum.",
+        "name": "add_numbers",
+        "parameters": {
+          "properties": {
+            "a": {
+              "type": "integer"
+            },
+            "b": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "a",
+            "b"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
+}

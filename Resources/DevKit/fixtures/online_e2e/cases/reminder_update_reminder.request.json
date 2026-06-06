@@ -1,0 +1,75 @@
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "You must use the update_reminder tool exactly once now.\nDo not answer in text. Do not explain. Emit one tool call with these exact arguments:\n{\n  \"reminder_id\": \"test-reminder-id-1234\",\n  \"title\": \"\",\n  \"notes\": \"\",\n  \"due_date\": \"\",\n  \"list_name\": \"\",\n  \"priority\": -1,\n  \"clear_notes\": true,\n  \"clear_due_date\": false,\n  \"clear_priority\": true\n}\nEmpty string means exactly two quote characters with no spaces between them.\nDo not put a space inside title, notes, due_date, or list_name.\nEmit the tool call and stop.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0,
+  "tools": [
+    {
+      "function": {
+        "description": "Update an existing reminder. Use query_reminders first to obtain the reminder_id. To leave a field unchanged, pass empty string (or -1 for priority) and false for the matching clear_* flag. To clear a field back to empty, set the matching clear_* flag to true and pass empty string (or -1 for priority) for the value. Sending both a non-empty value and clear_*=true on the same field is rejected. list_name has no clear flag because every reminder must live in some list. All dates are ISO 8601 UTC.",
+        "name": "update_reminder",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "clear_due_date": {
+              "description": "Set true to remove the existing due date. Cannot be combined with a non-empty due_date.",
+              "type": "boolean"
+            },
+            "clear_notes": {
+              "description": "Set true to remove existing notes. Cannot be combined with a non-empty notes value.",
+              "type": "boolean"
+            },
+            "clear_priority": {
+              "description": "Set true to clear priority back to none (0). Cannot be combined with a priority >= 0.",
+              "type": "boolean"
+            },
+            "due_date": {
+              "description": "New due date in ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z'). Pass empty string to leave unchanged.",
+              "type": "string"
+            },
+            "list_name": {
+              "description": "Move to this Reminders list by name. Pass empty string to leave unchanged. The list must already exist.",
+              "type": "string"
+            },
+            "notes": {
+              "description": "New notes. Pass empty string to leave unchanged.",
+              "type": "string"
+            },
+            "priority": {
+              "description": "New priority (0 = none, 1 = high, 5 = medium, 9 = low). Pass -1 to leave unchanged.",
+              "type": "integer"
+            },
+            "reminder_id": {
+              "description": "calendarItemIdentifier of the reminder, from query_reminders.",
+              "type": "string"
+            },
+            "title": {
+              "description": "New title. Pass empty string to leave unchanged.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "reminder_id",
+            "title",
+            "notes",
+            "clear_notes",
+            "due_date",
+            "clear_due_date",
+            "priority",
+            "clear_priority",
+            "list_name"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "messages": [
+    {
+      "content": "You are a chat template editor. Modify only what the user requests, keeping everything else unchanged. Respond ONLY with valid XML in the exact format provided.",
+      "role": "system"
+    },
+    {
+      "content": "You are a chat template expert. Please modify the following chat template according to the user's request. \n\nIMPORTANT RULES:\n- Only change what the user specifically requests\n- If the user doesn't mention name or prompt, keep them unchanged\n- Respond ONLY with valid XML following the exact format provided\n- Do not include any text outside the XML structure\n- Use the user's preferred language for content\n\nCurrent template:\n<template>\n<name>Weekly Status</name>\n<prompt>Turn rough weekly notes into a polished status update with accomplishments, risks, and next steps.</prompt>\n</template>\n\nUser request: Keep the template name unchanged. Rewrite only the prompt so it becomes more concise and more executive.\n\nPlease return the modified template in the same XML format, keeping unchanged fields exactly as they are.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0.75
+}

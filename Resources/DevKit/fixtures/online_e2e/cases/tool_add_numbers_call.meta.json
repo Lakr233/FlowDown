@@ -1,0 +1,8 @@
+{
+  "content_type": "text/event-stream",
+  "key": "tool_add_numbers_call",
+  "status": 200,
+  "stream": true,
+  "upstream_endpoint": "https://api.fireworks.ai/inference/v1/chat/completions",
+  "upstream_model": "accounts/fireworks/models/deepseek-v4-pro"
+}

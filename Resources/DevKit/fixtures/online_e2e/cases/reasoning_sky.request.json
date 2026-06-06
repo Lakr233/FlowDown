@@ -1,0 +1,11 @@
+{
+  "max_completion_tokens": 512,
+  "messages": [
+    {
+      "content": "Briefly explain why the sky is blue, in one sentence.",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true
+}

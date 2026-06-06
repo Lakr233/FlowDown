@@ -5,30 +5,13 @@ import Storage
 
 enum OnlineE2ETestSupport {
     static let enableFlag = "FLOWDOWN_ENABLE_E2E"
-    static let tokenEnvName = "FLOWDOWN_ONLINE_E2E_TOKEN"
     static let endpointEnvName = "FLOWDOWN_ONLINE_E2E_ENDPOINT"
-    static let responsesEndpointEnvName = "FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES"
-    static let responsesEnableFlag = "FLOWDOWN_ONLINE_E2E_ENABLE_RESPONSES"
     static let modelIDEnvName = "FLOWDOWN_ONLINE_E2E_MODEL_ID"
-    static let headersEnvName = "FLOWDOWN_ONLINE_E2E_HEADERS"
-    static let bodyFieldsEnvName = "FLOWDOWN_ONLINE_E2E_BODY_FIELDS"
 
-    // Endpoint and token are provided via environment variables (backed by
-    // GitHub secrets in CI or a local ~/.testing file). The model identifier,
-    // headers, body fields, and capabilities below track the exported MiniMax
-    // DGX .fdmodel but can still be overridden via env.
-    private static let embeddedFixture = EmbeddedCloudModelFixture(
-        modelIdentifier: "MiniMax-M2.7",
-        headers: [
-            "HTTP-Referer": "https://flowdown.ai/",
-            "X-Title": "FlowDown",
-        ],
-        bodyFields: "",
-        context: .long_100k,
-        capabilities: [.visual, .developerRole, .tool],
-        comment: "DGX Spark llama.cpp CUDA, 128k server context, FlowDown long_100k import-safe context",
-        name: "MiniMax M2.7 DGX",
-    )
+    private static let runtimeDirectory = URL(fileURLWithPath: "/tmp/flowdown-online-e2e", isDirectory: true)
+    private static let runtimeEndpointFilename = "flowdown-online-e2e.endpoint"
+    private static let localToken = "flowdown-local-e2e-token"
+    private static let localModelIdentifier = "flowdown-local-e2e"
 
     /// Convenience flag covering the default (chat completions) API path.
     static var isEnabled: Bool {
@@ -36,9 +19,14 @@ enum OnlineE2ETestSupport {
     }
 
     static func isEnabled(for responseFormat: CloudModel.ResponseFormat) -> Bool {
-        let environment = ProcessInfo.processInfo.environment
+        isEnabled(for: responseFormat, in: ProcessInfo.processInfo.environment)
+    }
+
+    static func isEnabled(
+        for responseFormat: CloudModel.ResponseFormat,
+        in environment: [String: String],
+    ) -> Bool {
         guard isExecutionEnabled(in: environment) else { return false }
-        guard runtimeToken(in: environment) != nil else { return false }
         return runtimeEndpoint(for: responseFormat, in: environment) != nil
     }
 
@@ -47,10 +35,13 @@ enum OnlineE2ETestSupport {
     }
 
     static func isExecutionEnabled(in environment: [String: String]) -> Bool {
-        if environment[enableFlag] == "0" {
-            return false
+        if let explicitFlag = environment[enableFlag] {
+            return explicitFlag == "1"
         }
-        return true
+        if FileManager.default.fileExists(atPath: runtimeDirectory.appendingPathComponent("flowdown_e2e_enabled").path) {
+            return true
+        }
+        return false
     }
 
     static var responseFormats: [CloudModel.ResponseFormat] {
@@ -58,85 +49,67 @@ enum OnlineE2ETestSupport {
     }
 
     static func responseFormats(in environment: [String: String]) -> [CloudModel.ResponseFormat] {
-        var formats: [CloudModel.ResponseFormat] = [.chatCompletions]
-        if runtimeEndpoint(for: .responses, in: environment) != nil {
-            formats.append(.responses)
-        }
-        return formats
+        guard isEnabled(for: .chatCompletions, in: environment) else { return [] }
+        return [.chatCompletions]
     }
 
     static func runtimeCloudModel(responseFormat: CloudModel.ResponseFormat = .chatCompletions) throws -> CloudModel {
-        let environment = ProcessInfo.processInfo.environment
-        let token = try resolveToken(in: environment)
-        let endpoint = try resolveEndpoint(for: responseFormat, in: environment)
-
-        let fixture = try runtimeFixture(in: environment)
-        _ = try parseAdditionalBodyFields(fixture.bodyFields)
-
-        return CloudModel(
+        CloudModel(
             deviceId: Storage.deviceId,
-            model_identifier: fixture.modelIdentifier,
+            model_identifier: runtimeModelIdentifier(in: ProcessInfo.processInfo.environment),
             model_list_endpoint: responseFormat.defaultModelListEndpoint,
             creation: .now,
-            endpoint: endpoint,
-            token: token,
-            headers: fixture.headers,
-            bodyFields: fixture.bodyFields,
-            context: fixture.context,
-            capabilities: fixture.capabilities,
-            comment: fixture.comment,
-            name: fixture.name,
+            endpoint: try resolveEndpoint(for: responseFormat, in: ProcessInfo.processInfo.environment),
+            token: localToken,
+            headers: [:],
+            bodyFields: "",
+            context: .long_100k,
+            capabilities: [.tool],
+            comment: "Local captured fixture server for online E2E tests",
+            name: "Local E2E Fixture",
             response_format: responseFormat,
         )
     }
 
     static func makeCompletionsClient() throws -> RemoteCompletionsChatClient {
-        let environment = ProcessInfo.processInfo.environment
-        let token = try resolveToken(in: environment)
-        let endpoint = try resolveEndpoint(for: .chatCompletions, in: environment)
-        let (baseURL, path) = splitEndpoint(endpoint)
-        let fixture = try runtimeFixture(in: environment)
+        let endpoint = splitEndpoint(try resolveEndpoint(
+            for: .chatCompletions,
+            in: ProcessInfo.processInfo.environment
+        ))
         return RemoteCompletionsChatClient(
-            model: fixture.modelIdentifier,
-            baseURL: baseURL,
-            path: path,
-            apiKey: token,
-            additionalHeaders: fixture.headers,
-            additionalBodyField: try parseAdditionalBodyFields(fixture.bodyFields),
+            model: runtimeModelIdentifier(in: ProcessInfo.processInfo.environment),
+            baseURL: endpoint.baseURL,
+            path: endpoint.path,
+            apiKey: localToken,
         )
     }
 
     static func makeResponsesClient() throws -> RemoteResponsesChatClient {
-        let environment = ProcessInfo.processInfo.environment
-        let token = try resolveToken(in: environment)
-        let endpoint = try resolveEndpoint(for: .responses, in: environment)
-        let (baseURL, path) = splitEndpoint(endpoint)
-        let fixture = try runtimeFixture(in: environment)
-        return RemoteResponsesChatClient(
-            model: fixture.modelIdentifier,
-            baseURL: baseURL,
-            path: path,
-            apiKey: token,
-            additionalHeaders: fixture.headers,
-            additionalBodyField: try parseAdditionalBodyFields(fixture.bodyFields),
+        throw NSError(
+            domain: "OnlineE2ETestSupport",
+            code: 1,
+            userInfo: [
+                NSLocalizedDescriptionKey: "Local online E2E fixtures support chat completions only.",
+            ],
         )
     }
 
-    // MARK: - Resolution
-
-    private static func resolveToken(in environment: [String: String]) throws -> String {
-        guard let token = runtimeToken(in: environment) else {
-            throw NSError(
-                domain: "OnlineE2ETestSupport",
-                code: 1,
-                userInfo: [
-                    NSLocalizedDescriptionKey: """
-                    No online E2E API token was found. Set FLOWDOWN_ONLINE_E2E_TOKEN, or place the token in ~/.testing/flowdown-online-e2e.token.
-                    """,
-                ],
-            )
+    static func runtimeEndpoint(
+        for responseFormat: CloudModel.ResponseFormat,
+        in environment: [String: String],
+    ) -> String? {
+        guard responseFormat == .chatCompletions else { return nil }
+        if let endpoint = trimmedNonEmpty(environment[endpointEnvName]) {
+            return endpoint
         }
-        return token
+        if environment.keys.contains(enableFlag) {
+            return nil
+        }
+        let endpointURL = runtimeDirectory.appendingPathComponent(runtimeEndpointFilename)
+        guard let endpoint = try? String(contentsOf: endpointURL, encoding: .utf8) else {
+            return nil
+        }
+        return trimmedNonEmpty(endpoint)
     }
 
     private static func resolveEndpoint(
@@ -148,131 +121,15 @@ enum OnlineE2ETestSupport {
                 domain: "OnlineE2ETestSupport",
                 code: 2,
                 userInfo: [
-                    NSLocalizedDescriptionKey: """
-                    No online E2E endpoint was configured for \(responseFormat). Set FLOWDOWN_ONLINE_E2E_ENDPOINT (and optionally FLOWDOWN_ONLINE_E2E_ENDPOINT_RESPONSES), or place the URL in ~/.testing/flowdown-online-e2e.endpoint.
-                    """,
+                    NSLocalizedDescriptionKey: "Local online E2E endpoint is not configured.",
                 ],
             )
         }
         return endpoint
     }
 
-    private static func runtimeToken(in environment: [String: String]) -> String? {
-        if let token = trimmedNonEmpty(environment[tokenEnvName]) {
-            return token
-        }
-        return secretFromFiles(named: "flowdown-online-e2e.token")
-    }
-
-    static func runtimeEndpoint(
-        for responseFormat: CloudModel.ResponseFormat,
-        in environment: [String: String],
-    ) -> String? {
-        switch responseFormat {
-        case .chatCompletions:
-            return primaryChatCompletionsEndpoint(in: environment)
-        case .responses:
-            if let explicit = trimmedNonEmpty(environment[responsesEndpointEnvName]) {
-                return explicit
-            }
-            if let fileValue = secretFromFiles(named: "flowdown-online-e2e.endpoint.responses") {
-                return fileValue
-            }
-            if environment[responsesEnableFlag] == "1",
-               let base = primaryChatCompletionsEndpoint(in: environment)
-            {
-                return deriveResponsesEndpoint(from: base)
-            }
-            return nil
-        }
-    }
-
-    private static func primaryChatCompletionsEndpoint(in environment: [String: String]) -> String? {
-        if let endpoint = trimmedNonEmpty(environment[endpointEnvName]) {
-            return endpoint
-        }
-        return secretFromFiles(named: "flowdown-online-e2e.endpoint")
-    }
-
-    private static func deriveResponsesEndpoint(from endpoint: String) -> String? {
-        guard var components = URLComponents(string: endpoint) else { return nil }
-        var path = components.path
-        if path.hasSuffix("/chat/completions") {
-            path = String(path.dropLast("/chat/completions".count)) + "/responses"
-        } else if path.hasSuffix("/chat/completions/") {
-            path = String(path.dropLast("/chat/completions/".count)) + "/responses"
-        } else {
-            return nil
-        }
-        components.path = path
-        return components.string
-    }
-
-    private static func runtimeFixture(in environment: [String: String]) throws -> EmbeddedCloudModelFixture {
-        let modelIdentifier = trimmedNonEmpty(environment[modelIDEnvName])
-            ?? secretFromFiles(named: "flowdown-online-e2e.model-id")
-            ?? embeddedFixture.modelIdentifier
-        let bodyFields = trimmedNonEmpty(environment[bodyFieldsEnvName])
-            ?? secretFromFiles(named: "flowdown-online-e2e.body-fields")
-            ?? embeddedFixture.bodyFields
-        let headers = try runtimeHeaders(in: environment)
-
-        return EmbeddedCloudModelFixture(
-            modelIdentifier: modelIdentifier,
-            headers: headers,
-            bodyFields: bodyFields,
-            context: embeddedFixture.context,
-            capabilities: embeddedFixture.capabilities,
-            comment: embeddedFixture.comment,
-            name: embeddedFixture.name,
-        )
-    }
-
-    private static func runtimeHeaders(in environment: [String: String]) throws -> [String: String] {
-        guard let text = trimmedNonEmpty(environment[headersEnvName])
-            ?? secretFromFiles(named: "flowdown-online-e2e.headers")
-        else {
-            return embeddedFixture.headers
-        }
-
-        guard let data = text.data(using: .utf8),
-              let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        else {
-            throw NSError(
-                domain: "OnlineE2ETestSupport",
-                code: 3,
-                userInfo: [NSLocalizedDescriptionKey: "FLOWDOWN_ONLINE_E2E_HEADERS must be a JSON object."],
-            )
-        }
-
-        var headers: [String: String] = [:]
-        for (key, value) in object {
-            guard let stringValue = value as? String else {
-                throw NSError(
-                    domain: "OnlineE2ETestSupport",
-                    code: 4,
-                    userInfo: [NSLocalizedDescriptionKey: "FLOWDOWN_ONLINE_E2E_HEADERS value for \(key) must be a string."],
-                )
-            }
-            headers[key] = stringValue
-        }
-        return headers
-    }
-
-    private static func parseAdditionalBodyFields(_ text: String) throws -> [String: Any] {
-        guard let text = trimmedNonEmpty(text) else {
-            return [:]
-        }
-        guard let data = text.data(using: .utf8),
-              let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        else {
-            throw NSError(
-                domain: "OnlineE2ETestSupport",
-                code: 5,
-                userInfo: [NSLocalizedDescriptionKey: "FLOWDOWN_ONLINE_E2E_BODY_FIELDS must be a JSON object."],
-            )
-        }
-        return object
+    private static func runtimeModelIdentifier(in environment: [String: String]) -> String {
+        trimmedNonEmpty(environment[modelIDEnvName]) ?? localModelIdentifier
     }
 
     private static func splitEndpoint(_ endpoint: String) -> (baseURL: String?, path: String?) {
@@ -292,52 +149,9 @@ enum OnlineE2ETestSupport {
         return (baseURL, path)
     }
 
-    private static func secretFromFiles(named filename: String) -> String? {
-        for url in secretFileCandidates(named: filename) {
-            guard let value = try? String(contentsOf: url, encoding: .utf8) else {
-                continue
-            }
-            if let value = trimmedNonEmpty(value) {
-                return value
-            }
-        }
-        return nil
-    }
-
-    private static func secretFileCandidates(named filename: String) -> [URL] {
-        let currentHome = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        let hostHome = URL(fileURLWithPath: "/Users", isDirectory: true)
-            .appendingPathComponent(NSUserName(), isDirectory: true)
-        // Inside the iOS simulator, NSHomeDirectory() points at the app sandbox
-        // and NSUserName() returns the numeric uid, so the two ~/.testing
-        // candidates above never resolve to the host's secrets directory. The
-        // test wrapper at run_online_e2e_tests.sh therefore mirrors the
-        // credentials into /tmp/flowdown-online-e2e/, which the host shares
-        // with the simulator. Probe that path so live secrets reach the test
-        // runner in CI and locally.
-        let runtimeRoot = URL(fileURLWithPath: "/tmp/flowdown-online-e2e", isDirectory: true)
-        let testingPaths = [currentHome, hostHome]
-            .map { $0.appendingPathComponent(".testing").appendingPathComponent(filename) }
-        let runtimePath = runtimeRoot.appendingPathComponent(filename)
-
-        var seenPaths = Set<String>()
-        return (testingPaths + [runtimePath])
-            .filter { seenPaths.insert($0.standardizedFileURL.path).inserted }
-    }
-
     private static func trimmedNonEmpty(_ value: String?) -> String? {
         guard let value else { return nil }
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
     }
-}
-
-private struct EmbeddedCloudModelFixture {
-    let modelIdentifier: String
-    let headers: [String: String]
-    let bodyFields: String
-    let context: ModelContextLength
-    let capabilities: Set<ModelCapabilities>
-    let comment: String
-    let name: String
 }

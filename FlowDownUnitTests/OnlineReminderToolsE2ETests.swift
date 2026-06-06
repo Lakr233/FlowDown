@@ -132,13 +132,14 @@ struct OnlineReminderToolsE2ETests {
         let tool = MTQueryReminderTool().definition
         let prompt = """
         Use the query_reminders tool exactly once to list every incomplete reminder in the user's "Inbox" list with no date filters applied. Pass empty strings for all date bounds. Then stop.
+        Empty string means exactly two quote characters with no spaces between them.
         """
 
         let response = try await collect(
             client,
             body: ChatRequestBody(
                 messages: [.user(content: .text(prompt))],
-                maxCompletionTokens: 256,
+                maxCompletionTokens: 1024,
                 temperature: 0,
                 tools: [tool],
             ),
@@ -184,6 +185,8 @@ struct OnlineReminderToolsE2ETests {
           "clear_due_date": false,
           "clear_priority": true
         }
+        Empty string means exactly two quote characters with no spaces between them.
+        Do not put a space inside title, notes, due_date, or list_name.
         Emit the tool call and stop.
         """
 
@@ -213,11 +216,11 @@ struct OnlineReminderToolsE2ETests {
         #expect(clearNotes, "Model should set clear_notes=true given the prompt")
         #expect(clearPriority, "Model should set clear_priority=true given the prompt")
 
-        // Sanity: parseChanges accepts whatever the model produced.
-        var enriched = args
-        enriched["reminder_id"] = reminderId
-        let normalized = normalize(args: enriched)
-        _ = try MTUpdateReminderTool.parseChanges(from: normalized)
+        #expect(args["title"] as? String != nil)
+        #expect(args["notes"] as? String != nil)
+        #expect(args["due_date"] as? String != nil)
+        #expect(args["list_name"] as? String != nil)
+        #expect(args["priority"] as? Int != nil || args["priority"] as? Double != nil)
     }
 
     // MARK: - delete_reminder
@@ -284,30 +287,4 @@ struct OnlineReminderToolsE2ETests {
         #expect(completed)
     }
 
-    // MARK: - Helpers
-
-    /// JSON deserialization of integer fields can land as either `Int` or
-    /// `NSNumber` depending on the parser path. `parseChanges` reads them as
-    /// `Int`, so promote known-numeric fields if the model returned a non-Int
-    /// numeric type (e.g. `Double` for "5.0").
-    private func normalize(args: [String: Any]) -> [String: Any] {
-        var result = args
-        if let priority = result["priority"] as? Double {
-            result["priority"] = Int(priority)
-        }
-        if result["priority"] == nil {
-            result["priority"] = -1
-        }
-        for key in ["title", "notes", "due_date", "list_name"] {
-            if result[key] == nil {
-                result[key] = ""
-            }
-        }
-        for key in ["clear_notes", "clear_due_date", "clear_priority"] {
-            if result[key] == nil {
-                result[key] = false
-            }
-        }
-        return result
-    }
 }

@@ -1,0 +1,20 @@
+{
+  "messages": [
+    {
+      "content": "你是一名专业的对话摘要助理。请根据以下要求对先前的对话内容进行压缩和总结：\n\n1. 保留对话的核心信息和重要结论：删除无关、重复或冗余的内容  \n2. 保持原有的逻辑顺序和上下文，确保压缩后的内容易于理解  \n3. 清晰列出对话中提到的待办事项、决定、结论或关键问题  \n4. 保留必要的背景信息，避免因压缩导致信息丢失或误解  \n5. 使用简洁准确的语言，不添加未提及的信息或主观推测  \n6. 若对话涉及多个主题，请分章节或分条目整理  \n7. 输出结构化Markdown格式的摘要，包含标题和条目以便查阅  \n\n请根据上述要求对\"先前对话\"的内容进行压缩和总结。- Do not output any additional text, such as 'Okay' or 'Continue', before the Markdown content.\n- Please ensure the output is in Markdown format, including appropriate headings and bullet points.\n- Do not output any code blocks or unnecessary formatting.\n- Please ensure the output is concise and focused on the key points of the conversation.\n**DO NOT START THE OUTPUT WITH ``` NOR ENDING WITH IT**",
+      "role": "system"
+    },
+    {
+      "content": "请总结下面的对话：",
+      "role": "user"
+    },
+    {
+      "content": "导出的对话 - Atlas delivery review\n\n---\n\n## User - 2026年6月6日\n\nProject Atlas ships on June 15. The blockers are login migration, retry handling, and the analytics dashboard.\n\n---\n\n## Assistant - 2026年6月6日\n\nUnderstood. I suggest three workstreams: auth migration, background retry stabilization, and dashboard QA.\n\n---\n\n## User - 2026年6月6日\n\nAction items: Alice owns auth migration, Bob owns retry handling, and Carol owns dashboard QA. Budget stays under 15000 dollars.\n\n---\n\n## Assistant - 2026年6月6日\n\nCaptured. Final decision: defer SSO polish to phase two and prioritize reliability over new features.",
+      "name": "切换至上个对话",
+      "role": "user"
+    }
+  ],
+  "model": "accounts/fireworks/models/deepseek-v4-pro",
+  "stream": true,
+  "temperature": 0.75
+}
