@@ -11,6 +11,7 @@ MODULE_CACHE="$DERIVED_DATA/ModuleCache.noindex"
 E2E_SUPPORT_DIR="/tmp/flowdown-online-e2e"
 ENABLE_MARKER="$E2E_SUPPORT_DIR/flowdown_e2e_enabled"
 RUNTIME_ENDPOINT_FILE="$E2E_SUPPORT_DIR/flowdown-online-e2e.endpoint"
+SERVER_LOG="$E2E_SUPPORT_DIR/flowdown-online-e2e-server.log"
 FIXTURE_DIR="$REPO_ROOT/Resources/DevKit/fixtures/online_e2e"
 SERVER_PID=""
 SERVER_MODE="replay"
@@ -31,6 +32,7 @@ fi
 
 mkdir -p "$E2E_SUPPORT_DIR"
 mkdir -p "$BUILD_HOME" "$XDG_CACHE_HOME" "$MODULE_CACHE"
+rm -f "$SERVER_LOG"
 
 cleanup() {
     rm -f "$ENABLE_MARKER" "$RUNTIME_ENDPOINT_FILE"
@@ -48,11 +50,14 @@ python3 "$SCRIPT_DIR/online_e2e_fixture_server.py" \
     --fixture-dir "$FIXTURE_DIR" \
     --port-file "$RUNTIME_ENDPOINT_FILE" \
     --mode "$SERVER_MODE" \
-    "${SERVER_ARGS[@]}" &
+    "${SERVER_ARGS[@]}" >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 
-for _ in {1..50}; do
+for _ in {1..300}; do
     if [[ -s "$RUNTIME_ENDPOINT_FILE" ]]; then
+        break
+    fi
+    if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
         break
     fi
     sleep 0.1
@@ -60,6 +65,9 @@ done
 
 if [[ ! -s "$RUNTIME_ENDPOINT_FILE" ]]; then
     echo "[-] local e2e fixture server did not start" >&2
+    if [[ -s "$SERVER_LOG" ]]; then
+        cat "$SERVER_LOG" >&2
+    fi
     exit 1
 fi
 
