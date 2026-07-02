@@ -114,8 +114,8 @@ class HubModelDownloadController: UIViewController {
         let warning = AlertViewController(
             title: "Warning",
             message: "Features provided by this page are suitable for users who have experience deploying large language models. Running models that exceed the resources of the device may cause the application or system to crash. Please proceed with caution.\n\nReady to dive in? Select a model to see its size and details.",
-        ) { context in
-            context.addAction(title: "Cancel") {
+        ) { [weak self] context in
+            context.addAction(title: "Cancel") { [weak self] in
                 context.dispose { [weak self] in
                     self?.navigationController?.popViewController(animated: true)
                 }

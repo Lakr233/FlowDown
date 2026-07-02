@@ -156,7 +156,7 @@ public class Storage {
         db.close()
         try? FileManager.default.removeItem(at: databaseDir)
         Task.detached {
-            try await Task.sleep(for: .seconds(1))
+            try? await Task.sleep(for: .seconds(1))
             exit(0)
         }
     }

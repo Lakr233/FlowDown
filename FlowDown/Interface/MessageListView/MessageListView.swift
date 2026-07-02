@@ -78,7 +78,7 @@ final class MessageListView: UIView {
         }
     }
 
-    private(set) lazy var labelForSizeCalculation: LTXLabel = .init()
+    private(set) lazy var labelForSizeCalculation: TextLabelView = .init()
     private(set) lazy var markdownViewForSizeCalculation: MarkdownTextView = .init()
     private(set) lazy var markdownPackageCache: MarkdownPackageCache = .init()
 

@@ -52,12 +52,12 @@ class MessageListRowView: ListRowView, UIContextMenuInteractionDelegate {
         super.prepareForReuse()
         contextMenuProvider = nil
 
-        // clear any LTXLabel selection
+        // clear any TextLabelView selection
         var queue = subviews
         while let v = queue.first {
             queue.removeFirst()
             queue.append(contentsOf: v.subviews)
-            (v as? LTXLabel)?.clearSelection()
+            (v as? TextLabelView)?.clearSelection()
         }
     }
 

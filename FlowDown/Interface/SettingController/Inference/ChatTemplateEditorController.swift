@@ -157,11 +157,11 @@ class ChatTemplateEditorController: StackScrollController, UITextViewDelegate {
         let alert = AlertViewController(
             title: "Delete Template",
             message: "Are you sure you want to delete this template? This action cannot be undone.",
-        ) { context in
+        ) { [weak self] context in
             context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: "Delete", attribute: .accent) {
+            context.addAction(title: "Delete", attribute: .accent) { [weak self] in
                 context.dispose { [weak self] in
                     guard let self else { return }
                     ChatTemplateManager.shared.remove(for: templateIdentifier)

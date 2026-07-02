@@ -12,11 +12,11 @@ extension MessageListView {
     final class MarkdownPackageCache {
         typealias MessageIdentifier = Message.ID
 
-        private var cache: [MessageIdentifier: MarkdownTextView.PreprocessedContent] = [:]
+        private var cache: [MessageIdentifier: MarkdownContent] = [:]
         private var messageDidChanged: [MessageIdentifier: Int] = [:]
         private let lock = NSLock()
 
-        func package(for message: MessageRepresentation, theme: MarkdownTheme) -> MarkdownTextView.PreprocessedContent {
+        func package(for message: MessageRepresentation, theme: MarkdownTheme) -> MarkdownContent {
             let id = message.id
             let contentHash = message.content.hashValue
 
@@ -38,8 +38,8 @@ extension MessageListView {
             theme: MarkdownTheme,
         ) -> (RenderedTextContent.Map, [Int: CodeHighlighter.HighlightMap]) {
             let work = { @MainActor in
-                let rendered: RenderedTextContent.Map = result.render(theme: theme)
-                let highlights: [Int: CodeHighlighter.HighlightMap] = result.render(theme: theme)
+                let rendered: RenderedTextContent.Map = result.renderedContent(theme: theme)
+                let highlights: [Int: CodeHighlighter.HighlightMap] = result.highlightMaps(theme: theme)
                 return (rendered, highlights)
             }
             if Thread.isMainThread {
@@ -51,12 +51,12 @@ extension MessageListView {
             }
         }
 
-        private func updateCache(for message: MessageRepresentation, theme: MarkdownTheme, contentHash: Int) -> MarkdownTextView.PreprocessedContent {
+        private func updateCache(for message: MessageRepresentation, theme: MarkdownTheme, contentHash: Int) -> MarkdownContent {
             let content = message.content
             let result = MarkdownParser().parse(content)
             let blocks = result.documentByRepairingInlineMathPlaceholders()
             let (rendered, highlightMaps) = renderOnMain(result: result, theme: theme)
-            let package = MarkdownTextView.PreprocessedContent(
+            let package = MarkdownContent(
                 blocks: blocks,
                 rendered: rendered,
                 highlightMaps: highlightMaps,

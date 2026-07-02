@@ -195,8 +195,6 @@
 		};
 		50D757BB2EC10A4400AEC087 /* FlowDownUnitTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = FlowDownUnitTests;
 			sourceTree = "<group>";
 		};
@@ -444,7 +442,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					5017A3E72EED53FD0023F420 = {
 						CreatedOnToolsVersion = 26.1.1;
@@ -1235,7 +1233,7 @@
 			repositoryURL = "https://github.com/Lakr233/MarkdownView";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 3.9.1;
+				minimumVersion = 4.1.4;
 			};
 		};
 		50AE757C2EF436FC00D2C845 /* XCRemoteSwiftPackageReference "swift-collections" */ = {

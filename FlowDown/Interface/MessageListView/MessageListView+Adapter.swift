@@ -110,7 +110,7 @@ extension MessageListView: ListViewAdapter {
             case let .aiContent(_, message):
                 markdownViewForSizeCalculation.theme = theme
                 let package = markdownPackageCache.package(for: message, theme: theme)
-                markdownViewForSizeCalculation.setMarkdownManually(package)
+                markdownViewForSizeCalculation.setContentImmediately(package)
                 let boundingSize = markdownViewForSizeCalculation.boundingSize(for: containerWidth)
                 return ceil(boundingSize.height)
             case .hint:
@@ -160,7 +160,7 @@ extension MessageListView: ListViewAdapter {
             if case let .aiContent(_, message) = entry {
                 aiMessageView.theme = theme
                 let package = markdownPackageCache.package(for: message, theme: theme)
-                aiMessageView.markdownView.setMarkdown(package)
+                aiMessageView.markdownView.setContent(package)
                 aiMessageView.linkTapHandler = { [weak self] link, range, touchLocation in
                     self?.handleLinkTapped(link, in: range, at: aiMessageView.convert(touchLocation, to: self))
                 }
@@ -230,10 +230,10 @@ extension MessageListView: ListViewAdapter {
         while !lookup.isEmpty {
             let view = lookup.removeFirst()
             lookup.append(contentsOf: view.subviews)
-            if let label = view as? LTXLabel {
+            if let label = view as? TextLabelView {
                 if label.selectionRange != nil {
                     let location = label.convert(location, from: listView)
-                    if label.isLocationInSelection(location: location) {
+                    if label.selectionContains(location) {
                         Logger.ui.debugFile("event is activate on \(label)")
                         return true
                     }

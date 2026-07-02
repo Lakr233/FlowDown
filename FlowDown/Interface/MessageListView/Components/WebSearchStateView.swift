@@ -151,7 +151,7 @@ extension WebSearchStateView {
 
             progressBar.alpha = 0
             Task { @MainActor in
-                try await Task.sleep(for: .milliseconds(250))
+                try? await Task.sleep(for: .milliseconds(250))
                 self.doWithAnimation {
                     self.progressBar.alpha = 1
                 }

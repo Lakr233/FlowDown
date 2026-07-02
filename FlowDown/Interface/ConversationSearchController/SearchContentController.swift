@@ -104,7 +104,7 @@ class SearchContentController: UIViewController {
         super.viewDidAppear(animated)
 
         Task { @MainActor in
-            try await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: .milliseconds(100))
             self.searchController.searchBar.becomeFirstResponder()
         }
     }
@@ -133,7 +133,7 @@ class SearchContentController: UIViewController {
         guard let selectionIndexPath = focusedIndexPath else { return }
         tableView.cellForRow(at: selectionIndexPath)?.puddingAnimate()
         Task { @MainActor in
-            try await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: .milliseconds(100))
             self.selectResultAndDismiss(at: selectionIndexPath)
         }
     }

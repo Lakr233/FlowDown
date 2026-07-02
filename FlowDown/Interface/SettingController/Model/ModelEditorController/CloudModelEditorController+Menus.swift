@@ -88,11 +88,11 @@ extension CloudModelEditorController {
         let alert = AlertViewController(
             title: "Delete Model",
             message: "Are you sure you want to delete this model? This action cannot be undone.",
-        ) { context in
+        ) { [weak self] context in
             context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: "Delete", attribute: .accent) {
+            context.addAction(title: "Delete", attribute: .accent) { [weak self] in
                 context.dispose { [weak self] in
                     guard let self else { return }
                     ModelManager.shared.removeCloudModel(identifier: identifier)

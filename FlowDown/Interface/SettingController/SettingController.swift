@@ -72,7 +72,7 @@ import UIKit
             override func viewWillAppear(_ animated: Bool) {
                 super.viewWillAppear(animated)
                 Task { @MainActor in
-                    try await Task.sleep(for: .milliseconds(100))
+                    try? await Task.sleep(for: .milliseconds(100))
                     UIView.animate(withDuration: 0.25) {
                         self.view.alpha = 1
                     }

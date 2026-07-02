@@ -165,7 +165,7 @@ extension RichEditorView {
         let indicator = AlertProgressIndicatorViewController(
             title: NSLocalizedString("Converting PDF", comment: ""),
         )
-        parentViewController?.present(indicator, animated: true) {
+        parentViewController?.present(indicator, animated: true) { [weak self] in
             Task.detached(priority: .userInitiated) { [weak self] in
                 var convertedImages: [UIImage] = []
 
@@ -738,8 +738,8 @@ extension RichEditorView: UIDropInteractionDelegate {
         for provider in items.map(\.itemProvider) {
             provider.loadFileRepresentation(
                 forTypeIdentifier: UTType.item.identifier,
-            ) { url, _ in
-                guard let url else { return }
+            ) { [weak self] url, _ in
+                guard let self, let url else { return }
                 let tempDir = disposableResourcesDir.appendingPathComponent(UUID().uuidString)
                 try? FileManager.default.createDirectory(
                     at: tempDir,
@@ -754,7 +754,7 @@ extension RichEditorView: UIDropInteractionDelegate {
                         // we are now using disposableResourcesDir which is cleaned up on boot
                         // to avoid some background transcoding task failing
                         // we wait for 30 seconds before deleting the temp dir
-                        try await Task.sleep(for: .seconds(30))
+                        try? await Task.sleep(for: .seconds(30))
                         try? FileManager.default.removeItem(at: tempDir)
                     }
                 }

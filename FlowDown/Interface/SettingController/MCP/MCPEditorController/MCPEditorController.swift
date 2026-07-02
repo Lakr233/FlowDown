@@ -93,11 +93,11 @@ class MCPEditorController: StackScrollController {
         let alert = AlertViewController(
             title: "Delete Server",
             message: "Are you sure you want to delete this MCP server? This action cannot be undone.",
-        ) { context in
+        ) { [weak self] context in
             context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: "Delete", attribute: .accent) {
+            context.addAction(title: "Delete", attribute: .accent) { [weak self] in
                 context.dispose { [weak self] in
                     guard let self else { return }
                     MCPService.shared.remove(serverId)
@@ -136,7 +136,7 @@ class MCPEditorController: StackScrollController {
                 $0.update(\.isEnabled, to: value)
             }
             Task { @MainActor in
-                try await Task.sleep(for: .milliseconds(500))
+                try? await Task.sleep(for: .milliseconds(500))
                 // let toggle finish animate
                 self.refreshUI()
             }

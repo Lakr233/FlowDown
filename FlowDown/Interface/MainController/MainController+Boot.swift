@@ -46,7 +46,7 @@ extension MainController {
             let conversation = ConversationManager.shared.createNewConversation(autoSelect: true)
             Logger.app.infoFile("created new conversation ID: \(conversation.id)")
             guard shouldSend else { return }
-            try await Task.sleep(nanoseconds: 500_000_000)
+            try? await Task.sleep(nanoseconds: 500_000_000)
             if self.chatView.conversationIdentifier == conversation.id {
                 self.sendMessageToCurrentConversation(text)
             }

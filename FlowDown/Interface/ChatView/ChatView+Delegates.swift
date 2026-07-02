@@ -68,12 +68,12 @@ extension ChatView: RichEditorView.Delegate {
         let alert = AlertViewController(
           title: "Error",
           message: "A tool model is required for browsing.",
-        ) { context in
+        ) { [weak self] context in
           context.allowSimpleDispose()
           context.addAction(title: "Close") {
             context.dispose()
           }
-          context.addAction(title: "Configure", attribute: .accent) {
+          context.addAction(title: "Configure", attribute: .accent) { [weak self] in
             context.dispose { [weak self] in
               SettingController.setNextEntryPage(.inference)
               let setting = SettingController()
@@ -96,12 +96,12 @@ extension ChatView: RichEditorView.Delegate {
         let alert = AlertViewController(
           title: "Error",
           message: "A visual model is required for image attachments.",
-        ) { context in
+        ) { [weak self] context in
           context.allowSimpleDispose()
           context.addAction(title: "Close") {
             context.dispose()
           }
-          context.addAction(title: "Configure", attribute: .accent) {
+          context.addAction(title: "Configure", attribute: .accent) { [weak self] in
             context.dispose { [weak self] in
               SettingController.setNextEntryPage(.inference)
               let setting = SettingController()
@@ -126,7 +126,7 @@ extension ChatView: RichEditorView.Delegate {
 
     #if targetEnvironment(macCatalyst)
       Task { @MainActor in
-        try await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(500))
         self.editor.focus()
       }
     #endif

@@ -147,11 +147,11 @@ final class ModelExchangeSelectionController: UIViewController {
         let alert = AlertViewController(
             title: "Confirm Sharing",
             message: "Models may contain credentials or secrets. Share with \(appName)?",
-        ) { context in
+        ) { [weak self] context in
             context.addAction(title: String(localized: "Cancel")) {
                 context.dispose {}
             }
-            context.addAction(title: String(localized: "Share"), attribute: .accent) {
+            context.addAction(title: String(localized: "Share"), attribute: .accent) { [weak self] in
                 context.dispose { [weak self] in
                     guard let self else { return }
                     hasCompleted = true

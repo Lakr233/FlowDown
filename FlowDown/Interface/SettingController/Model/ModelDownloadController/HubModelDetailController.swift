@@ -68,17 +68,17 @@ class HubModelDetailController: StackScrollController {
         var theme = MarkdownTheme()
         theme.align(to: UIFont.preferredFont(forTextStyle: .subheadline).pointSize)
         let blocks = result.documentByRepairingInlineMathPlaceholders()
-        let rendered: RenderedTextContent.Map = result.render(theme: theme)
-        let highlightMaps: [Int: CodeHighlighter.HighlightMap] = result.render(theme: theme)
-        let package = MarkdownTextView.PreprocessedContent(
+        let rendered: RenderedTextContent.Map = result.renderedContent(theme: theme)
+        let highlightMaps: [Int: CodeHighlighter.HighlightMap] = result.highlightMaps(theme: theme)
+        let package = MarkdownContent(
             blocks: blocks,
             rendered: rendered,
             highlightMaps: highlightMaps,
         )
         let markdownView = MarkdownTextView().with {
             $0.theme = theme
-            $0.bindContentOffset(from: scrollView)
-            $0.setMarkdownManually(package)
+            $0.trackedScrollView = scrollView
+            $0.setContentImmediately(package)
             $0.alpha = 0
         }
         markdownContainerView.addSubview(markdownView)
@@ -238,12 +238,12 @@ class HubModelDetailController: StackScrollController {
 
                 Estimated download size: \(sizeText)
                 """,
-            ) { context in
+            ) { [weak self] context in
                 context.allowSimpleDispose()
                 context.addAction(title: "Cancel") {
                     context.dispose()
                 }
-                context.addAction(title: "Download", attribute: .accent) {
+                context.addAction(title: "Download", attribute: .accent) { [weak self] in
                     context.dispose { [weak self] in
                         self?.present(downloadController, animated: true)
                     }
@@ -258,12 +258,12 @@ class HubModelDetailController: StackScrollController {
 
                 Estimated download size: \(sizeText)
                 """,
-            ) { context in
+            ) { [weak self] context in
                 context.allowSimpleDispose()
                 context.addAction(title: "Cancel") {
                     context.dispose()
                 }
-                context.addAction(title: "Download", attribute: .accent) {
+                context.addAction(title: "Download", attribute: .accent) { [weak self] in
                     context.dispose { [weak self] in
                         self?.present(downloadController, animated: true)
                     }

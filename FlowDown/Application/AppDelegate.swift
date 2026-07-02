@@ -67,9 +67,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let isSyncEnabled = SyncEngine.isSyncEnabled
         if isSyncEnabled {
             Task {
-                if isSyncEnabled {
-                    try await syncEngine.fetchChanges()
-                }
+                if isSyncEnabled { try? await syncEngine.fetchChanges() }
             }
         }
 

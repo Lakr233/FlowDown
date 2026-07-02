@@ -155,7 +155,7 @@ class ConversationCaptureView: UIView {
             layoutIfNeeded()
 
             Task { @MainActor in
-                try await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(1))
                 let finalSize = CGSize(width: self.layoutWidth, height: finalHeight)
                 let format = UIGraphicsImageRendererFormat.default()
                 format.scale = UIScreen.main.scale
@@ -167,7 +167,7 @@ class ConversationCaptureView: UIView {
                     self.layer.render(in: context.cgContext)
                 }
                 completion(image)
-                try await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(1))
                 self.removeFromSuperview()
             }
         }
@@ -216,7 +216,7 @@ private extension ConversationCaptureView {
 
             previousHeight = contentHeight
             Task { @MainActor in
-                try await Task.sleep(for: .milliseconds(100))
+                try? await Task.sleep(for: .milliseconds(100))
                 evaluate()
             }
         }

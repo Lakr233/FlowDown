@@ -92,10 +92,10 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
   func addWithUserInteractions(name: String, icsFile: String, controller: UIViewController)
     async throws -> String
   {
-    try await withCheckedThrowingContinuation { cont in
+    try await withCheckedThrowingContinuation { [weak self] cont in
       let eventStore = EKEventStore()
 
-      let handleAuthResult: (Bool) -> Void = { granted in
+      let handleAuthResult: (Bool) -> Void = { [weak self] granted in
         Task { @MainActor [weak self] in
           guard let self else {
             cont.resume(

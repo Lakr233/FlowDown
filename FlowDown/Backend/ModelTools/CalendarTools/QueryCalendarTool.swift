@@ -141,7 +141,7 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         try await withCheckedThrowingContinuation { cont in
             let eventStore = EKEventStore()
 
-            let handleAuthResult: (Bool, Error?) -> Void = { granted, error in
+            let handleAuthResult: (Bool, Error?) -> Void = { [weak self] granted, error in
                 Task { @MainActor [weak self] in
                     guard let self else {
                         let errorMessage = error?.localizedDescription ?? "Unknown error"

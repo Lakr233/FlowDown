@@ -194,66 +194,68 @@ extension ConversationSessionManager.Session {
     ) -> AsyncStream<WebSearchPhase> {
         .init { cont in
             Task.detached {
-                var results: [Scrubber.Document] = []
-
-                guard !searchQueries.isEmpty else {
-                    onSetWebDocumentResult([])
-                    return
-                }
-
-                let eachLimit = await MainActor.run {
-                    Int(max(3, ScrubberConfiguration.limitConfigurableObjectValue / searchQueries.count))
-                }
-                Logger.network.infoFile("web search has limited \(eachLimit) for each query")
-
-                var phase = WebSearchPhase()
-                phase.numberOfQueries = searchQueries.count
-                for (idx, searchQuery) in searchQueries.enumerated() {
-                    try self.checkCancellation()
-                    phase.query = idx
-                    phase.queryBeginDate = .init()
-                    phase.numberOfSource = 0
-                    phase.numberOfWebsites = 0
-                    phase.proccessProgress = 0.1
-                    cont.yield(phase)
-                    let basePhase = phase
-                    let urlsReranker = URLsReranker(question: searchQuery, keepKPerHostname: 4)
-                    let scrubber = Scrubber(query: searchQuery, options: .init(urlsReranker: urlsReranker))
-                    await withTaskCancellationHandler {
-                        let docs: [Scrubber.Document] = await withCheckedContinuation { innerCont in
-                            Task { @MainActor in
-                                scrubber.run(limitation: eachLimit) { docs in
-                                    innerCont.resume(returning: docs)
-                                } onProgress: { overall in
-                                    let searchCompleted = scrubber.progress.engineStatusCompletedCount
-                                    let searchTotal = scrubber.progress.engineStatus.count
-                                    let websiteTotal = scrubber.progress.fetchedStatus.count
-                                    var progressPhase = basePhase
-                                    progressPhase.proccessProgress = max(0.1, overall.fractionCompleted)
-                                    progressPhase.currentSource = searchCompleted
-                                    progressPhase.numberOfSource = searchTotal
-                                    progressPhase.numberOfWebsites = websiteTotal
-                                    cont.yield(progressPhase)
+                do {
+                    var results: [Scrubber.Document] = []
+                    
+                    guard !searchQueries.isEmpty else {
+                        onSetWebDocumentResult([])
+                        return
+                    }
+                    
+                    let eachLimit = await MainActor.run {
+                        Int(max(3, ScrubberConfiguration.limitConfigurableObjectValue / searchQueries.count))
+                    }
+                    Logger.network.infoFile("web search has limited \(eachLimit) for each query")
+                    
+                    var phase = WebSearchPhase()
+                    phase.numberOfQueries = searchQueries.count
+                    for (idx, searchQuery) in searchQueries.enumerated() {
+                        try self.checkCancellation()
+                        phase.query = idx
+                        phase.queryBeginDate = .init()
+                        phase.numberOfSource = 0
+                        phase.numberOfWebsites = 0
+                        phase.proccessProgress = 0.1
+                        cont.yield(phase)
+                        let basePhase = phase
+                        let urlsReranker = URLsReranker(question: searchQuery, keepKPerHostname: 4)
+                        let scrubber = Scrubber(query: searchQuery, options: .init(urlsReranker: urlsReranker))
+                        await withTaskCancellationHandler {
+                            let docs: [Scrubber.Document] = await withCheckedContinuation { innerCont in
+                                Task { @MainActor in
+                                    scrubber.run(limitation: eachLimit) { docs in
+                                        innerCont.resume(returning: docs)
+                                    } onProgress: { overall in
+                                        let searchCompleted = scrubber.progress.engineStatusCompletedCount
+                                        let searchTotal = scrubber.progress.engineStatus.count
+                                        let websiteTotal = scrubber.progress.fetchedStatus.count
+                                        var progressPhase = basePhase
+                                        progressPhase.proccessProgress = max(0.1, overall.fractionCompleted)
+                                        progressPhase.currentSource = searchCompleted
+                                        progressPhase.numberOfSource = searchTotal
+                                        progressPhase.numberOfWebsites = websiteTotal
+                                        cont.yield(progressPhase)
+                                    }
                                 }
                             }
-                        }
-                        results.append(contentsOf: docs)
-                    } onCancel: {
-                        Logger.network.errorFile("cancelling web search due to task is cancelled")
-                        Task { @MainActor in
-                            scrubber.cancel()
+                            results.append(contentsOf: docs)
+                        } onCancel: {
+                            Logger.network.errorFile("cancelling web search due to task is cancelled")
+                            Task { @MainActor in scrubber.cancel() }
                         }
                     }
+                    
+                    results.shuffle()
+                    onSetWebDocumentResult(results)
+                    
+                    phase.numberOfResults = results.count
+                    phase.queryBeginDate = .init(timeIntervalSince1970: 0)
+                    cont.yield(phase)
+                    
+                    cont.finish()
+                } catch {
+                    cont.finish()
                 }
-
-                results.shuffle()
-                onSetWebDocumentResult(results)
-
-                phase.numberOfResults = results.count
-                phase.queryBeginDate = .init(timeIntervalSince1970: 0)
-                cont.yield(phase)
-
-                cont.finish()
             }
         }
     }

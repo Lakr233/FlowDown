@@ -9,7 +9,7 @@ import UIKit
 
 final class ReasoningContentView: MessageListRowView {
     private lazy var indicator: UIView = .init()
-    private lazy var textView: LTXLabel = .init().with {
+    private lazy var textView: TextLabelView = .init().with {
         $0.isSelectable = true
     }
 
@@ -187,7 +187,7 @@ extension ReasoningContentView {
         }
 
         private lazy var loadingSymbol: LoadingSymbol = .init()
-        private lazy var textView: LTXLabel = .init()
+        private lazy var textView: TextLabelView = .init()
         private lazy var textContainerView: UIView = .init()
         private lazy var arrowView: UIImageView = .init(
             image: UIImage(

@@ -33,7 +33,7 @@ final class UserMessageView: MessageListRowView {
     }
 
     private let backgroundGradientLayer = CAGradientLayer()
-    private lazy var textView: LTXLabel = .init().with { $0.isSelectable = true }
+    private lazy var textView: TextLabelView = .init().with { $0.isSelectable = true }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
