@@ -64,10 +64,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         application.registerForRemoteNotifications()
 
-        let isSyncEnabled = SyncEngine.isSyncEnabled
-        if isSyncEnabled {
+        if SyncEngine.isSyncEnabled {
             Task {
-                if isSyncEnabled { try? await syncEngine.fetchChanges() }
+                try? await syncEngine.fetchChanges()
             }
         }
 
@@ -189,7 +188,7 @@ func terminateApplication() -> Never {
     #else
         UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
         Task.detached {
-            try await Task.sleep(for: .seconds(1))
+            try? await Task.sleep(for: .seconds(1))
             exit(0)
         }
         sleep(5)

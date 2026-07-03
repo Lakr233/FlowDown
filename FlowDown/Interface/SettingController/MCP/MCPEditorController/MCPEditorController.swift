@@ -90,22 +90,14 @@ class MCPEditorController: StackScrollController {
     }
 
     @objc func deleteTapped() {
-        let alert = AlertViewController(
+        presentDeleteConfirmation(
             title: "Delete Server",
             message: "Are you sure you want to delete this MCP server? This action cannot be undone.",
-        ) { [weak self] context in
-            context.addAction(title: "Cancel") {
-                context.dispose()
-            }
-            context.addAction(title: "Delete", attribute: .accent) { [weak self] in
-                context.dispose { [weak self] in
-                    guard let self else { return }
-                    MCPService.shared.remove(serverId)
-                    navigationController?.popViewController(animated: true)
-                }
-            }
+        ) { [weak self] in
+            guard let self else { return }
+            MCPService.shared.remove(serverId)
+            navigationController?.popViewController(animated: true)
         }
-        present(alert, animated: true)
     }
 
     override func setupContentViews() {

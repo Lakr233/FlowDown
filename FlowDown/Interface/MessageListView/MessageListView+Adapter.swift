@@ -112,6 +112,9 @@ extension MessageListView: ListViewAdapter {
                 let package = markdownPackageCache.package(for: message, theme: theme)
                 markdownViewForSizeCalculation.setContentImmediately(package)
                 let boundingSize = markdownViewForSizeCalculation.boundingSize(for: containerWidth)
+                // The off-screen sizing view also receives CodeHighlighter
+                // notifications; empty it so those don't rebuild the full message.
+                markdownViewForSizeCalculation.reset()
                 return ceil(boundingSize.height)
             case .hint:
                 return ceil(theme.fonts.footnote.lineHeight + 16)

@@ -65,23 +65,10 @@ extension ChatView: RichEditorView.Delegate {
       guard let auxModel = session.models.auxiliary,
         !auxModel.isEmpty
       else {
-        let alert = AlertViewController(
-          title: "Error",
+        presentModelRequiredAlert(
           message: "A tool model is required for browsing.",
-        ) { [weak self] context in
-          context.allowSimpleDispose()
-          context.addAction(title: "Close") {
-            context.dispose()
-          }
-          context.addAction(title: "Configure", attribute: .accent) { [weak self] in
-            context.dispose { [weak self] in
-              SettingController.setNextEntryPage(.inference)
-              let setting = SettingController()
-              self?.parentViewController?.present(setting, animated: true)
-            }
-          }
-        }
-        parentViewController?.present(alert, animated: true)
+          entryPage: .inference,
+        )
         completion(false)
         return
       }
@@ -93,24 +80,10 @@ extension ChatView: RichEditorView.Delegate {
         .contains(.visual)
       let auxModelExists = !(session.models.visualAuxiliary?.isEmpty ?? true)
       guard currentModelCanSee || auxModelExists else {
-        let alert = AlertViewController(
-          title: "Error",
+        presentModelRequiredAlert(
           message: "A visual model is required for image attachments.",
-        ) { [weak self] context in
-          context.allowSimpleDispose()
-          context.addAction(title: "Close") {
-            context.dispose()
-          }
-          context.addAction(title: "Configure", attribute: .accent) { [weak self] in
-            context.dispose { [weak self] in
-              SettingController.setNextEntryPage(.inference)
-              let setting = SettingController()
-              SettingController.setNextEntryPage(.modelManagement)
-              self?.parentViewController?.present(setting, animated: true)
-            }
-          }
-        }
-        parentViewController?.present(alert, animated: true)
+          entryPage: .modelManagement,
+        )
         completion(false)
         return
       }
@@ -130,6 +103,29 @@ extension ChatView: RichEditorView.Delegate {
         self.editor.focus()
       }
     #endif
+  }
+
+  private func presentModelRequiredAlert(
+    message: String.LocalizationValue,
+    entryPage: SettingController.EntryPage,
+  ) {
+    let alert = AlertViewController(
+      title: "Error",
+      message: message,
+    ) { [weak self] context in
+      context.allowSimpleDispose()
+      context.addAction(title: "Close") {
+        context.dispose()
+      }
+      context.addAction(title: "Configure", attribute: .accent) { [weak self] in
+        context.dispose { [weak self] in
+          SettingController.setNextEntryPage(entryPage)
+          let setting = SettingController()
+          self?.parentViewController?.present(setting, animated: true)
+        }
+      }
+    }
+    parentViewController?.present(alert, animated: true)
   }
 
   func onRichEditorError(_ error: String) {

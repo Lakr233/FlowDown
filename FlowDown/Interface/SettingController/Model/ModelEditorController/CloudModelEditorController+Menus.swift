@@ -85,22 +85,14 @@ extension CloudModelEditorController {
 
     @MainActor
     @objc func deleteModel() {
-        let alert = AlertViewController(
+        presentDeleteConfirmation(
             title: "Delete Model",
             message: "Are you sure you want to delete this model? This action cannot be undone.",
-        ) { [weak self] context in
-            context.addAction(title: "Cancel") {
-                context.dispose()
-            }
-            context.addAction(title: "Delete", attribute: .accent) { [weak self] in
-                context.dispose { [weak self] in
-                    guard let self else { return }
-                    ModelManager.shared.removeCloudModel(identifier: identifier)
-                    navigationController?.popViewController(animated: true)
-                }
-            }
+        ) { [weak self] in
+            guard let self else { return }
+            ModelManager.shared.removeCloudModel(identifier: identifier)
+            navigationController?.popViewController(animated: true)
         }
-        present(alert, animated: true)
     }
 
     func buildEndpointMenu(for modelId: CloudModel.ID, view: ConfigurableInfoView) -> [UIMenuElement] {

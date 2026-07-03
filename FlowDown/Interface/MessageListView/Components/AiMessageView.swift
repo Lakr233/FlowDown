@@ -38,6 +38,9 @@ final class AiMessageView: MessageListRowView {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        // Parked cells still receive CodeHighlighter notifications which trigger
+        // a full document rebuild; empty their content so that rebuild is free.
+        markdownView.reset()
     }
 
     override func layoutSubviews() {

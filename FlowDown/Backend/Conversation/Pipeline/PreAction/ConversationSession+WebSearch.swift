@@ -193,24 +193,26 @@ extension ConversationSessionManager.Session {
         onSetWebDocumentResult: @escaping ([Scrubber.Document]) -> Void,
     ) -> AsyncStream<WebSearchPhase> {
         .init { cont in
-            Task.detached {
+            let producerTask = Task.detached {
+                defer { cont.finish() }
                 do {
                     var results: [Scrubber.Document] = []
-                    
+
                     guard !searchQueries.isEmpty else {
                         onSetWebDocumentResult([])
                         return
                     }
-                    
+
                     let eachLimit = await MainActor.run {
                         Int(max(3, ScrubberConfiguration.limitConfigurableObjectValue / searchQueries.count))
                     }
                     Logger.network.infoFile("web search has limited \(eachLimit) for each query")
-                    
+
                     var phase = WebSearchPhase()
                     phase.numberOfQueries = searchQueries.count
                     for (idx, searchQuery) in searchQueries.enumerated() {
                         try self.checkCancellation()
+                        try Task.checkCancellation()
                         phase.query = idx
                         phase.queryBeginDate = .init()
                         phase.numberOfSource = 0
@@ -244,19 +246,19 @@ extension ConversationSessionManager.Session {
                             Task { @MainActor in scrubber.cancel() }
                         }
                     }
-                    
+
+                    try Task.checkCancellation()
                     results.shuffle()
                     onSetWebDocumentResult(results)
-                    
+
                     phase.numberOfResults = results.count
                     phase.queryBeginDate = .init(timeIntervalSince1970: 0)
                     cont.yield(phase)
-                    
-                    cont.finish()
                 } catch {
-                    cont.finish()
+                    Logger.network.errorFile("web search interrupted: \(error)")
                 }
             }
+            cont.onTermination = { _ in producerTask.cancel() }
         }
     }
 

@@ -6,6 +6,21 @@
 //
 
 import MarkdownParser
+import MarkdownView
+
+extension MarkdownContent {
+    /// One-step content build that routes blocks through the inline-math
+    /// placeholder repair. Mirror of MarkdownContent(parserResult:theme:);
+    /// delete this once upstream repairs placeholders itself.
+    @MainActor
+    convenience init(repairing result: MarkdownParser.ParseResult, theme: MarkdownTheme) {
+        self.init(
+            blocks: result.documentByRepairingInlineMathPlaceholders(),
+            rendered: result.renderedContent(theme: theme),
+            highlightMaps: result.highlightMaps(theme: theme),
+        )
+    }
+}
 
 extension MarkdownParser.ParseResult {
     func documentByRepairingInlineMathPlaceholders() -> [MarkdownBlockNode] {

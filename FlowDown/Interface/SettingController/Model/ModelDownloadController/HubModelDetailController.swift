@@ -67,14 +67,7 @@ class HubModelDetailController: StackScrollController {
         let result = MarkdownParser().parse(markdown)
         var theme = MarkdownTheme()
         theme.align(to: UIFont.preferredFont(forTextStyle: .subheadline).pointSize)
-        let blocks = result.documentByRepairingInlineMathPlaceholders()
-        let rendered: RenderedTextContent.Map = result.renderedContent(theme: theme)
-        let highlightMaps: [Int: CodeHighlighter.HighlightMap] = result.highlightMaps(theme: theme)
-        let package = MarkdownContent(
-            blocks: blocks,
-            rendered: rendered,
-            highlightMaps: highlightMaps,
-        )
+        let package = MarkdownContent(repairing: result, theme: theme)
         let markdownView = MarkdownTextView().with {
             $0.theme = theme
             $0.trackedScrollView = scrollView
@@ -231,46 +224,45 @@ class HubModelDetailController: StackScrollController {
         if disableWarnings {
             present(downloadController, animated: true)
         } else if model.id.lowercased().hasPrefix("mlx-community/") {
-            let alert = AlertViewController(
+            presentDownloadWarning(
                 title: "Download Model",
                 message: """
                 We are not responsible for the model you are about to download. If we are unable to load this model, the app may crash. Do you want to continue?
 
                 Estimated download size: \(sizeText)
                 """,
-            ) { [weak self] context in
-                context.allowSimpleDispose()
-                context.addAction(title: "Cancel") {
-                    context.dispose()
-                }
-                context.addAction(title: "Download", attribute: .accent) { [weak self] in
-                    context.dispose { [weak self] in
-                        self?.present(downloadController, animated: true)
-                    }
-                }
-            }
-            present(alert, animated: true)
+                downloadController: downloadController,
+            )
         } else {
-            let alert = AlertViewController(
+            presentDownloadWarning(
                 title: "Unverified Model",
                 message: """
                 Even if you download this model, it may not work or even crash the app. Do you still want to download this model?
 
                 Estimated download size: \(sizeText)
                 """,
-            ) { [weak self] context in
-                context.allowSimpleDispose()
-                context.addAction(title: "Cancel") {
-                    context.dispose()
-                }
-                context.addAction(title: "Download", attribute: .accent) { [weak self] in
-                    context.dispose { [weak self] in
-                        self?.present(downloadController, animated: true)
-                    }
+                downloadController: downloadController,
+            )
+        }
+    }
+
+    private func presentDownloadWarning(
+        title: String.LocalizationValue,
+        message: String.LocalizationValue,
+        downloadController: UIViewController,
+    ) {
+        let alert = AlertViewController(title: title, message: message) { [weak self] context in
+            context.allowSimpleDispose()
+            context.addAction(title: "Cancel") {
+                context.dispose()
+            }
+            context.addAction(title: "Download", attribute: .accent) { [weak self] in
+                context.dispose { [weak self] in
+                    self?.present(downloadController, animated: true)
                 }
             }
-            present(alert, animated: true)
         }
+        present(alert, animated: true)
     }
 }
 

@@ -33,14 +33,12 @@ extension MessageListView {
             return updateCache(for: message, theme: theme, contentHash: contentHash)
         }
 
-        private func renderOnMain(
+        private func makeContent(
             result: MarkdownParser.ParseResult,
             theme: MarkdownTheme,
-        ) -> (RenderedTextContent.Map, [Int: CodeHighlighter.HighlightMap]) {
+        ) -> MarkdownContent {
             let work = { @MainActor in
-                let rendered: RenderedTextContent.Map = result.renderedContent(theme: theme)
-                let highlights: [Int: CodeHighlighter.HighlightMap] = result.highlightMaps(theme: theme)
-                return (rendered, highlights)
+                MarkdownContent(repairing: result, theme: theme)
             }
             if Thread.isMainThread {
                 return MainActor.assumeIsolated { work() }
@@ -54,13 +52,7 @@ extension MessageListView {
         private func updateCache(for message: MessageRepresentation, theme: MarkdownTheme, contentHash: Int) -> MarkdownContent {
             let content = message.content
             let result = MarkdownParser().parse(content)
-            let blocks = result.documentByRepairingInlineMathPlaceholders()
-            let (rendered, highlightMaps) = renderOnMain(result: result, theme: theme)
-            let package = MarkdownContent(
-                blocks: blocks,
-                rendered: rendered,
-                highlightMaps: highlightMaps,
-            )
+            let package = makeContent(result: result, theme: theme)
 
             lock.lock()
             cache[message.id] = package
