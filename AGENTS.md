@@ -65,6 +65,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
   - `make clean` to remove repo-local build artifacts and derived data
 - The shared FlowDown scheme runs `git submodule update` before builds and tests; stage or commit intended gitlink changes first so the selected submodule revisions are not restored from the index.
 - Xcode Cloud invokes `xcodebuild` outside the Makefile; keep package plug-in validation configuration in `ci_scripts/ci_post_clone.sh` so cloud archives receive it.
+- All supported app destinations use `arm64`; keep the project and Makefile architecture settings aligned, and configure Xcode Cloud workflows with `ARCHS=arm64` so Swift package targets receive the same constraint.
 - Archive script automatically commits changes and bumps version before building; ensure the working tree is clean beforehand.
 - Use `make help` to discover the current command surface.
 - Localization validation helpers:
