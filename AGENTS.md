@@ -63,6 +63,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - Cleanup commands:
   - `make clean-build` to remove repo-local build artifacts
   - `make clean` to remove repo-local build artifacts and derived data
+- The shared FlowDown scheme runs `git submodule update` before builds and tests; stage or commit intended gitlink changes first so the selected submodule revisions are not restored from the index.
 - Archive script automatically commits changes and bumps version before building; ensure the working tree is clean beforehand.
 - Use `make help` to discover the current command surface.
 - Localization validation helpers:

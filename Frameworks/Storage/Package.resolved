@@ -68,8 +68,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/wcdb-spm-prebuilt",
       "state" : {
-        "revision" : "9077e295997fd8cc1e0c0f669a40b2314af20a1a",
-        "version" : "2.1.15"
+        "revision" : "619a4ce1b5b3b59b14832ec5bbe414d542703469",
+        "version" : "2.1.16"
       }
     },
     {
