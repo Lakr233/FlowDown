@@ -27,6 +27,7 @@
 		506837F42EED62CB00EBF35F /* ChatClientKit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = ED16359B2D5C5BDA0081BD0B /* ChatClientKit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		506837FA2EED63FB00EBF35F /* Storage in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 50C9035A2D428DAD00E6E3A8 /* Storage */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5078496A2D285B5900B1F430 /* MarkdownView in Frameworks */ = {isa = PBXBuildFile; productRef = 507849692D285B5900B1F430 /* MarkdownView */; };
+		50A350BB2F20A00000B1F430 /* Litext in Frameworks */ = {isa = PBXBuildFile; productRef = 50A350BC2F20A00000B1F430 /* Litext */; };
 		5081A0142D6DBBBA0079ECBE /* RunestoneEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 5081A0132D6DBBBA0079ECBE /* RunestoneEditor */; };
 		509038622FB0EB8500110DDB /* iCalendarParser in Frameworks */ = {isa = PBXBuildFile; productRef = 509038612FB0EB8500110DDB /* iCalendarParser */; };
 		5097D63E2EF3E35C00850D3E /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 5097D63D2EF3E35C00850D3E /* Storage */; };
@@ -238,6 +239,7 @@
 				502BCBD12D43DB2B00500180 /* ConfigurableKit in Frameworks */,
 				505535BC2D72F38900F54B28 /* AlignedCollectionViewFlowLayout in Frameworks */,
 				5078496A2D285B5900B1F430 /* MarkdownView in Frameworks */,
+				50A350BB2F20A00000B1F430 /* Litext in Frameworks */,
 				502272D22EB3DE3200AF9D28 /* UIEffectKit in Frameworks */,
 				50DDB1712DDF16F200351E46 /* ListViewKit in Frameworks */,
 				5081A0142D6DBBBA0079ECBE /* RunestoneEditor in Frameworks */,
@@ -354,6 +356,7 @@
 				50B514772D23157A0092284C /* SnapKit */,
 				50B5149A2D2316EC0092284C /* SwifterSwift */,
 				507849692D285B5900B1F430 /* MarkdownView */,
+				50A350BC2F20A00000B1F430 /* Litext */,
 				50383CE92D2E1E0D00426941 /* BetterCodable */,
 				50C9035A2D428DAD00E6E3A8 /* Storage */,
 				505BC6F82D42A73600894BB0 /* AlertController */,
@@ -490,6 +493,7 @@
 				50DDB16F2DDF16F200351E46 /* XCRemoteSwiftPackageReference "ListViewKit" */,
 				50CB4E732DE30A57009C58E1 /* XCRemoteSwiftPackageReference "Digger" */,
 				50A350B92DE4B5C3008F094E /* XCRemoteSwiftPackageReference "MarkdownView" */,
+				50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */,
 				50FBFC6A2DEA2E5400098EC4 /* XCRemoteSwiftPackageReference "XMLCoder" */,
 				86B4FDBE2E1190AD00C6DC8F /* XCRemoteSwiftPackageReference "swift-sdk" */,
 				505742432E1B8B2A00A26090 /* XCRemoteSwiftPackageReference "DpkgVersion" */,
@@ -1232,8 +1236,16 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lakr233/MarkdownView";
 			requirement = {
+				kind = exactVersion;
+				version = 4.1.7;
+			};
+		};
+		50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Lakr233/Litext";
+			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.1.4;
+				minimumVersion = 2.1.4;
 			};
 		};
 		50AE757C2EF436FC00D2C845 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
@@ -1382,6 +1394,11 @@
 		507849692D285B5900B1F430 /* MarkdownView */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MarkdownView;
+		};
+		50A350BC2F20A00000B1F430 /* Litext */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */;
+			productName = Litext;
 		};
 		5081A0132D6DBBBA0079ECBE /* RunestoneEditor */ = {
 			isa = XCSwiftPackageProductDependency;
