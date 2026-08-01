@@ -54,6 +54,11 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             | xcbeautify --is-ci --disable-colored-output --disable-logging
 
+      - name: Strip mlx-swift CUDA Plugin (${{ matrix.target }})
+        run: |
+          chmod +x Resources/DevKit/scripts/strip_mlx_cuda_plugin.sh
+          ./Resources/DevKit/scripts/strip_mlx_cuda_plugin.sh
+
       - name: Archive (${{ matrix.target }})
         run: |
           set -o pipefail

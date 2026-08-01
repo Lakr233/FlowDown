@@ -23,4 +23,6 @@ for file in "${PACKAGE_RESOLVED_FILES[@]}"; do
   swift package --package-path "$package_path" resolve
 done
 
+"$(cd "$(dirname "$0")" && pwd)/strip_mlx_cuda_plugin.sh"
+
 echo "[resolve-packages] done"
