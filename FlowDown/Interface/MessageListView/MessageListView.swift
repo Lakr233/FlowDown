@@ -87,6 +87,10 @@ final class MessageListView: UIView {
 
         listView.delegate = self
         listView.adapter = self
+        // Row measurement runs full markdown layout; keep stale heights as
+        // estimates on width changes and correct them incrementally instead
+        // of re-measuring every row synchronously (see ListViewKit 2.1).
+        listView.deferredSizeCalculation = true
         listView.alwaysBounceVertical = true
         listView.alwaysBounceHorizontal = false
         listView.contentInsetAdjustmentBehavior = .never

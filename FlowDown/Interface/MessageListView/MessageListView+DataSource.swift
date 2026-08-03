@@ -31,8 +31,12 @@ extension MessageListView {
                 "Hint.\(id)"
             case let .webSearchContent(status):
                 "WebSearchContent.\(status.id)"
-            case let .activityReporting(content):
-                "ActivityReporting.\(content)"
+            case .activityReporting:
+                // Stable identity: the loading indicator is a single row whose
+                // text changes while streaming. Deriving the id from the content
+                // would remove/insert the row (with fade animations) on every
+                // update instead of reconfiguring it in place.
+                "ActivityReporting"
             case let .toolCallStatus(messageID, status):
                 "ToolCallStatus.\(messageID).\(status.id)"
             }
