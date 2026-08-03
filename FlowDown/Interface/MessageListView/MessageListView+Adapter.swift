@@ -160,10 +160,10 @@ extension MessageListView: ListViewAdapter {
                 attachmentView.update(with: attachments)
             } else { assertionFailure() }
         } else if let aiMessageView = rowView as? AiMessageView {
-            if case let .aiContent(_, message) = entry {
+            if case let .aiContent(messageID, message) = entry {
                 aiMessageView.theme = theme
                 let package = markdownPackageCache.package(for: message, theme: theme)
-                aiMessageView.markdownView.setContent(package)
+                aiMessageView.setMarkdownPackage(package, for: messageID)
                 aiMessageView.linkTapHandler = { [weak self] link, range, touchLocation in
                     self?.handleLinkTapped(link, in: range, at: aiMessageView.convert(touchLocation, to: self))
                 }
