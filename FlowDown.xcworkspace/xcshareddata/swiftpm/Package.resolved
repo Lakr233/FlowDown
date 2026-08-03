@@ -131,8 +131,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/ListViewKit",
       "state" : {
-        "revision" : "fc335c6bfb6b2fb792c3c51f4c11eb0a23a1876c",
-        "version" : "2.1.1"
+        "revision" : "8903360019559f4d0bff41b2db65661007cc95e5",
+        "version" : "2.1.2"
       }
     },
     {
@@ -167,8 +167,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/MarkdownView",
       "state" : {
-        "revision" : "6042ed81b8efeb50cdb50c5450b6d35a1c102786",
-        "version" : "4.1.11"
+        "revision" : "ff80cbdb0f938684aabcc22ae42169648f27e1dd",
+        "version" : "4.1.12"
       }
     },
     {
@@ -232,15 +232,6 @@
       "state" : {
         "revision" : "cdb556516daa9b43c16aae9436dd39e19ff930fd",
         "version" : "1.4.0"
-      }
-    },
-    {
-      "identity" : "swift-argument-parser",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser",
-      "state" : {
-        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
-        "version" : "1.8.2"
       }
     },
     {

@@ -27,13 +27,13 @@
 		506837F42EED62CB00EBF35F /* ChatClientKit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = ED16359B2D5C5BDA0081BD0B /* ChatClientKit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		506837FA2EED63FB00EBF35F /* Storage in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 50C9035A2D428DAD00E6E3A8 /* Storage */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5078496A2D285B5900B1F430 /* MarkdownView in Frameworks */ = {isa = PBXBuildFile; productRef = 507849692D285B5900B1F430 /* MarkdownView */; };
-		50A350BB2F20A00000B1F430 /* Litext in Frameworks */ = {isa = PBXBuildFile; productRef = 50A350BC2F20A00000B1F430 /* Litext */; };
 		5081A0142D6DBBBA0079ECBE /* RunestoneEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 5081A0132D6DBBBA0079ECBE /* RunestoneEditor */; };
 		509038622FB0EB8500110DDB /* iCalendarParser in Frameworks */ = {isa = PBXBuildFile; productRef = 509038612FB0EB8500110DDB /* iCalendarParser */; };
 		5097D63E2EF3E35C00850D3E /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 5097D63D2EF3E35C00850D3E /* Storage */; };
 		5097D63F2EF3E35C00850D3E /* Storage in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 5097D63D2EF3E35C00850D3E /* Storage */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5097D6422EF3E36000850D3E /* ChatClientKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5097D6412EF3E36000850D3E /* ChatClientKit */; };
 		5097D6432EF3E36000850D3E /* ChatClientKit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 5097D6412EF3E36000850D3E /* ChatClientKit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		50A350BB2F20A00000B1F430 /* Litext in Frameworks */ = {isa = PBXBuildFile; productRef = 50A350BC2F20A00000B1F430 /* Litext */; };
 		50AE757E2EF436FC00D2C845 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 50AE757D2EF436FC00D2C845 /* Collections */; };
 		50AE75802EF436FC00D2C845 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 50AE757F2EF436FC00D2C845 /* OrderedCollections */; };
 		50AE75822EF4370A00D2C845 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 50AE75812EF4370A00D2C845 /* OrderedCollections */; };
@@ -1237,7 +1237,7 @@
 			repositoryURL = "https://github.com/Lakr233/MarkdownView";
 			requirement = {
 				kind = exactVersion;
-				version = 4.1.11;
+				version = 4.1.12;
 			};
 		};
 		50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */ = {
@@ -1395,11 +1395,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = MarkdownView;
 		};
-		50A350BC2F20A00000B1F430 /* Litext */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */;
-			productName = Litext;
-		};
 		5081A0132D6DBBBA0079ECBE /* RunestoneEditor */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RunestoneEditor;
@@ -1416,6 +1411,11 @@
 		5097D6412EF3E36000850D3E /* ChatClientKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ChatClientKit;
+		};
+		50A350BC2F20A00000B1F430 /* Litext */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */;
+			productName = Litext;
 		};
 		50AE757D2EF436FC00D2C845 /* Collections */ = {
 			isa = XCSwiftPackageProductDependency;
