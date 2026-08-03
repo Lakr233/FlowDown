@@ -11,6 +11,17 @@ PACKAGE_RESOLVED_FILES=(
 echo "[resolve-packages] workspace: $WORKSPACE"
 echo "[resolve-packages] scheme: $SCHEME"
 
+# The CUDA-plugin strip patches the resolved mlx-swift checkout in place, and
+# the patched manifest drops swift-argument-parser from the dependency graph.
+# Resolving against it records a Package.resolved that a pristine CI clone
+# rejects as out of date. Restore the pristine manifest before resolving; the
+# strip below re-applies the patch afterwards.
+for manifest in "$HOME"/Library/Developer/Xcode/DerivedData/FlowDown-*/SourcePackages/checkouts/mlx-swift/Package.swift(N); do
+  if git -C "$(dirname "$manifest")" checkout -- Package.swift 2>/dev/null; then
+    echo "[resolve-packages] restored pristine manifest: $manifest"
+  fi
+done
+
 xcodebuild \
   -workspace "$WORKSPACE" \
   -scheme "$SCHEME" \
