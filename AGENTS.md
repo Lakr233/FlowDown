@@ -159,6 +159,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 ### CI Review Check
 
 - For GitHub Actions workflows that build, test, or archive through `make` or project scripts, ensure the Metal toolchain is downloaded before the first build step.
+- Keep Xcode selection aligned across build, test, archive, and notarization workflows so releases do not run on an obsolete toolchain after CI advances.
 
 ## Localization Guidelines
 
