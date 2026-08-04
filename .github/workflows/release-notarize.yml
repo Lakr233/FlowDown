@@ -54,10 +54,9 @@ jobs:
         id: notarize_action
         env:
           CODE_SIGNING_IDENTITY: ${{ steps.setup_notary.outputs.code_signing_identity }}
-          CODE_SIGNING_TEAM: ${{ steps.setup_notary.outputs.code_signing_team }}
           KEYCHAIN_DB: ${{ steps.setup_notary.outputs.keychain_db }}
           NOTARIZE_KEYCHAIN_PROFILE: ${{ steps.setup_notary.outputs.notarize_keychain_profile }}
-          PROVISIONING_PROFILE_SPECIFIER: ${{ env.PROVISIONING_PROFILE_SPECIFIER }}
+          NOTARY_PROVISION_PROFILE_PATH: ${{ env.NOTARY_PROVISION_PROFILE_PATH }}
           ENABLE_NOTARIZE: "1"
           VERSION: ${{ env.VERSION }}
           NOTARIZE_ZIP_OUTPUT: ${{ format('{0}/BuildArtifacts/FlowDown-{1}.zip', github.workspace, env.VERSION) }}

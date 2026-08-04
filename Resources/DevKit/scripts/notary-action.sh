@@ -32,10 +32,8 @@ fi
 
 REQUIRED_VARS=(
   CODE_SIGNING_IDENTITY
-  CODE_SIGNING_TEAM
   KEYCHAIN_DB
-  PROVISIONING_PROFILE_SPECIFIER
-  NOTARY_PROVISION_PROFILE_NAME
+  NOTARY_PROVISION_PROFILE_PATH
   NOTARIZE_KEYCHAIN_PROFILE
 )
 for var in "${REQUIRED_VARS[@]}"; do
@@ -57,30 +55,23 @@ xcodebuild -downloadComponent MetalToolchain || true
 log "resolving packages"
 "${SCRIPT_DIR}/resolve-packages.sh"
 
-log "installing notary config"
-env \
-  NOTARY_PROVISION_PROFILE_NAME="$NOTARY_PROVISION_PROFILE_NAME" \
-  PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE_SPECIFIER" \
-  CODE_SIGNING_IDENTITY="$CODE_SIGNING_IDENTITY" \
-  CODE_SIGNING_TEAM="$CODE_SIGNING_TEAM" \
-  KEYCHAIN_DB="$KEYCHAIN_DB" \
-  NOTARIZE_KEYCHAIN_PROFILE="$NOTARIZE_KEYCHAIN_PROFILE" \
-  "${SCRIPT_DIR}/install-notary-config.sh"
-
-log "archiving signed macOS build"
-env \
-  CODE_SIGNING_IDENTITY="$CODE_SIGNING_IDENTITY" \
-  CODE_SIGNING_TEAM="$CODE_SIGNING_TEAM" \
-  KEYCHAIN_DB="$KEYCHAIN_DB" \
-  "${SCRIPT_DIR}/xcodebuild-archive-macos.sh"
-
-if [[ "$ENABLE_NOTARIZE" != "1" ]]; then
-  log "notarization disabled; archive available at ${ARCHIVE_PATH}"
-  exit 0
-fi
+log "archiving unsigned macOS build"
+"${SCRIPT_DIR}/xcodebuild-archive-macos.sh"
 
 if [[ ! -d "$APP_PATH" ]]; then
   fatal "app not found at $APP_PATH"
+fi
+
+log "signing archived macOS build"
+env \
+  CODE_SIGNING_IDENTITY="$CODE_SIGNING_IDENTITY" \
+  KEYCHAIN_DB="$KEYCHAIN_DB" \
+  EMBED_PROVISION_PROFILE="$NOTARY_PROVISION_PROFILE_PATH" \
+  "${SCRIPT_DIR}/codesign-macos.sh" "$APP_PATH"
+
+if [[ "$ENABLE_NOTARIZE" != "1" ]]; then
+  log "notarization disabled; signed archive available at ${ARCHIVE_PATH}"
+  exit 0
 fi
 
 log "running notarization"
@@ -101,4 +92,3 @@ log "archive: ${ARCHIVE_PATH}"
 log "xcresult: ${RESULT_BUNDLE}"
 log "notarized zip: ${ZIP_OUTPUT}"
 log "workflow completed successfully"
-

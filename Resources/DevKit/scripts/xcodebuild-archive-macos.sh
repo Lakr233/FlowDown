@@ -2,12 +2,8 @@
 
 set -euo pipefail
 
-# Archives FlowDown macOS (Catalyst) with xcbeautify output.
-# Expects signing to be performed during archive.
-# Env:
-#   CODE_SIGNING_IDENTITY (required)
-#   CODE_SIGNING_TEAM (required)
-#   KEYCHAIN_DB (optional) -> passed via OTHER_CODE_SIGN_FLAGS
+# Archives FlowDown macOS (Catalyst) unsigned with xcbeautify output.
+# Signing is performed separately by codesign-macos.sh.
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 
@@ -39,26 +35,9 @@ RESULT_BUNDLE="${PROJECT_ROOT}/BuildArtifacts/macos-notary.xcresult"
 
 mkdir -p "${PROJECT_ROOT}/BuildArtifacts"
 
-REQUIRED_VARS=(CODE_SIGNING_IDENTITY CODE_SIGNING_TEAM)
-for var in "${REQUIRED_VARS[@]}"; do
-  if [[ -z "${(P)var:-}" ]]; then
-    echo "[-] ${var} is required for a signed archive" >&2
-    exit 1
-  fi
-done
-
-OTHER_CODE_SIGN_FLAGS=()
-if [[ -n "${KEYCHAIN_DB:-}" ]]; then
-  OTHER_CODE_SIGN_FLAGS+=(--keychain "$KEYCHAIN_DB")
-fi
-
 echo "[*] archive path: ${ARCHIVE_PATH}"
 echo "[*] result bundle: ${RESULT_BUNDLE}"
-echo "[i] signing identity: ${CODE_SIGNING_IDENTITY}"
-echo "[i] team: ${CODE_SIGNING_TEAM}"
-if [[ -n "${KEYCHAIN_DB:-}" ]]; then
-  echo "[i] using keychain at ${KEYCHAIN_DB}"
-fi
+echo "[i] code signing disabled during archive"
 
 ARGS=(
   -workspace "$WORKSPACE"
@@ -69,9 +48,10 @@ ARGS=(
   -archivePath "$ARCHIVE_PATH"
   -resultBundlePath "$RESULT_BUNDLE"
   CODE_SIGN_STYLE=Manual
-  CODE_SIGN_IDENTITY="$CODE_SIGNING_IDENTITY"
-  DEVELOPMENT_TEAM="$CODE_SIGNING_TEAM"
-  OTHER_CODE_SIGN_FLAGS="${OTHER_CODE_SIGN_FLAGS[*]}"
+  CODE_SIGNING_ALLOWED=NO
+  CODE_SIGNING_REQUIRED=NO
+  CODE_SIGN_IDENTITY=""
+  PROVISIONING_PROFILE_SPECIFIER=""
   -skipPackagePluginValidation
   -skipMacroValidation
 )
@@ -81,4 +61,3 @@ xcodebuild "${ARGS[@]}" | xcbeautify --is-ci --disable-colored-output --disable-
 
 echo "[+] archive generated at $ARCHIVE_PATH"
 echo "[+] xcresult at $RESULT_BUNDLE"
-
