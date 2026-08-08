@@ -77,7 +77,12 @@ extension UIView {
             delay: 0,
             usingSpringWithDamping: 0.9,
             initialSpringVelocity: 1.0,
-            options: .curveEaseInOut,
+            // Without `beginFromCurrentState` a second call while the first is
+            // still running throws away what is on screen and restarts from the
+            // previous target, which nothing ever displayed. Anything driven
+            // continuously, like dragging the sidebar divider, then jumps
+            // backwards on every sample instead of retargeting smoothly.
+            options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction],
         ) {
             execute()
             self.layoutIfNeeded()

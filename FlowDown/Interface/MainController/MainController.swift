@@ -49,7 +49,11 @@ class MainController: UIViewController {
     var sidebarWidth: CGFloat = 256 {
         didSet {
             guard oldValue != sidebarWidth else { return }
-            view.doWithAnimation(duration: 0.2) {
+            // A drag retargets this many times a second, so the animation has
+            // to be short enough to reach the pointer before the next sample
+            // arrives. A one shot change gets the longer, softer settle.
+            let duration: TimeInterval = sidebarDragger.isDragging ? 0.1 : 0.2
+            view.doWithAnimation(duration: duration) {
                 self.updateViewConstraints()
             }
         }

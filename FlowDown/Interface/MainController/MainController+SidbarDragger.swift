@@ -140,9 +140,12 @@ class SidebarDraggerView: UIView {
     /// following it.
     private var dragReferenceSpace: UIView { superview ?? self }
 
-    /// Whether a resize is happening right now, so the handle stays visible
-    /// even after the pointer wanders off the strip.
-    private var isDragging: Bool = false
+    /// Whether a resize is happening right now.
+    ///
+    /// It keeps the handle visible after the pointer wanders off the strip, and
+    /// tells the owner that the width is being driven continuously rather than
+    /// changed in one step.
+    private(set) var isDragging: Bool = false
 
     @objc func handleDrag(_ gesture: UIPanGestureRecognizer) {
         let location = gesture.location(in: dragReferenceSpace).x
