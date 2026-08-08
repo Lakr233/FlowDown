@@ -49,20 +49,9 @@ class MainController: UIViewController {
     var sidebarWidth: CGFloat = 256 {
         didSet {
             guard oldValue != sidebarWidth else { return }
-            guard sidebarDragger.isDragging else {
-                view.doWithAnimation(duration: 0.2) {
-                    self.updateViewConstraints()
-                }
-                return
+            view.doWithAnimation(duration: 0.2) {
+                self.updateViewConstraints()
             }
-            // A live resize has to keep up with the pointer. Rebuilding every
-            // constraint behind a spring animation on each move leaves the
-            // sidebar catching up only once the pointer stops, so the drag
-            // nudges the one constraint that changed and lays out at once.
-            sidebarLayoutView.snp.updateConstraints { make in
-                make.width.equalTo(resolvedSidebarWidth)
-            }
-            view.layoutIfNeeded()
         }
     }
 

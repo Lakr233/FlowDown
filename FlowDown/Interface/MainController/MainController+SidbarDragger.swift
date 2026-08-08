@@ -129,29 +129,38 @@ class SidebarDraggerView: UIView {
     }
 
     private var gestureBeginValue: Int = 0
+    private var gestureBeginLocation: CGFloat = 0
     private var lastExpandRequest: Date = .distantPast
 
-    /// Whether a resize is happening right now.
+    /// Coordinate space the drag is measured in.
     ///
-    /// The width has to follow the pointer while this is true, so the owner
-    /// skips the animation it otherwise plays when the sidebar changes size.
-    private(set) var isDragging: Bool = false
+    /// It has to be a view that stays put while the sidebar resizes. Measuring
+    /// against the dragger itself feeds each width change back into the next
+    /// sample, so the separator oscillates around the pointer instead of
+    /// following it.
+    private var dragReferenceSpace: UIView { superview ?? self }
+
+    /// Whether a resize is happening right now, so the handle stays visible
+    /// even after the pointer wanders off the strip.
+    private var isDragging: Bool = false
 
     @objc func handleDrag(_ gesture: UIPanGestureRecognizer) {
-        let translation = gesture.translation(in: self)
+        let location = gesture.location(in: dragReferenceSpace).x
         switch gesture.state {
         case .began:
             gestureBeginValue = currentValue
+            gestureBeginLocation = location
             isDragging = true
             fallthrough
         case .changed:
             showDragger()
+            let offset = location - gestureBeginLocation
             if isCollapsed {
-                guard translation.x > expandThreshold else { return }
+                guard offset > expandThreshold else { return }
                 if requestExpand() { endDrag(gesture) }
                 return
             }
-            var decisionValue = gestureBeginValue + Int(translation.x)
+            var decisionValue = gestureBeginValue + Int(offset)
             if decisionValue < allowedMinimalValue {
                 if decisionValue < allowedMinimalValue / 2 {
                     if onSuggestCollapse() {
