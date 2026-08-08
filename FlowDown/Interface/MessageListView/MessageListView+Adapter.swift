@@ -86,14 +86,10 @@ extension MessageListView {
                 .height { [weak self] entry, context in
                     guard let self, case let .aiContent(_, message) = entry else { return 0 }
                     return rowHeight(inListWidth: context.width) { containerWidth in
-                        self.markdownViewForSizeCalculation.theme = self.theme
-                        let package = self.markdownPackageCache.package(for: message, theme: self.theme)
-                        self.markdownViewForSizeCalculation.setContentImmediately(package)
-                        let boundingSize = self.markdownViewForSizeCalculation.boundingSize(for: containerWidth)
-                        // The off-screen sizing view also receives CodeHighlighter
-                        // notifications; empty it so those don't rebuild the full message.
-                        self.markdownViewForSizeCalculation.reset()
-                        return ceil(boundingSize.height)
+                        let sizingView = self.markdownSizingViewPool.view(for: message, theme: self.theme) {
+                            self.markdownPackageCache.package(for: message, theme: self.theme)
+                        }
+                        return ceil(sizingView.boundingSize(for: containerWidth).height)
                     }
                 }
                 .configure { [weak self] row, entry, _ in

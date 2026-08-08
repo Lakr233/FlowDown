@@ -50,6 +50,8 @@ final class ColorfulShadowView: UIView {
 
     private var needsMaskUpdate = true
     private var lastBoundsSize: CGSize = .zero
+    private var lastMaskRegeneration: CFTimeInterval = 0
+    private var hasDeferredMaskUpdate = false
 
     var mode: Mode = .idle {
         didSet { applyCurrentMode() }
@@ -110,9 +112,36 @@ final class ColorfulShadowView: UIView {
 
         gradientView.frame = bounds
 
-        if needsMaskUpdate || lastBoundsSize != bounds.size {
-            regenerateMask()
-            lastBoundsSize = bounds.size
+        guard needsMaskUpdate || lastBoundsSize != bounds.size else { return }
+
+        // The mask is a full size image rasterised with a shadow blur, which is
+        // far too much to redo on every frame of a live resize. The layer keeps
+        // stretching the mask it already has - it is a soft glow, so a frame or
+        // two of the previous shape is invisible - and the real one is redrawn
+        // once the size stops moving.
+        maskLayer.frame = bounds
+        let now = CACurrentMediaTime()
+        guard now - lastMaskRegeneration >= Self.maskRegenerationInterval else {
+            scheduleDeferredMaskUpdate()
+            return
+        }
+        lastMaskRegeneration = now
+        regenerateMask()
+        lastBoundsSize = bounds.size
+    }
+
+    /// Shortest gap between two rasterisations while the size keeps changing.
+    private static let maskRegenerationInterval: CFTimeInterval = 0.1
+
+    private func scheduleDeferredMaskUpdate() {
+        guard !hasDeferredMaskUpdate else { return }
+        hasDeferredMaskUpdate = true
+        let delay = Self.maskRegenerationInterval - (CACurrentMediaTime() - lastMaskRegeneration)
+        DispatchQueue.main.asyncAfter(deadline: .now() + max(delay, 0.016)) { [weak self] in
+            guard let self else { return }
+            hasDeferredMaskUpdate = false
+            needsMaskUpdate = true
+            setNeedsLayout()
         }
     }
 

@@ -39,8 +39,24 @@ class SidebarDraggerView: UIView {
         didSet {
             if currentValue < allowedMinimalValue { currentValue = allowedMinimalValue }
             if currentValue > allowedMaximalValue { currentValue = allowedMaximalValue }
-            UserDefaults.standard.set(currentValue, forKey: "SidebarWidth")
+            // A drag walks this value a hundred times a second and only the value
+            // it lands on is worth keeping. Writing each step reaches
+            // `_CFXPreferences` and posts a change notification every time, which
+            // is real work inside the frame the pointer is waiting on.
+            if isDragging { needsWidthPersist = true } else { persistWidth() }
         }
+    }
+
+    private var needsWidthPersist = false
+
+    private func persistWidth() {
+        needsWidthPersist = false
+        UserDefaults.standard.set(currentValue, forKey: "SidebarWidth")
+    }
+
+    private func persistWidthIfNeeded() {
+        guard needsWidthPersist else { return }
+        persistWidth()
     }
 
     /// Called when the drag went far enough to the left to hide the sidebar.
@@ -141,7 +157,8 @@ class SidebarDraggerView: UIView {
 
     private var gestureBeginValue: Int = 0
     private var gestureBeginLocation: CGFloat = 0
-    private var lastDragLocation: CGFloat = 0
+    private var widthAnchorValue: Int = 0
+    private var widthAnchorLocation: CGFloat = 0
     private var lastExpandRequest: Date = .distantPast
 
     /// Coordinate space the drag is measured in.
@@ -165,49 +182,41 @@ class SidebarDraggerView: UIView {
         case .began:
             gestureBeginValue = currentValue
             gestureBeginLocation = location
-            lastDragLocation = location
+            widthAnchorValue = currentValue
+            widthAnchorLocation = location
             isDragging = true
             fallthrough
         case .changed:
             showDragger()
-            let offset = location - gestureBeginLocation
-            let isMovingRight = location > lastDragLocation
-            lastDragLocation = location
             if isCollapsed {
-                guard offset > expandThreshold else { return }
+                guard location - gestureBeginLocation > expandThreshold else { return }
                 if requestExpand() { endDrag(gesture) }
                 return
             }
-            var decisionValue = gestureBeginValue + Int(offset)
-            // While the width is pinned at a limit the pointer keeps travelling,
-            // and that travel is still measured from where the drag began. Coming
-            // back therefore means undoing all of it before the sidebar moves at
-            // all, which reads as the divider ignoring the drag entirely.
-            // Turning around re-anchors here, so the very next sample tracks the
-            // pointer again. Pushing further into the limit still accumulates,
-            // which is what the collapse gesture below needs.
-            if decisionValue < allowedMinimalValue {
-                if decisionValue < allowedMinimalValue / 2 {
-                    if onSuggestCollapse() {
-                        endDrag(gesture)
-                        return
-                    }
-                }
-                decisionValue = allowedMinimalValue
-                if isMovingRight {
-                    gestureBeginValue = decisionValue
-                    gestureBeginLocation = location
-                }
-            } else if decisionValue > upperBound {
-                decisionValue = upperBound
-                if !isMovingRight {
-                    gestureBeginValue = decisionValue
-                    gestureBeginLocation = location
-                }
+
+            // Everything the pointer has travelled since the drag began, which is
+            // what says whether the user means to push the sidebar away entirely.
+            let travelledValue = gestureBeginValue + Int(location - gestureBeginLocation)
+            if travelledValue < allowedMinimalValue / 2, onSuggestCollapse() {
+                endDrag(gesture)
+                return
+            }
+
+            // The width follows a second anchor that rides along with the pointer
+            // whenever it is pinned at a limit. Measuring from where the drag
+            // began instead would bank all the travel spent past the limit, and
+            // turning around would have to undo it before the sidebar moved at
+            // all - the divider looks like it is ignoring the drag.
+            let followedValue = widthAnchorValue + Int(location - widthAnchorLocation)
+            let decisionValue = min(max(followedValue, allowedMinimalValue), upperBound)
+            if decisionValue != followedValue {
+                widthAnchorValue = decisionValue
+                widthAnchorLocation = location
             }
             currentValue = decisionValue
         default:
             isDragging = false
+            persistWidthIfNeeded()
             hideDragger()
         }
     }
@@ -216,6 +225,7 @@ class SidebarDraggerView: UIView {
     /// remaining pointer movement does not keep driving the old interaction.
     private func endDrag(_ gesture: UIPanGestureRecognizer) {
         isDragging = false
+        persistWidthIfNeeded()
         gesture.isEnabled = false
         gesture.isEnabled = true
         hideDragger()

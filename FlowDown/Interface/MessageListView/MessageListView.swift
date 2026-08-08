@@ -76,12 +76,16 @@ final class MessageListView: UIView {
     static let listRowInsets: UIEdgeInsets = .init(top: 0, left: 20, bottom: 16, right: 20)
     var theme: MarkdownTheme = .default {
         didSet {
+            guard oldValue != theme else { return }
+            // Every pooled sizing view was built for the old theme and would
+            // otherwise sit there until eviction pushed it out.
+            markdownSizingViewPool.removeAll()
             listView.reloadData()
         }
     }
 
     private(set) lazy var labelForSizeCalculation: TextLabelView = .init()
-    private(set) lazy var markdownViewForSizeCalculation: MarkdownTextView = .init()
+    private(set) lazy var markdownSizingViewPool: MarkdownSizingViewPool = .init()
     private(set) lazy var markdownPackageCache: MarkdownPackageCache = .init()
 
     init() {
