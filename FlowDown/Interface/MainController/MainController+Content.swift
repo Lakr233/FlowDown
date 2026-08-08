@@ -32,7 +32,7 @@ extension MainController {
         sidebarDragger.snp.makeConstraints { make in
             make.right.equalTo(contentView.snp.left)
             make.top.bottom.equalToSuperview()
-            make.width.equalTo(10)
+            make.width.equalTo(SidebarDraggerView.interactiveWidth)
         }
 
         contentView.hideKeyboardWhenTappedAround()

@@ -32,9 +32,7 @@ extension MainController {
     }
 
     func setupLayoutAsCatalyst() {
-        let fullWidth = view.bounds.width
-        let sidebarAllowedWidth = fullWidth - 300
-        let sidebarWidth = min(sidebarWidth, sidebarAllowedWidth)
+        let sidebarWidth = resolvedSidebarWidth
 
         sidebarDragger.isHidden = false
         if isSidebarCollapsed {
@@ -44,6 +42,16 @@ extension MainController {
                 make.left.bottom.top.equalTo(view.safeAreaLayoutGuide).inset(16)
                 make.width.equalTo(sidebarWidth)
             }
+            // The content covers the whole window now, so the dragger parks at
+            // the leading edge instead. Without it there would be nothing left
+            // to grab and the sidebar could only come back from the menu.
+            // It starts below the title bar to stay clear of the window buttons.
+            sidebarDragger.snp.remakeConstraints { make in
+                make.left.equalTo(view.safeAreaLayoutGuide)
+                make.top.equalToSuperview().offset(Self.catalystTitleBarHeight)
+                make.bottom.equalToSuperview()
+                make.width.equalTo(SidebarDraggerView.interactiveWidth)
+            }
             contentView.layer.cornerRadius = 0
             contentView.layer.cornerCurve = .continuous
             contentView.snp.remakeConstraints { make in
@@ -52,6 +60,11 @@ extension MainController {
             chatView.setupTitleLayout(64)
             createVisibleShadow()
         } else {
+            sidebarDragger.snp.remakeConstraints { make in
+                make.right.equalTo(contentView.snp.left)
+                make.top.bottom.equalToSuperview()
+                make.width.equalTo(SidebarDraggerView.interactiveWidth)
+            }
             sidebar.alpha = 1
             chatView.title.icon.alpha = 1
             sidebarLayoutView.snp.remakeConstraints { make in
@@ -112,9 +125,7 @@ extension MainController {
     }
 
     func setupLayoutAsRelaxedStyle() {
-        let fullWidth = view.bounds.width
-        let sidebarAllowedWidth = fullWidth - 300
-        let sidebarWidth = min(sidebarWidth, sidebarAllowedWidth)
+        let sidebarWidth = resolvedSidebarWidth
         sidebarDragger.isHidden = false
         switch isSidebarCollapsed {
         case true:

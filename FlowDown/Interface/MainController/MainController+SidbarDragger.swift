@@ -14,6 +14,16 @@ class SidebarDraggerView: UIView {
     let initialValue = 256
     let allowedMaximalValue = 512
 
+    /// Width of the invisible strip that accepts pointer input.
+    ///
+    /// The visible handle is much thinner than this. The strip is what makes
+    /// the separator comfortable to grab with a mouse, where the pointer has to
+    /// land on an exact pixel instead of a fingertip sized area.
+    static let interactiveWidth: CGFloat = 16
+
+    /// Distance the pointer has to travel before a collapsed sidebar comes back.
+    private let expandThreshold: CGFloat = 24
+
     @Published var currentValue: Int {
         didSet {
             if currentValue < allowedMinimalValue { currentValue = allowedMinimalValue }
@@ -22,11 +32,31 @@ class SidebarDraggerView: UIView {
         }
     }
 
+    /// Called when the drag went far enough to the left to hide the sidebar.
+    /// Returns whether the sidebar actually collapsed.
     var onSuggestCollapse: (() -> Bool) = { false }
+
+    /// Called when the collapsed dragger is pulled or clicked to bring the
+    /// sidebar back. Returns whether the sidebar actually expanded.
+    var onSuggestExpand: (() -> Bool) = { false }
+
+    /// Whether the sidebar this dragger controls is currently hidden.
+    ///
+    /// While collapsed the dragger parks at the leading edge of the window and
+    /// works as a handle that restores the sidebar, so the drag that hides the
+    /// sidebar always has a matching gesture to undo it.
+    var isCollapsed: Bool = false {
+        didSet {
+            guard oldValue != isCollapsed else { return }
+            hideDragger()
+        }
+    }
 
     let handlerView = UIView().with {
         $0.backgroundColor = .label.withAlphaComponent(0.5)
         $0.clipsToBounds = true
+        $0.layer.cornerRadius = 2
+        $0.layer.cornerCurve = .continuous
         $0.alpha = 0
     }
 
@@ -55,6 +85,10 @@ class SidebarDraggerView: UIView {
         dragGesture.maximumNumberOfTouches = 1
         addGestureRecognizer(dragGesture)
 
+        let click = UITapGestureRecognizer(target: self, action: #selector(handleClick(_:)))
+        click.numberOfTapsRequired = 1
+        addGestureRecognizer(click)
+
         let doubleClickReset = UITapGestureRecognizer(target: self, action: #selector(handleDoubleClickReset(_:)))
         doubleClickReset.numberOfTapsRequired = 2
         addGestureRecognizer(doubleClickReset)
@@ -68,38 +102,60 @@ class SidebarDraggerView: UIView {
     @objc private func handleHover(_ gesture: UIHoverGestureRecognizer) {
         switch gesture.state {
         case .began, .changed: showDragger()
-        default: hideDragger()
+        default:
+            // The pointer routinely leaves the strip while resizing, the handle
+            // has to stay put until the drag itself ends.
+            guard !isDragging else { return }
+            hideDragger()
         }
     }
 
+    private var isHandlerVisible: Bool = false
+
     func showDragger() {
+        guard !isHandlerVisible else { return }
+        isHandlerVisible = true
         UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState]) {
             self.handlerView.alpha = 1
         }
     }
 
     func hideDragger() {
+        guard isHandlerVisible else { return }
+        isHandlerVisible = false
         UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState]) {
             self.handlerView.alpha = 0
         }
     }
 
     private var gestureBeginValue: Int = 0
+    private var lastExpandRequest: Date = .distantPast
+
+    /// Whether a resize is happening right now.
+    ///
+    /// The width has to follow the pointer while this is true, so the owner
+    /// skips the animation it otherwise plays when the sidebar changes size.
+    private(set) var isDragging: Bool = false
 
     @objc func handleDrag(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: self)
         switch gesture.state {
         case .began:
             gestureBeginValue = currentValue
+            isDragging = true
             fallthrough
         case .changed:
             showDragger()
-            var decisionValue = gestureBeginValue + Int(translation.x - frame.width)
+            if isCollapsed {
+                guard translation.x > expandThreshold else { return }
+                if requestExpand() { endDrag(gesture) }
+                return
+            }
+            var decisionValue = gestureBeginValue + Int(translation.x)
             if decisionValue < allowedMinimalValue {
                 if decisionValue < allowedMinimalValue / 2 {
                     if onSuggestCollapse() {
-                        gesture.isEnabled = false
-                        gesture.isEnabled = true
+                        endDrag(gesture)
                         return
                     }
                 }
@@ -110,11 +166,40 @@ class SidebarDraggerView: UIView {
             }
             currentValue = decisionValue
         default:
+            isDragging = false
             hideDragger()
         }
     }
 
+    /// Ends the gesture in place after the sidebar changed state, so the
+    /// remaining pointer movement does not keep driving the old interaction.
+    private func endDrag(_ gesture: UIPanGestureRecognizer) {
+        isDragging = false
+        gesture.isEnabled = false
+        gesture.isEnabled = true
+        hideDragger()
+    }
+
+    private func requestExpand() -> Bool {
+        guard onSuggestExpand() else { return false }
+        lastExpandRequest = .init()
+        return true
+    }
+
+    @objc func handleClick(_ gesture: UITapGestureRecognizer) {
+        guard gesture.state == .ended, isCollapsed else { return }
+        _ = requestExpand()
+    }
+
     @objc func handleDoubleClickReset(_ gesture: UITapGestureRecognizer) {
-        if gesture.state == .ended { currentValue = initialValue }
+        guard gesture.state == .ended else { return }
+        // The first click of this double click may have just restored the
+        // sidebar. Resetting the width on top of that is not what was asked.
+        guard Date().timeIntervalSince(lastExpandRequest) > 0.5 else { return }
+        if isCollapsed {
+            _ = requestExpand()
+            return
+        }
+        currentValue = initialValue
     }
 }

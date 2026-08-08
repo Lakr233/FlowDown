@@ -37,6 +37,10 @@ class MainController: UIViewController {
 
     var hasScheduledWelcome = false
 
+    /// Height of the window title bar area that Catalyst lets us draw under.
+    /// Touches inside it move the window unless something else claims them.
+    static let catalystTitleBarHeight: CGFloat = 32
+
     var allowSidebarPersistence: Bool {
         guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
         return UIDevice.current.orientation.isLandscape || view.bounds.width > 800
@@ -45,10 +49,26 @@ class MainController: UIViewController {
     var sidebarWidth: CGFloat = 256 {
         didSet {
             guard oldValue != sidebarWidth else { return }
-            view.doWithAnimation(duration: 0.2) {
-                self.updateViewConstraints()
+            guard sidebarDragger.isDragging else {
+                view.doWithAnimation(duration: 0.2) {
+                    self.updateViewConstraints()
+                }
+                return
             }
+            // A live resize has to keep up with the pointer. Rebuilding every
+            // constraint behind a spring animation on each move leaves the
+            // sidebar catching up only once the pointer stops, so the drag
+            // nudges the one constraint that changed and lays out at once.
+            sidebarLayoutView.snp.updateConstraints { make in
+                make.width.equalTo(resolvedSidebarWidth)
+            }
+            view.layoutIfNeeded()
         }
+    }
+
+    /// The sidebar width after reserving the room the chat needs.
+    var resolvedSidebarWidth: CGFloat {
+        min(sidebarWidth, max(0, view.bounds.width - 300))
     }
 
     var isSidebarCollapsed: Bool {
@@ -56,7 +76,7 @@ class MainController: UIViewController {
             guard oldValue != isSidebarCollapsed else { return }
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             updateViewConstraints()
-            contentView.contentView.isUserInteractionEnabled = isSidebarCollapsed || allowSidebarPersistence
+            contentView.contentView.isUserInteractionEnabled = allowsContentInteraction
             #if !targetEnvironment(macCatalyst)
                 if allowSidebarPersistence {
                     Task { [weak self] in
@@ -114,6 +134,13 @@ class MainController: UIViewController {
             view.doWithAnimation { self.isSidebarCollapsed = true }
             return true
         }
+
+        sidebarDragger.onSuggestExpand = { [weak self] in
+            guard let self else { return false }
+            if !isSidebarCollapsed { return false }
+            view.doWithAnimation { self.isSidebarCollapsed = false }
+            return true
+        }
     }
 
     @available(*, unavailable)
@@ -165,8 +192,22 @@ class MainController: UIViewController {
 
     private var previousLayoutRect: CGRect = .zero
 
+    /// Whether the chat side accepts input.
+    ///
+    /// On iPhone and on a compact iPad the open sidebar behaves like a drawer,
+    /// so a tap anywhere on the chat dismisses it rather than reaching the chat.
+    /// A window on the Mac has both panes on screen at once and always live.
+    var allowsContentInteraction: Bool {
+        #if targetEnvironment(macCatalyst)
+            true
+        #else
+            isSidebarCollapsed || allowSidebarPersistence
+        #endif
+    }
+
     override func updateViewConstraints() {
         super.updateViewConstraints()
+        sidebarDragger.isCollapsed = isSidebarCollapsed
         #if targetEnvironment(macCatalyst)
             setupLayoutAsCatalyst()
         #else
@@ -192,7 +233,7 @@ class MainController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateShadowPath()
-        contentView.contentView.isUserInteractionEnabled = isSidebarCollapsed || allowSidebarPersistence
+        contentView.contentView.isUserInteractionEnabled = allowsContentInteraction
     }
 
     func updateShadowPath() {
@@ -250,8 +291,16 @@ class MainController: UIViewController {
                let touch = touches.first,
                let window = view.window
             {
+                // The dragger owns its whole strip, including the part that
+                // overlaps the title bar. Otherwise grabbing the separator near
+                // the top of the window moves the window instead of resizing.
+                if !sidebarDragger.isHidden,
+                   sidebarDragger.frame.contains(touch.location(in: view))
+                {
+                    return false
+                }
                 if false
-                    || touch.location(in: window).y < 32
+                    || touch.location(in: window).y < Self.catalystTitleBarHeight
                     || chatView.title.bounds.contains(touch.location(in: chatView))
                     || sidebar.brandingLabel.bounds.contains(
                         touch.location(in: sidebar.brandingLabel),
@@ -295,16 +344,21 @@ class MainController: UIViewController {
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-        defer { resetGestures() }
-        guard presentedViewController == nil else { return }
-        guard let touch = touches.first else { return }
-        if !isSidebarCollapsed,
-           !touchesMoved,
-           contentView.frame.contains(touch.location(in: view)),
-           !allowSidebarPersistence
-        {
-            view.doWithAnimation { self.isSidebarCollapsed = true }
-        }
+        // Tapping the chat only dismisses the sidebar where it acts as a
+        // drawer. A window on the Mac keeps both panes, so a click there has to
+        // reach the chat instead of hiding a sidebar the user asked to see.
+        #if !targetEnvironment(macCatalyst)
+            if presentedViewController == nil,
+               let touch = touches.first,
+               !isSidebarCollapsed,
+               !touchesMoved,
+               contentView.frame.contains(touch.location(in: view)),
+               !allowSidebarPersistence
+            {
+                view.doWithAnimation { self.isSidebarCollapsed = true }
+            }
+        #endif
+        resetGestures()
     }
 
     @objc func resetGestures() {
