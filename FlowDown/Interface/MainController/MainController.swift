@@ -49,6 +49,22 @@ class MainController: UIViewController {
     var sidebarWidth: CGFloat = 256 {
         didSet {
             guard oldValue != sidebarWidth else { return }
+            // A drag drives this around a hundred times a second, and every
+            // animation block makes UIKit append an additive animation to each
+            // layer it touches. Those outlive the sample that created them: one
+            // session piled up 57,000 of them without ever releasing any, while
+            // a single layout pass grew from 6ms to 225ms because UIKit scans an
+            // ever longer key list looking for a free animation slot. That is
+            // what freezes the window for seconds at a time. A live resize
+            // therefore follows the pointer directly, and the animation below
+            // stays for every change that happens in one step.
+            guard !sidebarDragger.isDragging else {
+                UIView.performWithoutAnimation {
+                    self.updateViewConstraints()
+                    self.view.layoutIfNeeded()
+                }
+                return
+            }
             view.doWithAnimation(duration: 0.2) {
                 self.updateViewConstraints()
             }
@@ -197,6 +213,7 @@ class MainController: UIViewController {
     override func updateViewConstraints() {
         super.updateViewConstraints()
         sidebarDragger.isCollapsed = isSidebarCollapsed
+        sidebarDragger.layoutMaximalValue = Int(max(0, view.bounds.width - 300))
         #if targetEnvironment(macCatalyst)
             setupLayoutAsCatalyst()
         #else

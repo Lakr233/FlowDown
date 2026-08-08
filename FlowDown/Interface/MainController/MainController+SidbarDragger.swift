@@ -14,6 +14,17 @@ class SidebarDraggerView: UIView {
     let initialValue = 256
     let allowedMaximalValue = 512
 
+    /// Widest the layout can actually make the sidebar right now.
+    ///
+    /// The owner keeps this in sync with the window, because a window too
+    /// narrow to honour `allowedMaximalValue` would otherwise let the drag bank
+    /// travel that never reaches the screen, and that travel has to be undone
+    /// before the sidebar moves again. The stored preference is left alone so a
+    /// wider window still restores it.
+    var layoutMaximalValue: Int = .max
+
+    private var upperBound: Int { min(allowedMaximalValue, layoutMaximalValue) }
+
     /// Width of the invisible strip that accepts pointer input.
     ///
     /// The visible handle is much thinner than this. The strip is what makes
@@ -130,6 +141,7 @@ class SidebarDraggerView: UIView {
 
     private var gestureBeginValue: Int = 0
     private var gestureBeginLocation: CGFloat = 0
+    private var lastDragLocation: CGFloat = 0
     private var lastExpandRequest: Date = .distantPast
 
     /// Coordinate space the drag is measured in.
@@ -153,17 +165,27 @@ class SidebarDraggerView: UIView {
         case .began:
             gestureBeginValue = currentValue
             gestureBeginLocation = location
+            lastDragLocation = location
             isDragging = true
             fallthrough
         case .changed:
             showDragger()
             let offset = location - gestureBeginLocation
+            let isMovingRight = location > lastDragLocation
+            lastDragLocation = location
             if isCollapsed {
                 guard offset > expandThreshold else { return }
                 if requestExpand() { endDrag(gesture) }
                 return
             }
             var decisionValue = gestureBeginValue + Int(offset)
+            // While the width is pinned at a limit the pointer keeps travelling,
+            // and that travel is still measured from where the drag began. Coming
+            // back therefore means undoing all of it before the sidebar moves at
+            // all, which reads as the divider ignoring the drag entirely.
+            // Turning around re-anchors here, so the very next sample tracks the
+            // pointer again. Pushing further into the limit still accumulates,
+            // which is what the collapse gesture below needs.
             if decisionValue < allowedMinimalValue {
                 if decisionValue < allowedMinimalValue / 2 {
                     if onSuggestCollapse() {
@@ -172,9 +194,16 @@ class SidebarDraggerView: UIView {
                     }
                 }
                 decisionValue = allowedMinimalValue
-            }
-            if decisionValue > allowedMaximalValue {
-                decisionValue = allowedMaximalValue
+                if isMovingRight {
+                    gestureBeginValue = decisionValue
+                    gestureBeginLocation = location
+                }
+            } else if decisionValue > upperBound {
+                decisionValue = upperBound
+                if !isMovingRight {
+                    gestureBeginValue = decisionValue
+                    gestureBeginLocation = location
+                }
             }
             currentValue = decisionValue
         default:
