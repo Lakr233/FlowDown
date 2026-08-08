@@ -18,6 +18,14 @@ class QuickSettingBar: EditorSectionView {
         icon: "tools",
     )
 
+    /// User preference for the tools toggle, shared across conversations and launches.
+    /// Models without tool call support turn the toggle off without clearing this value.
+    static let toolsEnabledKey = "wiki.qaq.RichEditor.QuickSettingBar.toolsEnabled"
+    static var toolsEnabledValue: Bool {
+        get { UserDefaults.standard.bool(forKey: toolsEnabledKey) }
+        set { UserDefaults.standard.set(newValue, forKey: toolsEnabledKey) }
+    }
+
     lazy var buttons: [BlockButton] = [
         modelPicker,
         toolsToggle,
@@ -81,6 +89,7 @@ class QuickSettingBar: EditorSectionView {
 
         var requestReload: ((Bool) -> Void)!
         requestReload = { [weak self] input in
+            Self.toolsEnabledValue = input
             self?.toolsToggle.isOn = input
             self?.toolsToggle.menu = .init(children: [UIDeferredMenuElement.uncached { [weak self] provider in
                 let isEnabled = self?.toolsToggle.isOn ?? false
@@ -91,7 +100,7 @@ class QuickSettingBar: EditorSectionView {
                 provider(elements)
             }])
         }
-        requestReload(false)
+        requestReload(Self.toolsEnabledValue)
         toolsToggle.showsMenuAsPrimaryAction = true
         toolsToggle.actionBlock = {}
 
@@ -151,7 +160,7 @@ class QuickSettingBar: EditorSectionView {
 
     func updateToolCallAvailability(_ availability: Bool) {
         modelSupportsToolCall = availability
-        if !availability { toolsToggle.isOn = false }
+        toolsToggle.isOn = availability && Self.toolsEnabledValue
     }
 
     func scrollToBeforeModelItem() {

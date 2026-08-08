@@ -131,9 +131,6 @@ extension RichEditorView {
         for attachment in object.attachments {
             attachmentsBar.insert(item: attachment)
         }
-        if let tools = object.options[.tools], case let .bool(value) = tools {
-            quickSettingBar.toolsToggle.isOn = value
-        }
     }
 
     public func refill(withText text: String, attachments: [Object.Attachment]) {
