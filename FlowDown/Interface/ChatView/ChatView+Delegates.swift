@@ -61,19 +61,6 @@ extension ChatView: RichEditorView.Delegate {
 
     let session = ConversationSessionManager.shared.session(for: conversationID)
     offloadModelsToSession(modelIdentifier: modelIdentifier())
-    if case .bool(let value) = object.options[.browsing], value {
-      guard let auxModel = session.models.auxiliary,
-        !auxModel.isEmpty
-      else {
-        presentModelRequiredAlert(
-          message: "A tool model is required for browsing.",
-          entryPage: .inference,
-        )
-        completion(false)
-        return
-      }
-    }
-
     let shouldHaveVisualModel = object.attachments.contains { $0.type == .image }
     if shouldHaveVisualModel {
       let currentModelCanSee = ModelManager.shared.modelCapabilities(identifier: modelID)

@@ -13,10 +13,6 @@ class QuickSettingBar: EditorSectionView {
     let modelPicker = BlockButton(text: "", icon: "asterisk")
     let modelPickerRightClickFinder = RightClickFinder()
 
-    let browsingToggle = ToggleBlockButton(
-        text: NSLocalizedString("Web Browsing", comment: ""),
-        icon: "server",
-    )
     let toolsToggle = ToggleBlockButton(
         text: NSLocalizedString("Tools", comment: ""),
         icon: "tools",
@@ -24,7 +20,6 @@ class QuickSettingBar: EditorSectionView {
 
     lazy var buttons: [BlockButton] = [
         modelPicker,
-        browsingToggle,
         toolsToggle,
     ]
     var modelIdentifier: String = ""

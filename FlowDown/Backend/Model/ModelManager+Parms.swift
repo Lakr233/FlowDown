@@ -147,44 +147,6 @@ extension ModelManager {
                 "You MUST conduct a research-level web search to ensure comprehensive and up-to-date coverage, even for topics where you have some existing knowledge, unless the user explicitly asks you not to browse."
             }
         }
-
-        var promptTemplate: String {
-            let base = """
-            You are an expert at deciding when to use a web search to answer a user's query. Ensure your information is accurate and up-to-date.
-
-            Context to consider:
-            1. User's current question/request
-            2. Previous conversation history
-            3. Attached documents/files
-            4. Current date and time (for time-sensitive queries)
-
-            Instructions:
-            - Decide if a web search is required.
-            - If required, generate 1–3 simple, clear search queries in the user's language.
-            - Respond with valid XML indicating search_required and listing queries.
-            """
-
-            return """
-            \(base)
-
-            Current Search Mode: \(title)
-            \(briefDescription)
-
-            Respond with XML like:
-            <output>
-            <search_required>true</search_required>
-            <queries>
-            <query>example search query</query>
-            </queries>
-            </output>
-
-            If no search is needed:
-            <output>
-            <search_required>false</search_required>
-            <queries></queries>
-            </output>
-            """
-        }
     }
 
     static let searchSensitivityConfigurableObject: ConfigurableObject = .init(

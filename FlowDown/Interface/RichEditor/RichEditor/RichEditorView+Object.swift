@@ -53,9 +53,7 @@ extension RichEditorView.Object {
     }
 
     enum OptionKey: String, Codable {
-        case browsing
         case tools
-        case ephemeral
         case storagePrefix
         case modelIdentifier
     }
@@ -132,9 +130,6 @@ extension RichEditorView {
         attachmentsBar.attachmetns.removeAll()
         for attachment in object.attachments {
             attachmentsBar.insert(item: attachment)
-        }
-        if let browsing = object.options[.browsing], case let .bool(value) = browsing {
-            quickSettingBar.browsingToggle.isOn = value
         }
         if let tools = object.options[.tools], case let .bool(value) = tools {
             quickSettingBar.toolsToggle.isOn = value

@@ -76,8 +76,8 @@ class ModelToolsManager {
         MTCompleteReminderTool(),
         MTDeleteReminderTool(),
 
-        MTWebScraperTool(),
         MTWebSearchTool(),
+        MTWebScraperTool(),
 
         //            MTLocationTool(),
 
@@ -98,8 +98,8 @@ class ModelToolsManager {
         MTCompleteReminderTool(),
         MTDeleteReminderTool(),
 
-        MTWebScraperTool(),
         MTWebSearchTool(),
+        MTWebScraperTool(),
 
         MTLocationTool(),
 
@@ -124,10 +124,7 @@ class ModelToolsManager {
   }
 
   var enabledTools: [ModelTool] {
-    tools.filter { tool in
-      if tool is MTWebSearchTool { return true }
-      return tool.isEnabled
-    }
+    tools.filter(\.isEnabled)
   }
 
   var memoryTools: [ModelTool] {
@@ -189,7 +186,6 @@ class ModelToolsManager {
 
   var configurableTools: [ModelTool] {
     tools.filter { tool in
-      if tool is MTWebSearchTool { return false }
       if Self.isMemoryTool(tool) { return false }
       if Self.isCalendarTool(tool) { return false }
       if Self.isReminderTool(tool) { return false }

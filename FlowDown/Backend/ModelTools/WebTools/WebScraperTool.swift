@@ -17,7 +17,7 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
     }
 
     override var interfaceName: String {
-        String(localized: "Web Scraper")
+        String(localized: "Web Reader")
     }
 
     override var definition: ChatRequestBody.Tool {
@@ -47,7 +47,7 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
     override class var controlObject: ConfigurableObject {
         .init(
             icon: "globe",
-            title: "Web Scraper",
+            title: "Web Reader",
             explain: "Allows LLM to fetch and read content from web pages.",
             key: "wiki.qaq.ModelTools.WebScraperTool.enabled",
             defaultValue: true,

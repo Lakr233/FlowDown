@@ -32,42 +32,6 @@ struct ConversationExecutionSupportTests {
 
     @Test
     @MainActor
-    func `saveIfNeeded persists only non ephemeral objects`() async throws {
-        try await withTemporarySession { conversation, session in
-            let persistedObject = RichEditorView.Object(
-                text: "Persist",
-                options: [.ephemeral: .bool(false)],
-            )
-            let transientObject = RichEditorView.Object(
-                text: "Transient",
-                options: [.ephemeral: .bool(true)],
-            )
-
-            let persistedMessage = session.appendNewMessage(role: .user) {
-                $0.update(\.document, to: "Original persisted message")
-            }
-            persistedMessage.update(\.document, to: "Persisted message")
-            session.saveIfNeeded(persistedObject)
-
-            let persistedMessages = sdb.listMessages(within: conversation.id)
-            #expect(persistedMessages.map(\.id).contains(persistedMessage.id))
-            #expect(persistedMessages.contains { $0.id == persistedMessage.id && $0.document == "Persisted message" })
-
-            let transientMessage = session.appendNewMessage(role: .user) {
-                $0.update(\.document, to: "Original transient message")
-            }
-            transientMessage.update(\.document, to: "Unsaved message")
-            session.saveIfNeeded(transientObject)
-
-            let finalMessages = sdb.listMessages(within: conversation.id)
-            #expect(finalMessages.count == persistedMessages.count + 1)
-            #expect(finalMessages.contains { $0.id == transientMessage.id && $0.document == "Original transient message" })
-            #expect(finalMessages.allSatisfy { $0.document != "Unsaved message" })
-        }
-    }
-
-    @Test
-    @MainActor
     func `cancelCurrentTask waits for task teardown and clears executing state`() async throws {
         try await withTemporarySession { _, session in
             ConversationSessionManager.shared.markSessionExecuting(session.id)

@@ -13,14 +13,9 @@ extension ConversationSession {
         _ requestMessages: inout [ChatRequestBody.Message],
         _ modelName: String,
         _ modelWillExecuteTools: Bool,
+        _ webSearchEnabled: Bool,
         _ object: RichEditorView.Object,
     ) async {
-        let browsingEnabled = if case .bool(true) = object.options[.browsing] {
-            true
-        } else {
-            false
-        }
-
         let liveDependencies = ConversationSystemPromptBuilder.Dependencies.live()
         let dependencies = ConversationSystemPromptBuilder.Dependencies(
             enabledTools: liveDependencies.enabledTools,
@@ -37,7 +32,7 @@ extension ConversationSession {
             userText: object.text,
             modelName: modelName,
             modelWillExecuteTools: modelWillExecuteTools,
-            browsingEnabled: browsingEnabled,
+            webSearchEnabled: webSearchEnabled,
         )
 
         await ConversationSystemPromptBuilder.appendMessages(

@@ -44,7 +44,14 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
     }
 
     override class var controlObject: ConfigurableObject {
-        fatalError("MTWebSearchTool does not have a control object.")
+        .init(
+            icon: "magnifyingglass",
+            title: "Web Search",
+            explain: "Allows LLM to search the web for up-to-date information.",
+            key: "wiki.qaq.ModelTools.WebSearchTool.enabled",
+            defaultValue: true,
+            annotation: .toggle,
+        )
     }
 
     override func execute(with _: String, anchorTo _: UIView) async throws -> String {

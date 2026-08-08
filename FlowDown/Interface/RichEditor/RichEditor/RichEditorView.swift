@@ -312,9 +312,7 @@ class RichEditorView: EditorSectionView {
             options: [
                 .storagePrefix: .url(storage.storageDir),
                 .modelIdentifier: .string(quickSettingBar.modelIdentifier),
-                .browsing: .bool(quickSettingBar.browsingToggle.isOn),
                 .tools: .bool(quickSettingBar.toolsToggle.isOn),
-                .ephemeral: .bool(false), // .ephemeral: .bool(quickSettingBar.ephemeralChatToggle.isOn),
             ],
         )
     }

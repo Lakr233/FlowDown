@@ -1289,52 +1289,6 @@
         }
       }
     },
-    "A tool model is required for browsing." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Für das Browsen ist ein Tool-Modell erforderlich."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A tool model is required for browsing."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se requiere un modelo con herramientas para navegar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un modèle d’outil est requis pour la navigation."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ブラウジングにはツール対応モデルが必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "브라우징에는 도구 모델이 필요합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要设置工具模型才能使用网页浏览。"
-          }
-        }
-      }
-    },
     "A visual model is required for image attachments." : {
       "localizations" : {
         "de" : {
@@ -3218,6 +3172,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "允许大语言模型添加事件到你的日历。"
+          }
+        }
+      }
+    },
+    "Allows LLM to search the web for up-to-date information." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erlaubt dem LLM, im Web nach aktuellen Informationen zu suchen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allows LLM to search the web for up-to-date information."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite que el LLM busque información actualizada en la web."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorise le LLM à rechercher des informations à jour sur le web."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LLM がウェブを検索して最新の情報を取得できるようにします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LLM이 웹에서 최신 정보를 검색하도록 허용합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许大语言模型搜索网络以获取最新信息。"
           }
         }
       }
@@ -23029,52 +23029,6 @@
         }
       }
     },
-    "I have determined that no web search is needed for this query." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Für diese Anfrage ist keine Websuche erforderlich."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I have determined that no web search is needed for this query."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "He determinado que no se necesita búsqueda web para esta consulta."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "J’ai déterminé qu’aucune recherche web n’est nécessaire pour cette requête."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このクエリにはウェブ検索は不要と判断しました。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 쿼리에는 웹 검색이 필요 없다고 판단했습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我认为不需要进行搜索。"
-          }
-        }
-      }
-    },
     "I have recognized this image." : {
       "localizations" : {
         "de" : {
@@ -23117,52 +23071,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我已识别这张图片。"
-          }
-        }
-      }
-    },
-    "I was unable to generate appropriate search queries for this request." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ich konnte keine passenden Suchanfragen für diese Anfrage erstellen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I was unable to generate appropriate search queries for this request."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No pude generar consultas de búsqueda adecuadas para esta solicitud."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de générer des requêtes de recherche appropriées pour cette demande."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このリクエストに適切な検索クエリを生成できませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 요청에 적합한 검색어를 생성하지 못했습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我无法确认合适的搜索关键词。"
           }
         }
       }
@@ -33361,52 +33269,6 @@
         }
       }
     },
-    "No web search results." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Websuchergebnisse."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No web search results."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sin resultados de búsqueda web."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun résultat de recherche web."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ウェブ検索結果はありません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "웹 검색 결과가 없습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "网页搜索未找到有效内容。"
-          }
-        }
-      }
-    },
     "None" : {
       "localizations" : {
         "de" : {
@@ -37661,52 +37523,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在处理请求"
-          }
-        }
-      }
-    },
-    "Processing Web Search Results" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Web-Suchergebnisse werden verarbeitet"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Processing Web Search Results"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Procesando resultados de búsqueda web"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Traitement des résultats de recherche web"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ウェブ検索結果を処理中"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "웹 검색 결과 처리 중"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在处理网页搜索的结果"
           }
         }
       }
@@ -58117,52 +57933,6 @@
         }
       }
     },
-    "Web Browsing" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Webbrowsing"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Web Browsing"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Navegación web"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Navigation web"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ウェブブラウジング"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "웹 브라우징"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "网页浏览"
-          }
-        }
-      }
-    },
     "Web Content from: %@\nTitle: %@\n\n%@" : {
       "localizations" : {
         "de" : {
@@ -58209,48 +57979,48 @@
         }
       }
     },
-    "Web Scraper" : {
+    "Web Reader" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Web-Scraper"
+            "value" : "Web-Reader"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Web Scraper"
+            "value" : "Web Reader"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rastreador web"
+            "value" : "Lector web"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scrapeur web"
+            "value" : "Lecteur web"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ウェブスクレイパー"
+            "value" : "ウェブ読み取り"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "웹 스크레이퍼"
+            "value" : "웹 리더"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "网页爬虫"
+            "value" : "网页读取"
           }
         }
       }

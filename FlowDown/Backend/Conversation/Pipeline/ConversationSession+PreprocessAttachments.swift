@@ -57,8 +57,6 @@ extension ConversationSession {
             await currentMessageListView.loading(with: String(localized: "Processed \(processCount) image(s)"))
         }
 
-        if case let .bool(value) = object.options[.ephemeral], !value {
-            updateAttachments(object.attachments, for: userMessage)
-        }
+        updateAttachments(object.attachments, for: userMessage)
     }
 }

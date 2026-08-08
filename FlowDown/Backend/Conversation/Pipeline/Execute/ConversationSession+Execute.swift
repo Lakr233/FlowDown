@@ -74,12 +74,6 @@ extension ConversationSession {
         notifyMessagesDidChange()
     }
 
-    func saveIfNeeded(_ object: RichEditorView.Object) {
-        if case let .bool(value) = object.options[.ephemeral], !value {
-            save()
-        }
-    }
-
     private nonisolated func doInfereExecute(
         modelID: ModelManager.ModelIdentifier,
         currentMessageListView: MessageListView,
@@ -93,20 +87,16 @@ extension ConversationSession {
         let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
         let modelContextLength = ModelManager.shared.modelContextLength(identifier: modelID)
         var modelWillExecuteTools = false
-        var modelWillGoSearchWeb = false
         if case let .bool(value) = object.options[.tools], value {
             assert(modelCapabilities.contains(.tool))
             modelWillExecuteTools = true
-        }
-        if case let .bool(value) = object.options[.browsing], value {
-            modelWillGoSearchWeb = true
         }
 
         assert(models.chat != nil)
 
         // prevent screen lock
         await MainActor.run { UIApplication.shared.isIdleTimerDisabled = true }
-        saveIfNeeded(object)
+        save()
 
         // MARK: - 上下文转译到请求体 不包含当前编辑框中的附件
 
@@ -121,11 +111,10 @@ extension ConversationSession {
                 &requestMessages,
                 modelName,
                 modelWillExecuteTools,
-                modelWillGoSearchWeb,
                 modelContextLength,
                 modelID,
             )
-            saveIfNeeded(object)
+            save()
         } catch {
             logger.errorFile("\(error.localizedDescription)")
             let errorMessage = appendNewMessage(role: .assistant)
@@ -139,7 +128,7 @@ extension ConversationSession {
         stopThinkingForAll()
 
         await requestUpdate(view: currentMessageListView)
-        saveIfNeeded(object)
+        save()
 
         await requestUpdate(view: currentMessageListView)
         await MainActor.run { UIApplication.shared.isIdleTimerDisabled = false }
@@ -160,7 +149,6 @@ extension ConversationSession {
         _ requestMessages: inout [ChatRequestBody.Message],
         _ modelName: String,
         _ modelWillExecuteTools: Bool,
-        _ modelWillGoSearchWeb: Bool,
         _ modelContextLength: Int,
         _ modelID: ModelManager.ModelIdentifier,
     ) async throws {
@@ -178,10 +166,8 @@ extension ConversationSession {
 
         // MARK: - 添加 Attachment 数据到持久化内容
 
-        if case let .bool(value) = object.options[.ephemeral], !value {
-            updateAttachments(object.attachments, for: userMessage)
-        }
-        saveIfNeeded(object)
+        updateAttachments(object.attachments, for: userMessage)
+        save()
 
         // MARK: - 预处理图片信息提取
 
@@ -192,17 +178,7 @@ extension ConversationSession {
             currentMessageListView,
             userMessage,
         )
-        saveIfNeeded(object)
-
-        // MARK: - 开始提取搜索关键词 爬取网页
-
-        try checkCancellation()
-        try await preprocessSearchQueries(
-            currentMessageListView,
-            &object,
-            requestLinkContentIndex: requestLinkContentIndex,
-        )
-        saveIfNeeded(object)
+        save()
 
         // MARK: - 添加这次的附件
 
@@ -213,12 +189,8 @@ extension ConversationSession {
                 modelCapabilities: modelCapabilities,
             )
             requestMessages.append(contentsOf: attachmentMessages)
-            saveIfNeeded(object)
+            save()
         }
-
-        // MARK: - 添加最新的系统提示
-
-        await injectNewSystemCommand(&requestMessages, modelName, modelWillExecuteTools, object)
 
         // MARK: - 构建工具调用列表
 
@@ -232,13 +204,20 @@ extension ConversationSession {
         var tools: [ModelTool] = []
         if modelWillExecuteTools {
             await tools.append(contentsOf: ModelToolsManager.shared.getEnabledToolsIncludeMCP())
-            if !modelWillGoSearchWeb {
-                // remove this tool if not enabled
-                tools = tools.filter { !($0 is MTWebSearchTool) }
-            }
         }
 
         let toolsDefinitions = tools.isEmpty ? nil : tools.map(\.definition)
+        let webSearchEnabled = tools.contains { $0 is MTWebSearchTool }
+
+        // MARK: - 添加最新的系统提示
+
+        await injectNewSystemCommand(
+            &requestMessages,
+            modelName,
+            modelWillExecuteTools,
+            webSearchEnabled,
+            object,
+        )
 
         await currentMessageListView.stopLoading()
 
@@ -254,7 +233,7 @@ extension ConversationSession {
         // MARK: - 开始循环调用接口
 
         try checkCancellation()
-        saveIfNeeded(object)
+        save()
 
         var shouldContinue = false
         repeat {
@@ -267,7 +246,7 @@ extension ConversationSession {
                 linkedContents: linkedContents,
                 requestLinkContentIndex: requestLinkContentIndex,
             )
-            saveIfNeeded(object)
+            save()
         } while shouldContinue
 
         await requestUpdate(view: currentMessageListView)
@@ -276,32 +255,25 @@ extension ConversationSession {
 
         // MARK: - 自动记忆提取和对话摘要
 
-        let isEphemeral: Bool = {
-            if case let .bool(value) = object.options[.ephemeral] { return value }
-            return false
-        }()
-
-        if !isEphemeral {
-            let shouldExtractMemory = modelWillExecuteTools && ModelToolsManager.shared.canStoreMemory
-            let recentMessages = Array(messages.suffix(6))
-            let auxModel = models.auxiliary ?? models.chat
-            let convId = id
-            let allMessages = messages
-            await MainActor.run {
-                _ = Task {
-                    if shouldExtractMemory {
-                        await MemoryExtractor.shared.extractIfNeeded(
-                            from: recentMessages,
-                            conversationId: convId.description,
-                            using: auxModel,
-                        )
-                    }
-                    await ConversationSummarizer.shared.summarizeIfNeeded(
-                        conversationId: convId,
-                        messages: allMessages,
+        let shouldExtractMemory = modelWillExecuteTools && ModelToolsManager.shared.canStoreMemory
+        let recentMessages = Array(messages.suffix(6))
+        let auxModel = models.auxiliary ?? models.chat
+        let convId = id
+        let allMessages = messages
+        await MainActor.run {
+            _ = Task {
+                if shouldExtractMemory {
+                    await MemoryExtractor.shared.extractIfNeeded(
+                        from: recentMessages,
+                        conversationId: convId.description,
                         using: auxModel,
                     )
                 }
+                await ConversationSummarizer.shared.summarizeIfNeeded(
+                    conversationId: convId,
+                    messages: allMessages,
+                    using: auxModel,
+                )
             }
         }
 

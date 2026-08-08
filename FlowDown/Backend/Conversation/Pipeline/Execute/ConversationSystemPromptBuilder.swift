@@ -13,7 +13,7 @@ enum ConversationSystemPromptBuilder {
         let userText: String
         let modelName: String
         let modelWillExecuteTools: Bool
-        let browsingEnabled: Bool
+        let webSearchEnabled: Bool
     }
 
     struct Dependencies {
@@ -90,7 +90,7 @@ enum ConversationSystemPromptBuilder {
             requestMessages.append(.system(content: .text(recentConversationContext)))
         }
 
-        if input.browsingEnabled {
+        if input.webSearchEnabled {
             let sensitivity = dependencies.searchSensitivity
             let sensitivityTitle = String(localized: sensitivity.title)
             requestMessages.append(
