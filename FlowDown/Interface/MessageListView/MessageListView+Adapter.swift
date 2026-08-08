@@ -10,214 +10,200 @@ import MarkdownView
 import Storage
 import UIKit
 
-private extension MessageListView {
-    enum RowType {
-        case userContent
-        case userAttachment
-        case reasoningContent
-        case aiContent
-        case hint
-        case webSearch
-        case activityReporting
-        case toolCallHint
+extension MessageListView {
+    /// Declares the row types the list can display. Registrations are matched
+    /// in declaration order, so each one narrows itself to a single entry case.
+    func registerRows() {
+        listView.rows {
+            ListRow(UserMessageView.self)
+                .when { if case .userContent = $0 { true } else { false } }
+                .height { [weak self] entry, context in
+                    guard let self, case let .userContent(_, message) = entry else { return 0 }
+                    return rowHeight(inListWidth: context.width) { containerWidth in
+                        let attributedContent = NSAttributedString(string: message.content, attributes: [
+                            .font: self.theme.fonts.body,
+                        ])
+                        let availableWidth = UserMessageView.availableTextWidth(for: containerWidth)
+                        return self.boundingSize(with: availableWidth, for: attributedContent).height
+                            + UserMessageView.textPadding * 2
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .userContent(_, message) = entry else { return }
+                    prepare(row, for: entry)
+                    row.text = message.content
+                }
+
+            ListRow(UserAttachmentView.self)
+                .when { if case .userAttachment = $0 { true } else { false } }
+                .height { [weak self] _, context in
+                    guard let self else { return 0 }
+                    return rowHeight(inListWidth: context.width) { _ in AttachmentsBar.itemHeight }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .userAttachment(_, attachments) = entry else { return }
+                    prepare(row, for: entry)
+                    row.update(with: attachments)
+                }
+
+            ListRow(ReasoningContentView.self)
+                .when { if case .reasoningContent = $0 { true } else { false } }
+                .height { [weak self] entry, context in
+                    guard let self, case let .reasoningContent(_, message) = entry else { return 0 }
+                    return rowHeight(inListWidth: context.width) { containerWidth in
+                        guard message.isRevealed else { return ReasoningContentView.unrevealedTileHeight }
+                        let attributedContent = NSAttributedString(string: message.content, attributes: [
+                            .font: self.theme.fonts.footnote,
+                            .paragraphStyle: ReasoningContentView.paragraphStyle,
+                        ])
+                        return self.boundingSize(with: containerWidth - 16, for: attributedContent).height
+                            + ReasoningContentView.spacing + ReasoningContentView.revealedTileHeight + 2
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .reasoningContent(_, message) = entry else { return }
+                    prepare(row, for: entry)
+                    row.isRevealed = message.isRevealed
+                    row.isThinking = message.isThinking
+                    row.thinkingDuration = message.thinkingDuration
+                    row.text = message.content
+                    row.thinkingTileTapHandler = { [weak self] newValue in
+                        guard let self else { return }
+                        let thinkingMessages = session.messages.filter {
+                            $0.combinationID == message.id
+                        }
+                        guard let thinkingMessage = thinkingMessages.first else {
+                            return
+                        }
+                        thinkingMessage.update(\.isThinkingFold, to: !newValue)
+                        updateList()
+                        session.save()
+                    }
+                }
+
+            ListRow(AiMessageView.self)
+                .when { if case .aiContent = $0 { true } else { false } }
+                .height { [weak self] entry, context in
+                    guard let self, case let .aiContent(_, message) = entry else { return 0 }
+                    return rowHeight(inListWidth: context.width) { containerWidth in
+                        self.markdownViewForSizeCalculation.theme = self.theme
+                        let package = self.markdownPackageCache.package(for: message, theme: self.theme)
+                        self.markdownViewForSizeCalculation.setContentImmediately(package)
+                        let boundingSize = self.markdownViewForSizeCalculation.boundingSize(for: containerWidth)
+                        // The off-screen sizing view also receives CodeHighlighter
+                        // notifications; empty it so those don't rebuild the full message.
+                        self.markdownViewForSizeCalculation.reset()
+                        return ceil(boundingSize.height)
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .aiContent(messageID, message) = entry else { return }
+                    prepare(row, for: entry)
+                    let package = markdownPackageCache.package(for: message, theme: theme)
+                    row.setMarkdownPackage(package, for: messageID)
+                    row.linkTapHandler = { [weak self, weak row] link, range, touchLocation in
+                        guard let self, let row else { return }
+                        handleLinkTapped(link, in: range, at: row.convert(touchLocation, to: self))
+                    }
+                    row.codePreviewHandler = { [weak self] lang, code in
+                        self?.presentAndReturnDetailCodeController(
+                            code: code,
+                            language: lang,
+                            title: String(localized: "Code Viewer"),
+                        )
+                    }
+                }
+
+            ListRow(HintMessageView.self)
+                .when { if case .hint = $0 { true } else { false } }
+                .height { [weak self] _, context in
+                    guard let self else { return 0 }
+                    return rowHeight(inListWidth: context.width) { _ in
+                        ceil(self.theme.fonts.footnote.lineHeight + 16)
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .hint(_, content) = entry else { return }
+                    prepare(row, for: entry)
+                    row.text = content
+                }
+
+            ListRow(WebSearchStateView.self)
+                .when { if case .webSearchContent = $0 { true } else { false } }
+                .height { [weak self] _, context in
+                    guard let self else { return 0 }
+                    return rowHeight(inListWidth: context.width) { _ in
+                        WebSearchStateView.intrinsicHeight(withLabelFont: self.theme.fonts.body)
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .webSearchContent(webSearchPhase) = entry else { return }
+                    prepare(row, for: entry)
+                    row.update(with: webSearchPhase)
+                }
+
+            ListRow(ActivityReportingView.self)
+                .when { if case .activityReporting = $0 { true } else { false } }
+                .height { [weak self] entry, context in
+                    guard let self, case let .activityReporting(content) = entry else { return 0 }
+                    return rowHeight(inListWidth: context.width) { _ in
+                        let contentHeight = self.boundingSize(with: .infinity, for: .init(string: content, attributes: [
+                            .font: self.theme.fonts.body,
+                        ])).height
+                        return max(contentHeight, ActivityReportingView.loadingSymbolSize.height + 16)
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .activityReporting(content) = entry else { return }
+                    prepare(row, for: entry)
+                    row.text = content
+                }
+
+            ListRow(ToolHintView.self)
+                .when { if case .toolCallStatus = $0 { true } else { false } }
+                .height { [weak self] _, context in
+                    guard let self else { return 0 }
+                    return rowHeight(inListWidth: context.width) { _ in
+                        self.theme.fonts.body.lineHeight + 20
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .toolCallStatus(messageID, status) = entry else { return }
+                    prepare(row, for: entry)
+                    row.toolName = status.name
+                    row.text = status.message
+                    row.state = switch status.state {
+                    case 0: .running
+                    case 1: .suceeded
+                    default: .failed
+                    }
+                    row.clickHandler = { [weak self] in
+                        self?.presentToolCallDetails(for: messageID, status: status)
+                    }
+                }
+        }
     }
-}
 
-extension MessageListView: ListViewAdapter {
-    func listView(_: ListViewKit.ListView, rowKindFor item: ItemType, at _: Int) -> RowKind {
-        guard let entry = item as? Entry else {
-            assertionFailure("Invalid item type")
-            return RowType.userContent
-        }
-
-        return switch entry {
-        case .userContent: RowType.userContent
-        case .userAttachment: RowType.userAttachment
-        case .aiContent: RowType.aiContent
-        case .webSearchContent: RowType.webSearch
-        case .hint: RowType.hint
-        case .activityReporting: RowType.activityReporting
-        case .reasoningContent: RowType.reasoningContent
-        case .toolCallStatus: RowType.toolCallHint
-        }
-    }
-
-    func listViewMakeRow(for kind: RowKind) -> ListViewKit.ListRowView {
-        guard let rowType = kind as? RowType else {
-            assertionFailure("Invalid row kind")
-            return .init()
-        }
-
-        let view = switch rowType {
-        case .userContent:
-            UserMessageView()
-        case .userAttachment:
-            UserAttachmentView()
-        case .reasoningContent:
-            ReasoningContentView()
-        case .aiContent:
-            AiMessageView()
-        case .hint:
-            HintMessageView()
-        case .webSearch:
-            WebSearchStateView()
-        case .activityReporting:
-            ActivityReportingView()
-        case .toolCallHint:
-            ToolHintView()
-        }
-        view.theme = theme
-        return view
-    }
-
-    func listView(_ list: ListViewKit.ListView, heightFor item: ItemType, at _: Int) -> CGFloat {
+    /// Wraps a content height in the shared row insets, mirroring the layout
+    /// `MessageListRowView` performs. Returns zero while the list has no width
+    /// to lay out in.
+    private func rowHeight(inListWidth listWidth: CGFloat, content: (CGFloat) -> CGFloat) -> CGFloat {
         let listRowInsets = MessageListView.listRowInsets
-        let containerWidth = max(0, list.bounds.width - listRowInsets.horizontal)
-        if containerWidth == 0 {
-            return 0
-        }
-
-        guard let entry = item as? Entry else {
-            assertionFailure("Invalid item type")
-            return 0
-        }
-
-        let bottomInset = listRowInsets.bottom
-        let contentHeight: CGFloat = {
-            switch entry {
-            case let .userContent(_, message):
-                let content = message.content
-                let attributedContent = NSAttributedString(string: content, attributes: [
-                    .font: theme.fonts.body,
-                ])
-                let availableWidth = UserMessageView.availableTextWidth(for: containerWidth)
-                return boundingSize(with: availableWidth, for: attributedContent).height + UserMessageView.textPadding * 2
-            case .userAttachment:
-                return AttachmentsBar.itemHeight
-            case let .reasoningContent(_, message):
-                let attributedContent = NSAttributedString(string: message.content, attributes: [
-                    .font: theme.fonts.footnote,
-                    .paragraphStyle: ReasoningContentView.paragraphStyle,
-                ])
-                if message.isRevealed {
-                    return boundingSize(
-                        with: containerWidth - 16,
-                        for: attributedContent,
-                    ).height + ReasoningContentView.spacing + ReasoningContentView.revealedTileHeight + 2
-                } else {
-                    return ReasoningContentView.unrevealedTileHeight
-                }
-            case let .aiContent(_, message):
-                markdownViewForSizeCalculation.theme = theme
-                let package = markdownPackageCache.package(for: message, theme: theme)
-                markdownViewForSizeCalculation.setContentImmediately(package)
-                let boundingSize = markdownViewForSizeCalculation.boundingSize(for: containerWidth)
-                // The off-screen sizing view also receives CodeHighlighter
-                // notifications; empty it so those don't rebuild the full message.
-                markdownViewForSizeCalculation.reset()
-                return ceil(boundingSize.height)
-            case .hint:
-                return ceil(theme.fonts.footnote.lineHeight + 16)
-            case .webSearchContent:
-                return WebSearchStateView.intrinsicHeight(withLabelFont: theme.fonts.body)
-            case let .activityReporting(content):
-                let contentHeight = boundingSize(with: .infinity, for: .init(string: content, attributes: [
-                    .font: theme.fonts.body,
-                ])).height
-                return max(contentHeight, ActivityReportingView.loadingSymbolSize.height + 16)
-            case .toolCallStatus:
-                return theme.fonts.body.lineHeight + 20
-            }
-        }()
-        return contentHeight + bottomInset
+        let containerWidth = max(0, listWidth - listRowInsets.horizontal)
+        guard containerWidth > 0 else { return 0 }
+        return content(containerWidth) + listRowInsets.bottom
     }
 
-    func listView(_ listView: ListViewKit.ListView, configureRowView rowView: ListViewKit.ListRowView, for item: ItemType, at _: Int) {
-        guard let entry = item as? Entry else {
-            assertionFailure("Invalid item type")
-            return
-        }
-
-        if let rowView = rowView as? MessageListRowView {
-            // Capture the concrete row view so the menu actions (eg. Copy as Image)
-            // can render the correct view without needing to query snapshots/indexes.
-            let provider: ((CGPoint) -> UIMenu?) = { [weak self] pointInRowContentView in
-                guard let self else { return nil }
-                let pointInListView = listView.convert(pointInRowContentView, from: rowView.contentView)
-                let hasActivateEvent = hasActivatedEventOnLabel(listView: listView, location: pointInListView)
-                guard !hasActivateEvent else { return nil }
-                return contextMenu(for: item, referenceView: rowView)
-            }
-            rowView.contextMenuProvider = provider
-        }
-
-        if let userMessageView = rowView as? UserMessageView {
-            if case let .userContent(_, message) = entry {
-                userMessageView.text = message.content
-            } else { assertionFailure() }
-        } else if let attachmentView = rowView as? UserAttachmentView {
-            if case let .userAttachment(_, attachments) = entry {
-                attachmentView.update(with: attachments)
-            } else { assertionFailure() }
-        } else if let aiMessageView = rowView as? AiMessageView {
-            if case let .aiContent(messageID, message) = entry {
-                aiMessageView.theme = theme
-                let package = markdownPackageCache.package(for: message, theme: theme)
-                aiMessageView.setMarkdownPackage(package, for: messageID)
-                aiMessageView.linkTapHandler = { [weak self] link, range, touchLocation in
-                    self?.handleLinkTapped(link, in: range, at: aiMessageView.convert(touchLocation, to: self))
-                }
-                aiMessageView.codePreviewHandler = { [weak self] lang, code in
-                    self?.presentAndReturnDetailCodeController(code: code, language: lang, title: String(localized: "Code Viewer"))
-                }
-            } else { assertionFailure() }
-        } else if let hintMessageView = rowView as? HintMessageView {
-            if case let .hint(_, content) = entry {
-                hintMessageView.text = content
-            } else { assertionFailure() }
-        } else if let stateView = rowView as? WebSearchStateView {
-            if case let .webSearchContent(webSearchPhase) = entry {
-                stateView.update(with: webSearchPhase)
-            }
-        } else if let activityReportingView = rowView as? ActivityReportingView {
-            if case let .activityReporting(content) = entry {
-                activityReportingView.text = content
-            }
-        } else if let reasoningContentView = rowView as? ReasoningContentView {
-            if case let .reasoningContent(_, message) = entry {
-                reasoningContentView.isRevealed = message.isRevealed
-                reasoningContentView.isThinking = message.isThinking
-                reasoningContentView.thinkingDuration = message.thinkingDuration
-                reasoningContentView.text = message.content
-                reasoningContentView.thinkingTileTapHandler = { [unowned self] newValue in
-                    let thinkingMessages = session.messages.filter {
-                        $0.combinationID == message.id
-                    }
-                    guard let thinkingMessage = thinkingMessages.first else {
-                        return
-                    }
-                    thinkingMessage.update(\.isThinkingFold, to: !newValue)
-                    updateList()
-                    session.save()
-                }
-            }
-        } else if let toolHintView = rowView as? ToolHintView {
-            if case let .toolCallStatus(messageID, status) = entry {
-                let state: ToolHintView.State = switch status.state {
-                case 0:
-                    .running
-                case 1:
-                    .suceeded
-                default:
-                    .failed
-                }
-                toolHintView.toolName = status.name
-                toolHintView.text = status.message
-                toolHintView.state = state
-                toolHintView.clickHandler = { [weak self] in
-                    self?.presentToolCallDetails(for: messageID, status: status)
-                }
-            }
+    /// Applies the state every row shares: the current theme, and a context
+    /// menu bound to the concrete row view so menu actions (eg. Copy as Image)
+    /// can render it without querying snapshots or indexes.
+    private func prepare(_ rowView: MessageListRowView, for entry: Entry) {
+        rowView.theme = theme
+        rowView.contextMenuProvider = { [weak self, weak rowView] pointInRowContentView in
+            guard let self, let rowView else { return nil }
+            let pointInListView = listView.convert(pointInRowContentView, from: rowView.contentView)
+            guard !hasActivatedEventOnLabel(location: pointInListView) else { return nil }
+            return contextMenu(for: entry, referenceView: rowView)
         }
     }
 
@@ -228,7 +214,7 @@ extension MessageListView: ListViewAdapter {
         return .init(width: ceil(contentSize.width), height: ceil(contentSize.height))
     }
 
-    private func hasActivatedEventOnLabel(listView: ListViewKit.ListView, location: CGPoint) -> Bool {
+    private func hasActivatedEventOnLabel(location: CGPoint) -> Bool {
         var lookup: [UIView] = listView.subviews
         while !lookup.isEmpty {
             let view = lookup.removeFirst()
@@ -248,9 +234,7 @@ extension MessageListView: ListViewAdapter {
         return false
     }
 
-    private func contextMenu(for item: ItemType, referenceView: UIView?) -> UIMenu? {
-        guard let entry = item as? Entry else { return nil }
-
+    private func contextMenu(for entry: Entry, referenceView: UIView?) -> UIMenu? {
         let messageIdentifier: Message.ID
         let representation: MessageRepresentation
         let isReasoningContent: Bool

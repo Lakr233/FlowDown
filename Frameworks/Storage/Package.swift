@@ -13,7 +13,7 @@ let package = Package(
         .library(name: "Storage", type: .dynamic, targets: ["Storage"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Lakr233/MarkdownView", exact: "4.1.12"),
+        .package(url: "https://github.com/Lakr233/MarkdownView", exact: "4.1.15"),
         .package(url: "https://github.com/Lakr233/wcdb-spm-prebuilt", from: "2.1.15"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.4.1"),
         .package(url: "https://github.com/weichsel/ZIPFoundation", from: "0.9.20"),

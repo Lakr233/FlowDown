@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/Litext",
       "state" : {
-        "revision" : "bd0a073ad11cca3c751adffaa056fad64668a1e6",
-        "version" : "2.1.4"
+        "revision" : "130b4eef642d76a3d2dcf07ab966f32f08e14b90",
+        "version" : "2.2.1"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/MarkdownView",
       "state" : {
-        "revision" : "ff80cbdb0f938684aabcc22ae42169648f27e1dd",
-        "version" : "4.1.12"
+        "revision" : "9338855471f9b8bf899d4b1ff9110fcac1f40203",
+        "version" : "4.1.15"
       }
     },
     {

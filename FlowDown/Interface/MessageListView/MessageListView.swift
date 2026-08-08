@@ -13,15 +13,17 @@ import Storage
 import UIKit
 
 final class MessageListView: UIView {
-    private lazy var listView: ListViewKit.ListView = .init()
+    let listView: ListViewKit.ListView<Entry> = .init()
 
     var contentSize: CGSize {
         listView.contentSize
     }
 
-    lazy var dataSource: ListViewDiffableDataSource<Entry> = .init(listView: listView)
+    /// The entries currently displayed by the list.
+    var entries: [Entry] {
+        listView.content
+    }
 
-    private var entryCount = 0
     private let updateQueue = DispatchQueue(label: "MessageListView.UpdateQueue", qos: .userInteractive)
 
     private var isFirstLoad: Bool = true
@@ -86,11 +88,7 @@ final class MessageListView: UIView {
         super.init(frame: .zero)
 
         listView.delegate = self
-        listView.adapter = self
-        // Row measurement runs full markdown layout; keep stale heights as
-        // estimates on width changes and correct them incrementally instead
-        // of re-measuring every row synchronously (see ListViewKit 2.1).
-        listView.deferredSizeCalculation = true
+        registerRows()
         listView.alwaysBounceVertical = true
         listView.alwaysBounceHorizontal = false
         listView.contentInsetAdjustmentBehavior = .never
@@ -221,8 +219,7 @@ final class MessageListView: UIView {
     }
 
     func updateList() {
-        let entries = entries(from: session.messages)
-        dataSource.applySnapshot(using: entries, animatingDifferences: false)
+        listView.apply(entries(from: session.messages))
     }
 
     func updateFromUpstreamPublisher(_ messages: [Message], _ scrolling: Bool, isLoading: String?) {
@@ -241,12 +238,11 @@ final class MessageListView: UIView {
 
         let shouldScrolling = scrolling && isAutoScrollingToBottom
 
-        entryCount = entries.count
         Task { @MainActor [weak self] in
             guard let self else { return }
             if isFirstLoad || alpha == 0 {
                 isFirstLoad = false
-                dataSource.applySnapshot(using: entries, animatingDifferences: false)
+                listView.apply(entries)
                 listView.setContentOffset(.init(x: 0, y: listView.maximumContentOffset.y), animated: false)
                 Task { [weak self] in
                     try? await Task.sleep(for: .seconds(0.1))
@@ -256,7 +252,7 @@ final class MessageListView: UIView {
                     }
                 }
             } else {
-                dataSource.applySnapshot(using: entries, animatingDifferences: true)
+                listView.apply(entries, animated: true)
                 if shouldScrolling {
                     listView.scroll(to: listView.maximumContentOffset)
                 }

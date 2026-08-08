@@ -201,7 +201,6 @@ private extension ConversationExecutionSupportTests {
 
     @MainActor
     func snapshotEntries(in listView: MessageListView) -> [MessageListView.Entry] {
-        let snapshot = listView.dataSource.snapshot()
-        return (0 ..< snapshot.count).compactMap { snapshot.item(at: $0) }
+        listView.entries
     }
 }
