@@ -77,11 +77,13 @@ extension UIView {
             delay: 0,
             usingSpringWithDamping: 0.9,
             initialSpringVelocity: 1.0,
-            // Without `beginFromCurrentState` a second call while the first is
-            // still running throws away what is on screen and restarts from the
-            // previous target, which nothing ever displayed. Anything driven
-            // continuously, like dragging the sidebar divider, then jumps
-            // backwards on every sample instead of retargeting smoothly.
+            // `allowUserInteraction` is what keeps a continuous gesture alive:
+            // by default UIKit ignores input aimed at a hierarchy that is being
+            // animated, so a drag that animates the layout on every sample gets
+            // its own remaining events swallowed and freezes until the animation
+            // ends. `beginFromCurrentState` then lets each new sample retarget
+            // the animation already in flight, instead of discarding what is on
+            // screen and restarting from a target nothing ever displayed.
             options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction],
         ) {
             execute()

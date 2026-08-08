@@ -49,11 +49,7 @@ class MainController: UIViewController {
     var sidebarWidth: CGFloat = 256 {
         didSet {
             guard oldValue != sidebarWidth else { return }
-            // A drag retargets this many times a second, so the animation has
-            // to be short enough to reach the pointer before the next sample
-            // arrives. A one shot change gets the longer, softer settle.
-            let duration: TimeInterval = sidebarDragger.isDragging ? 0.1 : 0.2
-            view.doWithAnimation(duration: duration) {
+            view.doWithAnimation(duration: 0.2) {
                 self.updateViewConstraints()
             }
         }
@@ -287,6 +283,9 @@ class MainController: UIViewController {
                 // The dragger owns its whole strip, including the part that
                 // overlaps the title bar. Otherwise grabbing the separator near
                 // the top of the window moves the window instead of resizing.
+                // A resize already under way keeps ownership even once the
+                // pointer leaves the strip, which it does constantly.
+                if sidebarDragger.isDragging { return false }
                 if !sidebarDragger.isHidden,
                    sidebarDragger.frame.contains(touch.location(in: view))
                 {
