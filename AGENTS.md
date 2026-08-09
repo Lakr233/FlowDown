@@ -116,6 +116,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - Backend services are organized by domain: `ChatTemplate`, `Conversation`, `Model`, `ModelTools`, `MCPService`, `Storage`, `Security`, `UpdateManager`.
 - `main.swift` wires storage (`Storage.db()`), CloudKit sync, logging, and shared singletons (`ModelManager`, `ModelToolsManager`, `ConversationManager`, `MCPService`, `UpdateManager`, `ChatSelection`). Keep this order intact to avoid race conditions.
 - `ConfigurableKit` powers persisted user settings—add keys through dedicated `Value+*.swift` helpers and publish updates via its typed publishers.
+- Continuous input (drags, live resizes) must coalesce onto a `CADisplayLink` before running an animated layout pass. Animating on every event outruns the run loop's commit, so nothing is presented, no animation completes to be reclaimed, and each pass walks a longer list of live animations until the window appears frozen.
 
 ## Testing Expectations
 
