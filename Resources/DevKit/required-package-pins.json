@@ -1,0 +1,34 @@
+{
+  "comment": [
+    "Pins that must stay in a Package.resolved even when the local toolchain's",
+    "resolver decides they are prunable.",
+    "",
+    "Xcode 27's SwiftPM clones swift-argument-parser (mlx-swift declares it for",
+    "its `encuda` tool target) but omits it from Package.resolved, because no",
+    "target we actually build links it. Xcode Cloud runs an older toolchain that",
+    "still expects the pin, and because Xcode Cloud disables automatic package",
+    "resolution it hard-fails the build:",
+    "",
+    "  an out-of-date resolved file was detected ... Running resolver because the",
+    "  following dependencies were added: 'swift-argument-parser'",
+    "",
+    "Keeping the pin satisfies both: the newer resolver tolerates the extra entry,",
+    "the older one finds what it needs. `make package-resolve` re-adds any pin",
+    "listed here after resolving, and `make package-verify` fails when one is",
+    "missing so the drift is caught in review instead of in a release build."
+  ],
+  "files": {
+    "FlowDown.xcworkspace/xcshareddata/swiftpm/Package.resolved": [
+      {
+        "identity": "swift-argument-parser",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-argument-parser",
+        "reason": "Pulled in by mlx-swift; pruned by Xcode 27's resolver, required by Xcode Cloud's.",
+        "fallbackState": {
+          "revision": "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+          "version": "1.8.2"
+        }
+      }
+    ]
+  }
+}

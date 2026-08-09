@@ -52,6 +52,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
   - `make test-online-e2e` for the online E2E suite
 - Package and license commands:
   - `make package-resolve` to resolve SwiftPM packages
+  - `make package-verify` to confirm `Package.resolved` still carries the pins Xcode Cloud requires
   - `make scan-license` to refresh `OpenSourceLicenses.md`
 - Localization commands:
   - `make localization-check` to check for missing translations
@@ -65,6 +66,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
   - `make clean` to remove repo-local build artifacts and derived data
 - The shared FlowDown scheme runs `git submodule update` before builds and tests; stage or commit intended gitlink changes first so the selected submodule revisions are not restored from the index.
 - Xcode Cloud invokes `xcodebuild` outside the Makefile; keep package plug-in validation configuration in `ci_scripts/ci_post_clone.sh` so cloud archives receive it.
+- Xcode 27's resolver prunes pins no built target links (currently `swift-argument-parser`, pulled in by `mlx-swift`), but Xcode Cloud's older toolchain rejects a `Package.resolved` that omits them. Any resolve or build drops the pin again, so `Resources/DevKit/required-package-pins.json` declares it and `required_package_pins.py fix` re-adds it after every resolve. Never hand-delete those pins to make a local diff smaller; run `make package-verify` before committing `Package.resolved`.
 - Archive script automatically commits changes and bumps version before building; ensure the working tree is clean beforehand.
 - Use `make help` to discover the current command surface.
 - Localization validation helpers:

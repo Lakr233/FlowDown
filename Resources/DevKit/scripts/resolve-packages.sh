@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 WORKSPACE="${WORKSPACE:-FlowDown.xcworkspace}"
 SCHEME="${SCHEME:-FlowDown}"
 PACKAGE_RESOLVED_FILES=(
@@ -11,16 +13,10 @@ PACKAGE_RESOLVED_FILES=(
 echo "[resolve-packages] workspace: $WORKSPACE"
 echo "[resolve-packages] scheme: $SCHEME"
 
-# The CUDA-plugin strip patches the resolved mlx-swift checkout in place, and
-# the patched manifest drops swift-argument-parser from the dependency graph.
-# Resolving against it records a Package.resolved that a pristine CI clone
-# rejects as out of date. Restore the pristine manifest before resolving; the
-# strip below re-applies the patch afterwards.
-for manifest in "$HOME"/Library/Developer/Xcode/DerivedData/FlowDown-*/SourcePackages/checkouts/mlx-swift/Package.swift(N); do
-  if git -C "$(dirname "$manifest")" checkout -- Package.swift 2>/dev/null; then
-    echo "[resolve-packages] restored pristine manifest: $manifest"
-  fi
-done
+# The CUDA-plugin strip rewrites the resolved mlx-swift manifest in place, and
+# the patched manifest describes a smaller dependency graph than the real one.
+# Resolve against the pristine manifest and re-apply the strip afterwards.
+"$SCRIPT_DIR/strip_mlx_cuda_plugin.sh" --restore
 
 xcodebuild \
   -workspace "$WORKSPACE" \
@@ -34,6 +30,11 @@ for file in "${PACKAGE_RESOLVED_FILES[@]}"; do
   swift package --package-path "$package_path" resolve
 done
 
-"$(cd "$(dirname "$0")" && pwd)/strip_mlx_cuda_plugin.sh"
+# Xcode 27's resolver prunes pins that no built target links, but Xcode Cloud's
+# older toolchain rejects a Package.resolved that is missing them. Put them back
+# before anyone commits the file.
+"$SCRIPT_DIR/required_package_pins.py" fix
+
+"$SCRIPT_DIR/strip_mlx_cuda_plugin.sh"
 
 echo "[resolve-packages] done"

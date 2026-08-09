@@ -10,10 +10,25 @@ on:
       - "FlowDown.xcodeproj/**"
       - "FlowDown.xcworkspace/**"
       - ".github/workflows/ci.yml"
+      - "ci_scripts/**"
       - "Makefile"
       - "Package.resolved"
 
 jobs:
+  # Deliberately not skipped for housekeeping/ branches: those PRs regenerate
+  # Package.resolved and are exactly where pin drift gets introduced. Xcode
+  # Cloud is the only other place that catches it, and there it fails a release
+  # archive instead of a pull request.
+  verify-packages:
+    name: Verify Package Pins
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Required Pins
+        run: make package-verify
+
   build:
     if: ${{ !startsWith(github.head_ref, 'housekeeping/') }}
     name: Build (${{ matrix.target }})

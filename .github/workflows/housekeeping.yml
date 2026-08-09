@@ -145,6 +145,15 @@ jobs:
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
         run: rm -f FlowDown/Configuration/DevelopmentDeveloper.xcconfig
 
+      # The build and test steps above re-resolve packages, which drops the pins
+      # Xcode Cloud needs. Restore them here so the generated PR does not commit
+      # a Package.resolved that only fails once it reaches a release archive.
+      - name: Restore Required Package Pins
+        if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
+        run: |
+          ./Resources/DevKit/scripts/required_package_pins.py fix
+          make package-verify
+
       - name: Create Pull Request
         if: steps.check.outputs.has_updates == 'true' || steps.licenses.outputs.has_license_updates == 'true'
         uses: peter-evans/create-pull-request@v7

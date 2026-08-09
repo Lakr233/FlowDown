@@ -10,19 +10,38 @@
 # The plugin only emits build commands when CUDA is enabled, so it is a no-op
 # on Apple platforms and safe to remove from the manifest.
 #
-# Usage: strip_mlx_cuda_plugin.sh [SourcePackages-dir ...]
-# Without arguments, patches every resolved mlx-swift checkout it can find.
+# Usage: strip_mlx_cuda_plugin.sh [--restore] [SourcePackages-dir ...]
+# Without directories, acts on every resolved mlx-swift checkout it can find.
+#
+# --restore puts the pristine manifest back. Always resolve against the
+# pristine manifest: the patched one drops swift-argument-parser from the
+# dependency graph, so resolving on top of it records a Package.resolved that
+# does not describe the real graph. See required-package-pins.json.
 
 set -euo pipefail
 
+mode=strip
 typeset -a candidates
-if (( $# > 0 )); then
-  candidates=("$@")
-else
-  if [[ -n "${CI_DERIVED_DATA_PATH:-}" ]]; then
-    candidates+=("${CI_DERIVED_DATA_PATH}/SourcePackages")
-  fi
+for argument in "$@"; do
+  case "$argument" in
+    --restore) mode=restore ;;
+    --strip) mode=strip ;;
+    -*)
+      echo "[strip-mlx-cuda] unknown option: $argument" >&2
+      exit 2
+      ;;
+    *) candidates+=("$argument") ;;
+  esac
+done
+
+if (( ${#candidates} == 0 )); then
+  for variable in CI_DERIVED_DATA_PATH DERIVED_DATA; do
+    derived="${(P)variable:-}"
+    [[ -n "$derived" ]] && candidates+=("${derived}/SourcePackages")
+  done
+  candidates+=(/private/tmp/flowdown-deriveddata/SourcePackages)
   candidates+=("$HOME"/Library/Developer/Xcode/DerivedData/FlowDown-*/SourcePackages(N))
+  candidates=("${(@u)candidates}")
 fi
 
 found=0
@@ -32,6 +51,17 @@ for dir in "${candidates[@]}"; do
   found=1
   # SwiftPM write-protects checkouts.
   chmod u+w "$manifest"
+
+  if [[ "$mode" == restore ]]; then
+    if git -C "${dir}/checkouts/mlx-swift" checkout -- Package.swift 2>/dev/null; then
+      echo "[strip-mlx-cuda] restored pristine manifest: $manifest"
+    else
+      echo "[strip-mlx-cuda] could not restore $manifest" >&2
+      exit 1
+    fi
+    continue
+  fi
+
   /usr/bin/env python3 - "$manifest" <<'EOF'
 import re
 import sys
@@ -62,6 +92,10 @@ EOF
 done
 
 if (( ! found )); then
+  if [[ "$mode" == restore ]]; then
+    echo "[strip-mlx-cuda] no resolved mlx-swift checkout to restore; nothing to do"
+    exit 0
+  fi
   echo "[strip-mlx-cuda] no resolved mlx-swift checkout found; resolve packages first" >&2
   exit 1
 fi

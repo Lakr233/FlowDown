@@ -54,7 +54,7 @@ endef
 .PHONY: all help \
 	build build-ios build-catalyst build-extension \
 	test test-unit test-online-e2e \
-	install-metal-toolchain package-resolve package-update scan-license \
+	install-metal-toolchain package-resolve package-update package-verify scan-license \
 	localization-check localization-stale-check \
 	archive archive-ios archive-macos \
 	chore clean clean-build
@@ -77,6 +77,7 @@ help:
 	@echo "  install-metal-toolchain  Install the Xcode Metal toolchain"
 	@echo "  package-resolve       Resolve SwiftPM packages"
 	@echo "  package-update        Upgrade SwiftPM packages"
+	@echo "  package-verify        Check Package.resolved keeps the pins Xcode Cloud needs"
 	@echo "  scan-license          Refresh open source licenses"
 	@echo ""
 	@echo "Localization:"
@@ -142,6 +143,9 @@ package-resolve:
 package-update:
 	./Resources/DevKit/scripts/update-packages.sh
 
+package-verify:
+	./Resources/DevKit/scripts/required_package_pins.py check
+
 scan-license:
 	./Resources/DevKit/scripts/scan.license.sh
 
@@ -164,6 +168,7 @@ chore:
 	$(MAKE) localization-stale-check
 	$(MAKE) localization-check
 	$(MAKE) package-resolve
+	$(MAKE) package-verify
 	$(MAKE) scan-license dirty=1
 
 clean-build:
