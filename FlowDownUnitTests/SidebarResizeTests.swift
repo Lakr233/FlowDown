@@ -37,7 +37,7 @@ struct SidebarResizeTests {
 
     @Test
     @MainActor
-    func `reversing at the minimum width moves the sidebar on the very next sample`() {
+    func `the separator stays under the pointer after being pushed past the minimum`() {
         let (dragger, gesture) = makeDragger()
         dragger.currentValue = 300
 
@@ -51,13 +51,14 @@ struct SidebarResizeTests {
         drag(dragger, gesture, to: 300)
         #expect(dragger.currentValue == dragger.allowedMinimalValue)
 
-        // Turning around has to take effect immediately. Measuring from where the
-        // drag began would make the pointer travel back 140pt before anything
-        // happened, which reads as the divider ignoring the drag.
-        drag(dragger, gesture, to: 310)
-        #expect(dragger.currentValue > dragger.allowedMinimalValue)
-        drag(dragger, gesture, to: 330)
-        #expect(dragger.currentValue >= dragger.allowedMinimalValue + 30)
+        // Coming back has to put the separator exactly where the pointer is
+        // holding it, at the same 200pt offset the drag started with. Anything
+        // that re-seats that offset while pinned leaves the two out of step for
+        // the rest of the gesture.
+        drag(dragger, gesture, to: 450)
+        #expect(dragger.currentValue == 250)
+        drag(dragger, gesture, to: 500)
+        #expect(dragger.currentValue == 300)
     }
 
     @Test
@@ -118,9 +119,14 @@ struct SidebarResizeTests {
         drag(dragger, gesture, to: 700)
         #expect(dragger.currentValue == 360)
 
-        // Coming back has to move it immediately rather than first undoing the
-        // travel the layout never used.
+        // Still pinned: the pointer is asking for 480, which the layout cannot
+        // give.
         drag(dragger, gesture, to: 680)
-        #expect(dragger.currentValue < 360)
+        #expect(dragger.currentValue == 360)
+
+        // Back inside what the layout can honour, and the separator is under the
+        // pointer again rather than somewhere the clamp left it.
+        drag(dragger, gesture, to: 540)
+        #expect(dragger.currentValue == 340)
     }
 }

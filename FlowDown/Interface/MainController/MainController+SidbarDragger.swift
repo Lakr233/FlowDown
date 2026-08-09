@@ -157,8 +157,6 @@ class SidebarDraggerView: UIView {
 
     private var gestureBeginValue: Int = 0
     private var gestureBeginLocation: CGFloat = 0
-    private var widthAnchorValue: Int = 0
-    private var widthAnchorLocation: CGFloat = 0
     private var lastExpandRequest: Date = .distantPast
 
     /// Coordinate space the drag is measured in.
@@ -182,8 +180,6 @@ class SidebarDraggerView: UIView {
         case .began:
             gestureBeginValue = currentValue
             gestureBeginLocation = location
-            widthAnchorValue = currentValue
-            widthAnchorLocation = location
             isDragging = true
             fallthrough
         case .changed:
@@ -194,26 +190,18 @@ class SidebarDraggerView: UIView {
                 return
             }
 
-            // Everything the pointer has travelled since the drag began, which is
-            // what says whether the user means to push the sidebar away entirely.
-            let travelledValue = gestureBeginValue + Int(location - gestureBeginLocation)
-            if travelledValue < allowedMinimalValue / 2, onSuggestCollapse() {
+            // The separator stays exactly where the pointer is holding it, so the
+            // width is always read straight off the pointer rather than
+            // accumulated from the samples in between. Carrying an anchor that
+            // re-seats itself at the limits would let the separator drift out
+            // from under the pointer as soon as the drag went past one, and the
+            // two would never line up again for the rest of the gesture.
+            let pointerValue = gestureBeginValue + Int(location - gestureBeginLocation)
+            if pointerValue < allowedMinimalValue / 2, onSuggestCollapse() {
                 endDrag(gesture)
                 return
             }
-
-            // The width follows a second anchor that rides along with the pointer
-            // whenever it is pinned at a limit. Measuring from where the drag
-            // began instead would bank all the travel spent past the limit, and
-            // turning around would have to undo it before the sidebar moved at
-            // all - the divider looks like it is ignoring the drag.
-            let followedValue = widthAnchorValue + Int(location - widthAnchorLocation)
-            let decisionValue = min(max(followedValue, allowedMinimalValue), upperBound)
-            if decisionValue != followedValue {
-                widthAnchorValue = decisionValue
-                widthAnchorLocation = location
-            }
-            currentValue = decisionValue
+            currentValue = min(max(pointerValue, allowedMinimalValue), upperBound)
         default:
             isDragging = false
             persistWidthIfNeeded()
