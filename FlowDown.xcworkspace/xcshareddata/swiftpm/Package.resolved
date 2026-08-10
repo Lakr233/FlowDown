@@ -131,8 +131,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/ListViewKit",
       "state" : {
-        "revision" : "f8635d47f909430cc02df9e9fecdda75abc4ed7a",
-        "version" : "3.0.3"
+        "revision" : "86e928385fc6af72649fd07f3de4c700ce2b2c9b",
+        "version" : "4.3.0"
       }
     },
     {
@@ -167,8 +167,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/MarkdownView",
       "state" : {
-        "revision" : "9c863569f15c82d405883ed9ada1d78fa25436cd",
-        "version" : "4.2.3"
+        "revision" : "1ca5857a99615469436ea15093ede98304190dd9",
+        "version" : "4.3.0"
       }
     },
     {
@@ -212,8 +212,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SnapKit/SnapKit.git",
       "state" : {
-        "revision" : "2842e6e84e82eb9a8dac0100ca90d9444b0307f4",
-        "version" : "5.7.1"
+        "revision" : "e27a338a03a5f388de759da63f9baf7988ed9e00",
+        "version" : "6.0.0"
       }
     },
     {

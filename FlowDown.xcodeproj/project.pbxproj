@@ -1237,7 +1237,7 @@
 			repositoryURL = "https://github.com/Lakr233/MarkdownView";
 			requirement = {
 				kind = exactVersion;
-				version = 4.2.3;
+				version = 4.3.0;
 			};
 		};
 		50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */ = {
@@ -1269,7 +1269,7 @@
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.7.1;
+				minimumVersion = 6.0.0;
 			};
 		};
 		50B514982D2316CA0092284C /* XCRemoteSwiftPackageReference "SwifterSwift" */ = {
@@ -1292,8 +1292,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lakr233/ListViewKit";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.3;
+				kind = upToNextMinorVersion;
+				minimumVersion = 4.3.0;
 			};
 		};
 		50E3FA072D6D7F6A000405BD /* XCRemoteSwiftPackageReference "GPTEncoder" */ = {
