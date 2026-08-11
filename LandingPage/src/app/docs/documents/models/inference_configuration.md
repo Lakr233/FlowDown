@@ -4,6 +4,26 @@ One place for context windows, temperature/sampling, and Reasoning/Thinking togg
 
 For local, on-device inference, FlowDown supports MLX model profiles only. GGUF and Core ML files are not supported as direct local model formats in the app.
 
+Current local model families include:
+
+- Llama, Mistral, Mixtral, and Mistral 3
+- Phi, Phi-3, and PhiMoE
+- Gemma, Gemma 2, Gemma 3, Gemma 3n, and Gemma 4
+- Qwen 2, Qwen 3, Qwen 3 MoE, Qwen 3 Next, Qwen 3.5, and Qwen 3.5 MoE
+- DeepSeek V2 and V3
+- GLM-4 and GLM-4 MoE
+- Granite and Granite MoE Hybrid
+- LFM2 and LFM2 MoE
+- OLMo 2, OLMo 3, and OLMoE
+- MiMo and MiMo V2 Flash
+- MiniCPM, Cohere, InternLM 2, OpenELM, and StarCoder 2
+- Falcon H1, BitNet, SmolLM 3, ERNIE 4.5, and EXAONE 4
+- Baichuan M1, Bailing MoE, AfMoE, and MiniMax
+- GPT-OSS, Jamba, Mamba 2, Apertus, and Hunyuan
+- AceReason, Nanbeige, NanoChat, Nemotron H, Nemotron Labs Diffusion, and Lille 130M
+
+Support follows the model's MLX `model_type`; individual checkpoints can still require compatible tokenizer or prompt metadata.
+
 ## Where to edit
 
 1. Go to **Settings → Model** and pick a profile.

@@ -49,6 +49,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - Test commands:
   - `make test` for the default test flow
   - `make test-unit` for app tests on the first available iOS simulator
+  - `make test-chat-client-kit` for ChatClientKit package tests on macOS; use `CHAT_CLIENT_KIT_TEST_ARGUMENTS` to focus a suite when needed
   - `make test-online-e2e` for the online E2E suite
 - Package and license commands:
   - `make package-resolve` to resolve SwiftPM packages
@@ -119,6 +120,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - `main.swift` wires storage (`Storage.db()`), CloudKit sync, logging, and shared singletons (`ModelManager`, `ModelToolsManager`, `ConversationManager`, `MCPService`, `UpdateManager`, `ChatSelection`). Keep this order intact to avoid race conditions.
 - `ConfigurableKit` powers persisted user settings—add keys through dedicated `Value+*.swift` helpers and publish updates via its typed publishers.
 - Continuous input (drags, live resizes) must coalesce onto a `CADisplayLink` before running an animated layout pass. Animating on every event outruns the run loop's commit, so nothing is presented, no animation completes to be reclaimed, and each pass walks a longer list of live animations until the window appears frozen.
+- For local reasoning models, use the resolved model `reasoningConfig` and seed stream routing from the prepared prompt. Chat templates may prefill the opening reasoning delimiter, so generated output can begin inside reasoning and emit only the closing delimiter; parsers must also preserve partial delimiters across chunks.
 
 ## Testing Expectations
 

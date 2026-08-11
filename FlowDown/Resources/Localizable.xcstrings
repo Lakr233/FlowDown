@@ -185,48 +185,48 @@
         }
       }
     },
-    "**Welcome to FlowDown🐦**, a blazing fast and smooth client app for LLMs with respect of your privacy.\n\nFree models included. You can also _configure cloud models_ or _run local models_ on device.\n\n💡 For more information, check out [our wiki](https://flowdown.ai/docs/).\n\n---\n**What to do next?**\n\n1. Select or _add a new model_, and **create a new conversation**.\n2. Later, you can go to **Settings** to customize your experience.\n3. For any issues, feel free to [contact us](https://discord.gg/UHKMRyJcgc).\n\n✨ **Enjoy your FlowDown experience!**" : {
+    "**Welcome to FlowDown🐦**, a blazing fast and smooth client app for LLMs with respect of your privacy.\n\nUse Apple Intelligence or _run local models_ on supported devices. You can also _configure cloud models_ with your own provider.\n\n💡 For more information, check out [our wiki](https://flowdown.ai/docs/).\n\n---\n**What to do next?**\n\n1. Select or _add a new model_, and **create a new conversation**.\n2. Later, you can go to **Settings** to customize your experience.\n3. For any issues, feel free to [contact us](https://discord.gg/UHKMRyJcgc).\n\n✨ **Enjoy your FlowDown experience!**" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**Willkommen bei FlowDown🐦**, einer blitzschnellen und flüssigen Client-App für LLMs, die deine Privatsphäre respektiert.\n\nKostenlose Modelle inklusive. Du kannst außerdem _Cloud-Modelle konfigurieren_ oder _lokale Modelle_ auf dem Gerät ausführen.\n\n💡 Weitere Infos findest du in [unserem Wiki](https://flowdown.ai/docs/).\n\n---\n**Was als Nächstes?**\n\n1. Wähle oder _füge ein neues Modell hinzu_ und **erstelle eine neue Unterhaltung**.\n2. Später kannst du in den **Einstellungen** dein Erlebnis anpassen.\n3. Bei Fragen: [kontaktiere uns](https://discord.gg/UHKMRyJcgc).\n\n✨ **Viel Spaß mit FlowDown!**"
+            "value" : "**Willkommen bei FlowDown🐦**, einer blitzschnellen und flüssigen Client-App für LLMs, die deine Privatsphäre respektiert.\n\nVerwende Apple Intelligence oder führe auf unterstützten Geräten _lokale Modelle_ aus. Du kannst außerdem _Cloud-Modelle_ mit deinem eigenen Anbieter konfigurieren.\n\n💡 Weitere Infos findest du in [unserem Wiki](https://flowdown.ai/docs/).\n\n---\n**Was als Nächstes?**\n\n1. Wähle oder _füge ein neues Modell hinzu_ und **erstelle eine neue Unterhaltung**.\n2. Später kannst du in den **Einstellungen** dein Erlebnis anpassen.\n3. Bei Fragen: [kontaktiere uns](https://discord.gg/UHKMRyJcgc).\n\n✨ **Viel Spaß mit FlowDown!**"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**Welcome to FlowDown🐦**, a blazing fast and smooth client app for LLMs with respect of your privacy.\n\nFree models included. You can also _configure cloud models_ or _run local models_ on device.\n\n💡 For more information, check out [our wiki](https://flowdown.ai/docs/).\n\n---\n**What to do next?**\n\n1. Select or _add a new model_, and **create a new conversation**.\n2. Later, you can go to **Settings** to customize your experience.\n3. For any issues, feel free to [contact us](https://discord.gg/UHKMRyJcgc).\n\n✨ **Enjoy your FlowDown experience!**"
+            "value" : "**Welcome to FlowDown🐦**, a blazing fast and smooth client app for LLMs with respect of your privacy.\n\nUse Apple Intelligence or _run local models_ on supported devices. You can also _configure cloud models_ with your own provider.\n\n💡 For more information, check out [our wiki](https://flowdown.ai/docs/).\n\n---\n**What to do next?**\n\n1. Select or _add a new model_, and **create a new conversation**.\n2. Later, you can go to **Settings** to customize your experience.\n3. For any issues, feel free to [contact us](https://discord.gg/UHKMRyJcgc).\n\n✨ **Enjoy your FlowDown experience!**"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**Bienvenido a FlowDown🐦**, una app de cliente para LLMs rápida y fluida que respeta tu privacidad.\n\nModelos gratuitos incluidos. También puedes _configurar modelos en la nube_ o _ejecutar modelos locales_ en el dispositivo.\n\n💡 Para más información, consulta [nuestra wiki](https://flowdown.ai/docs/).\n\n---\n**¿Qué hacer a continuación?**\n\n1. Selecciona o _añade un modelo nuevo_ y **crea una conversación nueva**.\n2. Luego puedes ir a **Ajustes** para personalizar tu experiencia.\n3. Si tienes alguna duda, [contáctanos](https://discord.gg/UHKMRyJcgc).\n\n✨ **¡Disfruta la experiencia FlowDown!**"
+            "value" : "**Bienvenido a FlowDown🐦**, una app de cliente para LLMs rápida y fluida que respeta tu privacidad.\n\nUsa Apple Intelligence o _ejecuta modelos locales_ en dispositivos compatibles. También puedes _configurar modelos en la nube_ con tu propio proveedor.\n\n💡 Para más información, consulta [nuestra wiki](https://flowdown.ai/docs/).\n\n---\n**¿Qué hacer a continuación?**\n\n1. Selecciona o _añade un modelo nuevo_ y **crea una conversación nueva**.\n2. Luego puedes ir a **Ajustes** para personalizar tu experiencia.\n3. Si tienes alguna duda, [contáctanos](https://discord.gg/UHKMRyJcgc).\n\n✨ **¡Disfruta la experiencia FlowDown!**"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**Bienvenue sur FlowDown🐦**, une application cliente ultra-rapide et fluide pour les LLMs, respectueuse de votre vie privée.\n\nDes modèles gratuits sont inclus. Vous pouvez aussi _configurer des modèles cloud_ ou _exécuter des modèles locaux_ sur l’appareil.\n\n💡 Pour en savoir plus, consultez [notre wiki](https://flowdown.ai/docs/).\n\n---\n**Que faire ensuite ?**\n\n1. Sélectionnez ou _ajoutez un nouveau modèle_, puis **créez une nouvelle conversation**.\n2. Plus tard, vous pourrez aller dans **Réglages** pour personnaliser votre expérience.\n3. Pour tout problème, [contactez-nous](https://discord.gg/UHKMRyJcgc).\n\n✨ **Profitez de votre expérience FlowDown !**"
+            "value" : "**Bienvenue sur FlowDown🐦**, une application cliente ultra-rapide et fluide pour les LLMs, respectueuse de votre vie privée.\n\nUtilisez Apple Intelligence ou _exécutez des modèles locaux_ sur les appareils compatibles. Vous pouvez aussi _configurer des modèles cloud_ avec votre propre fournisseur.\n\n💡 Pour en savoir plus, consultez [notre wiki](https://flowdown.ai/docs/).\n\n---\n**Que faire ensuite ?**\n\n1. Sélectionnez ou _ajoutez un nouveau modèle_, puis **créez une nouvelle conversation**.\n2. Plus tard, vous pourrez aller dans **Réglages** pour personnaliser votre expérience.\n3. Pour tout problème, [contactez-nous](https://discord.gg/UHKMRyJcgc).\n\n✨ **Profitez de votre expérience FlowDown !**"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**FlowDown🐦 へようこそ**。プライバシーを重視した高速で滑らかな LLM クライアントです。\n\n無料モデルを同梱しています。_クラウドモデルを設定_ することも、デバイス上で _ローカルモデルを実行_ することも可能です。\n\n💡 詳細は[ウィキ](https://flowdown.ai/docs/)をご覧ください。\n\n---\n**次にやること**\n\n1. _新しいモデルを選ぶ/追加_ して **新しい会話を作成**。\n2. あとで **設定** から体験をカスタマイズ。\n3. 問題があれば[お問い合わせ](https://discord.gg/UHKMRyJcgc)。\n\n✨ **FlowDown をお楽しみください！**"
+            "value" : "**FlowDown🐦 へようこそ**。プライバシーを重視した高速で滑らかな LLM クライアントです。\n\nApple Intelligence を使用するか、対応デバイス上で _ローカルモデルを実行_ できます。また、独自のプロバイダで _クラウドモデルを設定_ することもできます。\n\n💡 詳細は[ウィキ](https://flowdown.ai/docs/)をご覧ください。\n\n---\n**次にやること**\n\n1. _新しいモデルを選ぶ/追加_ して **新しい会話を作成**。\n2. あとで **設定** から体験をカスタマイズ。\n3. 問題があれば[お問い合わせ](https://discord.gg/UHKMRyJcgc)。\n\n✨ **FlowDown をお楽しみください！**"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**FlowDown🐦에 오신 것을 환영합니다.** 빠르고 부드러운 LLM 클라이언트로 개인정보를 존중합니다.\n\n무료 모델이 포함되어 있고, _클라우드 모델을 설정_하거나 _로컬 모델을 실행_할 수 있습니다.\n\n💡 더 자세한 정보는 [위키](https://flowdown.ai/docs/)를 확인하세요.\n\n---\n**다음에 무엇을 할까요?**\n\n1. 모델을 선택하거나 _새 모델을 추가_하고 **새 대화를 만드세요.**\n2. 나중에 **설정**에서 경험을 맞춤화할 수 있습니다.\n3. 문제가 있으면 언제든지 [문의하기](https://discord.gg/UHKMRyJcgc)로 연락하세요.\n\n✨ **FlowDown을 마음껏 즐겨보세요!**"
+            "value" : "**FlowDown🐦에 오신 것을 환영합니다.** 빠르고 부드러운 LLM 클라이언트로 개인정보를 존중합니다.\n\nApple Intelligence를 사용하거나 지원되는 기기에서 _로컬 모델을 실행_하세요. 자체 제공업체로 _클라우드 모델을 설정_할 수도 있습니다.\n\n💡 더 자세한 정보는 [위키](https://flowdown.ai/docs/)를 확인하세요.\n\n---\n**다음에 무엇을 할까요?**\n\n1. 모델을 선택하거나 _새 모델을 추가_하고 **새 대화를 만드세요.**\n2. 나중에 **설정**에서 경험을 맞춤화할 수 있습니다.\n3. 문제가 있으면 언제든지 [문의하기](https://discord.gg/UHKMRyJcgc)로 연락하세요.\n\n✨ **FlowDown을 마음껏 즐겨보세요!**"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**欢迎使用 FlowDown 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n应用内置免费模型。当然，你也可以 _配置云端模型_ 或在你的设备上 _运行本地模型_，实现完全隐私。\n\n💡 更多信息，请查阅[用户手册](https://flowdown.ai/docs/)。\n\n---\n**接下来可以做些什么？**\n\n1.  _选择或添加新模型_，然后 **开始一个新对话**。\n2.  之后，你可以前往 **设置** 来自定义你的使用体验。\n3.  若有任何疑问反馈或建议，欢迎[联系我们](https://discord.gg/UHKMRyJcgc)。\n\n✨ **祝你使用愉快！**"
+            "value" : "**欢迎使用 FlowDown 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n你可以使用 Apple Intelligence，或在支持的设备上 _运行本地模型_。也可以使用自己的服务提供商 _配置云端模型_。\n\n💡 更多信息，请查阅[用户手册](https://flowdown.ai/docs/)。\n\n---\n**接下来可以做些什么？**\n\n1.  _选择或添加新模型_，然后 **开始一个新对话**。\n2.  之后，你可以前往 **设置** 来自定义你的使用体验。\n3.  若有任何疑问反馈或建议，欢迎[联系我们](https://discord.gg/UHKMRyJcgc)。\n\n✨ **祝你使用愉快！**"
           }
         }
       }
@@ -5155,6 +5155,52 @@
         }
       }
     },
+    "Authorization (Optional)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisierung (optional)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization (Optional)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorización (opcional)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisation (facultatif)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization（任意）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization(선택 사항)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization（可选）"
+          }
+        }
+      }
+    },
     "Authorized" : {
       "localizations" : {
         "de" : {
@@ -5577,6 +5623,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "基础能力"
+          }
+        }
+      }
+    },
+    "Bearer token" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearer-Token"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearer token"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Token Bearer"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeton Bearer"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearer トークン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearer 토큰"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearer 令牌"
           }
         }
       }
@@ -15623,6 +15715,52 @@
         }
       }
     },
+    "Edit Authorization (Optional)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisierung bearbeiten (optional)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Authorization (Optional)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar autorización (opcional)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier l’autorisation (facultatif)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization を編集（任意）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization 편집(선택 사항)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑 Authorization（可选）"
+          }
+        }
+      }
+    },
     "Edit Branding Name" : {
       "localizations" : {
         "de" : {
@@ -16172,52 +16310,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "编辑模板"
-          }
-        }
-      }
-    },
-    "Edit Workgroup (Optional)" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arbeitsgruppe bearbeiten (optional)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit Workgroup (Optional)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Editar grupo de trabajo (opcional)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier le groupe de travail (facultatif)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ワークグループを編集（任意）"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "워크그룹 편집(선택 사항)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑工作组（可选）"
           }
         }
       }
@@ -19752,52 +19844,6 @@
         }
       }
     },
-    "Failed to create regex patterns" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Regex-Muster konnten nicht erstellt werden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to create regex patterns"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudieron crear los patrones regex"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de la création des motifs regex"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正規表現パターンの作成に失敗しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정규식 패턴을 생성하지 못했습니다"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法启动正则表达式匹配。"
-          }
-        }
-      }
-    },
     "Failed to decode data." : {
       "localizations" : {
         "de" : {
@@ -20392,52 +20438,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法导入模板：%@"
-          }
-        }
-      }
-    },
-    "Failed to load models" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modelle konnten nicht geladen werden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to load models"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudieron cargar los modelos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec du chargement des modèles"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "モデルの読み込みに失敗しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모델을 불러오지 못했습니다"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加载模型失败"
           }
         }
       }
@@ -30317,52 +30317,6 @@
         }
       }
     },
-    "Model Added" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modell hinzugefügt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model Added"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modelo añadido"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modèle ajouté"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "モデルを追加しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모델이 추가됨"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模型已添加"
-          }
-        }
-      }
-    },
     "Model Card" : {
       "localizations" : {
         "de" : {
@@ -36680,52 +36634,6 @@
         }
       }
     },
-    "pollinations.ai (free)" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pollinations.ai (kostenlos)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pollinations.ai (free)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pollinations.ai (gratuito)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pollinations.ai (gratuit)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pollinations.ai（無料）"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pollinations.ai (무료)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pollinations.ai （免费）"
-          }
-        }
-      }
-    },
     "Polski" : {
       "localizations" : {
         "en" : {
@@ -38125,52 +38033,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看文档"
-          }
-        }
-      }
-    },
-    "Ready to Use" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sofort einsatzbereit"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ready to Use"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listo para usar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prêt à l’emploi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "すぐに使える"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "즉시 사용 가능"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "即刻可用"
           }
         }
       }
@@ -44848,52 +44710,6 @@
         }
       }
     },
-    "Start chatting instantly with complimentary Pollinations AI models." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sofort mit den kostenlosen Pollinations-AI-Modellen chatten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start chatting instantly with complimentary Pollinations AI models."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empieza a chatear al instante con los modelos de IA de Pollinations incluidos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discutez immédiatement avec les modèles IA Pollinations inclus."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同梱の Pollinations AI モデルですぐにチャット开始。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "포함된 Pollinations AI 모델로 바로 대화를 시작하세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "内置 Pollinations AI 模型，开箱即聊。"
-          }
-        }
-      }
-    },
     "Start New Chat" : {
       "localizations" : {
         "de" : {
@@ -50462,52 +50278,6 @@
         }
       }
     },
-    "This service is provided free of charge by pollinations.ai and includes rate limits. It may be unavailable in certain countries or regions. If you encounter issues, please set up your own model service." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieser Dienst wird kostenlos von pollinations.ai bereitgestellt und unterliegt Limits. Er kann in manchen Ländern/Regionen nicht verfügbar sein. Bei Problemen richte bitte einen eigenen Modelldienst ein."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This service is provided free of charge by pollinations.ai and includes rate limits. It may be unavailable in certain countries or regions. If you encounter issues, please set up your own model service."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este servicio lo ofrece pollinations.ai de forma gratuita e incluye límites de uso. Puede no estar disponible en ciertos países o regiones. Si tienes problemas, configura tu propio servicio de modelos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce service gratuit est fourni par pollinations.ai et comporte des limites de débit. Il peut être indisponible dans certains pays ou régions. En cas de problème, configurez votre propre service de modèle."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このサービスは pollinations.ai により無料提供され、レート制限があります。地域によって利用できない場合があります。問題があれば独自のモデルサービスを設定してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 서비스는 pollinations.ai에서 무료로 제공되며, 요청 제한이 있습니다. 일부 국가나 지역에서는 사용할 수 없습니다. 문제가 있으면 자체 모델 서비스를 설정하세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此服务由 pollinations.ai 免费提供，包含速率限制，在部分国家或地区的网络下不可用。如遇到问题，请自建模型服务。"
-          }
-        }
-      }
-    },
     "This shortcut does not accept audio." : {
       "localizations" : {
         "de" : {
@@ -50600,6 +50370,98 @@
         }
       }
     },
+    "This token is sent as a Bearer credential in the Authorization header." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Token wird als Bearer-Zugangsdaten im Authorization-Header gesendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This token is sent as a Bearer credential in the Authorization header."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este token se envía como credencial Bearer en el encabezado Authorization."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce jeton est envoyé comme identifiant Bearer dans l’en-tête Authorization."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このトークンは Authorization ヘッダーの Bearer 認証情報として送信されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 토큰은 Authorization 헤더의 Bearer 인증 정보로 전송됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此令牌会作为 Bearer 凭据通过 Authorization 标头发送。"
+          }
+        }
+      }
+    },
+    "This token is sent as a Bearer credential in the Authorization header. Leave it blank if the endpoint does not require authentication." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Token wird als Bearer-Zugangsdaten im Authorization-Header gesendet. Lassen Sie es leer, wenn der Endpunkt keine Authentifizierung erfordert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This token is sent as a Bearer credential in the Authorization header. Leave it blank if the endpoint does not require authentication."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este token se envía como credencial Bearer en el encabezado Authorization. Déjalo en blanco si el endpoint no requiere autenticación."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce jeton est envoyé comme identifiant Bearer dans l’en-tête Authorization. Laissez-le vide si le point de terminaison ne nécessite pas d’authentification."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このトークンは Authorization ヘッダーの Bearer 認証情報として送信されます。エンドポイントで認証が不要な場合は空欄にしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 토큰은 Authorization 헤더의 Bearer 인증 정보로 전송됩니다. 엔드포인트에 인증이 필요하지 않으면 비워 두세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此令牌会作为 Bearer 凭据通过 Authorization 标头发送。如果端点不需要身份验证，请留空。"
+          }
+        }
+      }
+    },
     "This value will be added to the request as additional header." : {
       "localizations" : {
         "de" : {
@@ -50642,98 +50504,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此处的数据将会在请求时添加到报头中，并覆盖已有的任何报头数据。"
-          }
-        }
-      }
-    },
-    "This value will be added to the request to distinguish the workgroup on the remote." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieser Wert wird der Anfrage hinzugefügt, um die Arbeitsgruppe auf dem Remote zu unterscheiden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This value will be added to the request to distinguish the workgroup on the remote."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este valor se añadirá a la solicitud para distinguir el grupo de trabajo en el remoto."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette valeur sera ajoutée à la requête pour distinguer le groupe de travail distant."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この値はリモートのワークグループを識別するためリクエストに付加されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "원격에서 워크그룹을 구분하기 위해 요청에 추가됩니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此选项的值将添加到请求报文中，用于在远端区分工作组。"
-          }
-        }
-      }
-    },
-    "This value will be added to the request to distinguish the workgroup on the remote. This part is optional, if not used, leave it blank." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieser Wert wird der Anfrage hinzugefügt, um die Arbeitsgruppe auf dem Remote zu unterscheiden. Optional; bei Nichtnutzung leer lassen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This value will be added to the request to distinguish the workgroup on the remote. This part is optional, if not used, leave it blank."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este valor se añadirá a la solicitud para distinguir el grupo de trabajo en el remoto. Es opcional; si no se usa, déjalo en blanco."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette valeur sera ajoutée à la requête pour distinguer le groupe de travail distant. Cette partie est facultative ; laissez vide si non utilisée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この値はリモートのワークグループ識別用としてリクエストに付加されます。任意項目なので不要なら空のままにしてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "원격 워크그룹을 구분하기 위해 요청에 추가됩니다. 선택 사항이므로 사용하지 않을 경우 비워두세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此选项的值将添加到请求报文中，用于在远端区分工作组。此部分可选，若不使用，请留空。"
           }
         }
       }
@@ -51851,53 +51621,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "工具调用被用户取消"
-          }
-        }
-      }
-    },
-    "Tool execution failed: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tool-Ausführung fehlgeschlagen: %@"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tool execution failed: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fallo en la ejecución de herramienta: %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de l’exécution de l’outil : %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ツール実行に失敗しました: %@"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "도구 실행 실패: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "执行工具出错：%@"
           }
         }
       }
@@ -59228,94 +58951,48 @@
         }
       }
     },
-    "Workgroup (Optional)" : {
+    "Would you like to apply the new Authorization token to all models with the same inference endpoint and current token?" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arbeitsgruppe (optional)"
+            "value" : "Möchten Sie das neue Autorisierungs-Token auf alle Modelle mit demselben Inferenzendpunkt und dem aktuellen Token anwenden?"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Workgroup (Optional)"
+            "value" : "Would you like to apply the new Authorization token to all models with the same inference endpoint and current token?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grupo de trabajo (opcional)"
+            "value" : "¿Quieres aplicar el nuevo token de autorización a todos los modelos con el mismo endpoint de inferencia y el token actual?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Groupe de travail (facultatif)"
+            "value" : "Voulez-vous appliquer le nouveau jeton d’autorisation à tous les modèles ayant le même point de terminaison d’inférence et le jeton actuel ?"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ワークグループ（任意）"
+            "value" : "同じ推論エンドポイントと現在のトークンを使用するすべてのモデルに、新しい Authorization トークンを適用しますか？"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "워크그룹(선택 사항)"
+            "value" : "동일한 추론 엔드포인트와 현재 토큰을 사용하는 모든 모델에 새 Authorization 토큰을 적용할까요?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "工作组（可选）"
-          }
-        }
-      }
-    },
-    "Would you like to apply the new workgroup to all? This requires the inference endpoint and the old workgroup equal to the current editing." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Soll die neue Arbeitsgruppe auf alle angewendet werden? Dafür müssen Inferenz-Endpunkt und alte Arbeitsgruppe mit der aktuellen Bearbeitung übereinstimmen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Would you like to apply the new workgroup to all? This requires the inference endpoint and the old workgroup equal to the current editing."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿Quieres aplicar el nuevo grupo de trabajo a todo? Requiere que el endpoint de inferencia y el grupo de trabajo anterior coincidan con la edición actual."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voulez-vous appliquer le nouveau groupe de travail à tous ? Cela nécessite que l’endpoint d’inférence et l’ancien groupe de travail correspondent à l’édition actuelle."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新しいワークグループをすべてに適用しますか？推論エンドポイントと旧ワークグループが現在の編集内容と一致している必要があります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "새 워크그룹을 모두에 적용할까요? 추론 엔드포인트와 이전 워크그룹이 현재 편집 중인 값과 같아야 합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你是否希望将新的工作组应用到全部模型上？这要求推理端点与旧工作组和当前编辑的内容一致。"
+            "value" : "是否将新的 Authorization 令牌应用到推理端点和当前令牌均相同的所有模型？"
           }
         }
       }
@@ -59500,52 +59177,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "昨天"
-          }
-        }
-      }
-    },
-    "You are a classification assistant. Choose the best candidate for the provided content." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du bist ein Klassifizierungsassistent. Wähle den besten Kandidaten für den bereitgestellten Inhalt."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You are a classification assistant. Choose the best candidate for the provided content."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eres un asistente de clasificación. Elige el mejor candidato para el contenido proporcionado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous êtes un assistant de classification. Choisissez le meilleur candidat pour le contenu fourni."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "あなたは分類アシスタントです。提供された内容に最適な候補を選んでください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "당신은 분류 보조입니다. 제공된 콘텐츠에 가장 적합한 후보를 선택하세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你是一名分类助手。请为提供的内容选择最合适的候选项。"
           }
         }
       }

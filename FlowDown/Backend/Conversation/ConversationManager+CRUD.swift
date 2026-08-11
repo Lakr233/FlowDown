@@ -57,7 +57,7 @@ extension ConversationManager {
                     """
                     **Welcome to FlowDown🐦**, a blazing fast and smooth client app for LLMs with respect of your privacy.
 
-                    Free models included. You can also _configure cloud models_ or _run local models_ on device.
+                    Use Apple Intelligence or _run local models_ on supported devices. You can also _configure cloud models_ with your own provider.
 
                     💡 For more information, check out [our wiki](https://flowdown.ai/docs/).
 

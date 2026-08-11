@@ -15,6 +15,7 @@ MODULE_CACHE := $(DERIVED_DATA)/ModuleCache.noindex
 
 IOS_DESTINATION := generic/platform=iOS
 CATALYST_DESTINATION := generic/platform=macOS,variant=Mac Catalyst
+MACOS_DESTINATION := platform=macOS
 
 XCODEBUILD_WRAPPER := ./Resources/DevKit/scripts/run_xcodebuild.sh
 TRANSLATION_CHECK_SCRIPT := Resources/DevKit/scripts/check_untranslated.py
@@ -53,7 +54,7 @@ endef
 
 .PHONY: all help \
 	build build-ios build-catalyst build-extension \
-	test test-unit test-online-e2e \
+	test test-unit test-chat-client-kit test-online-e2e \
 	install-metal-toolchain package-resolve package-update package-verify scan-license \
 	localization-check localization-stale-check \
 	archive archive-ios archive-macos \
@@ -71,6 +72,7 @@ help:
 	@echo "Test:"
 	@echo "  test                  Run the default test flow"
 	@echo "  test-unit             Run app tests on the first available iOS simulator"
+	@echo "  test-chat-client-kit  Run ChatClientKit package tests on macOS"
 	@echo "  test-online-e2e       Run online e2e tests"
 	@echo ""
 	@echo "Packages & licenses:"
@@ -129,6 +131,14 @@ test-unit:
 	$(BUILD_ENV) XCBUILD_LABEL=test-unit $(XCODEBUILD) \
 		-scheme $(IOS_SCHEME) \
 		-destination "$$DESTINATION" \
+		test
+
+test-chat-client-kit:
+	$(prepare-build-dirs)
+	$(BUILD_ENV) XCBUILD_LABEL=test-chat-client-kit $(XCODEBUILD) \
+		-scheme ChatClientKit \
+		-destination "$(MACOS_DESTINATION)" \
+		$(CHAT_CLIENT_KIT_TEST_ARGUMENTS) \
 		test
 
 test-online-e2e: install-metal-toolchain package-resolve
