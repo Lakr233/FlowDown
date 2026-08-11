@@ -333,6 +333,8 @@ final class EvaluationCaseDetailController: StackScrollController {
             String(localized: "Contains (Case Insensitive): '\(pattern)'" as String.LocalizationValue)
         case let .matchRegularExpression(pattern):
             String(localized: "Regex: '\(pattern)'" as String.LocalizationValue)
+        case let .toolCalled(name):
+            String(localized: "Tool Call") + ": \(name)"
         case let .tool(param, value):
             String(localized: "Tool Param: \(param) == \(String(describing: value))")
         }

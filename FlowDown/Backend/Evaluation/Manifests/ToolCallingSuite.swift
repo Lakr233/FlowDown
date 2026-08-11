@@ -281,7 +281,7 @@ extension EvaluationManifest.Suite {
                         ),
                         .init(type: .request, textRepresentation: "Flip a coin"),
                     ],
-                    verifier: [], // Tool use without params check
+                    verifier: [.toolCalled(name: "flip_coin")],
                 ),
                 // Case 17: Volume
                 .init(

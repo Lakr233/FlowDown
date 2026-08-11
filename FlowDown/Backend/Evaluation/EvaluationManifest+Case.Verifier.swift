@@ -22,7 +22,7 @@ extension EvaluationManifest.Suite.Case {
         case contains(pattern: String)
         case containsCaseInsensitive(pattern: String)
 
-        /// tool used
+        case toolCalled(name: String)
         case tool(parameter: String, value: AnyCodingValue)
 
         // MARK: - Codable
@@ -35,6 +35,7 @@ extension EvaluationManifest.Suite.Case {
             case matchRegularExpression
             case contains
             case containsCaseInsensitive
+            case toolCalled
             case tool
 
             // Legacy formats
@@ -42,6 +43,7 @@ extension EvaluationManifest.Suite.Case {
             case kind
             case verifier
             case pattern
+            case name
             case parameter
             case value
             case caseInsensitive
@@ -58,6 +60,7 @@ extension EvaluationManifest.Suite.Case {
             case matchRegularExpression
             case contains
             case containsCaseInsensitive
+            case toolCalled
             case tool
         }
 
@@ -68,6 +71,10 @@ extension EvaluationManifest.Suite.Case {
         private struct ToolPayload: Codable, Equatable {
             let parameter: String
             let value: AnyCodingValue
+        }
+
+        private struct ToolCallPayload: Codable, Equatable {
+            let name: String
         }
 
         init(from decoder: Decoder) throws {
@@ -137,6 +144,16 @@ extension EvaluationManifest.Suite.Case {
                     return
                 }
             }
+            if container.contains(.toolCalled) {
+                if let payload = try? container.decode(ToolCallPayload.self, forKey: .toolCalled) {
+                    self = .toolCalled(name: payload.name)
+                    return
+                }
+                if let name = try? container.decode(String.self, forKey: .toolCalled) {
+                    self = .toolCalled(name: name)
+                    return
+                }
+            }
             if container.contains(.tool) {
                 if let payload = try? container.decode(ToolPayload.self, forKey: .tool) {
                     self = .tool(parameter: payload.parameter, value: payload.value)
@@ -161,6 +178,9 @@ extension EvaluationManifest.Suite.Case {
                 switch legacyType {
                 case .open:
                     self = .open
+                    return
+                case .toolCalled:
+                    self = .toolCalled(name: try container.decode(String.self, forKey: .name))
                     return
                 case .tool:
                     let parameter = try container.decode(String.self, forKey: .parameter)
@@ -229,6 +249,8 @@ extension EvaluationManifest.Suite.Case {
                 try container.encode(PatternPayload(pattern: pattern), forKey: .contains)
             case let .containsCaseInsensitive(pattern):
                 try container.encode(PatternPayload(pattern: pattern), forKey: .containsCaseInsensitive)
+            case let .toolCalled(name):
+                try container.encode(ToolCallPayload(name: name), forKey: .toolCalled)
             case let .tool(parameter, value):
                 try container.encode(ToolPayload(parameter: parameter, value: value), forKey: .tool)
             }
@@ -251,6 +273,8 @@ extension EvaluationManifest.Suite.Case.Verifier {
             "Contains: \(pattern)"
         case let .containsCaseInsensitive(pattern):
             "Contains (case-insensitive): \(pattern)"
+        case let .toolCalled(name):
+            "Tool call: \(name)"
         case let .tool(parameter, value):
             "Tool parameter '\(parameter)' = \(String(describing: value))"
         }

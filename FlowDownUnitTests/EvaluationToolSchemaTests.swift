@@ -75,6 +75,31 @@ struct EvaluationToolSchemaTests {
         #expect(representation.requestParameters == schema)
     }
 
+    @Test
+    func `named tool verifier rejects missing calls and round trips`() throws {
+        let emptyManifest = EvaluationManifest(title: "Test", description: "", suites: [])
+        let session = EvaluationSession(options: .init(modelIdentifier: "test-model", manifesets: [emptyManifest]))
+        let verifier = EvaluationManifest.Suite.Case.Verifier.toolCalled(name: "flip_coin")
+
+        #expect(session.verify(
+            response: .init(reasoning: "", text: "heads", images: [], tools: []),
+            verifiers: [verifier],
+        ) == .fail)
+        #expect(session.verify(
+            response: .init(
+                reasoning: "",
+                text: "",
+                images: [],
+                tools: [.init(id: "call_1", name: "flip_coin", args: "{}")],
+            ),
+            verifiers: [verifier],
+        ) == .pass)
+
+        let encoded = try JSONEncoder().encode(verifier)
+        let decoded = try JSONDecoder().decode(EvaluationManifest.Suite.Case.Verifier.self, from: encoded)
+        #expect(decoded == verifier)
+    }
+
     private func objectValue(_ value: AnyCodingValue?) -> [String: AnyCodingValue]? {
         guard case let .object(object) = value else { return nil }
         return object

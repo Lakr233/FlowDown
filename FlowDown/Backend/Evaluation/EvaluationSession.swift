@@ -338,6 +338,8 @@ extension EvaluationSession {
                 if !response.text.contains(pattern) { automaticPass = false }
             case let .containsCaseInsensitive(pattern):
                 if !response.text.lowercased().contains(pattern.lowercased()) { automaticPass = false }
+            case let .toolCalled(name):
+                if !response.tools.contains(where: { $0.name == name }) { automaticPass = false }
             case let .matchRegularExpression(pattern):
                 if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
                     let range = NSRange(location: 0, length: response.text.utf16.count)

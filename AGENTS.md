@@ -122,7 +122,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - `ConfigurableKit` powers persisted user settings—add keys through dedicated `Value+*.swift` helpers and publish updates via its typed publishers.
 - Continuous input (drags, live resizes) must coalesce onto a `CADisplayLink` before running an animated layout pass. Animating on every event outruns the run loop's commit, so nothing is presented, no animation completes to be reclaimed, and each pass walks a longer list of live animations until the window appears frozen.
 - For local reasoning models, use the resolved model `reasoningConfig` and seed stream routing from the prepared prompt. Chat templates may prefill the opening reasoning delimiter, so generated output can begin inside reasoning and emit only the closing delimiter; parsers must also preserve partial delimiters across chunks.
-- Treat evaluation tool parameters as a wire-schema boundary: normalize shorthand parameter types into a root `type: object` JSON Schema before inference, preserve already-complete schemas, and test the encoded request shape against provider validation.
+- Treat evaluation tool parameters as a wire-schema boundary: normalize shorthand parameter types into a root `type: object` JSON Schema before inference, preserve already-complete schemas, and test the encoded request shape against provider validation. Verify no-argument calls explicitly by tool name instead of leaving their verifier list empty.
 
 ## Testing Expectations
 
