@@ -98,7 +98,7 @@ struct ConversationExecutionSupportTests {
 
             // requestUpdate republishes messages but no longer touches the
             // indicator — the activity row must survive it.
-            await session.requestUpdate(view: listView)
+            await session.requestUpdate()
             try await waitUntil {
                 publisherEmissionCount >= 1
             }

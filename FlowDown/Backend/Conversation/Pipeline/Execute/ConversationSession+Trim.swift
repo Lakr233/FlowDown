@@ -129,7 +129,9 @@ extension ConversationSession {
     }
 
     /// Text-only messages carry either a single string or a list of strings.
-    private func firstNonEmptyLine(of content: ChatRequestBody.MessageContent<String, [String]>) -> String {
+    private func firstNonEmptyLine(
+        of content: ChatRequestBody.Message.MessageContent<String, [String]>
+    ) -> String {
         switch content {
         case let .text(text): firstNonEmptyLine(text)
         case let .parts(parts): firstNonEmptyLine(parts.joined(separator: "\n"))
@@ -137,7 +139,9 @@ extension ConversationSession {
     }
 
     /// User messages are multimodal: only the first text part carries a line.
-    private func firstNonEmptyLine(of content: ChatRequestBody.MessageContent<String, [ChatRequestBody.ContentPart]>) -> String {
+    private func firstNonEmptyLine(
+        of content: ChatRequestBody.Message.MessageContent<String, [ChatRequestBody.Message.ContentPart]>
+    ) -> String {
         switch content {
         case let .text(text):
             firstNonEmptyLine(text)

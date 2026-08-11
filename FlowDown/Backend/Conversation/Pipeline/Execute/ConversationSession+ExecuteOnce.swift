@@ -12,17 +12,36 @@ import Storage
 import UniformTypeIdentifiers
 
 extension ConversationSession {
+    private enum StreamedMessageField {
+        case reasoning
+        case response
+
+        func value(in message: Message) -> String {
+            switch self {
+            case .reasoning: message.reasoningContent
+            case .response: message.document
+            }
+        }
+
+        func update(_ value: String, in message: Message) {
+            switch self {
+            case .reasoning: message.update(\.reasoningContent, to: value)
+            case .response: message.update(\.document, to: value)
+            }
+        }
+    }
+
     /// Appends a streamed chunk to one of the message's text fields and reports
     /// the growth so the token counter and the stall watchdog stay honest.
     private func append(
         _ value: String,
         of message: Message,
-        to keyPath: ReferenceWritableKeyPath<Message, String>,
+        to field: StreamedMessageField,
     ) async {
-        let oldCount = message[keyPath: keyPath].count
-        let newValue = message[keyPath: keyPath] + value
-        message.update(keyPath, to: newValue)
-        let delta = newValue.count - oldCount
+        let currentValue = field.value(in: message)
+        let newValue = currentValue + value
+        field.update(newValue, in: message)
+        let delta = newValue.count - currentValue.count
         guard delta > 0 else { return }
         recordVisibleProgress()
         await MainActor.run {
@@ -61,9 +80,9 @@ extension ConversationSession {
         for try await resp in stream {
             switch resp {
             case let .reasoning(value):
-                await append(value, of: message, to: \.reasoningContent)
+                await append(value, of: message, to: .reasoning)
             case let .text(value):
-                await append(value, of: message, to: \.document)
+                await append(value, of: message, to: .response)
             case let .tool(call):
                 // Tool-call deltas render nothing; without the indicator the
                 // stream looks stalled while the model emits arguments.
