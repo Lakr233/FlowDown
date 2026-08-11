@@ -57,7 +57,7 @@ replay_log() {
 
 replay_log
 
-ERR_RE='(^|[[:space:]])error:|^\*\* (BUILD|TEST|ARCHIVE|CLEAN|ANALYZE) FAILED \*\*|^Testing failed:|^Failing tests:'
+ERR_RE='^error:|^[^[:space:]].*:[0-9]+(:[0-9]+)?: error:|^\*\* (BUILD|TEST|ARCHIVE|CLEAN|ANALYZE) FAILED \*\*|^Testing failed:|^Failing tests:'
 
 FOUND_ERRORS=0
 if grep -En "$ERR_RE" "$LOG" >/dev/null 2>&1; then

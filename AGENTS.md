@@ -66,6 +66,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
   - `make clean-build` to remove repo-local build artifacts
   - `make clean` to remove repo-local build artifacts and derived data
 - The shared FlowDown scheme runs `git submodule update` before builds and tests; stage or commit intended gitlink changes first so the selected submodule revisions are not restored from the index.
+- Build wrappers must distinguish structured compiler/test failures from runtime log messages containing `error:` so negative-path tests can exercise and log expected failures without turning a successful test session red.
 - Xcode Cloud invokes `xcodebuild` outside the Makefile; keep package plug-in validation configuration in `ci_scripts/ci_post_clone.sh` so cloud archives receive it.
 - Xcode 27's resolver prunes pins no built target links (currently `swift-argument-parser`, pulled in by `mlx-swift`), but Xcode Cloud's older toolchain rejects a `Package.resolved` that omits them. Any resolve or build drops the pin again, so `Resources/DevKit/required-package-pins.json` declares it and `required_package_pins.py fix` re-adds it after every resolve. Never hand-delete those pins to make a local diff smaller; run `make package-verify` before committing `Package.resolved`.
 - Archive script automatically commits changes and bumps version before building; ensure the working tree is clean beforehand.
@@ -125,6 +126,9 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 ## Testing Expectations
 
 - Add or update unit/UI tests alongside behavioural changes. `FlowDownUnitTests` leverages the Swift `Testing` library—author tests as `@Test func featureScenario_expectation()`.
+- Keep `@Test` enablement predicates free of test events and side effects; optional fixture probes should return `false` when unavailable and only record failures from inside an enabled test.
+- Keep local test servers independent of reverse DNS; bind to the requested numeric host and publish the bound address directly.
+- When a model workflow changes its structured-output contract, migrate its replay request/response fixtures in the same change and run `make test-online-e2e`.
 - Run app-level tests through `make test` or `make test-unit`.
 - Use `make test-online-e2e` when a change needs the online E2E suite.
 - Document manual verification steps whenever UI or integration flows lack automation.

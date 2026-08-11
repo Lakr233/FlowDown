@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from socketserver import TCPServer
 from typing import Any
 
 
@@ -138,6 +139,14 @@ class FixtureStore:
     def error_response(self, status: int, message: str) -> tuple[int, str, bytes]:
         payload = json.dumps({"error": message}, separators=(",", ":")).encode("utf-8")
         return status, "application/json", payload
+
+
+class FixtureHTTPServer(ThreadingHTTPServer):
+    def server_bind(self) -> None:
+        TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name = str(host)
+        self.server_port = int(port)
 
 
 class FixtureHandler(BaseHTTPRequestHandler):
@@ -289,7 +298,7 @@ def main() -> None:
         upstream_model=args.upstream_model,
         api_key=api_key,
     )
-    server = ThreadingHTTPServer((args.host, args.port), FixtureHandler)
+    server = FixtureHTTPServer((args.host, args.port), FixtureHandler)
     host, port = server.server_address
     Path(args.port_file).write_text(f"http://{host}:{port}/v1/chat/completions\n", encoding="utf-8")
     server.serve_forever()

@@ -1,8 +1,8 @@
 {
-  "content_type": "text/event-stream",
+  "content_type": "application/json",
   "key": "template_rewrite",
   "status": 200,
-  "stream": true,
+  "stream": false,
   "upstream_endpoint": "https://api.fireworks.ai/inference/v1/chat/completions",
   "upstream_model": "accounts/fireworks/models/deepseek-v4-pro"
 }
