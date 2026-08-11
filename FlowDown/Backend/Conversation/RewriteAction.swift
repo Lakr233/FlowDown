@@ -84,13 +84,7 @@ extension RewriteAction {
         }
 
         let messageBody: [ChatRequestBody.Message] = [
-            .system(content: .text(prompt + [
-                "- Do not output any additional text, such as 'Okay' or 'Continue', before the Markdown content.",
-                "- Please ensure the output is in Markdown format, including appropriate headings and bullet points.",
-                "- Do not output any code blocks or unnecessary formatting.",
-                "- Please ensure the output is concise and focused on the key points of the conversation.",
-                "**DO NOT START THE OUTPUT WITH ``` NOR ENDING WITH IT**",
-            ].joined(separator: "\n"))),
+            .system(content: .text(prompt + ConversationManager.markdownOutputGuidelines)),
             .user(content: .text(String(localized: "Please rewrite accordingly"))),
             .user(content: .text(message.document), name: String(localized: "Original Message")),
         ]

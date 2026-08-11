@@ -11,10 +11,6 @@ import Foundation
 import UIKit
 
 class MTRecallMemoryTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "recall stored memories to provide context for the conversation"
-    }
-
     override var interfaceName: String {
         String(localized: "Recall Memory")
     }
@@ -22,9 +18,7 @@ class MTRecallMemoryTool: ModelTool, @unchecked Sendable {
     override var definition: ChatRequestBody.Tool {
         .function(
             name: "recall_memory",
-            description: """
-            Retrieves all stored memories to provide context for the current conversation. Use this at the beginning of conversations or when you need to remember user preferences, project details, or other stored information.
-            """,
+            description: "Retrieve every stored memory for context about the user's preferences, projects and history.",
             parameters: [
                 "type": "object",
                 "properties": [:],

@@ -19,10 +19,6 @@ class ModelTool: NSObject, @unchecked Sendable {
         return name
     }
 
-    var shortDescription: String {
-        fatalError("must be overriden")
-    }
-
     var interfaceName: String {
         fatalError("must be overriden")
     }

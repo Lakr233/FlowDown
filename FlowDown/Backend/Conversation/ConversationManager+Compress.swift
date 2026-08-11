@@ -78,13 +78,7 @@ extension ConversationManager {
 
                 Please compress and summarize the content of the "Previous Conversation" according to the above requirements.
                 """)
-                    + [
-                        "- Do not output any additional text, such as 'Okay' or 'Continue', before the Markdown content.",
-                        "- Please ensure the output is in Markdown format, including appropriate headings and bullet points.",
-                        "- Do not output any code blocks or unnecessary formatting.",
-                        "- Please ensure the output is concise and focused on the key points of the conversation.",
-                        "**DO NOT START THE OUTPUT WITH ``` NOR ENDING WITH IT**",
-                    ].joined(separator: "\n"),
+                    + ConversationManager.markdownOutputGuidelines,
             )),
             .user(content: .text(String(localized: "Please summarize the following conversation:"))),
             .user(content: .text(text), name: String(localized: "Previous Conversation")),
@@ -130,4 +124,15 @@ extension ConversationManager {
             }
         }
     }
+}
+
+extension ConversationManager {
+    /// Output rules shared by the rewrite and the compress prompts.
+    static let markdownOutputGuidelines: String = [
+        "- Do not output any additional text, such as 'Okay' or 'Continue', before the Markdown content.",
+        "- Please ensure the output is in Markdown format, including appropriate headings and bullet points.",
+        "- Do not output any code blocks or unnecessary formatting.",
+        "- Please ensure the output is concise and focused on the key points of the conversation.",
+        "**DO NOT START THE OUTPUT WITH ``` NOR ENDING WITH IT**",
+    ].joined(separator: "\n")
 }

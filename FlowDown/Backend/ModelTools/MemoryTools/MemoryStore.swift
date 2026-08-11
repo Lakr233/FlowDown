@@ -16,7 +16,6 @@ class MemoryStore: ObservableObject {
     private let queue = DispatchQueue(label: "wiki.qaq.MemoryStore", qos: .utility)
     private let maxMemoryCount = 1000
     private let maxMemoryLength = 2000
-    private weak var currentSession: ConversationSession?
 
     @Published var memoryCount: Int = 0
 
@@ -24,14 +23,6 @@ class MemoryStore: ObservableObject {
         Task {
             await updateMemoryCount()
         }
-    }
-
-    func setCurrentSession(_ session: ConversationSession?) {
-        currentSession = session
-    }
-
-    private func getCurrentConversationId() -> String? {
-        currentSession?.id.description
     }
 
     // MARK: - Public Async API
@@ -46,13 +37,11 @@ class MemoryStore: ObservableObject {
             throw MemoryStoreError.invalidContent("Memory content exceeds maximum length of \(maxMemoryLength) characters")
         }
 
-        let contextId = conversationId ?? getCurrentConversationId()
-
         return try await withCheckedThrowingContinuation { continuation in
             queue.async {
                 do {
                     let storage = try Storage.db()
-                    let memory = Memory(deviceId: Storage.deviceId, content: trimmedContent, conversationId: contextId)
+                    let memory = Memory(deviceId: Storage.deviceId, content: trimmedContent, conversationId: conversationId)
                     try storage.insertMemory(memory)
 
                     try storage.deleteOldMemories(keepCount: self.maxMemoryCount)
@@ -210,18 +199,7 @@ class MemoryStore: ObservableObject {
 
     func getAllMemories() -> String {
         do {
-            let memories = try Storage.db().getAllMemories()
-
-            if memories.isEmpty {
-                return "No memories stored yet."
-            } else {
-                var result = "Stored memories:\n\n"
-                for (index, memory) in memories.enumerated() {
-                    let timestamp = ISO8601DateFormatter().string(from: memory.creation)
-                    result += "\(index + 1). [\(timestamp)] \(memory.content)\n"
-                }
-                return result
-            }
+            return Self.render(try Storage.db().getAllMemories(), includeIdentifiers: false)
         } catch {
             return "Failed to retrieve memories: \(error.localizedDescription)"
         }
@@ -230,21 +208,29 @@ class MemoryStore: ObservableObject {
     func listMemoriesWithIds(limit: Int = 20) -> String {
         do {
             let storage = try Storage.db()
-            let memories = try storage.getMemoriesWithLimit(min(max(limit, 1), 100))
-
-            if memories.isEmpty {
-                return "No memories stored yet."
-            } else {
-                var result = "Stored memories:\n\n"
-                for (index, memory) in memories.enumerated() {
-                    let timestamp = ISO8601DateFormatter().string(from: memory.creation)
-                    result += "\(index + 1). ID: \(memory.id)\n   [\(timestamp)] \(memory.content)\n\n"
-                }
-                return result
-            }
+            return Self.render(
+                try storage.getMemoriesWithLimit(min(max(limit, 1), 100)),
+                includeIdentifiers: true,
+            )
         } catch {
             return "Failed to retrieve memories: \(error.localizedDescription)"
         }
+    }
+
+    /// Renders the memory list handed to the model. `includeIdentifiers` adds the
+    /// ids that the update and delete tools require.
+    private static func render(_ memories: [Memory], includeIdentifiers: Bool) -> String {
+        guard !memories.isEmpty else { return "No memories stored yet." }
+        var result = "Stored memories:\n\n"
+        for (index, memory) in memories.enumerated() {
+            let timestamp = ISO8601DateFormatter().string(from: memory.creation)
+            if includeIdentifiers {
+                result += "\(index + 1). ID: \(memory.id)\n   [\(timestamp)] \(memory.content)\n\n"
+            } else {
+                result += "\(index + 1). [\(timestamp)] \(memory.content)\n"
+            }
+        }
+        return result
     }
 
     func updateMemory(id: String, newContent: String) -> String {
@@ -293,25 +279,11 @@ class MemoryStore: ObservableObject {
         }
     }
 
+    /// Fire-and-forget insert for callers that have nowhere to surface a failure.
     func store(content: String, conversationId: String? = nil) {
-        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedContent.isEmpty, trimmedContent.count <= maxMemoryLength else {
-            Logger.database.errorFile("MemoryStore invalid memory content")
-            return
-        }
-
-        let contextId = conversationId ?? getCurrentConversationId()
-
-        queue.async {
+        Task {
             do {
-                let storage = try Storage.db()
-                let memory = Memory(deviceId: Storage.deviceId, content: trimmedContent, conversationId: contextId)
-                try storage.insertMemory(memory)
-                try storage.deleteOldMemories(keepCount: self.maxMemoryCount)
-
-                Task { @MainActor in
-                    await self.updateMemoryCount()
-                }
+                _ = try await storeAsync(content: content, conversationId: conversationId)
             } catch {
                 Logger.database.errorFile("MemoryStore failed to store memory: \(error)")
             }
@@ -386,7 +358,6 @@ enum MemoryStoreError: Error, LocalizedError {
     case invalidContent(String)
     case memoryNotFound(String)
     case storageError(String)
-    case quotaExceeded(String)
 
     var localizedDescription: String {
         switch self {
@@ -396,8 +367,6 @@ enum MemoryStoreError: Error, LocalizedError {
             "Memory not found: \(id)"
         case let .storageError(message):
             "Storage error: \(message)"
-        case let .quotaExceeded(message):
-            "Quota exceeded: \(message)"
         }
     }
 }

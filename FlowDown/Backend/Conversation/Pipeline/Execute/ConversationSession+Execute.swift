@@ -52,7 +52,7 @@ extension ConversationSession {
                 }
 
                 showActivity()
-                await requestUpdate(view: currentMessageListView)
+                await requestUpdate()
                 await doInfereExecute(
                     modelID: modelID,
                     currentMessageListView: currentMessageListView,
@@ -69,7 +69,9 @@ extension ConversationSession {
         }
     }
 
-    func requestUpdate(view _: MessageListView) async {
+    /// Publishes the current message list to the UI. Every mutation inside the
+    /// pipeline goes through here so views never read half-written state.
+    func requestUpdate() async {
         notifyMessagesDidChange()
     }
 
@@ -127,16 +129,15 @@ extension ConversationSession {
                 let errorMessage = appendNewMessage(role: .assistant)
                 errorMessage.update(\.document, to: "```\n\(sanitized)")
             }
-            await requestUpdate(view: currentMessageListView)
-            await requestUpdate(view: currentMessageListView)
+            await requestUpdate()
         }
 
         stopThinkingForAll()
 
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
         save()
 
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
         await MainActor.run { UIApplication.shared.isIdleTimerDisabled = false }
         endActivity()
     }
@@ -169,7 +170,7 @@ extension ConversationSession {
         userMessage.update(\.document, to: document)
 
         addAttachments(object.attachments, to: userMessage)
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
 
         // MARK: - 添加 Attachment 数据到持久化内容
 
@@ -236,7 +237,7 @@ extension ConversationSession {
         if try removeOutOfContextContents(&requestMessages, toolsDefinitions, modelContextLength) {
             let hintMessage = appendNewMessage(role: .hint)
             hintMessage.update(\.document, to: String(localized: "Some messages have been removed to fit the model context length."))
-            await requestUpdate(view: currentMessageListView)
+            await requestUpdate()
         }
 
         // MARK: - 开始循环调用接口
@@ -252,13 +253,11 @@ extension ConversationSession {
                 &requestMessages,
                 toolsDefinitions,
                 modelWillExecuteTools,
-                linkedContents: linkedContents,
-                requestLinkContentIndex: requestLinkContentIndex,
             )
             save()
         } while shouldContinue
 
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
 
         Logger.app.infoFile("inference done")
 

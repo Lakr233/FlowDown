@@ -24,11 +24,10 @@ extension ConversationManager {
         guard let controller = view.parentViewController else { return nil }
         guard let conv = conversation(identifier: identifier) else { return nil }
 
-        let convHasEmptyContent = ConversationSessionManager.shared.session(for: conv.id)
-            .messages
+        let session = ConversationSessionManager.shared.session(for: conv.id)
+        let convHasEmptyContent = session.messages
             .filter { [.user, .assistant].contains($0.role) }
             .isEmpty
-        let session = ConversationSessionManager.shared.session(for: conv.id)
 
         let mainMenu = UIMenu(
             title: [
@@ -184,16 +183,12 @@ extension ConversationManager {
                         let session = sessionManager.session(for: conv.id)
                         let metadata = await session.generateConversationMetadata()
                         await completion {
-                            if let metadata, metadata.hasGeneratedContent {
-                                ConversationManager.shared.editConversation(identifier: conv.id) { conversation in
-                                    if let title = metadata.title {
-                                        conversation.update(\.title, to: title)
-                                    }
-                                    if let icon = metadata.icon {
-                                        let iconData = icon.textToImage(size: 128)?.pngData() ?? .init()
-                                        conversation.update(\.icon, to: iconData)
-                                    }
-                                }
+                            if let metadata {
+                                ConversationManager.shared.applyMetadata(
+                                    metadata,
+                                    to: conv.id,
+                                    disablingAutoRename: false,
+                                )
                             } else {
                                 Indicator.present(
                                     title: "Unable to generate title",
@@ -208,34 +203,16 @@ extension ConversationManager {
         )
 
         let managementGroup: [UIMenuElement] = [
-            { () -> UIMenuElement? in
-                if conv.isFavorite {
-                    return UIAction(
-                        title: String(localized: "Unfavorite"),
-                        image: UIImage(systemName: "star.slash"),
-                    ) { _ in
-                        ConversationManager.shared.editConversation(identifier: conv.id) {
-                            $0.update(\.isFavorite, to: false)
-                        }
-                    }
-                } else {
-                    return nil
+            UIAction(
+                title: conv.isFavorite
+                    ? String(localized: "Unfavorite")
+                    : String(localized: "Favorite"),
+                image: UIImage(systemName: conv.isFavorite ? "star.slash" : "star"),
+            ) { _ in
+                ConversationManager.shared.editConversation(identifier: conv.id) {
+                    $0.update(\.isFavorite, to: !conv.isFavorite)
                 }
-            }(),
-            { () -> UIMenuElement? in
-                if !conv.isFavorite {
-                    return UIAction(
-                        title: String(localized: "Favorite"),
-                        image: UIImage(systemName: "star"),
-                    ) { _ in
-                        ConversationManager.shared.editConversation(identifier: conv.id) {
-                            $0.update(\.isFavorite, to: true)
-                        }
-                    }
-                } else {
-                    return nil
-                }
-            }(),
+            },
             { () -> UIMenu? in
                 if !convHasEmptyContent {
                     return savePictureMenu

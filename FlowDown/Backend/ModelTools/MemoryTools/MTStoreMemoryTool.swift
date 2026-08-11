@@ -11,10 +11,6 @@ import Foundation
 import UIKit
 
 class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "store important information to memory for future conversations"
-    }
-
     override var interfaceName: String {
         String(localized: "Store Memory")
     }
@@ -23,15 +19,15 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
         .function(
             name: "store_memory",
             description: """
-            Stores important information to memory that can be recalled in future conversations. Use this proactively when the user shares personal preferences, project details, feedback, goals, or other information that would be valuable to remember. Preferred using user's local language. 
-            IMPORTANT: Format memories in third person perspective (e.g., "User is a student" not "I'm a student"). Be specific and clear about what you're storing
+            Save information worth recalling in later conversations: preferences, project details, goals, feedback.
+            Store it proactively, in the user's language, written in third person ("User is a student", not "I'm a student").
             """,
             parameters: [
                 "type": "object",
                 "properties": [
                     "content": [
                         "type": "string",
-                        "description": "The important information to store in memory. Format in third person (e.g., 'User is a software engineer', 'User prefers detailed explanations'). Be concise but comprehensive.",
+                        "description": "The fact to store, third person and specific, e.g. 'User prefers detailed explanations'.",
                     ],
                 ],
                 "required": ["content"],
@@ -53,8 +49,7 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let content = json["content"] as? String
         else {
             throw NSError(

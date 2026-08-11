@@ -159,40 +159,6 @@ extension ModelManager {
         }
     }
 
-    func testAppleIntelligenceModel(completion: @escaping (Result<Void, Error>) -> Void) {
-        if #available(iOS 26.0, macCatalyst 26.0, *) {
-            guard AppleIntelligenceModel.shared.isAvailable else {
-                completion(.failure(NSError(domain: "AppleIntelligence", code: -1, userInfo: [NSLocalizedDescriptionKey: String(localized: "Apple Intelligence is not available: \(AppleIntelligenceModel.shared.availabilityStatus)")])))
-                return
-            }
-            Task {
-                do {
-                    let client = AppleIntelligenceChatClient()
-                    let body = ChatRequestBody(
-                        messages: [
-                            .system(content: .text("Reply YES to every query.")),
-                            .user(content: .text("YES or NO")),
-                        ],
-                        temperature: 0,
-                    )
-                    let response = try await client.chat(body: body)
-                    if !isEmptyResponse(response) {
-                        completion(.success(()))
-                    } else {
-                        completion(.failure(NSError(
-                            domain: "AppleIntelligence",
-                            code: -1,
-                            userInfo: [NSLocalizedDescriptionKey: "No response from Apple Intelligence."],
-                        )))
-                    }
-                } catch {
-                    completion(.failure(error))
-                }
-            }
-        } else {
-            completion(.failure(NSError(domain: "AppleIntelligence", code: -1, userInfo: [NSLocalizedDescriptionKey: "Requires iOS 26+"])))
-        }
-    }
 }
 
 extension ModelManager {
@@ -334,6 +300,25 @@ extension ModelManager {
         tools: [ChatRequestBody.Tool]? = nil,
         toolChoice: ChatRequestBody.ToolChoice? = nil,
     ) async throws -> ChatResponse {
+        let (client, body) = try makeRequest(
+            modelID: modelID,
+            maxCompletionTokens: maxCompletionTokens,
+            input: input,
+            tools: tools,
+            toolChoice: toolChoice,
+        )
+        return try await client.chat(body: body)
+    }
+
+    /// Builds the client and the request body shared by the buffered and the
+    /// streaming entry points.
+    private func makeRequest(
+        modelID: ModelIdentifier,
+        maxCompletionTokens: Int?,
+        input: [ChatRequestBody.Message],
+        tools: [ChatRequestBody.Tool]?,
+        toolChoice: ChatRequestBody.ToolChoice?,
+    ) throws -> (any ChatService, ChatRequestBody) {
         let client = try chatService(
             for: modelID,
             additionalBodyField: modelBodyFields(for: modelID),
@@ -346,7 +331,7 @@ extension ModelManager {
             toolChoice: toolChoice,
         )
         body.preservesReasoningContent = modelCapabilities(identifier: modelID).contains(.preservedThinking)
-        return try await client.chat(body: body)
+        return (client, body)
     }
 
     func streamingInfer(
@@ -356,18 +341,13 @@ extension ModelManager {
         tools: [ChatRequestBody.Tool]? = nil,
         toolChoice: ChatRequestBody.ToolChoice? = nil,
     ) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> {
-        let client = try chatService(
-            for: modelID,
-            additionalBodyField: modelBodyFields(for: modelID),
-        )
-        var body = try ChatRequestBody(
-            messages: prepareRequestBody(modelID: modelID, messages: input),
+        let (client, body) = try makeRequest(
+            modelID: modelID,
             maxCompletionTokens: maxCompletionTokens,
-            temperature: temperature < 0 ? nil : .init(temperature),
+            input: input,
             tools: tools,
             toolChoice: toolChoice,
         )
-        body.preservesReasoningContent = modelCapabilities(identifier: modelID).contains(.preservedThinking)
         return AsyncThrowingStream(ChatResponseChunk.self, bufferingPolicy: .unbounded) { cont in
             Task.detached {
                 let reasoningEmitter = BalancedEmitter(

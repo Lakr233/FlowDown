@@ -13,10 +13,6 @@ import Foundation
 import UIKit
 
 class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "query events from user's system calendars"
-    }
-
     override var interfaceName: String {
         String(localized: "Query Calendar")
     }
@@ -25,31 +21,23 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         .function(
             name: "query_calendar_events",
             description: """
-            Query events from the user's system calendars for a specific date or date range. 
-            The date range cannot exceed 7 consecutive days. Results will be returned in the user's local time format.
-            You need to convert user provided dates to the required format.
+            Query the user's calendars for a date or range of up to 7 days. Results come back in the user's local time.
+            Convert the user's wording into the date format yourself.
             """,
             parameters: [
                 "type": "object",
                 "properties": [
                     "start_date": [
                         "type": "string",
-                        "description": """
-                        The start date for the query in ISO 8601 format (YYYY-MM-DD). 
-                        This date should be provided in UTC and will be converted to the user's local timezone.
-                        """,
+                        "description": "Start date in UTC, ISO 8601 (YYYY-MM-DD).",
                     ],
                     "end_date": [
                         "type": "string",
-                        "description": """
-                        Optional end date for the query in ISO 8601 format (YYYY-MM-DD). If not provided, 
-                        only events on the start date will be returned. The date range cannot exceed 7 days.
-                        This date should be provided in UTC and will be converted to the user's local timezone.
-                        """,
+                        "description": "End date in UTC, ISO 8601 (YYYY-MM-DD). Pass an empty string to query only the start date. Max 7 days.",
                     ],
                     "include_all_day_events": [
                         "type": "boolean",
-                        "description": "Whether to include all-day events in the results.",
+                        "description": "Include all-day events.",
                     ],
                 ],
                 "required": ["start_date", "include_all_day_events", "end_date"],
@@ -71,8 +59,7 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let startDateString = json["start_date"] as? String
         else {
             throw NSError(
@@ -120,13 +107,7 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             endDate = calendar.date(byAdding: .day, value: 1, to: startDate) ?? startDate
         }
 
-        guard let viewController = await view.parentViewController else {
-            throw NSError(
-                domain: "MTQueryCalendarTool", code: 500, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Could not find view controller"),
-                ],
-            )
-        }
+        let viewController = try await anchorController(for: view)
 
         return try await queryWithUserInteraction(
             startDate: startDate,
@@ -139,17 +120,9 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
     @MainActor
     func queryWithUserInteraction(startDate: Date, endDate: Date, includeAllDayEvents: Bool, controller: UIViewController) async throws -> String {
         try await withCheckedThrowingContinuation { cont in
-            let eventStore = EKEventStore()
-
-            let handleAuthResult: (Bool, Error?) -> Void = { [weak self] granted, error in
+            CalendarToolsShared.requestAccess { [weak self] granted, error in
                 Task { @MainActor [weak self] in
-                    guard let self else {
-                        let errorMessage = error?.localizedDescription ?? "Unknown error"
-                        cont.resume(returning: String(localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."))
-                        return
-                    }
-
-                    guard granted else {
+                    guard let self, granted else {
                         let errorMessage = error?.localizedDescription ?? "Unknown error"
                         cont.resume(returning: String(localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."))
                         return
@@ -161,23 +134,11 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
                         includeAllDayEvents: includeAllDayEvents,
                     ) { result, error in
                         if let error {
-                            cont.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                                NSLocalizedDescriptionKey: String(localized: "Failed to query calendar: \(error.localizedDescription)"),
-                            ]))
+                            cont.resume(throwing: ModelToolError.failure(String(localized: "Failed to query calendar: \(error.localizedDescription)")))
                         } else {
                             self.showQueryResults(result: result, controller: controller, continuation: cont)
                         }
                     }
-                }
-            }
-
-            if #available(iOS 17, macCatalyst 17, *) {
-                eventStore.requestFullAccessToEvents { granted, error in
-                    handleAuthResult(granted, error)
-                }
-            } else {
-                eventStore.requestAccess(to: .event) { granted, error in
-                    handleAuthResult(granted, error)
                 }
             }
         }
@@ -188,20 +149,13 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         // 将Markdown格式的结果转换成更适合展示的纯文本
         let displayText = formatResultForDisplay(result)
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .short
-        dateFormatter.locale = Locale.current
-
         let alert = AlertViewController(
             title: "Calendar Events",
             message: "\(displayText)",
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {
-                    continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "User cancelled sharing calendar events."),
-                    ]))
+                    continuation.resume(throwing: ModelToolError.failure(String(localized: "User cancelled sharing calendar events.")))
                 }
             }
             context.addAction(title: "Share", attribute: .accent) {
@@ -212,22 +166,12 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             }
         }
 
-        // Check if controller already has a presented view controller
-        guard controller.presentedViewController == nil else {
-            continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Tool execution failed: authorization dialog is already presented."),
-            ]))
-            return
-        }
-
-        controller.present(alert, animated: true) {
-            guard alert.isVisible else {
-                continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Failed to display results dialog."),
-                ]))
-                return
-            }
-        }
+        ModelToolPresentation.present(
+            alert,
+            on: controller,
+            continuation: continuation,
+            displayFailure: String(localized: "Failed to display results dialog."),
+        )
     }
 
     /// 将Markdown格式的结果转换为更友好的显示格式

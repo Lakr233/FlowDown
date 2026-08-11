@@ -17,6 +17,26 @@ enum ReminderToolsShared {
         case notFound
     }
 
+    /// Every reminder tool needs the same preamble before it can touch
+    /// `EKEventStore` or present UI: ask for access, hop to the main actor and
+    /// fail the awaiting continuation when the user said no.
+    @MainActor
+    static func withAuthorization(
+        _ body: @escaping @MainActor (CheckedContinuation<String, any Swift.Error>) -> Void,
+    ) async throws -> String {
+        try await withCheckedThrowingContinuation { cont in
+            requestAccess { granted in
+                Task { @MainActor in
+                    guard granted else {
+                        cont.resume(throwing: authorizationDeniedError())
+                        return
+                    }
+                    body(cont)
+                }
+            }
+        }
+    }
+
     static func requestAccess(completion: @escaping (Bool) -> Void) {
         let eventStore = EKEventStore()
         if #available(iOS 17, macCatalyst 17, *) {
@@ -105,14 +125,6 @@ enum ReminderToolsShared {
         NSError(
             domain: errorDomain, code: 404, userInfo: [
                 NSLocalizedDescriptionKey: String(localized: "No Reminders list named \"\(name)\" found."),
-            ],
-        )
-    }
-
-    static func internalError(_ description: String) -> NSError {
-        NSError(
-            domain: errorDomain, code: 500, userInfo: [
-                NSLocalizedDescriptionKey: description,
             ],
         )
     }

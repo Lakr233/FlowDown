@@ -13,10 +13,6 @@ import Foundation
 import UIKit
 
 class MTAddReminderTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "create a new reminder in user's system Reminders"
-    }
-
     override var interfaceName: String {
         String(localized: "Add to Reminders")
     }
@@ -25,32 +21,31 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
         .function(
             name: "add_reminder",
             description: """
-            Creates a new reminder in the user's system Reminders. Provide a title and any optional fields. Convert all dates to ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z') yourself; do not ask the user.
-            Priority follows EKReminder convention: 0 = no priority, 1 = high, 5 = medium, 9 = low.
-            Pass an empty string for optional text fields and an empty string for due_date when not set. Pass 0 for priority when not set. Pass an empty list_name to use the default Reminders list.
+            Create a reminder. Convert dates to ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z') yourself; do not ask the user.
+            Leave optional fields as an empty string, priority as 0.
             """,
             parameters: [
                 "type": "object",
                 "properties": [
                     "title": [
                         "type": "string",
-                        "description": "Title of the reminder. Required and must be non-empty.",
+                        "description": "Reminder title, non-empty.",
                     ],
                     "notes": [
                         "type": "string",
-                        "description": "Free-form notes for the reminder. Pass empty string for none.",
+                        "description": "Notes. Empty for none.",
                     ],
                     "due_date": [
                         "type": "string",
-                        "description": "Due date in ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z'). Pass empty string for no due date.",
+                        "description": "Due date, ISO 8601 UTC. Empty for none.",
                     ],
                     "priority": [
                         "type": "integer",
-                        "description": "EKReminder priority (0 = none, 1 = high, 5 = medium, 9 = low).",
+                        "description": "0 none, 1 high, 5 medium, 9 low.",
                     ],
                     "list_name": [
                         "type": "string",
-                        "description": "Name of the Reminders list (calendar) to add to. Pass empty string for the default list.",
+                        "description": "Reminders list to add to. Empty for the default list.",
                     ],
                 ],
                 "required": ["title", "notes", "due_date", "priority", "list_name"],
@@ -72,8 +67,7 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let title = json["title"] as? String, !title.isEmpty
         else {
             throw NSError(
@@ -97,13 +91,7 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
             )
         }
 
-        guard let viewController = await view.parentViewController else {
-            throw NSError(
-                domain: "MTAddReminderTool", code: 500, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Could not find view controller"),
-                ],
-            )
-        }
+        let viewController = try await anchorController(for: view)
 
         return try await addWithUserInteraction(
             title: title,
@@ -124,28 +112,16 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
         listName: String,
         controller: UIViewController,
     ) async throws -> String {
-        try await withCheckedThrowingContinuation { cont in
-            ReminderToolsShared.requestAccess { [weak self] granted in
-                Task { @MainActor in
-                    guard let self else {
-                        cont.resume(throwing: ReminderToolsShared.internalError("Reminder tool was deallocated before completion."))
-                        return
-                    }
-                    guard granted else {
-                        cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
-                        return
-                    }
-                    self.showConfirmation(
-                        title: title,
-                        notes: notes,
-                        dueDate: dueDate,
-                        priority: priority,
-                        listName: listName,
-                        controller: controller,
-                        continuation: cont,
-                    )
-                }
-            }
+        try await ReminderToolsShared.withAuthorization { cont in
+            self.showConfirmation(
+                title: title,
+                notes: notes,
+                dueDate: dueDate,
+                priority: priority,
+                listName: listName,
+                controller: controller,
+                continuation: cont,
+            )
         }
     }
 
@@ -182,9 +158,7 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {
-                    continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "User cancelled the operation."),
-                    ]))
+                    continuation.resume(throwing: ModelToolError.userCancelled())
                 }
             }
             context.addAction(title: "Add", attribute: .accent) {
@@ -211,28 +185,17 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
                     } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
                         continuation.resume(throwing: error)
                     } catch {
-                        continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                            NSLocalizedDescriptionKey: String(localized: "Failed to add reminder: \(error.localizedDescription)"),
-                        ]))
+                        continuation.resume(throwing: ModelToolError.failure(String(localized: "Failed to add reminder: \(error.localizedDescription)")))
                     }
                 }
             }
         }
 
-        guard controller.presentedViewController == nil else {
-            continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Tool execution failed: authorization dialog is already presented."),
-            ]))
-            return
-        }
-
-        controller.present(alert, animated: true) {
-            guard alert.isVisible else {
-                continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Failed to display confirmation dialog."),
-                ]))
-                return
-            }
-        }
+        ModelToolPresentation.present(
+            alert,
+            on: controller,
+            continuation: continuation,
+            displayFailure: String(localized: "Failed to display confirmation dialog."),
+        )
     }
 }

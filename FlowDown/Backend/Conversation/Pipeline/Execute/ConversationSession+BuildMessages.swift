@@ -56,9 +56,8 @@ extension ConversationSession {
                     reasoning: reasoning.isEmpty ? nil : reasoning,
                 ))
             case .webSearch:
-                let result = message.webSearchStatus.searchResults
                 var index = 0
-                let content = result.compactMap {
+                let searchResults = message.webSearchStatus.searchResults.map {
                     index += 1
                     return """
                     <index>\(index)</index>
@@ -67,44 +66,19 @@ extension ConversationSession {
                     <content>\($0.toolResult)</content>
                     """
                 }
-                guard let toolRequest = decodeToolRequestFromToolMessage(message) else {
-                    return
-                }
-                let normalizedToolRequest = await normalizeStoredToolRequest(toolRequest)
-                requestMessages.append(.assistant(content: nil, toolCalls: [
-                    .init(
-                        id: normalizedToolRequest.id,
-                        function: .init(
-                            name: normalizedToolRequest.name,
-                            arguments: normalizedToolRequest.args
-                        )
-                    ),
-                ]))
-                let webSearchContent = content.joined(separator: "\n")
-                requestMessages.append(.tool(
-                    content: .text(webSearchContent.isEmpty ? String(localized: "Search completed with no results") : webSearchContent),
-                    toolCallID: normalizedToolRequest.id,
-                ))
+                guard let replay = await replayStoredToolCall(
+                    from: message,
+                    output: searchResults.joined(separator: "\n"),
+                    emptyOutput: String(localized: "Search completed with no results"),
+                ) else { return }
+                requestMessages.append(contentsOf: replay)
             case .toolHint:
-                let content = message.toolStatus.message
-                guard let toolRequest = decodeToolRequestFromToolMessage(message) else {
-                    return
-                }
-                let normalizedToolRequest = await normalizeStoredToolRequest(toolRequest)
-                requestMessages.append(.assistant(content: nil, toolCalls: [
-                    .init(
-                        id: normalizedToolRequest.id,
-                        function: .init(
-                            name: normalizedToolRequest.name,
-                            arguments: normalizedToolRequest.args
-                        )
-                    ),
-                ]))
-                let toolContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                requestMessages.append(.tool(
-                    content: .text(toolContent.isEmpty ? String(localized: "Tool executed successfully with no output") : content),
-                    toolCallID: normalizedToolRequest.id,
-                ))
+                guard let replay = await replayStoredToolCall(
+                    from: message,
+                    output: message.toolStatus.message,
+                    emptyOutput: String(localized: "Tool executed successfully with no output"),
+                ) else { return }
+                requestMessages.append(contentsOf: replay)
             default:
                 continue
             }
@@ -123,6 +97,29 @@ extension ConversationSession {
        },
      }
      */
+
+    /// Replays a stored tool call as the provider expects to see it: the
+    /// assistant turn that requested the call, followed by the tool turn that
+    /// carries its output. Returns nil when the stored request cannot be
+    /// decoded, which aborts the whole rebuild.
+    private func replayStoredToolCall(
+        from message: Message,
+        output: String,
+        emptyOutput: String,
+    ) async -> [ChatRequestBody.Message]? {
+        guard let toolRequest = decodeToolRequestFromToolMessage(message) else { return nil }
+        let normalized = await normalizeStoredToolRequest(toolRequest)
+        let isEmpty = output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return [
+            .assistant(content: nil, toolCalls: [
+                .init(
+                    id: normalized.id,
+                    function: .init(name: normalized.name, arguments: normalized.args),
+                ),
+            ]),
+            .tool(content: .text(isEmpty ? emptyOutput : output), toolCallID: normalized.id),
+        ]
+    }
 
     func encodeAdditionalInfoAndAttachToMessage(_ message: Message, dic: [String: Any]) {
         let read = message.metadata ?? .init()

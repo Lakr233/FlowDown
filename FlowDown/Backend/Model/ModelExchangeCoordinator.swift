@@ -75,17 +75,31 @@ final class ModelExchangeCoordinator {
         return ModelExchangeAPI.canonicalPath(from: url)
     }
 
-    private func sendVerification(session: String, publicKey: String, callbackScheme: String) {
+    /// Builds the `<scheme>://models/exchange` callback the requesting app listens on.
+    private static func callbackURL(
+        scheme: String,
+        stage: String,
+        session: String,
+        extraItems: [URLQueryItem] = [],
+    ) -> URL? {
         var components = URLComponents()
-        components.scheme = callbackScheme
+        components.scheme = scheme
         components.host = "models"
         components.path = "/exchange"
         components.queryItems = [
-            .init(name: "stage", value: "verification"),
+            .init(name: "stage", value: stage),
             .init(name: "session", value: session),
-            .init(name: "pk", value: publicKey),
-        ]
-        guard let url = components.url else { return }
+        ] + extraItems
+        return components.url
+    }
+
+    private func sendVerification(session: String, publicKey: String, callbackScheme: String) {
+        guard let url = Self.callbackURL(
+            scheme: callbackScheme,
+            stage: "verification",
+            session: session,
+            extraItems: [.init(name: "pk", value: publicKey)],
+        ) else { return }
         Task { @MainActor in
             UIApplication.shared.open(url)
         }
@@ -122,17 +136,15 @@ final class ModelExchangeCoordinator {
                 let sealed = try ModelExchangeCrypto.encrypt(data, for: context.publicKey, session: payload.session)
                 let encodedPayload = try sealed.encoded()
 
-                var components = URLComponents()
-                components.scheme = context.callbackScheme
-                components.host = "models"
-                components.path = "/exchange"
-                components.queryItems = [
-                    .init(name: "stage", value: "completed"),
-                    .init(name: "session", value: payload.session),
-                    .init(name: "format", value: "plist"),
-                    .init(name: "payload", value: encodedPayload),
-                ]
-                guard let url = components.url else { return }
+                guard let url = Self.callbackURL(
+                    scheme: context.callbackScheme,
+                    stage: "completed",
+                    session: payload.session,
+                    extraItems: [
+                        .init(name: "format", value: "plist"),
+                        .init(name: "payload", value: encodedPayload),
+                    ],
+                ) else { return }
                 UIApplication.shared.open(url)
             } catch {
                 guard let target = presentationRoot else { return }
@@ -152,17 +164,12 @@ final class ModelExchangeCoordinator {
     }
 
     private func sendCancel(session: String, callbackScheme: String) {
-        var components = URLComponents()
-        components.scheme = callbackScheme
-        components.host = "models"
-        components.path = "/exchange"
-        components.queryItems = [
-            .init(name: "stage", value: "cancelled"),
-            .init(name: "session", value: session),
-        ]
-        if let url = components.url {
-            UIApplication.shared.open(url)
-        }
+        guard let url = Self.callbackURL(
+            scheme: callbackScheme,
+            stage: "cancelled",
+            session: session,
+        ) else { return }
+        UIApplication.shared.open(url)
     }
 }
 

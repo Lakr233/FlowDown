@@ -50,7 +50,7 @@ final class MemoryExtractor {
 
         lastExtraction[conversationId] = Date()
 
-        let snippet = buildRecentSnippet(from: messages)
+        let snippet = buildRecentSnippet(from: relevant)
 
         do {
             let facts = try await extractFacts(from: snippet, using: modelId)
@@ -76,9 +76,9 @@ final class MemoryExtractor {
 
     // MARK: - Private Helpers
 
+    /// `messages` must already be filtered down to user and assistant turns.
     private func buildRecentSnippet(from messages: [Message]) -> String {
-        let relevant = messages.filter { $0.role == .user || $0.role == .assistant }
-        let recent = relevant.suffix(6)
+        let recent = messages.suffix(6)
 
         return recent.map { msg in
             let role = msg.role == .user ? "User" : "Assistant"

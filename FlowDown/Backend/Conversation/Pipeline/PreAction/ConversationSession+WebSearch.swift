@@ -15,8 +15,6 @@ extension ConversationSessionManager.Session {
     struct WebSearchPhase: Hashable {
         var query: Int = 0
         var queryBeginDate: Date = .init(timeIntervalSince1970: 0)
-        /// The number of queries to be processed.
-        var numberOfQueries: Int = 0
         var currentSource: Int = 0
         var numberOfSource: Int = 0
         var numberOfWebsites: Int = 0
@@ -45,7 +43,6 @@ extension ConversationSessionManager.Session {
                     Logger.network.infoFile("web search has limited \(eachLimit) for each query")
 
                     var phase = WebSearchPhase()
-                    phase.numberOfQueries = searchQueries.count
                     for (idx, searchQuery) in searchQueries.enumerated() {
                         try self.checkCancellation()
                         try Task.checkCancellation()

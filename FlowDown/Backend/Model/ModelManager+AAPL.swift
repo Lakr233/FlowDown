@@ -57,12 +57,4 @@ extension AppleIntelligenceModel {
     var modelDisplayName: String {
         canonicalName
     }
-
-    var modelInfo: [String: String] {
-        [
-            "identifier": modelIdentifier,
-            "displayName": modelDisplayName,
-            "status": availabilityStatus,
-        ]
-    }
 }

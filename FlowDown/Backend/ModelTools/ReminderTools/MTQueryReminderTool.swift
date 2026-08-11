@@ -13,10 +13,6 @@ import Foundation
 import UIKit
 
 class MTQueryReminderTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "query reminders from user's system Reminders"
-    }
-
     override var interfaceName: String {
         String(localized: "Query Reminders")
     }
@@ -25,11 +21,9 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         .function(
             name: "query_reminders",
             description: """
-            Query reminders from the user's system Reminders. Filter by completion status, by Reminders list name, and optionally by independent date ranges on the reminder's due date, alarm/alert time, and completion date.
-            Each range is applied independently with AND semantics: a reminder is returned only when every *active* range matches (a range is active when at least one of its bounds is non-empty). Reminders missing the field that an active range targets are excluded by that range (e.g. an incomplete reminder is excluded by any active completed_* range; a reminder with no alarms is excluded by any active alert_* range).
-            The alert range matches when *any* alarm on the reminder has an absolute date inside the range. The completed range is only meaningful for completed reminders.
-            Each individual range cannot exceed 365 days, and start must be on or before end. All dates are ISO 8601 UTC.
-            Pass empty strings for any range you don't want to apply.
+            Query reminders by completion status, list name, and independent date ranges over due date, alarm time and completion date.
+            A range becomes active once either bound is set; active ranges are ANDed, and a reminder lacking the field a range targets fails it (no alarms fails alert_*, incomplete fails completed_*). The alert range matches when any alarm falls inside it.
+            All dates are ISO 8601 UTC; each range spans at most 365 days with start on or before end. Pass empty strings to skip a range.
             """,
             parameters: [
                 "type": "object",
@@ -41,31 +35,31 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
                     ],
                     "list_name": [
                         "type": "string",
-                        "description": "Restrict to a single Reminders list by name. Pass empty string to query all lists.",
+                        "description": "Restrict to one Reminders list. Empty queries all lists.",
                     ],
                     "due_start_date": [
                         "type": "string",
-                        "description": "Lower bound for the reminder's due date, ISO 8601 UTC. Pass empty string to skip.",
+                        "description": "Due date lower bound, ISO 8601 UTC. Empty skips.",
                     ],
                     "due_end_date": [
                         "type": "string",
-                        "description": "Upper bound for the reminder's due date, ISO 8601 UTC. Pass empty string to skip.",
+                        "description": "Due date upper bound, ISO 8601 UTC. Empty skips.",
                     ],
                     "alert_start_date": [
                         "type": "string",
-                        "description": "Lower bound for any alarm/alert time on the reminder, ISO 8601 UTC. Pass empty string to skip.",
+                        "description": "Alarm time lower bound, ISO 8601 UTC. Empty skips.",
                     ],
                     "alert_end_date": [
                         "type": "string",
-                        "description": "Upper bound for any alarm/alert time on the reminder, ISO 8601 UTC. Pass empty string to skip.",
+                        "description": "Alarm time upper bound, ISO 8601 UTC. Empty skips.",
                     ],
                     "completed_start_date": [
                         "type": "string",
-                        "description": "Lower bound for the reminder's completion date, ISO 8601 UTC. Pass empty string to skip.",
+                        "description": "Completion date lower bound, ISO 8601 UTC. Empty skips.",
                     ],
                     "completed_end_date": [
                         "type": "string",
-                        "description": "Upper bound for the reminder's completion date, ISO 8601 UTC. Pass empty string to skip.",
+                        "description": "Completion date upper bound, ISO 8601 UTC. Empty skips.",
                     ],
                 ],
                 "required": [
@@ -92,8 +86,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let json = decodeArguments(input)
         else {
             throw NSError(
                 domain: "MTQueryReminderTool", code: 400, userInfo: [
@@ -121,11 +114,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
             endString: (json["completed_end_date"] as? String) ?? "",
         )
 
-        guard let viewController = await view.parentViewController else {
-            throw NSError(domain: "MTQueryReminderTool", code: 500, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Could not find view controller"),
-            ])
-        }
+        let viewController = try await anchorController(for: view)
 
         return try await queryWithUserInteraction(
             status: status,
@@ -195,53 +184,40 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         completed: DateRange,
         controller: UIViewController,
     ) async throws -> String {
-        try await withCheckedThrowingContinuation { cont in
-            ReminderToolsShared.requestAccess { [weak self] granted in
-                Task { @MainActor in
-                    guard let self else {
-                        cont.resume(throwing: ReminderToolsShared.internalError("Reminder tool was deallocated before completion."))
-                        return
-                    }
-                    guard granted else {
-                        cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
-                        return
-                    }
-
-                    let eventStore = EKEventStore()
-                    let calendars: [EKCalendar]?
-                    if listName.isEmpty {
-                        calendars = nil
-                    } else {
-                        do {
-                            calendars = [try ReminderToolsShared.resolveCalendarRequiringName(
-                                named: listName,
-                                eventStore: eventStore,
-                            )]
-                        } catch {
-                            cont.resume(throwing: error)
-                            return
-                        }
-                    }
-
-                    self.fetchReminders(
+        try await ReminderToolsShared.withAuthorization { cont in
+            let eventStore = EKEventStore()
+            let calendars: [EKCalendar]?
+            if listName.isEmpty {
+                calendars = nil
+            } else {
+                do {
+                    calendars = [try ReminderToolsShared.resolveCalendarRequiringName(
+                        named: listName,
                         eventStore: eventStore,
-                        calendars: calendars,
-                        status: status,
-                        due: due,
-                        alert: alert,
-                        completed: completed,
-                    ) { [weak self] result in
-                        // EventKit's fetchReminders callback fires on a background
-                        // queue; hop back to the main actor before touching UI.
-                        Task { @MainActor [weak self] in
-                            guard let self else {
-                                cont.resume(returning: result)
-                                return
-                            }
-                            self.showResults(result: result, controller: controller, continuation: cont)
-                        }
-                    }
+                    )]
+                } catch {
+                    cont.resume(throwing: error)
+                    return
                 }
+            }
+
+            self.fetchReminders(
+                eventStore: eventStore,
+                calendars: calendars,
+                status: status,
+                due: due,
+                alert: alert,
+                completed: completed,
+            ) { [weak self] result in
+                // EventKit's fetchReminders callback fires on a background
+                // queue; hop back to the main actor before touching UI.
+                Task { @MainActor [weak self] in
+                    guard let self else {
+                        cont.resume(returning: result)
+                        return
+                    }
+                    self.showResults(result: result, controller: controller, continuation: cont)
+        }
             }
         }
     }
@@ -332,9 +308,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {
-                    continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "User cancelled sharing reminders."),
-                    ]))
+                    continuation.resume(throwing: ModelToolError.failure(String(localized: "User cancelled sharing reminders.")))
                 }
             }
             context.addAction(title: "Share", attribute: .accent) {
@@ -344,36 +318,20 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
             }
         }
 
-        guard controller.presentedViewController == nil else {
-            continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Tool execution failed: authorization dialog is already presented."),
-            ]))
-            return
-        }
-
-        controller.present(alert, animated: true) {
-            guard alert.isVisible else {
-                continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Failed to display results dialog."),
-                ]))
-                return
-            }
-        }
+        ModelToolPresentation.present(
+            alert,
+            on: controller,
+            continuation: continuation,
+            displayFailure: String(localized: "Failed to display results dialog."),
+        )
     }
 
     private func formatPreview(_ markdown: String) -> String {
         var displayLines: [String] = []
         let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false)
+        let truncated = lines.count > 8
 
-        var lineCount = 0
-        var truncated = false
-        for line in lines {
-            lineCount += 1
-            if lineCount > 8 {
-                truncated = true
-                break
-            }
-
+        for line in lines.prefix(8) {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.hasPrefix("# ") {
                 let title = String(trimmed.dropFirst(2))

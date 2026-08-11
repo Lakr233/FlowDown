@@ -140,11 +140,11 @@ extension ModelManager {
         var briefDescription: String {
             switch self {
             case .essential:
-                "Avoid web searches unless absolutely necessary for time-sensitive or highly uncertain information where your internal knowledge is likely incorrect. Prioritize speed, but not at the cost of severe inaccuracy."
+                "Search only when the answer is time-sensitive or your own knowledge is likely wrong. Favor speed, but never at the cost of a badly wrong answer."
             case .balanced:
-                "You MUST perform a web search for topics like politics, current events, weather, sports, scientific developments, cultural trends, or any other dynamic topic. Err on the side of searching if you are even remotely uncertain that your knowledge is complete and up-to-date."
+                "You MUST search for anything dynamic — news, politics, weather, sports, science, cultural trends — and whenever you are even slightly unsure your knowledge is current."
             case .proactive:
-                "You MUST conduct a research-level web search to ensure comprehensive and up-to-date coverage, even for topics where you have some existing knowledge, unless the user explicitly asks you not to browse."
+                "You MUST search at research depth for comprehensive, up-to-date coverage, even on familiar topics, unless the user asks you not to browse."
             }
         }
     }
@@ -218,22 +218,6 @@ extension ModelManager.PromptType {
             If tools are enabled, first provide a response to the user, then use it. Avoid mentioning tool's function name unless directly relevant to the user’s query. Avoid asking for confirmation between each step of multi-stage user requests, unless for ambiguous requests.
             Avoid mentioning your knowledge limits unless directly relevant to the user’s query.
             """###
-            .replacingOccurrences(
-                of: "{{Template.applicationName}}",
-                with: Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "unknown AI app",
-            )
-            .replacingOccurrences(
-                of: "{{Template.currentDateTime}}",
-                with: DateFormatter.localizedString(from: Date(), dateStyle: .full, timeStyle: .full),
-            )
-            .replacingOccurrences(
-                of: "{{Template.systemLanguage}}",
-                with: Locale.current.identifier,
-            )
-            .replacingOccurrences(
-                of: "{{Template.appLanguage}}",
-                with: Bundle.main.preferredLocalizations.first ?? "en",
-            )
         case .complete:
             ###"""
             You are an assistant in {{Template.applicationName}}. Chat was created at {{Template.currentDateTime}}.

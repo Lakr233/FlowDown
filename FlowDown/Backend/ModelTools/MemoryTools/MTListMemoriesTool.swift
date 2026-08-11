@@ -11,10 +11,6 @@ import Foundation
 import UIKit
 
 class MTListMemoriesTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "list stored memories with their IDs for update/delete operations"
-    }
-
     override var interfaceName: String {
         String(localized: "List Memories")
     }
@@ -22,15 +18,13 @@ class MTListMemoriesTool: ModelTool, @unchecked Sendable {
     override var definition: ChatRequestBody.Tool {
         .function(
             name: "list_memories",
-            description: """
-            Lists stored memories with their unique IDs. Use this when you need to update or delete specific memories, as the IDs are required for those operations.
-            """,
+            description: "List stored memories with their IDs, which update_memory and delete_memory require.",
             parameters: [
                 "type": "object",
                 "properties": [
                     "limit": [
                         "type": "number",
-                        "description": "Maximum number of memories to retrieve (default: 20, max: 100).",
+                        "description": "How many memories to return (default 20, max 100).",
                     ],
                 ],
                 "required": ["limit"],
@@ -54,8 +48,7 @@ class MTListMemoriesTool: ModelTool, @unchecked Sendable {
     override func execute(with input: String, anchorTo _: UIView) async throws -> String {
         var limit = 20
 
-        if let data = input.data(using: .utf8),
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        if let json = decodeArguments(input),
            let limitValue = json["limit"] as? Int
         {
             limit = min(max(limitValue, 1), 100) // Ensure between 1 and 100

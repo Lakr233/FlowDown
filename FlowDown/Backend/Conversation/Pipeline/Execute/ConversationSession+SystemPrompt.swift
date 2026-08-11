@@ -16,17 +16,10 @@ extension ConversationSession {
         _ webSearchEnabled: Bool,
         _ object: RichEditorView.Object,
     ) async {
-        let liveDependencies = ConversationSystemPromptBuilder.Dependencies.live()
-        let dependencies = ConversationSystemPromptBuilder.Dependencies(
-            enabledTools: liveDependencies.enabledTools,
-            proactiveMemoryScope: liveDependencies.proactiveMemoryScope,
-            searchSensitivity: liveDependencies.searchSensitivity,
-            runtimeSystemInfoProvider: ModelManager.shared.includeDynamicSystemInfo
-                ? liveDependencies.runtimeSystemInfoProvider
-                : nil,
-            proactiveMemoryContextProvider: liveDependencies.proactiveMemoryContextProvider,
-            recentConversationContextProvider: liveDependencies.recentConversationContextProvider,
-        )
+        var dependencies = ConversationSystemPromptBuilder.Dependencies.live()
+        if !ModelManager.shared.includeDynamicSystemInfo {
+            dependencies.runtimeSystemInfoProvider = nil
+        }
 
         let input = ConversationSystemPromptBuilder.Input(
             userText: object.text,

@@ -98,16 +98,7 @@ final class ConversationSessionManager {
             return
         }
 
-        var affected = Set<Conversation.ID>()
-        for (cid, _) in info.modifications {
-            affected.insert(cid)
-        }
-        for (cid, _) in info.deletions {
-            affected.insert(cid)
-        }
-        guard !affected.isEmpty else { return }
-
-        for cid in affected {
+        for cid in Set(info.modifications.keys).union(info.deletions.keys) {
             guard let session = sessions[cid] else { continue }
             refreshSafely(session)
         }
@@ -117,9 +108,7 @@ final class ConversationSessionManager {
         // Avoid refreshing while a streaming task is active to prevent UI errors.
         if let task = session.currentTask, !task.isCancelled {
             logger.debugFile("Defer refresh for session \(String(describing: session.id)) due to active task")
-            if !pendingRefresh.contains(session.id) {
-                pendingRefresh.insert(session.id)
-            }
+            pendingRefresh.insert(session.id)
             return
         }
         // No active task or task is cancelled, safe to refresh immediately

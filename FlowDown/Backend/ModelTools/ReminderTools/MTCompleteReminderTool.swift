@@ -13,10 +13,6 @@ import Foundation
 import UIKit
 
 class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "mark a reminder as completed or uncompleted"
-    }
-
     override var interfaceName: String {
         String(localized: "Complete Reminder")
     }
@@ -24,19 +20,17 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
     override var definition: ChatRequestBody.Tool {
         .function(
             name: "complete_reminder",
-            description: """
-            Mark a reminder as completed or un-complete it. Use query_reminders first to obtain the reminder_id.
-            """,
+            description: "Mark a reminder completed, or un-complete it. Get reminder_id from query_reminders first.",
             parameters: [
                 "type": "object",
                 "properties": [
                     "reminder_id": [
                         "type": "string",
-                        "description": "calendarItemIdentifier of the reminder, from query_reminders.",
+                        "description": "calendarItemIdentifier from query_reminders.",
                     ],
                     "completed": [
                         "type": "boolean",
-                        "description": "true marks the reminder completed; false un-completes it.",
+                        "description": "true completes, false un-completes.",
                     ],
                 ],
                 "required": ["reminder_id", "completed"],
@@ -58,8 +52,7 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let reminderId = json["reminder_id"] as? String, !reminderId.isEmpty
         else {
             throw NSError(
@@ -71,13 +64,7 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
 
         let completed = (json["completed"] as? Bool) ?? true
 
-        guard let viewController = await view.parentViewController else {
-            throw NSError(
-                domain: "MTCompleteReminderTool", code: 500, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Could not find view controller"),
-                ],
-            )
-        }
+        let viewController = try await anchorController(for: view)
 
         return try await completeWithUserInteraction(
             reminderId: reminderId,
@@ -92,35 +79,20 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
         completed: Bool,
         controller: UIViewController,
     ) async throws -> String {
-        try await withCheckedThrowingContinuation { cont in
-            ReminderToolsShared.requestAccess { [weak self] granted in
-                Task { @MainActor in
-                    guard let self else {
-                        cont.resume(throwing: ReminderToolsShared.internalError("Reminder tool was deallocated before completion."))
-                        return
-                    }
-                    guard granted else {
-                        cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
-                        return
-                    }
-
-                    let eventStore = EKEventStore()
-                    guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
-                        cont.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                            NSLocalizedDescriptionKey: String(localized: "Reminder with id \(reminderId) not found."),
-                        ]))
-                        return
-                    }
-
-                    self.showConfirmation(
-                        reminder: reminder,
-                        eventStore: eventStore,
-                        completed: completed,
-                        controller: controller,
-                        continuation: cont,
-                    )
-                }
+        try await ReminderToolsShared.withAuthorization { cont in
+            let eventStore = EKEventStore()
+            guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
+                cont.resume(throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found.")))
+                return
             }
+
+            self.showConfirmation(
+                reminder: reminder,
+                eventStore: eventStore,
+                completed: completed,
+                controller: controller,
+                continuation: cont,
+            )
         }
     }
 
@@ -146,9 +118,7 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {
-                    continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "User cancelled the operation."),
-                    ]))
+                    continuation.resume(throwing: ModelToolError.userCancelled())
                 }
             }
             context.addAction(title: actionLabel, attribute: .accent) {
@@ -163,28 +133,17 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
                         }
                         continuation.resume(returning: message)
                     } catch {
-                        continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                            NSLocalizedDescriptionKey: String(localized: "Failed to update reminder: \(error.localizedDescription)"),
-                        ]))
+                        continuation.resume(throwing: ModelToolError.failure(String(localized: "Failed to update reminder: \(error.localizedDescription)")))
                     }
                 }
             }
         }
 
-        guard controller.presentedViewController == nil else {
-            continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Tool execution failed: authorization dialog is already presented."),
-            ]))
-            return
-        }
-
-        controller.present(alert, animated: true) {
-            guard alert.isVisible else {
-                continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Failed to display confirmation dialog."),
-                ]))
-                return
-            }
-        }
+        ModelToolPresentation.present(
+            alert,
+            on: controller,
+            continuation: continuation,
+            displayFailure: String(localized: "Failed to display confirmation dialog."),
+        )
     }
 }

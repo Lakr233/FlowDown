@@ -227,7 +227,7 @@ struct ConversationSystemPromptBuilderTests {
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
-        enabledTools: [MTURLTool()],
+        enabledTools: [MTWebScraperTool()],
       ),
     )
 

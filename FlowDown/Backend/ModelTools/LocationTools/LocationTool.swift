@@ -20,10 +20,6 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
     private var loadingIndicator: AlertProgressIndicatorViewController?
     private var currentLocale: Locale?
 
-    override var shortDescription: String {
-        "get user's current location information"
-    }
-
     override var interfaceName: String {
         String(localized: "Current Location")
     }
@@ -31,18 +27,14 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
     override var definition: ChatRequestBody.Tool {
         .function(
             name: "get_current_location",
-            description: """
-            Gets the user's current location and returns structured address information.
-            This includes details like country, city, street address, and postal code where available.
-            """,
+            description:
+            "Get the user's current location as a structured address: country, city, street and postal code where available.",
             parameters: [
                 "type": "object",
                 "properties": [
                     "locale": [
                         "type": "string",
-                        "description": """
-                        Preferred locale for address formatting (e.g., "en_US", "zh_CN"). Provide empty string to use user's system locale.
-                        """,
+                        "description": "Locale for address formatting, e.g. \"en_US\". Pass an empty string for the system locale.",
                     ],
                 ],
                 "required": ["locale"],
@@ -68,23 +60,13 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
 
         // 解析输入参数
         if !input.isEmpty,
-           let data = input.data(using: .utf8),
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let json = decodeArguments(input),
            let localeIdentifier = json["locale"] as? String
         {
             locale = Locale(identifier: localeIdentifier)
         }
 
-        guard let viewController = await view.parentViewController else {
-            throw NSError(
-                domain: "MTLocationTool", code: 500,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(
-                        localized: "Could not find view controller",
-                    ),
-                ],
-            )
-        }
+        let viewController = try await anchorController(for: view)
 
         return try await requestLocationWithUserInteraction(
             controller: viewController, locale: locale,

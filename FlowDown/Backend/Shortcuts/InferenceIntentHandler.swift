@@ -509,13 +509,13 @@ enum InferenceIntentHandler {
     private static func memoryToolGuidance(proactiveMemoryProvided: Bool) -> String {
         var guidance = String(localized:
             """
-            The system provides several tools for your convenience. Please use them wisely and according to the user's query. Avoid requesting information that is already provided or easily inferred.
+            Use the provided tools when they fit the user's request. Don't look up what is already given or easily inferred.
             """)
 
         guidance += "\n\n" + MemoryStore.memoryToolsPrompt
 
         if proactiveMemoryProvided {
-            guidance += "\n\n" + String(localized: "A proactive memory summary has been provided above according to the user's setting. Treat it as reliable context and keep it updated through memory tools when necessary.")
+            guidance += "\n\n" + String(localized: "The memory summary above follows the user's settings. Treat it as reliable and keep it current with the memory tools.")
         }
 
         return guidance

@@ -28,10 +28,6 @@ class MCPTool: ModelTool, @unchecked Sendable {
 
     // MARK: - ModelTool Implementation
 
-    override var shortDescription: String {
-        toolInfo.description ?? String(localized: "MCP Tool")
-    }
-
     override var interfaceName: String {
         toolInfo.name
     }

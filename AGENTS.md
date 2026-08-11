@@ -122,6 +122,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - `ConfigurableKit` powers persisted user settings—add keys through dedicated `Value+*.swift` helpers and publish updates via its typed publishers.
 - Continuous input (drags, live resizes) must coalesce onto a `CADisplayLink` before running an animated layout pass. Animating on every event outruns the run loop's commit, so nothing is presented, no animation completes to be reclaimed, and each pass walks a longer list of live animations until the window appears frozen.
 - For local reasoning models, use the resolved model `reasoningConfig` and seed stream routing from the prepared prompt. Chat templates may prefill the opening reasoning delimiter, so generated output can begin inside reasoning and emit only the closing delimiter; parsers must also preserve partial delimiters across chunks.
+- Treat evaluation tool parameters as a wire-schema boundary: normalize shorthand parameter types into a root `type: object` JSON Schema before inference, preserve already-complete schemas, and test the encoded request shape against provider validation.
 
 ## Testing Expectations
 
@@ -129,6 +130,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - Keep `@Test` enablement predicates free of test events and side effects; optional fixture probes should return `false` when unavailable and only record failures from inside an enabled test.
 - Keep local test servers independent of reverse DNS; bind to the requested numeric host and publish the bound address directly.
 - When a model workflow changes its structured-output contract, migrate its replay request/response fixtures in the same change and run `make test-online-e2e`.
+- Route replay fixtures by their most specific semantic discriminator, such as a required tool name, before applying generic stream or transport fallbacks.
 - Run app-level tests through `make test` or `make test-unit`.
 - Use `make test-online-e2e` when a change needs the online E2E suite.
 - Document manual verification steps whenever UI or integration flows lack automation.

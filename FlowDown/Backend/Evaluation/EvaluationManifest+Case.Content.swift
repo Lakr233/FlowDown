@@ -54,6 +54,30 @@ extension EvaluationManifest.Suite.Case {
         let description: String
         let parameters: [String: AnyCodingValue]
 
+        var requestParameters: [String: AnyCodingValue] {
+            if parameters["type"] == "object" {
+                return parameters
+            }
+
+            let properties = parameters.mapValues { parameter in
+                switch parameter {
+                case let .string(type):
+                    AnyCodingValue.object(["type": .string(type)])
+                default:
+                    parameter
+                }
+            }
+
+            var schema: [String: AnyCodingValue] = [
+                "type": "object",
+                "properties": .object(properties),
+            ]
+            if !properties.isEmpty {
+                schema["required"] = .array(properties.keys.sorted().map(AnyCodingValue.string))
+            }
+            return schema
+        }
+
         init(name: String, description: String, parameters: [String: AnyCodingValue]) {
             self.name = name
             self.description = description

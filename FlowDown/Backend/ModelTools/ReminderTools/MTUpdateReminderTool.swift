@@ -13,10 +13,6 @@ import Foundation
 import UIKit
 
 class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
-  override var shortDescription: String {
-    "update fields of an existing reminder by ID"
-  }
-
   override var interfaceName: String {
     String(localized: "Update Reminder")
   }
@@ -25,52 +21,47 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
     .function(
       name: "update_reminder",
       description: """
-        Update an existing reminder. Use query_reminders first to obtain the reminder_id. To leave a field unchanged, pass empty string (or -1 for priority) and false for the matching clear_* flag. To clear a field back to empty, set the matching clear_* flag to true and pass empty string (or -1 for priority) for the value. Sending both a non-empty value and clear_*=true on the same field is rejected. list_name has no clear flag because every reminder must live in some list. All dates are ISO 8601 UTC.
+        Update a reminder; get reminder_id from query_reminders first.
+        Leave a field alone with an empty string (-1 for priority) and clear_*=false; erase it with clear_*=true and that same empty value. Sending a value together with clear_*=true is rejected. list_name has no clear flag since every reminder lives in a list. Dates are ISO 8601 UTC.
         """,
       parameters: [
         "type": "object",
         "properties": [
           "reminder_id": [
             "type": "string",
-            "description": "calendarItemIdentifier of the reminder, from query_reminders.",
+            "description": "calendarItemIdentifier from query_reminders.",
           ],
           "title": [
             "type": "string",
-            "description": "New title. Pass empty string to leave unchanged.",
+            "description": "New title. Empty leaves it unchanged.",
           ],
           "notes": [
             "type": "string",
-            "description": "New notes. Pass empty string to leave unchanged.",
+            "description": "New notes. Empty leaves them unchanged.",
           ],
           "clear_notes": [
             "type": "boolean",
-            "description":
-              "Set true to remove existing notes. Cannot be combined with a non-empty notes value.",
+            "description": "true removes the notes; cannot pair with a notes value.",
           ],
           "due_date": [
             "type": "string",
-            "description":
-              "New due date in ISO 8601 UTC (yyyy-MM-dd'T'HH:mm:ss'Z'). Pass empty string to leave unchanged.",
+            "description": "New due date, ISO 8601 UTC. Empty leaves it unchanged.",
           ],
           "clear_due_date": [
             "type": "boolean",
-            "description":
-              "Set true to remove the existing due date. Cannot be combined with a non-empty due_date.",
+            "description": "true removes the due date; cannot pair with a due_date value.",
           ],
           "priority": [
             "type": "integer",
-            "description":
-              "New priority (0 = none, 1 = high, 5 = medium, 9 = low). Pass -1 to leave unchanged.",
+            "description": "New priority: 0 none, 1 high, 5 medium, 9 low. -1 leaves it unchanged.",
           ],
           "clear_priority": [
             "type": "boolean",
-            "description":
-              "Set true to clear priority back to none (0). Cannot be combined with a priority >= 0.",
+            "description": "true clears priority to none; cannot pair with a priority >= 0.",
           ],
           "list_name": [
             "type": "string",
-            "description":
-              "Move to this Reminders list by name. Pass empty string to leave unchanged. The list must already exist.",
+            "description": "Move to this existing Reminders list. Empty leaves it unchanged.",
           ],
         ],
         "required": [
@@ -99,8 +90,7 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
   }
 
   override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-    guard let data = input.data(using: .utf8),
-      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+    guard let json = decodeArguments(input),
       let reminderId = json["reminder_id"] as? String, !reminderId.isEmpty
     else {
       throw NSError(
@@ -113,14 +103,7 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
 
     let parsed = try Self.parseChanges(from: json)
 
-    guard let viewController = await view.parentViewController else {
-      throw NSError(
-        domain: "MTUpdateReminderTool", code: 500,
-        userInfo: [
-          NSLocalizedDescriptionKey: String(localized: "Could not find view controller")
-        ],
-      )
-    }
+    let viewController = try await anchorController(for: view)
 
     return try await updateWithUserInteraction(
       reminderId: reminderId,
@@ -216,43 +199,23 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
     changes: ParsedChanges,
     controller: UIViewController,
   ) async throws -> String {
-    try await withCheckedThrowingContinuation { cont in
-      ReminderToolsShared.requestAccess { [weak self] granted in
-        Task { @MainActor in
-          guard let self else {
-            cont.resume(
-              throwing: ReminderToolsShared.internalError(
-                "Reminder tool was deallocated before completion."))
-            return
-          }
-          guard granted else {
-            cont.resume(throwing: ReminderToolsShared.authorizationDeniedError())
-            return
-          }
-
-          let eventStore = EKEventStore()
-          guard
-            let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore)
-          else {
-            cont.resume(
-              throwing: NSError(
-                domain: String(localized: "Tool"), code: -1,
-                userInfo: [
-                  NSLocalizedDescriptionKey: String(
-                    localized: "Reminder with id \(reminderId) not found.")
-                ]))
-            return
-          }
-
-          self.showConfirmation(
-            reminder: reminder,
-            eventStore: eventStore,
-            changes: changes,
-            controller: controller,
-            continuation: cont,
-          )
-        }
+    try await ReminderToolsShared.withAuthorization { cont in
+      let eventStore = EKEventStore()
+      guard
+        let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore)
+      else {
+        cont.resume(
+          throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found.")))
+        return
       }
+
+      self.showConfirmation(
+        reminder: reminder,
+        eventStore: eventStore,
+        changes: changes,
+        controller: controller,
+        continuation: cont,
+      )
     }
   }
 
@@ -308,11 +271,7 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
       context.addAction(title: "Cancel") {
         context.dispose {
           continuation.resume(
-            throwing: NSError(
-              domain: String(localized: "Tool"), code: -1,
-              userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "User cancelled the operation.")
-              ]))
+            throwing: ModelToolError.userCancelled())
         }
       }
       context.addAction(title: "Update", attribute: .accent) {
@@ -352,38 +311,17 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
             continuation.resume(throwing: error)
           } catch {
             continuation.resume(
-              throwing: NSError(
-                domain: String(localized: "Tool"), code: -1,
-                userInfo: [
-                  NSLocalizedDescriptionKey: String(
-                    localized: "Failed to update reminder: \(error.localizedDescription)")
-                ]))
+              throwing: ModelToolError.failure(String(localized: "Failed to update reminder: \(error.localizedDescription)")))
           }
         }
       }
     }
 
-    guard controller.presentedViewController == nil else {
-      continuation.resume(
-        throwing: NSError(
-          domain: String(localized: "Tool"), code: -1,
-          userInfo: [
-            NSLocalizedDescriptionKey: String(
-              localized: "Tool execution failed: authorization dialog is already presented.")
-          ]))
-      return
-    }
-
-    controller.present(alert, animated: true) {
-      guard alert.isVisible else {
-        continuation.resume(
-          throwing: NSError(
-            domain: String(localized: "Tool"), code: -1,
-            userInfo: [
-              NSLocalizedDescriptionKey: String(localized: "Failed to display confirmation dialog.")
-            ]))
-        return
-      }
-    }
+    ModelToolPresentation.present(
+      alert,
+      on: controller,
+      continuation: continuation,
+      displayFailure: String(localized: "Failed to display confirmation dialog."),
+    )
   }
 }

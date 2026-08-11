@@ -12,10 +12,6 @@ import ScrubberKit
 import UIKit
 
 class MTWebScraperTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "scrape content from web pages"
-    }
-
     override var interfaceName: String {
         String(localized: "Web Reader")
     }
@@ -23,18 +19,13 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
     override var definition: ChatRequestBody.Tool {
         .function(
             name: "scrape_web_page",
-            description: """
-            Scrapes content from a given URL and returns the text content of the page.
-            This can be used to get information from websites, read articles, or extract data.
-            """,
+            description: "Fetch a web page and return its text content, for reading articles or extracting data.",
             parameters: [
                 "type": "object",
                 "properties": [
                     "url": [
                         "type": "string",
-                        "description": """
-                        The URL of the web page to scrape. Must be a valid HTTP or HTTPS URL.
-                        """,
+                        "description": "Page URL, HTTP or HTTPS.",
                     ],
                 ],
                 "required": ["url"],
@@ -56,8 +47,7 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let urlString = json["url"] as? String,
               let url = URL(string: urlString),
               let scheme = url.scheme,
@@ -79,9 +69,7 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
         try await withCheckedThrowingContinuation { continuation in
             Scrubber.document(for: url) { doc in
                 guard let doc else {
-                    continuation.resume(throwing: NSError(domain: String(localized: "Tool"), code: -1, userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "Failed to fetch the web content."),
-                    ]))
+                    continuation.resume(throwing: ModelToolError.failure(String(localized: "Failed to fetch the web content.")))
                     return
                 }
 

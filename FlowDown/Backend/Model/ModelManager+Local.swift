@@ -62,47 +62,11 @@ extension ModelCapabilities {
 
 extension LocalModel {
     var modelDisplayName: String {
-        var ret = model_identifier
-        let scope = scopeIdentifier
-        if !scope.isEmpty, ret.hasPrefix(scopeIdentifier + "/") {
-            ret.removeFirst(scopeIdentifier.count + 1)
-        }
-        if ret.isEmpty { ret = String(localized: "Not Configured") }
-        return ret
-    }
-
-    var scopeIdentifier: String {
-        if model_identifier.contains("/") {
-            return model_identifier.components(separatedBy: "/").first ?? ""
-        }
-        return ""
-    }
-
-    var inferenceHost: String {
-        "localhost"
-    }
-
-    var auxiliaryIdentifier: String {
-        [
-            "@",
-            inferenceHost,
-            scopeIdentifier.isEmpty ? "" : "@\(scopeIdentifier)",
-        ].filter { !$0.isEmpty }.joined()
+        scopelessModelName
     }
 
     var repoIdentifier: String {
         model_identifier
-    }
-
-    var tags: [String] {
-        var input: [String] = []
-        input.append(auxiliaryIdentifier)
-        let caps = ModelCapabilities.allCases
-            .filter { capabilities.contains($0) }
-            .map(\.title)
-            .map { String(localized: $0) }
-        input.append(contentsOf: caps)
-        return input.filter { !$0.isEmpty }
     }
 }
 
@@ -204,10 +168,6 @@ extension ModelManager {
         localModels.send(scanLocalModels())
     }
 
-    func localModelExists(identifier mid: LocalModelIdentifier) -> Bool {
-        localModels.value.contains { $0.id.lowercased() == mid.lowercased() }
-    }
-
     /// HuggingFace Identifier, eg: mlx-community/Qwen2-VL-7B-Instruct-4bit
     func localModelExists(repoIdentifier: String) -> Bool {
         localModels.value.contains {
@@ -219,14 +179,6 @@ extension ModelManager {
         let url = dirForLocalModel(identifier: mid)
         try? FileManager.default.removeItem(at: url)
         localModels.send(scanLocalModels())
-    }
-
-    func removeLocalModel(repoIdentifier: String) {
-        let model = localModels.value.first {
-            $0.repoIdentifier.lowercased() == repoIdentifier.lowercased()
-        }
-        guard let mid = model?.id else { return }
-        removeLocalModel(identifier: mid)
     }
 
     func modelContent(for model: LocalModel) -> URL {

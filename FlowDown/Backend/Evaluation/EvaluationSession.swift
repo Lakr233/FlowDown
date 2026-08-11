@@ -257,10 +257,8 @@ extension EvaluationSession {
                     messages.append(.user(content: .text(text)))
                 }
             case .toolDefinition:
-                if let toolRep = content.toolRepresentation,
-                   let tool = convertToTool(toolRep)
-                {
-                    tools.append(tool)
+                if let toolRep = content.toolRepresentation {
+                    tools.append(convertToTool(toolRep))
                 }
             case .reasoning:
                 if let text = content.textRepresentation {
@@ -312,11 +310,11 @@ extension EvaluationSession {
         }
     }
 
-    private func convertToTool(_ rep: EvaluationManifest.Suite.Case.ToolRepresentation) -> ChatRequestBody.Tool? {
+    private func convertToTool(_ rep: EvaluationManifest.Suite.Case.ToolRepresentation) -> ChatRequestBody.Tool {
         .function(
             name: rep.name,
             description: rep.description,
-            parameters: rep.parameters,
+            parameters: rep.requestParameters,
             strict: false,
         )
     }

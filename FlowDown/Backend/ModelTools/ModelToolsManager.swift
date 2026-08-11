@@ -65,51 +65,34 @@ class ModelToolsManager {
   }
 
   private init() {
-    #if targetEnvironment(macCatalyst)
-      tools = [
-        MTAddCalendarTool(),
-        MTQueryCalendarTool(),
+    var registry: [ModelTool] = [
+      MTAddCalendarTool(),
+      MTQueryCalendarTool(),
 
-        MTAddReminderTool(),
-        MTQueryReminderTool(),
-        MTUpdateReminderTool(),
-        MTCompleteReminderTool(),
-        MTDeleteReminderTool(),
+      MTAddReminderTool(),
+      MTQueryReminderTool(),
+      MTUpdateReminderTool(),
+      MTCompleteReminderTool(),
+      MTDeleteReminderTool(),
 
-        MTWebSearchTool(),
-        MTWebScraperTool(),
+      MTWebSearchTool(),
+      MTWebScraperTool(),
+    ]
 
-        //            MTLocationTool(),
-
-        MTStoreMemoryTool(),
-        MTRecallMemoryTool(),
-        MTListMemoriesTool(),
-        MTUpdateMemoryTool(),
-        MTDeleteMemoryTool(),
-      ]
-    #else
-      tools = [
-        MTAddCalendarTool(),
-        MTQueryCalendarTool(),
-
-        MTAddReminderTool(),
-        MTQueryReminderTool(),
-        MTUpdateReminderTool(),
-        MTCompleteReminderTool(),
-        MTDeleteReminderTool(),
-
-        MTWebSearchTool(),
-        MTWebScraperTool(),
-
-        MTLocationTool(),
-
-        MTStoreMemoryTool(),
-        MTRecallMemoryTool(),
-        MTListMemoriesTool(),
-        MTUpdateMemoryTool(),
-        MTDeleteMemoryTool(),
-      ]
+    // location services are not available on macOS
+    #if !targetEnvironment(macCatalyst)
+      registry.append(MTLocationTool())
     #endif
+
+    registry.append(contentsOf: [
+      MTStoreMemoryTool(),
+      MTRecallMemoryTool(),
+      MTListMemoriesTool(),
+      MTUpdateMemoryTool(),
+      MTDeleteMemoryTool(),
+    ])
+
+    tools = registry
 
     #if DEBUG
       var registeredToolNames: Set<String> = []
@@ -137,10 +120,6 @@ class ModelToolsManager {
 
   var reminderTools: [ModelTool] {
     tools.filter(Self.isReminderTool)
-  }
-
-  var enabledMemoryTools: [ModelTool] {
-    enabledTools.filter(Self.isMemoryTool)
   }
 
   var enabledMemoryWritingTools: [ModelTool] {
@@ -190,13 +169,6 @@ class ModelToolsManager {
       if Self.isCalendarTool(tool) { return false }
       if Self.isReminderTool(tool) { return false }
       return true
-    }
-  }
-
-  func tool(for request: ToolRequest) -> ModelTool? {
-    Logger.model.debugFile("finding tool call with function name \(request.name)")
-    return enabledTools.first {
-      $0.functionName.lowercased() == request.name.lowercased()
     }
   }
 
@@ -337,7 +309,7 @@ class ModelToolsManager {
             name += " " + mimeType
           }
           name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-          if let data = parseDataFromString(dataString), UIImage(data: data) != nil {
+          if let data = AttachmentDataParser.decodeData(from: dataString), UIImage(data: data) != nil {
             imageAttachments.append(
               .init(
                 name: name,
@@ -358,7 +330,7 @@ class ModelToolsManager {
             name += " " + mimeType
           }
           name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-          if let data = parseDataFromString(dataString) {
+          if let data = AttachmentDataParser.decodeData(from: dataString) {
             audioAttachments.append(
               .init(
                 name: name,
@@ -407,10 +379,6 @@ class ModelToolsManager {
     } else {
       return .init(text: ans, imageAttachments: [], audioAttachments: [])
     }
-  }
-
-  private func parseDataFromString(_ dataString: String) -> Data? {
-    AttachmentDataParser.decodeData(from: dataString)
   }
 }
 

@@ -60,12 +60,9 @@ extension ConversationSession {
         messages.append(.user(content: .parts([.imageURL(url)])))
         messages.append(.user(content: .text(String(localized: "Please describe the image."))))
 
-        var decision: ModelManager.ModelIdentifier?
-        if decision == nil,
-           let model = models.visualAuxiliary,
-           ModelManager.shared.modelCapabilities(identifier: model).contains(.visual)
-        { decision = model }
-        guard let decision else { return "" }
+        guard let decision = models.visualAuxiliary,
+              ModelManager.shared.modelCapabilities(identifier: decision).contains(.visual)
+        else { return "" }
 
         Logger.model.infoFile("describing image with model: \(ModelManager.shared.modelName(identifier: decision))")
 
@@ -78,7 +75,7 @@ extension ConversationSession {
             with: decision,
             input: messages,
         ) {
-            await requestUpdate(view: currentMessageListView)
+            await requestUpdate()
             switch chunk {
             case let .text(value):
                 llmText += value
@@ -89,7 +86,7 @@ extension ConversationSession {
                 break
             }
             startThinking(for: message.objectId)
-            await requestUpdate(view: currentMessageListView)
+            await requestUpdate()
         }
 
         if !message.reasoningContent.isEmpty {
@@ -102,7 +99,7 @@ extension ConversationSession {
             message.update(\.isThinkingFold, to: true)
         }
         stopThinking(for: message.objectId)
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
         showActivity()
 
         llmText = llmText

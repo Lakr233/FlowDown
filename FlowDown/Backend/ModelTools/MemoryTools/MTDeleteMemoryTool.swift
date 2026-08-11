@@ -11,10 +11,6 @@ import Foundation
 import UIKit
 
 class MTDeleteMemoryTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "delete a specific memory using its ID"
-    }
-
     override var interfaceName: String {
         String(localized: "Delete Memory")
     }
@@ -22,19 +18,17 @@ class MTDeleteMemoryTool: ModelTool, @unchecked Sendable {
     override var definition: ChatRequestBody.Tool {
         .function(
             name: "delete_memory",
-            description: """
-            Deletes a specific memory using its unique ID. Use list_memories first to get the memory ID, then use this tool to remove outdated or incorrect memories.
-            """,
+            description: "Delete a memory that is outdated or wrong. Get its ID from list_memories first.",
             parameters: [
                 "type": "object",
                 "properties": [
                     "memory_id": [
                         "type": "string",
-                        "description": "The unique ID of the memory to delete (obtained from list_memories).",
+                        "description": "Memory ID from list_memories.",
                     ],
                     "reason": [
                         "type": "string",
-                        "description": "Reason for deleting this memory (e.g., 'outdated', 'incorrect', 'no longer relevant').",
+                        "description": "Why it is being deleted, e.g. outdated or incorrect.",
                     ],
                 ],
                 "required": ["memory_id", "reason"],
@@ -56,8 +50,7 @@ class MTDeleteMemoryTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let memoryId = json["memory_id"] as? String
         else {
             throw NSError(

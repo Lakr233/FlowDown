@@ -128,7 +128,7 @@ struct MCPToolDiscoveryTests {
         )
 
         #expect(tool.functionName == "translate")
-        #expect(tool.shortDescription == "translate text")
+        #expect(tool.toolInfo.description == "translate text")
 
         do {
             _ = try await service.callTool(name: "translate", from: unconnectedServer.id)

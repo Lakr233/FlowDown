@@ -182,14 +182,6 @@ final class ConversationSession: Identifiable {
     }
 
     private func updateAttachment(_ attachment: Attachment, using object: RichEditorView.Object.Attachment) {
-//        attachment.objectId = object.id.uuidString
-//        attachment.type = object.type.rawValue
-//        attachment.name = object.name
-//        attachment.previewImageData = object.previewImage
-//        attachment.representedDocument = object.textRepresentation
-//        attachment.storageSuffix = object.storageSuffix
-//        attachment.imageRepresentation = object.imageRepresentation
-
         attachment.update(\.objectId, to: object.id.uuidString)
         attachment.update(\.type, to: object.type.rawValue)
         attachment.update(\.name, to: object.name)
@@ -241,7 +233,6 @@ final class ConversationSession: Identifiable {
     func refreshContentsFromDatabase(sanitizeInterrupted: Bool = false) {
         // Load historical messages from the database.
         assert(Thread.isMainThread, "refreshContentsFromDatabase must be called on main thread for UI coherence")
-        messages.removeAll()
         attachments.removeAll()
         messages = sdb.listMessages(within: id)
         linkedContents.removeAll()
@@ -406,14 +397,7 @@ final class ConversationSession: Identifiable {
             return nil
         }
 
-        for idx in messages.indices.reversed() where messages[idx].creation <= message.creation {
-            let message = messages[idx]
-            // check if is user message
-            if message.role == .user {
-                return message
-            }
-        }
-        return nil
+        return messages.last { $0.creation <= message.creation && $0.role == .user }
     }
 
     func retry(byClearAfter messageIdentifier: Message.ID, currentMessageListView: MessageListView) {

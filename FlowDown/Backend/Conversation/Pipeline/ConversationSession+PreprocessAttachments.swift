@@ -20,9 +20,12 @@ extension ConversationSession {
         let skipImageRecognition = ModelManager.shared.defaultModelForAuxiliaryVisualTaskSkipIfPossible
             && modelSupportsVisualInput
 
-        let attachmentThatRequiresProcess = object.attachments.filter {
-            $0.type == .image && $0.textRepresentation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        func requiresRecognition(_ attachment: RichEditorView.Object.Attachment) -> Bool {
+            attachment.type == .image
+                && attachment.textRepresentation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
+
+        let attachmentThatRequiresProcess = object.attachments.filter(requiresRecognition)
 
         guard attachmentThatRequiresProcess.count > 0, !skipImageRecognition else {
             Logger.app.infoFile("requires to process \(attachmentThatRequiresProcess.count) attachments but skipImageRecognition is \(skipImageRecognition)")
@@ -31,12 +34,9 @@ extension ConversationSession {
 
         var processCount = 0
         for idx in 0 ..< object.attachments.count
-            where object.attachments[idx].type == .image
-            && object.attachments[idx].textRepresentation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            where requiresRecognition(object.attachments[idx])
         {
             let attach = object.attachments[idx]
-            assert(object.attachments[idx].type == .image)
-            assert(object.attachments[idx].textRepresentation.isEmpty)
             processCount += 1
 
             // describe the image into text

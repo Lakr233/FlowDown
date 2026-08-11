@@ -187,6 +187,14 @@ def scenario_key(body: dict[str, Any]) -> str:
     text = flatten_messages(messages).lower()
     names = tool_names(tools)
 
+    if "save_conversation_metadata" in names:
+        return "conversation_metadata"
+
+    if "save_chat_template" in names:
+        if "[current template name]" in text and "weekly status" in text:
+            return "template_rewrite"
+        return "template_generation"
+
     if not body.get("stream", False):
         return "cache_usage"
 
@@ -203,17 +211,8 @@ def scenario_key(body: dict[str, Any]) -> str:
     if "add_numbers" in text and "42" in text:
         return "tool_add_numbers_final"
 
-    if "generate conversation metadata" in text:
-        return "conversation_metadata"
-
     if "professional conversation summarization assistant" in text or "project atlas ships" in text:
         return "conversation_compression"
-
-    if "template_generation" in text:
-        return "template_generation"
-
-    if "current template:" in text and "weekly status" in text:
-        return "template_rewrite"
 
     if "five words or fewer" in text:
         return "reasoning_sky_short"

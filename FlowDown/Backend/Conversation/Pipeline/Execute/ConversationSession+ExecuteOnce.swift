@@ -12,16 +12,32 @@ import Storage
 import UniformTypeIdentifiers
 
 extension ConversationSession {
+    /// Appends a streamed chunk to one of the message's text fields and reports
+    /// the growth so the token counter and the stall watchdog stay honest.
+    private func append(
+        _ value: String,
+        of message: Message,
+        to keyPath: ReferenceWritableKeyPath<Message, String>,
+    ) async {
+        let oldCount = message[keyPath: keyPath].count
+        let newValue = message[keyPath: keyPath] + value
+        message.update(keyPath, to: newValue)
+        let delta = newValue.count - oldCount
+        guard delta > 0 else { return }
+        recordVisibleProgress()
+        await MainActor.run {
+            ConversationSessionManager.shared.countIncomingTokens(delta)
+        }
+    }
+
     func doMainInferenceOnce(
         _ currentMessageListView: MessageListView,
         _ modelID: ModelManager.ModelIdentifier,
         _ requestMessages: inout [ChatRequestBody.Message],
         _ tools: [ChatRequestBody.Tool]?,
         _ modelWillExecuteTools: Bool,
-        linkedContents: [Int: URL],
-        requestLinkContentIndex: @escaping (URL) -> Int,
     ) async throws -> Bool {
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
         showActivity()
 
         let message = appendNewMessage(role: .assistant)
@@ -36,15 +52,7 @@ extension ConversationSession {
         )
         defer { self.stopThinking(for: message.objectId) }
 
-        let isImmediateFollowUpAfterToolCall: Bool = {
-            guard let lastMessage = requestMessages.last else {
-                return false
-            }
-            if case .tool = lastMessage {
-                return true
-            }
-            return false
-        }()
+        let isImmediateFollowUpAfterToolCall: Bool = if case .tool = requestMessages.last { true } else { false }
         var pendingToolCalls: [ToolRequest] = []
         var generatedImages: [ImageContent] = []
         let collapseAfterReasoningComplete = ModelManager.shared.collapseReasoningSectionWhenComplete
@@ -53,27 +61,9 @@ extension ConversationSession {
         for try await resp in stream {
             switch resp {
             case let .reasoning(value):
-                let oldCount = message.reasoningContent.count
-                let newValue = message.reasoningContent + value
-                message.update(\.reasoningContent, to: newValue)
-                let delta = newValue.count - oldCount
-                if delta > 0 {
-                    recordVisibleProgress()
-                    await MainActor.run {
-                        ConversationSessionManager.shared.countIncomingTokens(delta)
-                    }
-                }
+                await append(value, of: message, to: \.reasoningContent)
             case let .text(value):
-                let oldCount = message.document.count
-                let newValue = message.document + value
-                message.update(\.document, to: newValue)
-                let delta = newValue.count - oldCount
-                if delta > 0 {
-                    recordVisibleProgress()
-                    await MainActor.run {
-                        ConversationSessionManager.shared.countIncomingTokens(delta)
-                    }
-                }
+                await append(value, of: message, to: \.document)
             case let .tool(call):
                 // Tool-call deltas render nothing; without the indicator the
                 // stream looks stalled while the model emits arguments.
@@ -104,14 +94,9 @@ extension ConversationSession {
                 ]
 
                 let attachmentHolder = appendNewMessage(role: .user)
-                let receivedText = if attachments.count > 1 {
-                    String(localized: "Received \(attachments.count) images.")
-                } else {
-                    String(localized: "Received an image")
-                }
-                attachmentHolder.update(\.document, to: receivedText)
+                attachmentHolder.update(\.document, to: String(localized: "Received an image"))
                 addAttachments(attachments, to: attachmentHolder)
-                await requestUpdate(view: currentMessageListView)
+                await requestUpdate()
             }
 
             if !message.document.isEmpty {
@@ -123,14 +108,14 @@ extension ConversationSession {
             } else if !message.reasoningContent.isEmpty {
                 startThinking(for: message.objectId)
             }
-            await requestUpdate(view: currentMessageListView)
+            await requestUpdate()
         }
         stopThinking(for: message.objectId)
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
 
         if collapseAfterReasoningComplete {
             message.update(\.isThinkingFold, to: true)
-            await requestUpdate(view: currentMessageListView)
+            await requestUpdate()
         }
 
         if !message.document.isEmpty {
@@ -156,7 +141,7 @@ extension ConversationSession {
 
         if shouldSilentlyDropEmptyAssistantMessage {
             discard(messageIdentifier: message.objectId)
-            await requestUpdate(view: currentMessageListView)
+            await requestUpdate()
             return false
         }
 
@@ -169,7 +154,7 @@ extension ConversationSession {
             ToolCallArgumentRepair.normalize(request: $0, using: tools)
         }
 
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
         requestMessages.append(
             .assistant(
                 content: message.document.isEmpty ? nil : .text(message.document),
@@ -198,7 +183,7 @@ extension ConversationSession {
         guard !pendingToolCalls.isEmpty else { return false }
         assert(modelWillExecuteTools)
 
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
         showActivity(String(localized: "Utilizing tool call"))
 
         for request in pendingToolCalls {
@@ -267,7 +252,7 @@ extension ConversationSession {
                 let toolMessage = appendNewMessage(role: .toolHint)
                 toolMessage.update(\.toolStatus, to: toolStatus)
                 encodeToolRequestAndAttachToToolMessage(request, message: toolMessage)
-                await requestUpdate(view: currentMessageListView)
+                await requestUpdate()
                 // The running tool row (and a possible confirmation dialog)
                 // is the visible progress now.
                 hideActivity()
@@ -339,7 +324,7 @@ extension ConversationSession {
 
                         addAttachments(editorObjects, to: collectorMessage)
                         updateAttachments(editorObjects, for: collectorMessage)
-                        await requestUpdate(view: currentMessageListView)
+                        await requestUpdate()
 
                         // 如果模型支持图片则添加到请求消息中 如果不支持 tool 一般已经返回了需要的 text 信息
                         let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
@@ -362,7 +347,7 @@ extension ConversationSession {
                     toolStatus.state = 1
                     toolStatus.message = toolResponseText
                     toolMessage.update(\.toolStatus, to: toolStatus)
-                    await requestUpdate(view: currentMessageListView)
+                    await requestUpdate()
                     let finalToolContent = toolResponseText.trimmingCharacters(in: .whitespacesAndNewlines)
                     requestMessages.append(.tool(
                         content: .text(finalToolContent.isEmpty ? String(localized: "Tool executed successfully with no output") : toolResponseText),
@@ -376,7 +361,7 @@ extension ConversationSession {
                         : error.localizedDescription
                     toolMessage.update(\.toolStatus, to: toolStatus)
                     save()
-                    await requestUpdate(view: currentMessageListView)
+                    await requestUpdate()
                     // The row is settled; only then may cancellation abort the
                     // round, otherwise it would stay "running" forever.
                     if cancelled { throw InferenceUserCancellationError() }
@@ -385,7 +370,7 @@ extension ConversationSession {
             }
         }
 
-        await requestUpdate(view: currentMessageListView)
+        await requestUpdate()
         return true
     }
 }

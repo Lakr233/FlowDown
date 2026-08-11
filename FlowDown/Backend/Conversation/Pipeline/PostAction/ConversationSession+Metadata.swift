@@ -93,6 +93,29 @@ enum ConversationMetadataToolCall {
     }
 }
 
+extension ConversationManager {
+    /// Writes generated metadata onto the stored conversation. Automatic renames
+    /// also clear `shouldAutoRename` so a generated title is only ever chosen once.
+    func applyMetadata(
+        _ metadata: ConversationMetadata,
+        to identifier: Conversation.ID,
+        disablingAutoRename: Bool,
+    ) {
+        editConversation(identifier: identifier) {
+            if let title = metadata.title {
+                $0.update(\.title, to: title)
+            }
+            if let icon = metadata.icon {
+                let iconData = icon.textToImage(size: 128)?.pngData() ?? .init()
+                $0.update(\.icon, to: iconData)
+            }
+            if disablingAutoRename {
+                $0.update(\.shouldAutoRename, to: false)
+            }
+        }
+    }
+}
+
 extension ConversationSessionManager.Session {
     func generateConversationMetadata() async -> ConversationMetadata? {
         guard let userMessage = messages.last(where: { $0.role == .user })?.document else {

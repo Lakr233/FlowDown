@@ -20,7 +20,8 @@ enum ConversationSystemPromptBuilder {
         let enabledTools: [ModelTool]
         let proactiveMemoryScope: MemoryProactiveProvisionScope
         let searchSensitivity: ModelManager.SearchSensitivity
-        let runtimeSystemInfoProvider: ((String) -> String)?
+        /// Cleared when the user opts out of dynamic system info.
+        var runtimeSystemInfoProvider: ((String) -> String)?
         let proactiveMemoryContextProvider: () async -> String?
         let recentConversationContextProvider: (_ limit: Int) async -> String?
 
@@ -32,13 +33,10 @@ enum ConversationSystemPromptBuilder {
                 runtimeSystemInfoProvider: { modelName in
                     String(localized:
                         """
-                        System is providing you up to date information about current query:
-
-                        Model/Your Name: \(modelName)
-                        Current Date: \(Date().formatted(date: .long, time: .complete))
-                        Current User Locale: \(Locale.current.identifier)
-
-                        Please use up-to-date information and ensure compliance with the previously provided guidelines.
+                        Current context:
+                        Your Name: \(modelName)
+                        Date: \(Date().formatted(date: .long, time: .complete))
+                        User Locale: \(Locale.current.identifier)
                         """)
                 },
                 proactiveMemoryContextProvider: {
@@ -108,7 +106,7 @@ enum ConversationSystemPromptBuilder {
         if input.modelWillExecuteTools {
             var toolGuidance = String(localized:
                 """
-                The system provides several tools for your convenience. Please use them wisely and according to the user's query. Avoid requesting information that is already provided or easily inferred.
+                Use the provided tools when they fit the user's request. Don't look up what is already given or easily inferred.
                 """)
 
             if shouldExposeMemory {
@@ -117,7 +115,7 @@ enum ConversationSystemPromptBuilder {
 
             if proactiveMemoryProvided {
                 toolGuidance += "\n\n" +
-                    String(localized: "A proactive memory summary has been provided above according to the user's setting. Treat it as reliable context and keep it updated through memory tools when necessary.")
+                    String(localized: "The memory summary above follows the user's settings. Treat it as reliable and keep it current with the memory tools.")
             }
 
             requestMessages.append(.system(content: .text(toolGuidance)))

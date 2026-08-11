@@ -211,8 +211,8 @@ class ModelManager: NSObject {
         if !defaultModelForAuxiliaryVisualTask.isEmpty {
             let localModelSatisfied = localModel(identifier: defaultModelForAuxiliaryVisualTask)?.capabilities.contains(.visual) ?? false
             let cloudModelSatisfied = cloudModel(identifier: defaultModelForAuxiliaryVisualTask)?.capabilities.contains(.visual) ?? false
-            let appleIntelligenceSatisfied = false // Apple Intelligence does not support visual capabilities
-            if !localModelSatisfied, !cloudModelSatisfied, !appleIntelligenceSatisfied {
+            // Apple Intelligence does not support visual capabilities
+            if !localModelSatisfied, !cloudModelSatisfied {
                 Logger.model.debugFile("reset defaultModelForAuxiliaryVisualTask due to not found")
                 defaultModelForAuxiliaryVisualTask = ""
             }

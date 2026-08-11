@@ -13,10 +13,6 @@ import Storage
 import UIKit
 
 class MTWebSearchTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        String(localized: "Web Search")
-    }
-
     override var interfaceName: String {
         String(localized: "Web Search")
     }
@@ -24,15 +20,13 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
     override var definition: ChatRequestBody.Tool {
         .function(
             name: "web_search",
-            description: """
-            Searches the web for current information based on the provided query. This tool can help find up-to-date information, news, facts, or any other content available on the internet.
-            """,
+            description: "Search the web for current information, news and facts.",
             parameters: [
                 "type": "object",
                 "properties": [
                     "query": [
                         "type": "string",
-                        "description": "The search query to look for on the web. Should be clear and specific to get the best results.",
+                        "description": "Search query, clear and specific.",
                     ],
                 ],
                 "required": ["query"],
@@ -63,8 +57,7 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
         webSearchMessage: Message,
         anchorTo messageListView: MessageListView,
     ) async throws -> [Scrubber.Document] {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let query = json["query"] as? String
         else {
             throw NSError(
@@ -78,7 +71,7 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
         status.queries = [query]
         webSearchMessage.assign(\.webSearchStatus, to: status)
 
-        await session.requestUpdate(view: messageListView)
+        await session.requestUpdate()
 
         var webSearchResults: [Scrubber.Document] = []
         let onSetWebContents: ([Scrubber.Document]) -> Void = { documents in
@@ -105,17 +98,13 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
             status.numberOfResults = phase.numberOfResults
             status.proccessProgress = max(0.1, phase.proccessProgress)
             webSearchMessage.assign(\.webSearchStatus, to: status)
-            await session.requestUpdate(view: messageListView)
+            await session.requestUpdate()
         }
 
         var statusFinal = webSearchMessage.webSearchStatus
         statusFinal.proccessProgress = 1.0
         webSearchMessage.assign(\.webSearchStatus, to: statusFinal)
-        await session.requestUpdate(view: messageListView)
-
-        if webSearchResults.isEmpty {
-            await session.requestUpdate(view: messageListView)
-        }
+        await session.requestUpdate()
 
         return webSearchResults
     }

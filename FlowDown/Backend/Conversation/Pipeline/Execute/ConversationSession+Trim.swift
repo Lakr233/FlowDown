@@ -61,62 +61,25 @@ extension ConversationSession {
         var summaryTokenCount = 0
 
         for idx in indicesToEvict {
-            let message = requestMessages[idx]
             let rolePrefix: String
             let firstLine: String
 
-            switch message {
+            switch requestMessages[idx] {
             case let .user(content, _):
                 rolePrefix = "user"
-                switch content {
-                case let .text(text):
-                    firstLine = firstNonEmptyLine(text)
-                case let .parts(parts):
-                    var extracted = ""
-                    for part in parts {
-                        if case let .text(partText) = part {
-                            extracted = partText
-                            break
-                        }
-                    }
-                    firstLine = firstNonEmptyLine(extracted)
-                }
+                firstLine = firstNonEmptyLine(of: content)
             case let .assistant(content, _, _):
                 rolePrefix = "assistant"
-                if let content {
-                    switch content {
-                    case let .text(text):
-                        firstLine = firstNonEmptyLine(text)
-                    case let .parts(parts):
-                        firstLine = firstNonEmptyLine(parts.joined(separator: "\n"))
-                    }
-                } else {
-                    firstLine = ""
-                }
+                firstLine = content.map(firstNonEmptyLine(of:)) ?? ""
             case let .system(content, _):
                 rolePrefix = "system"
-                switch content {
-                case let .text(text):
-                    firstLine = firstNonEmptyLine(text)
-                case let .parts(parts):
-                    firstLine = firstNonEmptyLine(parts.joined(separator: "\n"))
-                }
+                firstLine = firstNonEmptyLine(of: content)
             case let .tool(content, _):
                 rolePrefix = "tool"
-                switch content {
-                case let .text(text):
-                    firstLine = firstNonEmptyLine(text)
-                case let .parts(parts):
-                    firstLine = firstNonEmptyLine(parts.joined(separator: "\n"))
-                }
+                firstLine = firstNonEmptyLine(of: content)
             case let .developer(content, _):
                 rolePrefix = "developer"
-                switch content {
-                case let .text(text):
-                    firstLine = firstNonEmptyLine(text)
-                case let .parts(parts):
-                    firstLine = firstNonEmptyLine(parts.joined(separator: "\n"))
-                }
+                firstLine = firstNonEmptyLine(of: content)
             }
 
             guard !firstLine.isEmpty else { continue }
@@ -163,6 +126,27 @@ extension ConversationSession {
         }
 
         return true
+    }
+
+    /// Text-only messages carry either a single string or a list of strings.
+    private func firstNonEmptyLine(of content: ChatRequestBody.MessageContent<String, [String]>) -> String {
+        switch content {
+        case let .text(text): firstNonEmptyLine(text)
+        case let .parts(parts): firstNonEmptyLine(parts.joined(separator: "\n"))
+        }
+    }
+
+    /// User messages are multimodal: only the first text part carries a line.
+    private func firstNonEmptyLine(of content: ChatRequestBody.MessageContent<String, [ChatRequestBody.ContentPart]>) -> String {
+        switch content {
+        case let .text(text):
+            firstNonEmptyLine(text)
+        case let .parts(parts):
+            firstNonEmptyLine(parts.compactMap { part -> String? in
+                if case let .text(partText) = part { return partText }
+                return nil
+            }.first ?? "")
+        }
     }
 
     private func firstNonEmptyLine(_ text: String) -> String {

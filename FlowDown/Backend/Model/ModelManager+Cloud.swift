@@ -15,14 +15,7 @@ extension CloudModel {
         if !name.isEmpty {
             return name
         }
-
-        var ret = model_identifier
-        let scope = scopeIdentifier
-        if !scope.isEmpty, ret.hasPrefix(scopeIdentifier + "/") {
-            ret.removeFirst(scopeIdentifier.count + 1)
-        }
-        if ret.isEmpty { ret = String(localized: "Not Configured") }
-        return ret
+        return scopelessModelName
     }
 
     var modelFullName: String {
@@ -31,36 +24,6 @@ extension CloudModel {
             model_identifier,
             host,
         ].compactMap(\.self).joined(separator: "@")
-    }
-
-    var scopeIdentifier: String {
-        if model_identifier.contains("/") {
-            return model_identifier.components(separatedBy: "/").first ?? ""
-        }
-        return ""
-    }
-
-    var inferenceHost: String {
-        URL(string: endpoint)?.host ?? ""
-    }
-
-    var auxiliaryIdentifier: String {
-        [
-            "@",
-            inferenceHost,
-            scopeIdentifier.isEmpty ? "" : "@\(scopeIdentifier)",
-        ].filter { !$0.isEmpty }.joined()
-    }
-
-    var tags: [String] {
-        var input: [String] = []
-        input.append(auxiliaryIdentifier)
-        let caps = ModelCapabilities.allCases
-            .filter { capabilities.contains($0) }
-            .map(\.title)
-            .map { String(localized: $0) }
-        input.append(contentsOf: caps)
-        return input.filter { !$0.isEmpty }
     }
 }
 

@@ -11,10 +11,6 @@ import Foundation
 import UIKit
 
 class MTUpdateMemoryTool: ModelTool, @unchecked Sendable {
-    override var shortDescription: String {
-        "update existing memory content using its ID"
-    }
-
     override var interfaceName: String {
         String(localized: "Update Memory")
     }
@@ -23,20 +19,19 @@ class MTUpdateMemoryTool: ModelTool, @unchecked Sendable {
         .function(
             name: "update_memory",
             description: """
-            Updates an existing memory with new content. Use list_memories first to get the memory ID, then use this tool to update the content when information changes or becomes more specific.
-
-            IMPORTANT: Format updated memories in third person perspective (e.g., "User is a senior software engineer" not "I'm a senior software engineer").
+            Replace a memory's content when the information changes or gets more specific. Get its ID from list_memories first.
+            Keep the third person form ("User is a senior software engineer").
             """,
             parameters: [
                 "type": "object",
                 "properties": [
                     "memory_id": [
                         "type": "string",
-                        "description": "The unique ID of the memory to update (obtained from list_memories).",
+                        "description": "Memory ID from list_memories.",
                     ],
                     "new_content": [
                         "type": "string",
-                        "description": "The new content to replace the existing memory content. Format in third person perspective.",
+                        "description": "Replacement content, written in third person.",
                     ],
                 ],
                 "required": ["memory_id", "new_content"],
@@ -58,8 +53,7 @@ class MTUpdateMemoryTool: ModelTool, @unchecked Sendable {
     }
 
     override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let data = input.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard let json = decodeArguments(input),
               let memoryId = json["memory_id"] as? String,
               let newContent = json["new_content"] as? String
         else {

@@ -1243,52 +1243,6 @@
         }
       }
     },
-    "A proactive memory summary has been provided above according to the user's setting. Treat it as reliable context and keep it updated through memory tools when necessary." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eine proaktive Erinnerungzusammenfassung wurde oben gemäß den Einstellungen des Nutzers bereitgestellt. Behandle sie als verlässlichen Kontext und halte sie bei Bedarf über die Memory-Tools aktuell."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A proactive memory summary has been provided above according to the user's setting. Treat it as reliable context and keep it updated through memory tools when necessary."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se ha proporcionado un resumen proactivo de memoria según la configuración del usuario. Trátalo como contexto fiable y mantenlo actualizado mediante las herramientas de memoria cuando sea necesario."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un résumé proactif de la mémoire a été fourni ci-dessus selon le paramètre de l’utilisateur. Considérez-le comme un contexte fiable et maintenez-le à jour via les outils de mémoire si nécessaire."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ユーザー設定に基づき自動メモ要約を上に提示しています。信頼できるコンテキストとして扱い、必要に応じてメモリツールで更新してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "사용자 설정에 따라 위에 능동형 메모리 요약을 제공했습니다. 필요 시 메모리 도구로 업데이트하며 신뢰할 수 있는 컨텍스트로 간주하세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "根据用户的设置，上方已提供主动记忆摘要。请将其视为可靠的上下文，并在需要时通过记忆工具保持更新。"
-          }
-        }
-      }
-    },
     "A visual model is required for image attachments." : {
       "localizations" : {
         "de" : {
@@ -12388,6 +12342,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "创造 @ 1.0"
+          }
+        }
+      }
+    },
+    "Current context:\nYour Name: %@\nDate: %@\nUser Locale: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktueller Kontext:\nDein Name: %@\nDatum: %@\nNutzer-Locale: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current context:\nYour Name: %@\nDate: %@\nUser Locale: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contexto actual:\nTu nombre: %@\nFecha: %@\nConfiguración regional: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contexte actuel :\nVotre nom : %@\nDate : %@\nLangue de l’utilisateur : %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在のコンテキスト:\nあなたの名前: %@\n日付: %@\nユーザーのロケール: %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "현재 컨텍스트:\n이름: %@\n날짜: %@\n사용자 로캘: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前上下文：\n你的名称：%@\n日期：%@\n用户区域设置：%@"
           }
         }
       }
@@ -46643,52 +46643,6 @@
         }
       }
     },
-    "System is providing you up to date information about current query:\n\nModel/Your Name: %@\nCurrent Date: %@\nCurrent User Locale: %@\n\nPlease use up-to-date information and ensure compliance with the previously provided guidelines." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das System stellt aktuelle Informationen zur aktuellen Anfrage bereit:\n\nModell/Dein Name: %@\nAktuelles Datum: %@\nAktuelle Nutzer-Locale: %@\n\nBitte nutze aktuelle Informationen und halte dich an die zuvor bereitgestellten Richtlinien."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System is providing you up to date information about current query:\n\nModel/Your Name: %@\nCurrent Date: %@\nCurrent User Locale: %@\n\nPlease use up-to-date information and ensure compliance with the previously provided guidelines."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El sistema te ofrece información actualizada sobre la consulta actual:\n\nModelo/Tu nombre: %@\nFecha actual: %@\nConfiguración regional del usuario: %@\n\nUsa información actualizada y cumple las pautas dadas."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le système vous fournit des informations à jour sur la requête en cours :\n\nModèle/Votre nom : %@\nDate actuelle : %@\nLangue de l’utilisateur : %@\n\nUtilisez ces informations à jour et respectez les consignes précédentes."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "システムが現在のクエリに関する最新情報を提供します:\n\nモデル/あなたの名前: %@\n現在の日付: %@\n現在のユーザーロケール: %@\n\n最新情報を使用し、以前のガイドラインに従ってください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "시스템이 현재 쿼리에 대한 최신 정보를 제공합니다:\n\n모델/당신의 이름: %@\n현재 날짜: %@\n현재 사용자 로케일: %@\n\n최신 정보를 사용하고 이전에 제공된 지침을 준수해 주세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统为你提供当前查询的最新信息：\n\n模型/你的名称: %@\n当前日期: %@\n当前用户区域: %@\n\n请使用最新信息，并遵循此前提供的指南。"
-          }
-        }
-      }
-    },
     "Target Language" : {
       "localizations" : {
         "de" : {
@@ -48345,6 +48299,52 @@
         }
       }
     },
+    "The memory summary above follows the user's settings. Treat it as reliable and keep it current with the memory tools." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die obige Erinnerungszusammenfassung folgt den Einstellungen des Nutzers. Behandle sie als verlässlich und halte sie mit den Memory-Tools aktuell."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The memory summary above follows the user's settings. Treat it as reliable and keep it current with the memory tools."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El resumen de memoria anterior sigue la configuración del usuario. Trátalo como fiable y mantenlo actualizado con las herramientas de memoria."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le résumé de mémoire ci-dessus suit les réglages de l’utilisateur. Considérez-le comme fiable et tenez-le à jour avec les outils de mémoire."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上のメモリ要約はユーザー設定に従っています。信頼できる情報として扱い、メモリツールで最新に保ってください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "위 메모리 요약은 사용자 설정을 따릅니다. 신뢰할 수 있는 정보로 다루고 메모리 도구로 최신 상태를 유지하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上方的记忆摘要遵循用户设置，请视为可靠信息，并在需要时用记忆工具保持更新。"
+          }
+        }
+      }
+    },
     "The model did not return any content." : {
       "localizations" : {
         "de" : {
@@ -49215,52 +49215,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此服务目前被禁用。"
-          }
-        }
-      }
-    },
-    "The system provides several tools for your convenience. Please use them wisely and according to the user's query. Avoid requesting information that is already provided or easily inferred." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das System stellt mehrere Tools zur Verfügung. Bitte nutze sie sinnvoll und entsprechend der Nutzeranfrage. Vermeide Anfragen nach bereits gegebenen oder leicht ableitbaren Informationen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The system provides several tools for your convenience. Please use them wisely and according to the user's query. Avoid requesting information that is already provided or easily inferred."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El sistema ofrece varias herramientas. Úsalas con criterio y según la consulta del usuario. Evita pedir información ya dada o fácil de deducir."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le système fournit plusieurs outils pour votre confort. Utilisez-les judicieusement et selon la demande de l’utilisateur. Évitez de demander des informations déjà fournies ou facilement déductibles."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "システムはいくつかのツールを提供します。ユーザーのクエリに沿って適切に利用し、既に提供済み・容易に推測できる情報の要求は避けてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "시스템이 여러 도구를 제공합니다. 사용자 요청에 맞게 현명하게 사용하고, 이미 제공되었거나 쉽게 추론 가능한 정보는 다시 요청하지 마세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统提供多种工具以便您使用，请根据用户查询内容明智调用，避免请求已提供或易推断的信息。"
           }
         }
       }
@@ -55589,6 +55543,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 %@ 的 Open URL 操作启动应用并开始会话"
+          }
+        }
+      }
+    },
+    "Use the provided tools when they fit the user's request. Don't look up what is already given or easily inferred." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutze die bereitgestellten Tools, wenn sie zur Anfrage passen. Frage nicht nach bereits gegebenen oder leicht ableitbaren Informationen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the provided tools when they fit the user's request. Don't look up what is already given or easily inferred."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa las herramientas disponibles cuando encajen con la consulta del usuario. No busques información ya dada o fácil de deducir."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez les outils fournis lorsqu’ils correspondent à la demande de l’utilisateur. Ne cherchez pas ce qui est déjà donné ou facile à déduire."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ユーザーの要望に合う場合はツールを使ってください。すでに与えられている情報や容易に推測できる情報は調べないでください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용자 요청에 맞을 때 제공된 도구를 사용하세요. 이미 주어졌거나 쉽게 추론할 수 있는 정보는 찾지 마세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在符合用户需求时使用所提供的工具，不要去查询已经给出或容易推断的信息。"
           }
         }
       }

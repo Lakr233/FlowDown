@@ -9,10 +9,9 @@ import Foundation
 import Storage
 
 extension ConversationManager {
-    enum ExportFormat: String, Codable, CaseIterable {
+    enum ExportFormat: String {
         case plainText
         case markdown
-        case json
     }
 
     func exportConversation(
@@ -28,66 +27,39 @@ extension ConversationManager {
             return
         }
         let session = ConversationSessionManager.shared.session(for: identifier)
-        switch exportFormat {
-        case .plainText:
-            var content: [String] = [String(localized: "Exported Conversation - \(conversation.title)")]
-            for message in session.messages {
-                let messageText = [
+
+        let messages: [String] = session.messages.map { message in
+            switch exportFormat {
+            case .plainText:
+                Self.joined([
                     message.role.rawValue.capitalized,
                     message.creation.formatted(date: .abbreviated, time: .omitted),
                     message.reasoningContent,
                     message.document,
-                ]
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-                .joined(separator: "\n")
-                content.append(messageText)
-            }
-            let markdownContent = content
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-                .joined(separator: "\n\n")
-            completion(.success(markdownContent))
-
-        case .markdown:
-            var content: [String] = [String(localized: "Exported Conversation - \(conversation.title)")]
-            for message in session.messages {
-                let messageText = [
+                ], separator: "\n")
+            case .markdown:
+                Self.joined([
                     "## \(message.role.rawValue.capitalized) - \(message.creation.formatted(date: .abbreviated, time: .omitted))",
                     message.reasoningContent.isEmpty ? "" : " > \(message.reasoningContent)",
                     message.document,
-                ]
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-                .joined(separator: "\n\n")
-                content.append(messageText)
-            }
-            let markdownContent = content
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-                .joined(separator: "\n\n---\n\n")
-            completion(.success(markdownContent))
-
-        case .json:
-            let exportData: [String: Any] = [
-                "metadata": conversation,
-                "messages": session.messages,
-            ]
-            do {
-                let propertyListData = try JSONSerialization.data(withJSONObject: exportData, options: [
-                    .prettyPrinted,
-                    .fragmentsAllowed,
-                    .sortedKeys,
-                ])
-                guard let propertyListString = String(data: propertyListData, encoding: .utf8) else {
-                    throw NSError(domain: "ConversationManager", code: 500, userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "Failed to decode data."),
-                    ])
-                }
-                completion(.success(propertyListString))
-            } catch {
-                completion(.failure(error))
+                ], separator: "\n\n")
             }
         }
+
+        let header = String(localized: "Exported Conversation - \(conversation.title)")
+        let separator = switch exportFormat {
+        case .plainText: "\n\n"
+        case .markdown: "\n\n---\n\n"
+        }
+        completion(.success(Self.joined([header] + messages, separator: separator)))
+    }
+
+    /// Trims every component and drops the empty ones before joining, so a
+    /// missing reasoning block never leaves a blank line behind.
+    private static func joined(_ components: [String], separator: String) -> String {
+        components
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: separator)
     }
 }

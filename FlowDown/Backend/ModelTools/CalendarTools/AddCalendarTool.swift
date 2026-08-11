@@ -14,10 +14,6 @@ import UIKit
 import iCalendarParser
 
 class MTAddCalendarTool: ModelTool, @unchecked Sendable {
-  override var shortDescription: String {
-    "add event to user's default system calendar"
-  }
-
   override var interfaceName: String {
     String(localized: "Add to Calendar")
   }
@@ -25,20 +21,16 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
   override var definition: ChatRequestBody.Tool {
     .function(
       name: "add_calendar_event",
-      description: """
-        Adds a new event to the user's calendar with the provided ICS file content. The ICS file should contain event details such as date, time, and description. Please convert values from user's input to ICS format. Don't ask user to do that.
-        """,
+      description:
+        "Add an event to the user's calendar from ICS content. Convert the user's wording into ICS yourself; never ask them for it.",
       parameters: [
         "type": "object",
         "properties": [
           "ics_file": [
             "type": "string",
             "description": """
-            The plain text content of the ICS file to import, which must be a valid ICS format (iCalendar).
-            ICS file must match pattern: BEGIN:VEVENT.*END:VEVENT.
-            ICS file should respect users current date and locale.
-            ICS file must have: SUMMARY, DTSTART, DTEND.
-            ICS date format: yyyyMMdd'T'HHmmss'Z' which is on UTC timezone. Please convert to UTC before sending.
+            iCalendar text containing BEGIN:VEVENT...END:VEVENT with SUMMARY, DTSTART and DTEND.
+            Dates use yyyyMMdd'T'HHmmss'Z' (UTC); convert from the user's date and locale first.
             """,
           ]
         ],
@@ -61,8 +53,7 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
   }
 
   override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-    guard let data = input.data(using: .utf8),
-      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+    guard let json = decodeArguments(input),
       let icsContent = json["ics_file"] as? String
     else {
       throw NSError(
@@ -73,54 +64,25 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
       )
     }
 
-    let eventName = parseICSEventName(icsContent) ?? String(localized: "Event")
+    let viewController = try await anchorController(for: view)
 
-    guard let viewController = await view.parentViewController else {
-      throw NSError(
-        domain: "MTAddCalendarTool", code: 500,
-        userInfo: [
-          NSLocalizedDescriptionKey: String(localized: "Could not find view controller")
-        ],
-      )
-    }
-
-    return try await addWithUserInteractions(
-      name: eventName, icsFile: icsContent, controller: viewController)
+    return try await addWithUserInteractions(icsFile: icsContent, controller: viewController)
   }
 
   @MainActor
-  func addWithUserInteractions(name: String, icsFile: String, controller: UIViewController)
-    async throws -> String
+  func addWithUserInteractions(icsFile: String, controller: UIViewController) async throws -> String
   {
-    try await withCheckedThrowingContinuation { [weak self] cont in
-      let eventStore = EKEventStore()
-
-      let handleAuthResult: (Bool) -> Void = { [weak self] granted in
+    try await withCheckedThrowingContinuation { cont in
+      CalendarToolsShared.requestAccess { [weak self] granted, _ in
         Task { @MainActor [weak self] in
-          guard let self else {
+          guard let self, granted else {
             cont.resume(
               returning: String(
                 localized: "Calendar access denied. Please enable calendar access in Settings."))
             return
           }
-          if granted {
-            showAddEventConfirmation(
-              name: name, icsFile: icsFile, controller: controller, continuation: cont)
-          } else {
-            cont.resume(
-              returning: String(
-                localized: "Calendar access denied. Please enable calendar access in Settings."))
-          }
-        }
-      }
-
-      if #available(iOS 17, macCatalyst 17, *) {
-        eventStore.requestFullAccessToEvents { granted, _ in
-          handleAuthResult(granted)
-        }
-      } else {
-        eventStore.requestAccess(to: .event) { granted, _ in
-          handleAuthResult(granted)
+          showAddEventConfirmation(
+            icsFile: icsFile, controller: controller, continuation: cont)
         }
       }
     }
@@ -128,7 +90,6 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
 
   @MainActor
   private func showAddEventConfirmation(
-    name _: String,
     icsFile: String,
     controller: UIViewController,
     continuation: CheckedContinuation<String, any Swift.Error>,
@@ -137,11 +98,7 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
     let eventStore = EKEventStore()
     guard let event = parseICSContent(icsFile, eventStore: eventStore) else {
       continuation.resume(
-        throwing: NSError(
-          domain: String(localized: "Tool"), code: -1,
-          userInfo: [
-            NSLocalizedDescriptionKey: String(localized: "Failed to parse calendar event details.")
-          ]))
+        throwing: ModelToolError.failure(String(localized: "Failed to parse calendar event details.")))
       return
     }
 
@@ -174,11 +131,7 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
       context.addAction(title: "Cancel") {
         context.dispose {
           continuation.resume(
-            throwing: NSError(
-              domain: String(localized: "Tool"), code: -1,
-              userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "User cancelled the operation.")
-              ]))
+            throwing: ModelToolError.userCancelled())
         }
       }
       context.addAction(title: "Add", attribute: .accent) {
@@ -188,42 +141,19 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
               continuation.resume(returning: String(localized: "Event added to calendar."))
             } else {
               continuation.resume(
-                throwing: NSError(
-                  domain: String(localized: "Tool"), code: -1,
-                  userInfo: [
-                    NSLocalizedDescriptionKey: String(
-                      localized:
-                        "Failed to add event: \(error?.localizedDescription ?? "Unknown error")")
-                  ]))
+                throwing: ModelToolError.failure(String(localized: "Failed to add event: \(error?.localizedDescription ?? "Unknown error")")))
             }
           }
         }
       }
     }
 
-    // Check if controller already has a presented view controller
-    guard controller.presentedViewController == nil else {
-      continuation.resume(
-        throwing: NSError(
-          domain: String(localized: "Tool"), code: -1,
-          userInfo: [
-            NSLocalizedDescriptionKey: String(
-              localized: "Tool execution failed: authorization dialog is already presented.")
-          ]))
-      return
-    }
-
-    controller.present(alert, animated: true) {
-      guard alert.isVisible else {
-        continuation.resume(
-          throwing: NSError(
-            domain: String(localized: "Tool"), code: -1,
-            userInfo: [
-              NSLocalizedDescriptionKey: String(localized: "Failed to display confirmation dialog.")
-            ]))
-        return
-      }
-    }
+    ModelToolPresentation.present(
+      alert,
+      on: controller,
+      continuation: continuation,
+      displayFailure: String(localized: "Failed to display confirmation dialog."),
+    )
   }
 
   private func importICSToCalendar(
@@ -269,15 +199,6 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
     return event
   }
 
-  private func parseICSEventName(_ content: String) -> String? {
-    let normalized = normalizeICSToCRLF(content)
-    let parser = ICParser()
-    guard let calendar = parser.calendar(from: normalized),
-      let summary = calendar.events.first?.summary
-    else { return nil }
-    return decodeICSText(summary)
-  }
-
   /// Normalizes line endings to CRLF and strips folded continuation lines
   /// so that ICParser can handle both strict and loose ICS input.
   private func normalizeICSToCRLF(_ content: String) -> String {
@@ -321,28 +242,5 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
       }
     }
     return result
-  }
-
-  private func parseICSDate(_ dateString: String) -> Date? {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
-    formatter.timeZone = TimeZone(abbreviation: "UTC")
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-
-    if let date = formatter.date(from: dateString) {
-      return date
-    }
-
-    formatter.dateFormat = "yyyyMMddHHmmss"
-    if let date = formatter.date(from: dateString) {
-      return date
-    }
-
-    formatter.dateFormat = "yyyyMMdd"
-    if let date = formatter.date(from: dateString) {
-      return date
-    }
-
-    return nil
   }
 }
