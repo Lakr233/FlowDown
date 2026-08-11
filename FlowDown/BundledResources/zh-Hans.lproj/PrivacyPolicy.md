@@ -15,7 +15,6 @@
 
 - **第三方数据处理**：当您使用云端模型服务时，您的数据将会上传至您指定的服务提供商处进行处理。这些服务提供商可能会根据其隐私政策收集和处理您的数据。
 - **OpenRouter 服务**：浮望内置 OpenRouter 的服务，请参考其隐私服务政策：[https://openrouter.ai/privacy](https://openrouter.ai/privacy)
-- **pollinations.ai**: 浮望内置 PollinationsAI 的服务，请参考其隐私服务政策：[https://pollinations.ai/](https://pollinations.ai/)
 - **修改配置**：如果您自行修改了配置，请了解相关风险并对您的选择负责。
 
 ## 政策更新

@@ -7,7 +7,6 @@ This page collects common FlowDown questions. If you still need help, see the [I
 **Is there a trial before paying?**
 
 - Yes. Join the [Discord community](https://discord.gg/UHKMRyJcgc) or visit GitHub to get the latest TestFlight link. You can also compile the project yourself.
-- The app includes complimentary inference service, but availability is not guaranteed. Please configure your own provider for long-term use.
 
 **Will there be future promotions or free periods?**
 
@@ -35,8 +34,8 @@ This page collects common FlowDown questions. If you still need help, see the [I
 **Which models are supported?**
 
 - Apple Foundation Models (when Apple Intelligence is available).
-- Pollinations AI with automatic catalog updates.
 - Any OpenAI-compatible service, such as OpenRouter.
+- Local MLX models on supported Apple hardware.
 
 **How do per-model settings apply?**
 

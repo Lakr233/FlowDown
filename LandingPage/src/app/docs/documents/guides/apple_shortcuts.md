@@ -36,7 +36,7 @@ FlowDown provides App Intents so you can automate common tasks from the Shortcut
 | **Improve Writing - Friendly**     | Rewrites text with a warm, approachable tone.                 |
 | **Improve Writing - Concise**      | Trims the text to its essentials while preserving intent.     |
 
-All writing intents accept a `Model` parameter so you can route shortcuts to local MLX models, Pollinations endpoints, or other cloud profiles.
+All writing intents accept a `Model` parameter so you can route shortcuts to Apple Intelligence, local MLX models, or configured cloud profiles.
 
 ## Conversation & Navigation Intents
 

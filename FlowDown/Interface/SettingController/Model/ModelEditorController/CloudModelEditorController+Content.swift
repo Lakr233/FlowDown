@@ -214,9 +214,9 @@ private extension CloudModelEditorController {
 
             let oldToken = currentModel.token
             let input = AlertInputViewController(
-                title: "Edit Workgroup (Optional)",
-                message: "This value will be added to the request to distinguish the workgroup on the remote. This part is optional, if not used, leave it blank.",
-                placeholder: "\("xx-xxx")",
+                title: "Edit Authorization (Optional)",
+                message: "This token is sent as a Bearer credential in the Authorization header. Leave it blank if the endpoint does not require authentication.",
+                placeholder: "Bearer token",
                 text: currentModel.token,
             ) { [weak self] newToken in
                 guard let self else { return }
@@ -232,7 +232,7 @@ private extension CloudModelEditorController {
                 guard !affectedModels.isEmpty else { return }
                 let alert = AlertViewController(
                     title: "Update All Models",
-                    message: "Would you like to apply the new workgroup to all? This requires the inference endpoint and the old workgroup equal to the current editing.",
+                    message: "Would you like to apply the new Authorization token to all models with the same inference endpoint and current token?",
                 ) { context in
                     context.addAction(title: "Cancel") { context.dispose() }
                     context.addAction(title: "Update All", attribute: .accent) {
@@ -250,9 +250,9 @@ private extension CloudModelEditorController {
             view.parentViewController?.present(input, animated: true)
         }
 
-        view.configure(icon: .init(systemName: "square"))
-        view.configure(title: "Workgroup (Optional)")
-        view.configure(description: "This value will be added to the request to distinguish the workgroup on the remote.")
+        view.configure(icon: .init(systemName: "key.horizontal"))
+        view.configure(title: "Authorization (Optional)")
+        view.configure(description: "This token is sent as a Bearer credential in the Authorization header.")
         let value = (model?.token.isEmpty ?? true) ? notAvailableText : configuredText
         view.configure(value: value)
         return view

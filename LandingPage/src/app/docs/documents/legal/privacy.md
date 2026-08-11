@@ -28,10 +28,8 @@ When requesting support or testing, you might share logs or screenshots. They ar
 ### Cloud model services
 
 - When you use a cloud model, data goes to the provider you select.
-- Built-in endpoints are for quick trials only and are not guaranteed. Requests are sent directly to the provider; FlowDown does not add extra recording. For stability, configure your own endpoint.
 - Provider policies:
   - **OpenRouter**: [https://openrouter.ai/privacy](https://openrouter.ai/privacy)
-  - **Pollinations.ai**: [https://pollinations.ai/](https://pollinations.ai/)
 
 ### User-defined settings & risk management
 

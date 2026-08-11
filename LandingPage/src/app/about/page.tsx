@@ -25,7 +25,7 @@ export default function AboutPage() {
           title: "Project principles",
           items: [
             "Privacy-first defaults: conversation data is stored locally, with optional iCloud sync controlled by the user.",
-            "Model choice: users can switch between local MLX, Apple Intelligence, Pollinations, self-hosted endpoints, and other OpenAI-compatible services.",
+            "Model choice: users can switch between local MLX, Apple Intelligence, self-hosted endpoints, and other OpenAI-compatible services.",
             "Native performance: the app is written for Apple platforms with Swift and UIKit.",
             "Open development: the source code is available on GitHub under AGPL-3.0.",
           ],

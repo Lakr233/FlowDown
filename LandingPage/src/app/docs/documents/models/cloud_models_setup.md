@@ -1,24 +1,20 @@
 # Configure Cloud Models
 
-FlowDown supports any OpenAI-compatible HTTPS service (chat completions and responses). The app ships with dynamic templates—including pollinations.ai free models—so you can start chatting immediately or pull preset configs as needed.
+FlowDown supports any OpenAI-compatible HTTPS service using either chat completions or responses.
 
-## Fetch the latest templates
+## Create or import a model
 
 1. Open **Settings → Model**.
 1. Tap the **＋** in the top-right corner.
-1. Under **Cloud Model**, pick **pollinations.ai (free)** to fetch the latest anonymous text models with the correct endpoint and context, or choose **Empty Model** to start from scratch.
+1. Under **Cloud Model**, choose **Empty Model** to start from scratch.
 1. To reuse saved profiles, select **Import Model → Import from File** and load an exported `.fdmodel` or `.plist`.
-
-![Fetch cloud model templates](../../../res/screenshots/imgs/cloud-model-pollinations-fetch.png)
-
-Open the **Cloud Model** menu any time to refresh the pollinations.ai list or add a new blank profile; the list loads on demand.
 
 ## Connect your provider
 
 1. Create a blank profile or open an existing one.
 1. Enter the full inference URL (for example, `https://api.example.com/v1/chat/completions` or `/v1/responses`). FlowDown auto-detects and sets **Content Format**; switch it manually if detection is wrong.
 1. Set the model identifier. Tap the field to **Select from Server**, which calls the model list endpoint (defaults to `$INFERENCE_ENDPOINT$/../../models`; adjust if your provider uses a different path).
-1. Provide your provider credential/workgroup token (sent as a Bearer **Authorization** header) and any required headers. Custom headers can override Authorization for special auth schemes.
+1. Enter the **Authorization** token, which is sent as `Authorization: Bearer <token>`, and add any required custom headers. Custom headers can override Authorization for other authentication schemes.
 1. Add JSON in **Body Fields**. The quick menu inserts reasoning toggles (`enable_thinking` / `reasoning` with budgets), sampling parameters, input/output modalities, or provider flags.
 1. Toggle capabilities (Tool, Vision, Audio, Developer role), set context length and nickname, then save.
 
@@ -30,7 +26,6 @@ Open the **Cloud Model** menu any time to refresh the pollinations.ai list or ad
 
 - **Endpoint & format**: keep the inference URL aligned with **Content Format** (chat completions vs responses) to avoid HTTP errors.
 - **Model list**: configure the model list endpoint and use **Select from Server** instead of typing IDs.
-- **Pollinations**: free models are rate/region limited; connect your own provider if they are unavailable.
 - **Body fields**: add provider-specific keys (reasoning budgets, `top_p` / `top_k`, modalities, etc.) via **Body Fields**, ensuring valid JSON.
 - **Backups**: model definitions sync with iCloud and database exports. Before major edits, run **Settings → Data → Export Database**.
 

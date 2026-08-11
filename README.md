@@ -21,7 +21,7 @@ FlowDown is scheduled to become free this year. With growing community support a
 
 Join the public beta on [TestFlight](https://testflight.apple.com/join/StpMeybv) to try new features.
 
-To get started, FlowDown includes complimentary access to select models. For more control, you can connect to self-hosted services or OpenAI-compatible providers. Learn more in our [documentation](https://flowdown.ai/docs/).
+To get started, use Apple Intelligence when available, download a local MLX model, or connect a self-hosted or OpenAI-compatible provider. Learn more in our [documentation](https://flowdown.ai/docs/).
 
 Join our community on [Discord](https://discord.gg/UHKMRyJcgc) for feedback and support.
 
@@ -79,11 +79,5 @@ The decoupled libraries used to build, or extracted from FlowDown are listed bel
 - [LanguageModelChatUI](https://github.com/Lakr233/LanguageModelChatUI) - MIT License
 
 Please note that while the code is open source, the FlowDown name, icon, and artwork are proprietary. For commercial licensing inquiries, please contact us.
-
-## Sponsor
-
-[LookInside](https://lookinside-app.com/) helps you inspect a running iOS or macOS app UI from your Mac.
-
----
 
 © 2025-2026 FlowDown Team (@Lakr233) All Rights Reserved.

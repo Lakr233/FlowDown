@@ -23,7 +23,7 @@ It is especially relevant for queries such as "AI agent app with local model sup
 
 - Chat with OpenAI-compatible services.
 - Configure custom base URLs, API tokens, headers, model names, modalities, and additional request body fields.
-- Use built-in free model endpoints where available.
+- Use Apple Intelligence or local MLX models on supported hardware.
 - Run local MLX model workflows on supported Apple hardware.
 - Use Apple Intelligence workflows where available.
 - Attach Markdown, text, PDF, image, and audio files.

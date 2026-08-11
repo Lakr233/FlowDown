@@ -1,6 +1,6 @@
 # Download from the App Store
 
-FlowDown is on the App Store as a single purchase for iPhone, iPad, and Mac (Catalyst). Download: [https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198](https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198). For product overview and quick trial notes, see [Welcome](./welcome.md).
+FlowDown is on the App Store as a single purchase for iPhone, iPad, and Mac (Catalyst). Download: [https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198](https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198). For a product overview and setup notes, see [Welcome](./welcome.md).
 
 ## Availability & Pricing
 
@@ -29,7 +29,7 @@ Codes are platform-specific: macOS codes must be redeemed in the Mac App Store; 
 
 ## Regional & Connectivity Notes
 
-- The built-in pollinations.ai trial endpoint may be unavailable in some regions; configure a custom endpoint or local model in **Settings → Models** for long-term stability.
+- Cloud provider availability depends on the endpoint you configure. Apple Intelligence and local MLX models remain on-device when supported.
 - When migrating from older community/beta builds, export a backup, delete iCloud data, and reset the app before turning sync back on.
 
 For purchase questions, contact Apple Support with your receipt. For technical issues, see [Issue Reporting](./troubleshooting/report_issue.md) and share sanitized diagnostics.

@@ -24,28 +24,6 @@ struct ModelScopeTests {
     }
 
     @Test
-    func `pollinations models translate advertised capabilities into cloud models`() {
-        let pollinationsModel = PollinationsModel(
-            name: "openai-large",
-            tier: "anonymous",
-            input_modalities: ["text"],
-            output_modalities: ["text"],
-            tools: true,
-            vision: true,
-            audio: true,
-        )
-
-        let cloudModel = PollinationsService.shared.createCloudModel(from: pollinationsModel)
-
-        #expect(cloudModel.model_identifier == "openai-large")
-        #expect(cloudModel.endpoint == "https://text.pollinations.ai/openai/v1/chat/completions")
-        #expect(cloudModel.capabilities.contains(.tool))
-        #expect(cloudModel.capabilities.contains(.visual))
-        #expect(cloudModel.capabilities.contains(.auditory))
-        #expect(cloudModel.comment.contains("pollinations.ai"))
-    }
-
-    @Test
     func `hub download progress tracks file completion and cancellation`() {
         let progress = ModelManager.HubDownloadProgress()
         progress.acquiredFileList(["a.bin", "b.bin"])

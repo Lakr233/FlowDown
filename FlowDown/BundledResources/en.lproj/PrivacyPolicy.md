@@ -15,7 +15,6 @@ FlowDown respects your privacy and is committed to protecting your personal info
 
 - **Third-Party Data Processing**: When you use cloud model services, your data will be uploaded to your specified service provider for processing. These service providers may collect and process your data according to their privacy policies.
 - **OpenRouter Service**: FlowDown integrates OpenRouter services. Please refer to their privacy policy: [https://openrouter.ai/privacy](https://openrouter.ai/privacy)
-- **pollinations.ai**: FlowDown integrates PollinationsAI services. Please refer to their privacy policy: [https://pollinations.ai/](https://pollinations.ai/)
 - **Configuration Modifications**: If you modify the configurations yourself, please understand the associated risks and take responsibility for your choices.
 
 ## Policy Updates

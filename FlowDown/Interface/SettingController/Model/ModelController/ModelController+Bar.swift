@@ -15,45 +15,6 @@ import UniformTypeIdentifiers
 extension SettingController.SettingContent.ModelController {
     private func createCloudModelMenuItems() -> [UIMenuElement] {
         [
-            UIMenu(
-                title: String(localized: "pollinations.ai (free)"),
-                image: .init(systemName: "network"),
-                children: [
-                    UIDeferredMenuElement.uncached { [weak self] completion in
-                        Task { @MainActor in
-                            do {
-                                let models = try await PollinationsService.shared.fetchAvailableModels()
-                                let actions = models.map { pollinationsModel in
-                                    UIAction(
-                                        title: pollinationsModel.name,
-                                        image: .init(systemName: "network"),
-                                    ) { [weak self] _ in
-                                        let cloudModel = PollinationsService.shared.createCloudModel(from: pollinationsModel)
-                                        _ = ModelManager.shared.newCloudModel(profile: cloudModel)
-                                        Indicator.present(
-                                            title: "Model Added",
-                                            preset: .done,
-                                            referencingView: self?.view,
-                                        )
-                                    }
-                                }
-                                let menu = UIMenu(
-                                    options: [.displayInline],
-                                    children: actions,
-                                )
-                                completion([menu])
-                            } catch {
-                                let errorAction = UIAction(
-                                    title: String(localized: "Failed to load models"),
-                                    image: .init(systemName: "exclamationmark.triangle"),
-                                ) { _ in }
-                                errorAction.attributes = .disabled
-                                completion([errorAction])
-                            }
-                        }
-                    },
-                ],
-            ),
             UIAction(
                 title: String(localized: "Empty Model"),
                 image: .init(systemName: "square.dashed"),

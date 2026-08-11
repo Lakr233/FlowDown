@@ -87,10 +87,6 @@ export default function FAQSection() {
                 </p>
                 <ul className="list-disc ml-6 space-y-1">
                   <li>
-                    <strong>Built-in free models:</strong> Ready to use without
-                    configuration
-                  </li>
-                  <li>
                     <strong>Major service providers:</strong> OpenAI, Claude
                     (via OpenRouter), Alibaba Cloud, ByteDance, etc.
                   </li>
@@ -252,8 +248,8 @@ export default function FAQSection() {
               <div className="space-y-4">
                 <ul className="list-disc ml-6 space-y-1">
                   <li>
-                    <strong>Zero configuration:</strong> Built-in free models,
-                    ready to use after download
+                    <strong>On-device models:</strong> Use Apple Intelligence or
+                    download an MLX model on supported hardware
                   </li>
                   <li>
                     <strong>Custom configuration:</strong> Support for adding

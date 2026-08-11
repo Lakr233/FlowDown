@@ -71,12 +71,6 @@ extension WelcomePageViewController.Configuration {
                     title: "Apple Intelligence",
                     detail: "Native support for Apple's foundation models and ecosystem.",
                 ),
-                .init(
-                    icon: UIImage(systemName: "gift.fill")!,
-                    title: "Ready to Use",
-                    detail: "Start chatting instantly with complimentary Pollinations AI models.",
-                ),
-
                 // MARK: - Powerful Capabilities (强大能力)
 
                 .init(

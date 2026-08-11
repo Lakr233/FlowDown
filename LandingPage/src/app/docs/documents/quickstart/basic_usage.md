@@ -5,7 +5,7 @@ FlowDown provides an immersive chat interface, supports local models, and can sy
 ## Start your first conversation
 
 1. Open FlowDown and click **New Conversation** in the sidebar; the composer appears at the bottom.
-2. Choose a model below the composer (local MLX, cloud templates, Apple Intelligence, or the free quota for new users).
+2. Choose a model below the composer: Apple Intelligence, a local MLX model, or a cloud profile you configured.
 3. Above the composer, toggle **Tools** (calendar/location/memory/MCP) and **Web Browsing** as needed; enable **Memory** to write highlights to long-term memory.
 4. Type your message. `Shift + Enter` adds a new line. Drag files to attach text/Markdown, PDF, PNG/JPEG/WebP/HEIC, or audio (m4a/wav; others auto-transcoded).
 5. Press `Enter` (or tap send) to send. Stop a reply via the stop button or the conversation menu in the top right.

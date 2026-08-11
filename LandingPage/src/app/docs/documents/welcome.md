@@ -10,15 +10,13 @@ We recommend installing the production build from the [App Store](./app_store) f
 
 ## About FlowDown
 
-FlowDown aims to balance a lightweight interface with powerful model capabilities. Whether you need everyday Q&A or want to explore advanced features of new models, you can switch freely among on-device MLX, Pollinations, Apple Intelligence, and self-hosted endpoints.
+FlowDown aims to balance a lightweight interface with powerful model capabilities. Whether you need everyday Q&A or want to explore advanced features of new models, you can switch freely among on-device MLX, Apple Intelligence, and self-hosted or hosted cloud endpoints.
 
 We take privacy seriously. Your data stays on your device by default, with optional iCloud sync when you choose.
 
 ### Quickstart
 
-The app includes complimentary cloud models from [pollinations.ai](https://pollinations.ai/) so you can get started immediately. FlowDown automatically fetches the model list and labels free endpoints for tool, vision, and audio support.
-
-> **Note**: Free endpoints may have limited capabilities and slower refresh cycles. For a more stable, efficient experience, configure your own endpoints or local models in **Settings → Models**.
+Choose Apple Intelligence when it is available, download a local MLX model, or configure your own OpenAI-compatible provider in **Settings → Models**.
 
 ### Feedback & Privacy
 
@@ -28,7 +26,7 @@ Always sanitize feedback before sending. Do not upload service credentials or pe
 
 - **Immersive experience**: Polished interface with smooth Markdown rendering.
 - **Multi-device sync**: CloudKit keeps conversations, model profiles, memories, and MCP services aligned across iPhone, iPad, and Mac, with manual refresh and scoped control.
-- **Hybrid model ecosystem**: Native support for Apple Intelligence, on-device MLX models, Pollinations (with auto capability tags), and any OpenAI-compatible API with custom headers.
+- **Hybrid model ecosystem**: Native support for Apple Intelligence, on-device MLX models, and any OpenAI-compatible API with custom headers.
 - **Flexible configuration & sharing**: Set temperature, context length, request body, and auxiliary behavior per model; import/export `.fdmodel` files or drag configurations to share.
 - **Memory & automation**: Proactive memory injection and Shortcuts triggers. Titles and icons are generated automatically to reduce repetitive steps.
 - **Powerful toolchain**: Calendar management, web search/scraping, location services, URL preview, and MCP toolchains keep complex workflows automated.
@@ -45,7 +43,7 @@ FlowDown offers two tracks: the continually updated **FlowDown** App Store relea
 | Immersive interface             | ✅                       | ❌                     |
 | Per-model temperature & body    | ✅                       | ❌                     |
 | MLX on-device + Apple FM        | ✅                       | ❌                     |
-| Pollinations auto model parsing | ✅                       | ❌                     |
+| Custom cloud model profiles     | ✅                       | ❌                     |
 | Visual reasoning & attachments  | ✅                       | ⚠️ (legacy)            |
 | MCP + advanced tools            | ✅                       | ❌                     |
 | Open source                     | ✅                       | ✅                     |
