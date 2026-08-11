@@ -1,0 +1,7 @@
+data: {"id":"fixture-conversation-metadata","object":"chat.completion.chunk","created":0,"model":"flowdown-local-e2e","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}],"usage":null}
+
+data: {"id":"fixture-conversation-metadata","object":"chat.completion.chunk","created":0,"model":"flowdown-local-e2e","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_conversation_metadata","type":"function","function":{"name":"save_conversation_metadata","arguments":"{\"title\":\"Kyoto Budget Temple Trip\",\"icon\":\"🍱\"}"}}]},"finish_reason":null}],"usage":null}
+
+data: {"id":"fixture-conversation-metadata","object":"chat.completion.chunk","created":0,"model":"flowdown-local-e2e","choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}],"usage":null}
+
+data: [DONE]

@@ -1,15 +1,59 @@
 {
   "messages": [
     {
-      "content": "You are a chat template generator. Analyze conversations and create reusable templates. Respond ONLY with valid XML following the exact format provided. Do not include any text outside the XML structure. Please ensure using user's preferred language inside conversation.",
+      "content": "You are a chat template generator. Analyze conversations and create reusable templates. You must call save_chat_template exactly once with the generated template. Do not respond with plain text. Please ensure using user's preferred language inside conversation.",
       "role": "system"
     },
     {
-      "content": "<template_generation>\n    <task>分析对话并生成可复用的聊天模板。提取核心目的，创建一个简洁的名称，建议一个合适的表情符号，并撰写一个系统提示，以捕捉对话模式的精髓。</task>\n    <conversation_context>Help me plan a four day Kyoto trip focused on temples, vegetarian food, and a tight budget.\n\nPlease optimize for walking routes, train passes, and one rainy day backup plan.</conversation_context>\n    <response_context>I can build a day by day Kyoto itinerary with transit advice, low-cost stays, and vegetarian restaurant ideas.\n\nUnderstood. I will prioritize clustered neighborhoods, JR and subway pass guidance, and indoor backups.</response_context>\n    <output_format>\n        <name>Short descriptive name for the template using concise language</name>\n        <emoji>Single emoji representing the template purpose</emoji>\n        <prompt>System prompt that captures the conversation pattern and purpose</prompt>\n        <inherit_app_prompt>true</inherit_app_prompt>\n    </output_format>\n</template_generation>",
+      "content": "Analyze the conversation and generate a reusable chat template. Extract the core purpose, create a concise name, suggest an appropriate emoji, and write a system prompt that captures the essence of the conversation pattern.\n\n[conversation context]\nHelp me plan a four day Kyoto trip focused on temples, vegetarian food, and a tight budget.\n\nPlease optimize for walking routes, train passes, and one rainy day backup plan.\n\n[response context]\nI can build a day by day Kyoto itinerary with transit advice, low-cost stays, and vegetarian restaurant ideas.\n\nUnderstood. I will prioritize clustered neighborhoods, JR and subway pass guidance, and indoor backups.",
       "role": "user"
     }
   ],
   "model": "accounts/fireworks/models/deepseek-v4-pro",
   "stream": true,
-  "temperature": 0.75
+  "temperature": 0.75,
+  "tool_choice": {
+    "function": {
+      "name": "save_chat_template"
+    },
+    "type": "function"
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "Save the resulting chat template.",
+        "name": "save_chat_template",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "emoji": {
+              "description": "Single emoji representing the template purpose.",
+              "type": "string"
+            },
+            "inherit_app_prompt": {
+              "description": "Whether the template should inherit the application-wide system prompt.",
+              "type": "boolean"
+            },
+            "name": {
+              "description": "Short descriptive name for the template using concise language.",
+              "type": "string"
+            },
+            "prompt": {
+              "description": "System prompt that captures the conversation pattern and purpose.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "emoji",
+            "prompt",
+            "inherit_app_prompt"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
 }

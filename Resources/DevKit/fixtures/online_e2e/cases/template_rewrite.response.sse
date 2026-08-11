@@ -1,0 +1,7 @@
+data: {"id":"fixture-template-rewrite","object":"chat.completion.chunk","created":0,"model":"flowdown-local-e2e","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}],"usage":null}
+
+data: {"id":"fixture-template-rewrite","object":"chat.completion.chunk","created":0,"model":"flowdown-local-e2e","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_template_rewrite","type":"function","function":{"name":"save_chat_template","arguments":"{\"name\":\"Weekly Status\",\"emoji\":\"📊\",\"prompt\":\"Turn weekly notes into a concise executive update covering accomplishments, risks, and next steps.\",\"inherit_app_prompt\":true}"}}]},"finish_reason":null}],"usage":null}
+
+data: {"id":"fixture-template-rewrite","object":"chat.completion.chunk","created":0,"model":"flowdown-local-e2e","choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}],"usage":null}
+
+data: [DONE]

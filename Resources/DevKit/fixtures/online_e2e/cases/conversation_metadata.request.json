@@ -1,15 +1,49 @@
 {
   "messages": [
     {
-      "content": "Generate conversation metadata from the chat history. Respond ONLY with valid XML in this exact format:\n<conversation>\n<title>3-5 word title in the user's primary language with no prefix, label, or markdown</title>\n<icon>single emoji that best represents the conversation</icon>\n</conversation>",
+      "content": "Generate metadata for the conversation. You must call save_conversation_metadata exactly once with a title and an icon. Do not respond with plain text.",
       "role": "system"
     },
     {
-      "content": "<conversation>\n    <task>Generate conversation metadata from the chat history. Respond ONLY with valid XML in this exact format:\n&lt;conversation&gt;\n&lt;title&gt;3-5 word title in the user&apos;s primary language with no prefix, label, or markdown&lt;/title&gt;\n&lt;icon&gt;single emoji that best represents the conversation&lt;/icon&gt;\n&lt;/conversation&gt;</task>\n    <last_user_message>Help me name this chat. We are planning a four day Kyoto trip focused on temples, vegetarian food, and a lean budget.</last_user_message>\n    <last_assistant_message>Plan saved: four days in Kyoto with temple visits, affordable vegetarian spots, neighborhood-based walking routes, and rainy day backups.</last_assistant_message>\n    <output_format>\n        <title>your_title_here</title>\n        <icon>💬</icon>\n    </output_format>\n</conversation>",
+      "content": "[last user message]\nHelp me name this chat. We are planning a four day Kyoto trip focused on temples, vegetarian food, and a lean budget.\n\n[last assistant message]\nPlan saved: four days in Kyoto with temple visits, affordable vegetarian spots, neighborhood-based walking routes, and rainy day backups.",
       "role": "user"
     }
   ],
   "model": "accounts/fireworks/models/deepseek-v4-pro",
   "stream": true,
-  "temperature": 0.75
+  "temperature": 0.75,
+  "tool_choice": {
+    "function": {
+      "name": "save_conversation_metadata"
+    },
+    "type": "function"
+  },
+  "tools": [
+    {
+      "function": {
+        "description": "Save the generated title and icon for the conversation.",
+        "name": "save_conversation_metadata",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "icon": {
+              "description": "A single emoji character that best represents the conversation.",
+              "type": "string"
+            },
+            "title": {
+              "description": "A concise 3-5 word title summarizing the conversation, in the user's primary language, without any prefix, label, or markdown.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "icon"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "function"
+    }
+  ]
 }
