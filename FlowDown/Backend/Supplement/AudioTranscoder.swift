@@ -84,7 +84,8 @@ enum AudioTranscoder {
             }
         }
 
-        func targetSampleRate(from _: Double) -> Double {
+        /// Fixed by the profile; the source rate never affects it.
+        var targetSampleRate: Double {
             switch self {
             case .mediumQualityM4A:
                 16000.0
@@ -163,9 +164,8 @@ enum AudioTranscoder {
             throw AudioTranscoderError.assetNotSupported
         }
         let formatDescriptions = try await track.load(.formatDescriptions)
-        let detectedSampleRate = detectedSampleRate(from: formatDescriptions)
         let detectedChannelCount = detectedChannelCount(from: formatDescriptions)
-        let sampleRate = output.targetSampleRate(from: detectedSampleRate)
+        let sampleRate = output.targetSampleRate
         let channelCount = output.targetChannelCount(from: detectedChannelCount)
 
         if let exported = try await exportUsingAssetExportSession(
@@ -458,17 +458,6 @@ enum AudioTranscoder {
         }
 
         throw lastError ?? AudioTranscoderError.exportFailed("Exported file was not created.")
-    }
-
-    private static func detectedSampleRate(from descriptions: [CMFormatDescription]) -> Double {
-        descriptions.compactMap { description -> Double? in
-            guard CMFormatDescriptionGetMediaType(description) == kCMMediaType_Audio,
-                  let stream = CMAudioFormatDescriptionGetStreamBasicDescription(description)?.pointee
-            else {
-                return nil
-            }
-            return stream.mSampleRate > 0 ? stream.mSampleRate : nil
-        }.first ?? 0
     }
 
     private static func detectedChannelCount(from descriptions: [CMFormatDescription]) -> Int {

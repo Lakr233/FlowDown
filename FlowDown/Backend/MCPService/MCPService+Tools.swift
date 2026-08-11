@@ -19,7 +19,7 @@ import UIKit
 extension MCPService {
     func callTool(name: String, arguments: [String: Value]? = nil, from clientName: String) async throws -> (content: [Tool.Content], isError: Bool?) {
         let connection = await MainActor.run { connections[clientName] }
-        guard let connection, connection.hasClient else {
+        guard let connection, connection.isConnected else {
             throw MCPError.connectionFailed
         }
 
@@ -31,7 +31,7 @@ extension MCPService {
             connections.compactMap { serverID, connection in
                 guard let server = server(with: serverID),
                       server.isEnabled,
-                      connection.hasClient
+                      connection.isConnected
                 else { return nil }
                 return (serverID, connection)
             }

@@ -98,8 +98,6 @@ import Foundation
             }
 
             let state = FlowDownWidgetsAttributes.ContentState(
-                runningSession: conversationCount,
-                incomingTokens: streamingSessionTextCount,
                 conversationCount: conversationCount,
                 streamingSessionTextCount: streamingSessionTextCount,
             )

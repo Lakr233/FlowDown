@@ -168,10 +168,6 @@ private final class MCPConnectionSpy: MCPConnectionControlling, @unchecked Senda
         self.toolNames = toolNames
     }
 
-    var hasClient: Bool {
-        true
-    }
-
     var isConnected: Bool {
         true
     }
@@ -206,7 +202,6 @@ private final class GatedConnectionSpy: MCPConnectionControlling, @unchecked Sen
     var connectStarted: Bool { state.withLock { $0.started } }
     var disconnectCount: Int { state.withLock { $0.disconnects } }
 
-    var hasClient: Bool { state.withLock { $0.connected } }
     var isConnected: Bool { state.withLock { $0.connected } }
 
     func open() {

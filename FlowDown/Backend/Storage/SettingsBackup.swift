@@ -1,13 +1,6 @@
 import ConfigurableKit
 import Foundation
 
-private let settingsBackupDateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd HH-mm-ss"
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    return formatter
-}()
-
 enum SettingsBackupError: LocalizedError {
     case unsupportedStorage
     case emptyBackup
@@ -64,7 +57,7 @@ enum SettingsBackup {
             .appendingPathComponent(
                 String(
                     format: String(localized: "FlowDown Settings Backup %@"),
-                    settingsBackupDateFormatter.string(from: Date()),
+                    exportTimestampFormatter.string(from: Date()),
                 ),
             )
             .appendingPathExtension("json")

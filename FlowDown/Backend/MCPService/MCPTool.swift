@@ -66,40 +66,36 @@ class MCPTool: ModelTool, @unchecked Sendable {
     // MARK: - Tool Execution
 
     override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        do {
-            var arguments: [String: Value]?
-            if !input.isEmpty {
-                let data = Data(input.utf8)
-                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    arguments = json.compactMapValues { value in
-                        convertJSONValueToMCPValue(value)
-                    }
+        var arguments: [String: Value]?
+        if !input.isEmpty {
+            let data = Data(input.utf8)
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                arguments = json.compactMapValues { value in
+                    convertJSONValueToMCPValue(value)
                 }
             }
-
-            let result = try await mcpService.callTool(
-                name: toolInfo.name,
-                arguments: arguments,
-                from: toolInfo.serverID,
-            )
-
-            // isError is optional
-            if result.isError == true {
-                Logger.network.errorFile("MCP Tool \(toolInfo.name) returned error: \(result.content)")
-                let text = "MCP Tool returned error: \(result.content.debugDescription)"
-                throw NSError(
-                    domain: "MCPToolErrorDomain",
-                    code: -1,
-                    userInfo: [NSLocalizedDescriptionKey: text],
-                )
-            }
-
-            // later on we process the result content and map audio and image to user attachment
-            // so it can be seen by model
-            return result.0.serializedRawContent()
-        } catch {
-            throw error
         }
+
+        let result = try await mcpService.callTool(
+            name: toolInfo.name,
+            arguments: arguments,
+            from: toolInfo.serverID,
+        )
+
+        // isError is optional
+        if result.isError == true {
+            Logger.network.errorFile("MCP Tool \(toolInfo.name) returned error: \(result.content)")
+            let text = "MCP Tool returned error: \(result.content.debugDescription)"
+            throw NSError(
+                domain: "MCPToolErrorDomain",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: text],
+            )
+        }
+
+        // later on we process the result content and map audio and image to user attachment
+        // so it can be seen by model
+        return result.0.serializedRawContent()
     }
 }
 
@@ -126,39 +122,31 @@ extension [Tool.Content] {
 }
 
 extension MCPTool {
+    /// What a tool advertises when it declares no input at all.
+    private static let emptyObjectSchema: [String: AnyCodingValue] = [
+        "type": .string("object"),
+        "properties": .object([:]),
+        "required": .array([]),
+        "additionalProperties": .bool(false),
+    ]
+
     private func convertMCPSchemaToJSONValues(_ mcpSchema: Value?) -> [String: AnyCodingValue] {
-        guard let mcpSchema else {
-            return [
-                "type": .string("object"),
-                "properties": .object([:]),
-                "required": .array([]),
-                "additionalProperties": .bool(false),
-            ]
+        guard let mcpSchema,
+              case let .object(dict) = convertMCPValueToJSONValue(mcpSchema)
+        else {
+            return Self.emptyObjectSchema
         }
 
-        if case let .object(dict) = convertMCPValueToJSONValue(mcpSchema) {
-            // Preserve original values if present, otherwise set default values
-            var result = dict
-            if result["properties"] == nil {
-                result["properties"] = .object([:])
-            }
-            if let additionalProps = result["additionalProperties"] {
-                // Convert empty object {} to false
-                if case let .object(obj) = additionalProps, obj.isEmpty {
-                    result["additionalProperties"] = .bool(false)
-                }
-            } else {
-                result["additionalProperties"] = .bool(false)
-            }
-
-            return normalizeStrictJSONSchema(result)
+        // Preserve original values if present, otherwise set default values.
+        // `additionalProperties` is coerced by normalizeStrictJSONSchema below.
+        var result = dict
+        if result["properties"] == nil {
+            result["properties"] = .object([:])
         }
-        return [
-            "type": .string("object"),
-            "properties": .object([:]),
-            "required": .array([]),
-            "additionalProperties": .bool(false),
-        ]
+        if result["additionalProperties"] == nil {
+            result["additionalProperties"] = .bool(false)
+        }
+        return normalizeStrictJSONSchema(result)
     }
 
     private func normalizeStrictJSONSchema(_ schema: [String: AnyCodingValue]) -> [String: AnyCodingValue] {
@@ -178,13 +166,11 @@ extension MCPTool {
             let propertyKeySet = Set(propertyKeys)
             let originalRequiredSet = Set(originalRequired)
 
-            let newlyRequired = propertyKeySet.subtracting(originalRequiredSet)
-            if !newlyRequired.isEmpty {
-                for key in newlyRequired {
-                    if let propertySchema = normalizedProperties[key] {
-                        normalizedProperties[key] = allowNullInSchema(propertySchema)
-                    }
-                }
+            // Strict schemas must list every property as required, so the ones
+            // the server left optional have to accept null instead.
+            for key in propertyKeySet.subtracting(originalRequiredSet) {
+                guard let propertySchema = normalizedProperties[key] else { continue }
+                normalizedProperties[key] = allowNullInSchema(propertySchema)
             }
 
             for (key, value) in normalizedProperties {

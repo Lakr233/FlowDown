@@ -34,15 +34,14 @@ struct SummarizeTextIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        let response = try await SummarizeIntentHelper.performSummarization(
+        try await TextTransformIntentHelper.perform(
             model: model,
             text: text,
             directive: String(
                 localized: "Summarize the following content into a concise paragraph that captures the main ideas. Reply with the summary only.",
             ),
+            sourceLabel: String(localized: "Source Text:"),
         )
-        let dialog = IntentDialog(.init(stringLiteral: response))
-        return .result(value: response, dialog: dialog)
     }
 }
 
@@ -79,41 +78,13 @@ struct SummarizeTextUsingListIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        let response = try await SummarizeIntentHelper.performSummarization(
+        try await TextTransformIntentHelper.perform(
             model: model,
             text: text,
             directive: String(
                 localized: "Summarize the following content into a list of short bullet points that highlight the essential facts. Reply with the bullet list only.",
             ),
-        )
-        let dialog = IntentDialog(.init(stringLiteral: response))
-        return .result(value: response, dialog: dialog)
-    }
-}
-
-enum SummarizeIntentHelper {
-    static func performSummarization(
-        model: ShortcutsEntities.ModelEntity?,
-        text: String,
-        directive: String,
-    ) async throws -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw ShortcutError.emptyMessage }
-
-        let message = [
-            directive,
-            "",
-            "---",
-            String(localized: "Source Text:"),
-            trimmed,
-        ].joined(separator: "\n")
-
-        return try await InferenceIntentHandler.execute(
-            model: model,
-            message: message,
-            image: nil,
-            audio: nil,
-            options: .init(allowsImages: false),
+            sourceLabel: String(localized: "Source Text:"),
         )
     }
 }

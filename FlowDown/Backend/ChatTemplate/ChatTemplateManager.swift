@@ -85,11 +85,6 @@ class ChatTemplateManager {
         reloadFromStorage()
     }
 
-    func remove(_ template: ChatTemplate) {
-        assert(Thread.isMainThread)
-        remove(for: template.id)
-    }
-
     func remove(for itemIdentifier: ChatTemplate.ID) {
         assert(Thread.isMainThread)
         sdb.templateMarkDelete(identifier: itemIdentifier.uuidString)
@@ -111,9 +106,8 @@ class ChatTemplateManager {
     }
 
     private func makeTemplate(from record: ChatTemplateRecord) -> ChatTemplate {
-        var template = ChatTemplate()
         let identifier = UUID(uuidString: record.objectId) ?? UUID()
-        template = template.with {
+        let template = ChatTemplate().with {
             $0.id = identifier
             $0.name = record.name
             $0.avatar = record.avatar
@@ -248,17 +242,24 @@ class ChatTemplateManager {
         model: ModelManager.ModelIdentifier,
         completion: @escaping (Result<ChatTemplate, Error>) -> Void,
     ) {
+        deliverOnMainActor(completion) {
+            try await self.generateChatTemplate(from: conversation, using: model)
+        }
+    }
+
+    /// Runs an async producer and hands its outcome back on the main actor.
+    private func deliverOnMainActor(
+        _ completion: @escaping (Result<ChatTemplate, Error>) -> Void,
+        producing produce: @escaping () async throws -> ChatTemplate,
+    ) {
         Task {
+            let result: Result<ChatTemplate, Error>
             do {
-                let template = try await generateChatTemplate(from: conversation, using: model)
-                await MainActor.run {
-                    completion(.success(template))
-                }
+                result = try await .success(produce())
             } catch {
-                await MainActor.run {
-                    completion(.failure(error))
-                }
+                result = .failure(error)
             }
+            await MainActor.run { completion(result) }
         }
     }
 
@@ -268,21 +269,8 @@ class ChatTemplateManager {
         model: ModelManager.ModelIdentifier,
         completion: @escaping (Result<ChatTemplate, Error>) -> Void,
     ) {
-        Task {
-            do {
-                let template = try await rewriteTemplate(
-                    template: template,
-                    request: request,
-                    model: model,
-                )
-                await MainActor.run {
-                    completion(.success(template))
-                }
-            } catch {
-                await MainActor.run {
-                    completion(.failure(error))
-                }
-            }
+        deliverOnMainActor(completion) {
+            try await self.rewriteTemplate(template: template, request: request, model: model)
         }
     }
 

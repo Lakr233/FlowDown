@@ -94,53 +94,22 @@ extension EvaluationManifest.Suite.Case {
                 self = .open
                 return
             }
-            if container.contains(.match) {
-                if let payload = try? container.decode(PatternPayload.self, forKey: .match) {
-                    self = .match(pattern: payload.pattern)
+            // Pattern-carrying cases all decode the same two shapes: a keyed
+            // payload object or a bare string.
+            let patternCases: [(CodingKeys, (String) -> Self)] = [
+                (.match, Self.match(pattern:)),
+                (.matchCaseInsensitive, Self.matchCaseInsensitive(pattern:)),
+                (.matchRegularExpression, Self.matchRegularExpression(pattern:)),
+                (.contains, Self.contains(pattern:)),
+                (.containsCaseInsensitive, Self.containsCaseInsensitive(pattern:)),
+            ]
+            for (key, makeVerifier) in patternCases where container.contains(key) {
+                if let payload = try? container.decode(PatternPayload.self, forKey: key) {
+                    self = makeVerifier(payload.pattern)
                     return
                 }
-                if let pattern = try? container.decode(String.self, forKey: .match) {
-                    self = .match(pattern: pattern)
-                    return
-                }
-            }
-            if container.contains(.matchCaseInsensitive) {
-                if let payload = try? container.decode(PatternPayload.self, forKey: .matchCaseInsensitive) {
-                    self = .matchCaseInsensitive(pattern: payload.pattern)
-                    return
-                }
-                if let pattern = try? container.decode(String.self, forKey: .matchCaseInsensitive) {
-                    self = .matchCaseInsensitive(pattern: pattern)
-                    return
-                }
-            }
-            if container.contains(.matchRegularExpression) {
-                if let payload = try? container.decode(PatternPayload.self, forKey: .matchRegularExpression) {
-                    self = .matchRegularExpression(pattern: payload.pattern)
-                    return
-                }
-                if let pattern = try? container.decode(String.self, forKey: .matchRegularExpression) {
-                    self = .matchRegularExpression(pattern: pattern)
-                    return
-                }
-            }
-            if container.contains(.contains) {
-                if let payload = try? container.decode(PatternPayload.self, forKey: .contains) {
-                    self = .contains(pattern: payload.pattern)
-                    return
-                }
-                if let pattern = try? container.decode(String.self, forKey: .contains) {
-                    self = .contains(pattern: pattern)
-                    return
-                }
-            }
-            if container.contains(.containsCaseInsensitive) {
-                if let payload = try? container.decode(PatternPayload.self, forKey: .containsCaseInsensitive) {
-                    self = .containsCaseInsensitive(pattern: payload.pattern)
-                    return
-                }
-                if let pattern = try? container.decode(String.self, forKey: .containsCaseInsensitive) {
-                    self = .containsCaseInsensitive(pattern: pattern)
+                if let pattern = try? container.decode(String.self, forKey: key) {
+                    self = makeVerifier(pattern)
                     return
                 }
             }
@@ -254,29 +223,6 @@ extension EvaluationManifest.Suite.Case {
             case let .tool(parameter, value):
                 try container.encode(ToolPayload(parameter: parameter, value: value), forKey: .tool)
             }
-        }
-    }
-}
-
-extension EvaluationManifest.Suite.Case.Verifier {
-    var localizedDescription: String.LocalizationValue {
-        switch self {
-        case .open:
-            "Open evaluation (no programmatic verification)"
-        case let .match(pattern):
-            "Match: \(pattern)"
-        case let .matchCaseInsensitive(pattern):
-            "Match (case-insensitive): \(pattern)"
-        case let .matchRegularExpression(pattern):
-            "Match (regex): \(pattern)"
-        case let .contains(pattern):
-            "Contains: \(pattern)"
-        case let .containsCaseInsensitive(pattern):
-            "Contains (case-insensitive): \(pattern)"
-        case let .toolCalled(name):
-            "Tool call: \(name)"
-        case let .tool(parameter, value):
-            "Tool parameter '\(parameter)' = \(String(describing: value))"
         }
     }
 }

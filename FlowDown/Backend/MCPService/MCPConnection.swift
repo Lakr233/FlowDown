@@ -14,7 +14,6 @@ import Storage
 // MARK: - Connection Manager
 
 protocol MCPConnectionControlling: AnyObject, Sendable {
-    var hasClient: Bool { get }
     var isConnected: Bool { get }
 
     func connect() async throws
@@ -83,10 +82,6 @@ final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
     }
 
     var isConnected: Bool {
-        client != nil
-    }
-
-    var hasClient: Bool {
         client != nil
     }
 

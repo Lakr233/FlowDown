@@ -47,25 +47,6 @@ final class EvaluationSessionManager {
         return url
     }
 
-    func load(id: UUID) throws -> EvaluationSession {
-        let directory = try sessionsDirectoryURL()
-
-        let jsonURL = directory.appendingPathComponent(filename(for: id, ext: "json"))
-        if FileManager.default.fileExists(atPath: jsonURL.path) {
-            let data = try Data(contentsOf: jsonURL)
-            return try jsonDecoder.decode(EvaluationSession.self, from: data)
-        }
-
-        let plistURL = directory.appendingPathComponent(filename(for: id, ext: "plist"))
-        let data = try Data(contentsOf: plistURL)
-        let session = try plistDecoder.decode(EvaluationSession.self, from: data)
-
-        // One-time migration to JSON.
-        _ = try? save(session)
-
-        return session
-    }
-
     func delete(id: UUID) throws {
         let url = try sessionURL(for: id)
         if FileManager.default.fileExists(atPath: url.path) {
@@ -146,10 +127,6 @@ final class EvaluationSessionManager {
             .appendingPathComponent("EvaluationSessions", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
-    }
-
-    private func filename(for id: UUID) -> String {
-        filename(for: id, ext: "plist")
     }
 
     private func filename(for id: UUID, ext: String) -> String {

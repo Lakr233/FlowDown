@@ -9,7 +9,8 @@ import Foundation
 import Storage
 import ZIPFoundation
 
-private let dateFormatter: DateFormatter = {
+/// Timestamp used to name exported archives and settings backups.
+let exportTimestampFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH-mm-ss"
     formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -32,7 +33,7 @@ nonisolated extension Storage {
                 .appendingPathComponent(
                     String(
                         format: String(localized: "Exported Database %@"),
-                        dateFormatter.string(from: Date()),
+                        exportTimestampFormatter.string(from: Date()),
                     ),
                 )
                 .appendingPathExtension("zip")

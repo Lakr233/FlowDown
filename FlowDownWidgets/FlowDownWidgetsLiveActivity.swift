@@ -114,8 +114,6 @@ private extension FlowDownWidgetsAttributes {
 private extension FlowDownWidgetsAttributes.ContentState {
     static var none: FlowDownWidgetsAttributes.ContentState {
         FlowDownWidgetsAttributes.ContentState(
-            runningSession: 0,
-            incomingTokens: 0,
             conversationCount: 0,
             streamingSessionTextCount: 0,
         )
@@ -123,8 +121,6 @@ private extension FlowDownWidgetsAttributes.ContentState {
 
     static var doing: FlowDownWidgetsAttributes.ContentState {
         FlowDownWidgetsAttributes.ContentState(
-            runningSession: 1,
-            incomingTokens: 100,
             conversationCount: 1,
             streamingSessionTextCount: 100,
         )
@@ -132,8 +128,6 @@ private extension FlowDownWidgetsAttributes.ContentState {
 
     static var done: FlowDownWidgetsAttributes.ContentState {
         FlowDownWidgetsAttributes.ContentState(
-            runningSession: 0,
-            incomingTokens: 114_514,
             conversationCount: 0,
             streamingSessionTextCount: 114_514,
         )

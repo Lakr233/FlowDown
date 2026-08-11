@@ -96,10 +96,6 @@ extension EvaluationSession {
         }
     }
 
-    var hasRunningWork: Bool {
-        allCases.contains(where: { $0.results.last?.outcome == .processing })
-    }
-
     func stopAndDispose(save: Bool = true) {
         runningTask?.cancel()
         runningTask = nil
@@ -119,27 +115,7 @@ extension EvaluationSession {
         }
     }
 
-    @objc func stop() {
-        runningTask?.cancel()
-        runningTask = nil
-        cancelPendingSave()
-        // Run save in a detached task or synchronous if possible, but manager likely async or safe
-        // We can just trigger a save. Since we are cancelling, the session state (results)
-        // will be preserved as they are updated in real-time.
-        // We might want to mark any 'processing' items as 'notDetermined' so they are picked up next time?
-        // Or just leave them, startEvaluation handles it.
-        _ = try? EvaluationSessionManager.shared.save(self)
-    }
-
     private func startEvaluation() async {
-        // Flatten all cases
-        var allCases: [EvaluationManifest.Suite.Case] = []
-        for manifest in manifests {
-            for suite in manifest.suites {
-                allCases.append(contentsOf: suite.cases)
-            }
-        }
-
         // Prepare cases for execution
         // We only want to run cases that are NOT completed.
         var casesToRun: [EvaluationManifest.Suite.Case] = []
@@ -212,9 +188,6 @@ extension EvaluationSession {
 
         while attempts < shots, !stop {
             attempts += 1
-            if attempts > 1 {
-                // Retry logic if needed
-            }
 
             let outcome = await performSingleShot(caseItem)
 

@@ -27,31 +27,23 @@ protocol ReleaseFeedClient {
     func latestGitHubRelease() async throws -> GitHubRelease
 }
 
-struct GitHubRelease: Equatable {
+struct GitHubRelease: Equatable, Decodable {
     let tagName: String
     let body: String?
     let htmlURL: String
     let draft: Bool
     let prerelease: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case tagName = "tag_name"
+        case body
+        case htmlURL = "html_url"
+        case draft
+        case prerelease
+    }
 }
 
 struct GitHubReleaseFeedClient: ReleaseFeedClient {
-    struct Payload: Decodable {
-        let tagName: String
-        let body: String?
-        let htmlURL: String
-        let draft: Bool
-        let prerelease: Bool
-
-        enum CodingKeys: String, CodingKey {
-            case tagName = "tag_name"
-            case body
-            case htmlURL = "html_url"
-            case draft
-            case prerelease
-        }
-    }
-
     let session: URLSessioning
     let latestReleaseURL: URL
 
@@ -65,18 +57,12 @@ struct GitHubReleaseFeedClient: ReleaseFeedClient {
 
     func latestGitHubRelease() async throws -> GitHubRelease {
         let (data, _) = try await session.data(from: latestReleaseURL)
-        guard let payload = try? JSONDecoder().decode(Payload.self, from: data) else {
+        guard let release = try? JSONDecoder().decode(GitHubRelease.self, from: data) else {
             throw NSError(domain: "UpdateManagerError", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: String(localized: "Failed to parse release information."),
             ])
         }
-        return .init(
-            tagName: payload.tagName,
-            body: payload.body,
-            htmlURL: payload.htmlURL,
-            draft: payload.draft,
-            prerelease: payload.prerelease,
-        )
+        return release
     }
 }
 
@@ -218,11 +204,7 @@ class UpdateManager: NSObject {
     }
 
     func newestPackage(from list: [DistributionChannel.RemotePackage]) -> DistributionChannel.RemotePackage? {
-        guard !list.isEmpty, var find = list.first else { return nil }
-        for i in 1 ..< list.count where Version.compare(find.tag, list[i].tag) < 0 {
-            find = list[i]
-        }
-        return find
+        list.max { Version.compare($0.tag, $1.tag) < 0 }
     }
 
     private func presentUpdateAlert(controller: UIViewController, package: DistributionChannel.RemotePackage) {
@@ -245,10 +227,6 @@ class UpdateManager: NSObject {
 }
 
 extension DistributionChannel {
-    enum UpdateCheckError: Error, LocalizedError {
-        case invalidResponse
-    }
-
     struct RemotePackage: Equatable {
         let tag: String
         let downloadURL: URL

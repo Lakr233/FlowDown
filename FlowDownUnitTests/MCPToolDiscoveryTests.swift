@@ -169,10 +169,6 @@ private final class DiscoveryConnectionSpy: MCPConnectionControlling, @unchecked
         self.listToolError = listToolError
     }
 
-    var hasClient: Bool {
-        true
-    }
-
     var isConnected: Bool {
         true
     }

@@ -12,10 +12,6 @@
 
     struct FlowDownWidgetsAttributes: ActivityAttributes {
         struct ContentState: Codable, Hashable {
-            var runningSession: Int
-            var incomingTokens: Int
-
-            // Preferred field names for app-side packaging.
             var conversationCount: Int
             var streamingSessionTextCount: Int
         }

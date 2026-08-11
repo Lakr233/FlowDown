@@ -182,7 +182,7 @@ class MCPService: NSObject {
 
     func ensureOrReconnect(_ serverID: ModelContextServer.ID) {
         Task { @MainActor in
-            if let connection = connections[serverID], connection.hasClient { return }
+            if let connection = connections[serverID], connection.isConnected { return }
             guard let server = self.server(with: serverID) else { return }
             updateServerStatus(serverID, status: .disconnected)
             _ = connectionTask(for: server)

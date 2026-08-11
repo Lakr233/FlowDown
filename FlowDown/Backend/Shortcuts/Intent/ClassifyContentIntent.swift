@@ -32,17 +32,6 @@ struct ClassifyContentIntent: AppIntent {
     @Parameter(title: "Candidate D", default: "")
     var candidateD: String
 
-    private func makeManualCandidates() -> [String] {
-        [
-            candidateA,
-            candidateB,
-            candidateC,
-            candidateD,
-        ]
-        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        .filter { !$0.isEmpty }
-    }
-
     static var parameterSummary: some ParameterSummary {
         When(\.$model, .hasAnyValue) {
             Summary("Use the selected model to classify your \(\.$content)") {
@@ -70,7 +59,7 @@ struct ClassifyContentIntent: AppIntent {
         }
 
         let resolvedCandidates = try CandidateInputResolver.resolveCandidates(
-            manualCandidates: makeManualCandidates(),
+            manualCandidates: CandidateInputResolver.manualCandidates(candidateA, candidateB, candidateC, candidateD),
         )
 
         let request = try ClassificationPromptBuilder.make(
@@ -124,17 +113,6 @@ struct ClassifyContentWithImageIntent: AppIntent {
     @Parameter(title: "Candidate D", default: "")
     var candidateD: String
 
-    private func makeManualCandidates() -> [String] {
-        [
-            candidateA,
-            candidateB,
-            candidateC,
-            candidateD,
-        ]
-        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        .filter { !$0.isEmpty }
-    }
-
     static var parameterSummary: some ParameterSummary {
         When(\.$model, .hasAnyValue) {
             Summary("Use the selected model to classify the image") {
@@ -159,7 +137,7 @@ struct ClassifyContentWithImageIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
         let resolvedCandidates = try CandidateInputResolver.resolveCandidates(
-            manualCandidates: makeManualCandidates(),
+            manualCandidates: CandidateInputResolver.manualCandidates(candidateA, candidateB, candidateC, candidateD),
         )
 
         let request = try ClassificationPromptBuilder.make(
@@ -302,5 +280,14 @@ private enum CandidateInputResolver {
         }
 
         return ordered
+    }
+}
+
+extension CandidateInputResolver {
+    /// Trims the fixed candidate slots exposed to Shortcuts and drops the empty ones.
+    static func manualCandidates(_ values: String...) -> [String] {
+        values
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
     }
 }

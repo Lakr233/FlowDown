@@ -247,11 +247,6 @@ enum InferenceIntentHandler {
         let trimmedReasoning = reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
         var response = trimmedContent.isEmpty ? trimmedReasoning : trimmedContent
 
-        #if DEBUG
-            print("Inference response: \(response)")
-            print("Tool requests: \(toolRequests)")
-        #endif
-
         if response.isEmpty {
             if toolRequests.isEmpty {
                 throw ShortcutError.emptyResponse

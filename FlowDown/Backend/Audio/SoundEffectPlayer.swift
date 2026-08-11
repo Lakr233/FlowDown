@@ -94,10 +94,7 @@ class SoundEffectPlayer: NSObject {
     func updateMode() {
         currentMode = StreamAudioEffectSetting.configuredMode()
 
-        let isActivated = switch currentMode {
-        case .off: false
-        default: true
-        }
+        let isActivated = currentMode != .off
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
@@ -114,24 +111,20 @@ class SoundEffectPlayer: NSObject {
     }
 
     private func timerTick() {
+        let player: AVAudioPlayer?
         if currentMode == .custom {
-            guard let player = customPlayer else { return }
-            guard tik > tok else { return }
-            tok = tik
-            player.currentTime = 0
-            player.play()
-            return
+            player = customPlayer
+        } else if let audioIndex = currentMode.audioIndex,
+                  audioIndex >= 0,
+                  audioIndex < audioPlayers.count
+        {
+            player = audioPlayers[audioIndex]
+        } else {
+            player = nil
         }
 
-        guard let audioIndex = currentMode.audioIndex,
-              audioIndex >= 0,
-              audioIndex < audioPlayers.count
-        else { return }
-
-        guard tik > tok else { return }
+        guard let player, tik > tok else { return }
         tok = tik
-
-        let player = audioPlayers[audioIndex]
         player.currentTime = 0
         player.play()
     }

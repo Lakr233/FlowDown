@@ -34,21 +34,14 @@ struct ImproveWritingMoreProfessionalIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        try await executeRewrite(
+        try await TextTransformIntentHelper.perform(
+            model: model,
+            text: text,
             directive: String(
                 localized: "Rewrite the following content so it reads professional, confident, and concise while preserving the original meaning. Reply with the revised text only.",
             ),
+            sourceLabel: String(localized: "Original Text:"),
         )
-    }
-
-    private func executeRewrite(directive: String) async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        let response = try await ImproveWritingIntentHelper.performRewrite(
-            model: model,
-            text: text,
-            directive: directive,
-        )
-        let dialog = IntentDialog(.init(stringLiteral: response))
-        return .result(value: response, dialog: dialog)
     }
 }
 
@@ -85,21 +78,14 @@ struct ImproveWritingMoreFriendlyIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        try await executeRewrite(
+        try await TextTransformIntentHelper.perform(
+            model: model,
+            text: text,
             directive: String(
                 localized: "Rewrite the following content to sound warm, friendly, and easy to understand while keeping the same intent. Reply with the revised text only.",
             ),
+            sourceLabel: String(localized: "Original Text:"),
         )
-    }
-
-    private func executeRewrite(directive: String) async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        let response = try await ImproveWritingIntentHelper.performRewrite(
-            model: model,
-            text: text,
-            directive: directive,
-        )
-        let dialog = IntentDialog(.init(stringLiteral: response))
-        return .result(value: response, dialog: dialog)
     }
 }
 
@@ -136,47 +122,13 @@ struct ImproveWritingMoreConciseIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        try await executeRewrite(
+        try await TextTransformIntentHelper.perform(
+            model: model,
+            text: text,
             directive: String(
                 localized: "Rewrite the following content to be more concise and direct while keeping essential details. Reply with the revised text only.",
             ),
-        )
-    }
-
-    private func executeRewrite(directive: String) async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        let response = try await ImproveWritingIntentHelper.performRewrite(
-            model: model,
-            text: text,
-            directive: directive,
-        )
-        let dialog = IntentDialog(.init(stringLiteral: response))
-        return .result(value: response, dialog: dialog)
-    }
-}
-
-enum ImproveWritingIntentHelper {
-    static func performRewrite(
-        model: ShortcutsEntities.ModelEntity?,
-        text: String,
-        directive: String,
-    ) async throws -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw ShortcutError.emptyMessage }
-
-        let message = [
-            directive,
-            "",
-            "---",
-            String(localized: "Original Text:"),
-            trimmed,
-        ].joined(separator: "\n")
-
-        return try await InferenceIntentHandler.execute(
-            model: model,
-            message: message,
-            image: nil,
-            audio: nil,
-            options: .init(allowsImages: false),
+            sourceLabel: String(localized: "Original Text:"),
         )
     }
 }

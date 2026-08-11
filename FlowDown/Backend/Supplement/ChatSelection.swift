@@ -47,10 +47,6 @@ class ChatSelection {
     private let subject = CurrentValueSubject<Selection, Never>(.none)
     let selection: AnyPublisher<Selection, Never>
 
-    var currentSelection: Selection {
-        subject.value
-    }
-
     private var cancellables = Set<AnyCancellable>()
 
     private init() {
@@ -95,10 +91,6 @@ class ChatSelection {
             return
         }
         select(.conversation(id: conversationId, options: options))
-    }
-
-    func select(_ conversationId: Conversation.ID) {
-        select(conversationId, options: .none)
     }
 }
 

@@ -56,37 +56,32 @@ final class DisposableExporter: NSObject {
 
         retainSelf()
 
-        switch mode {
-        case .text:
-            // Always use UIActivityViewController for text
-            let activityVC = UIActivityViewController(activityItems: [deletableItem], applicationActivities: nil)
-            activityVC.completionWithItemsHandler = { _, _, _, _ in
-                self.cleanup()
-            }
-            if let popover = activityVC.popoverPresentationController {
-                popover.sourceView = toView
-                popover.sourceRect = toView.bounds
-            }
-            presentingViewController.present(activityVC, animated: true, completion: nil)
-
-        case .file:
-            #if targetEnvironment(macCatalyst)
+        #if targetEnvironment(macCatalyst)
+            // Catalyst exports files through the document picker; text still
+            // goes through the share sheet.
+            if mode == .file {
                 let picker = UIDocumentPickerViewController(forExporting: [deletableItem])
                 picker.delegate = self
                 if let title { picker.title = title }
                 presentingViewController.present(picker, animated: true, completion: nil)
-            #else
-                let activityVC = UIActivityViewController(activityItems: [deletableItem], applicationActivities: nil)
-                activityVC.completionWithItemsHandler = { _, _, _, _ in
-                    self.cleanup()
-                }
-                if let popover = activityVC.popoverPresentationController {
-                    popover.sourceView = toView
-                    popover.sourceRect = toView.bounds
-                }
-                presentingViewController.present(activityVC, animated: true, completion: nil)
-            #endif
+                return
+            }
+        #endif
+
+        presentActivityController(anchor: toView, from: presentingViewController)
+    }
+
+    @MainActor
+    private func presentActivityController(anchor toView: UIView, from presenter: UIViewController) {
+        let activityVC = UIActivityViewController(activityItems: [deletableItem], applicationActivities: nil)
+        activityVC.completionWithItemsHandler = { _, _, _, _ in
+            self.cleanup()
         }
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = toView
+            popover.sourceRect = toView.bounds
+        }
+        presenter.present(activityVC, animated: true, completion: nil)
     }
 
     @MainActor
