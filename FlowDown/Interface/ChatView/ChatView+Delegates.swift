@@ -147,6 +147,31 @@ extension ChatView: RichEditorView.Delegate {
     return ModelManager.ModelIdentifier.defaultModelForConversation
   }
 
+  func onRichEditorRequestAutomaticModelSelection() {
+    guard modelIdentifier()?.isEmpty ?? true else { return }
+
+    let storedDefault = ModelManager.ModelIdentifier.defaultModelForConversation
+    let identifier: ModelManager.ModelIdentifier
+    if !storedDefault.isEmpty {
+      identifier = storedDefault
+    } else if let candidate = ModelManager.shared.automaticSelectionCandidate() {
+      identifier = candidate
+      ModelManager.ModelIdentifier.defaultModelForConversation = candidate
+    } else {
+      Logger.model.infoFile("no model available for automatic selection")
+      return
+    }
+
+    Logger.model.infoFile("automatically selected model: \(identifier)")
+    if let conversationIdentifier {
+      ConversationManager.shared.editConversation(identifier: conversationIdentifier) {
+        $0.update(\.modelId, to: identifier)
+      }
+    }
+    editor.updateModelName()
+    offloadModelsToSession(modelIdentifier: identifier)
+  }
+
   func onRichEditorRequestCurrentModelName() -> String? {
     guard let modelIdentifier = modelIdentifier() else { return nil }
     if #available(iOS 26.0, macCatalyst 26.0, *),

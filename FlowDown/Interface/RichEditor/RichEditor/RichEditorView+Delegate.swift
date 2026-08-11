@@ -14,6 +14,7 @@ extension RichEditorView {
         func onRichEditorTogglesUpdate(object: Object)
         func onRichEditorRequestObjectForRestore() -> Object?
         func onRichEditorUpdateObject(object: Object)
+        func onRichEditorRequestAutomaticModelSelection()
         func onRichEditorRequestCurrentModelName() -> String?
         func onRichEditorRequestCurrentModelIdentifier() -> String?
         func onRichEditorBuildModelSelectionMenu(completion: @escaping () -> Void) -> [UIMenuElement]

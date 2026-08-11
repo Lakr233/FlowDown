@@ -110,6 +110,8 @@ class RichEditorView: EditorSectionView {
         didSet { setNeedsLayout() }
     }
 
+    static var didRequestAutomaticModelSelection = false
+
     weak var delegate: Delegate?
     var objectTransactionInProgress = false
     var heightContraints: NSLayoutConstraint = .init()
@@ -251,6 +253,22 @@ class RichEditorView: EditorSectionView {
         heightContraints.isActive = true
         parentViewController?.view.layoutIfNeeded()
         setNeedsLayout()
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        requestAutomaticModelSelectionIfNeeded()
+    }
+
+    /// Gives the app a chance to pick a model for the user, once per launch,
+    /// shortly after the editor shows up for the first time.
+    private func requestAutomaticModelSelectionIfNeeded() {
+        guard window != nil, !Self.didRequestAutomaticModelSelection else { return }
+        Self.didRequestAutomaticModelSelection = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
+            self.delegate?.onRichEditorRequestAutomaticModelSelection()
+        }
     }
 
     func focus() {
