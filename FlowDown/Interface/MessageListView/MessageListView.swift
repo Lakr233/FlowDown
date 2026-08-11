@@ -87,6 +87,30 @@ final class MessageListView: UIView {
     private(set) lazy var markdownSizingViewPool: MarkdownSizingViewPool = .init()
     private(set) lazy var markdownPackageCache: MarkdownPackageCache = .init()
 
+    #if DEBUG
+        // TEMP scroll-diag: remove after #2.
+        private var scrollDiagObservation: NSKeyValueObservation?
+        private var scrollDiagWriteCount = 0
+        private var scrollDiagMaxStep: CGFloat = 0
+        private var scrollDiagLastFlush: CFTimeInterval = CACurrentMediaTime()
+        private func installScrollDiagHeartbeat() {
+            scrollDiagObservation = listView.observe(\.contentOffset, options: [.old, .new]) { [weak self] view, change in
+                guard let self, let old = change.oldValue, let new = change.newValue else { return }
+                let dy = abs(new.y - old.y)
+                guard dy > 0.1 else { return }
+                scrollDiagWriteCount += 1
+                scrollDiagMaxStep = max(scrollDiagMaxStep, dy)
+                let now = CACurrentMediaTime()
+                if now - scrollDiagLastFlush > 0.5 {
+                    Logger.ui.infoFile("[scroll-diag] heartbeat writes=\(scrollDiagWriteCount) maxStep=\(Int(scrollDiagMaxStep)) offset=\(Int(new.y)) max=\(Int(view.maximumContentOffset.y))")
+                    scrollDiagWriteCount = 0
+                    scrollDiagMaxStep = 0
+                    scrollDiagLastFlush = now
+                }
+            }
+        }
+    #endif
+
     init() {
         super.init(frame: .zero)
 
@@ -106,6 +130,10 @@ final class MessageListView: UIView {
             guard $0 is UIPanGestureRecognizer else { return }
             $0.cancelsTouchesInView = false
         }
+
+        #if DEBUG
+            installScrollDiagHeartbeat()
+        #endif
 
         MarkdownTheme.fontScaleDidChange
             .ensureMainThread()
@@ -133,6 +161,10 @@ final class MessageListView: UIView {
         if isAutoScrollingToBottom || wasNearBottom {
             let targetOffset = listView.maximumContentOffset
             if abs(listView.contentOffset.y - targetOffset.y) > autoScrollTolerance {
+                #if DEBUG
+                    // TEMP scroll-diag: remove after #2.
+                    Logger.ui.infoFile("[scroll-diag] layout scroll offset=\(Int(listView.contentOffset.y)) target=\(Int(targetOffset.y))")
+                #endif
                 listView.scroll(to: targetOffset)
             }
             if wasNearBottom {
@@ -219,6 +251,10 @@ final class MessageListView: UIView {
 
     func updateFromUpstreamPublisher(_ messages: [Message], _ scrolling: Bool, isLoading: String?) {
         assert(!Thread.isMainThread)
+        #if DEBUG
+            // TEMP scroll-diag: remove after #2.
+            Logger.ui.infoFile("[scroll-diag] upstream scrolling=\(scrolling) auto=\(isAutoScrollingToBottom) loading=\(isLoading ?? "nil")")
+        #endif
         var entries = entries(from: messages)
 
         for entry in entries {
@@ -248,6 +284,10 @@ final class MessageListView: UIView {
                 }
             } else {
                 listView.apply(entries, animated: true)
+                #if DEBUG
+                    // TEMP scroll-diag: remove after #2.
+                    Logger.ui.infoFile("[scroll-diag] apply shouldScroll=\(shouldScrolling) offset=\(Int(listView.contentOffset.y)) max=\(Int(listView.maximumContentOffset.y))")
+                #endif
                 if shouldScrolling {
                     listView.scroll(to: listView.maximumContentOffset)
                 }
@@ -258,6 +298,10 @@ final class MessageListView: UIView {
 
 extension MessageListView: UIScrollViewDelegate {
     func scrollViewWillBeginDragging(_: UIScrollView) {
+        #if DEBUG
+            // TEMP scroll-diag: remove after #2.
+            Logger.ui.infoFile("[scroll-diag] willBeginDragging -> auto=false")
+        #endif
         isAutoScrollingToBottom = false
     }
 
