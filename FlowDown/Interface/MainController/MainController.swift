@@ -85,9 +85,12 @@ class MainController: UIViewController {
         }
     }
 
+    static let sidebarCollapsedKey = "SidebarCollapsed"
+
     var isSidebarCollapsed: Bool {
         didSet {
             guard oldValue != isSidebarCollapsed else { return }
+            UserDefaults.standard.set(isSidebarCollapsed, forKey: Self.sidebarCollapsedKey)
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             updateViewConstraints()
             contentView.contentView.isUserInteractionEnabled = allowsContentInteraction
@@ -120,10 +123,17 @@ class MainController: UIViewController {
     var cancellables: Set<AnyCancellable> = []
 
     init() {
+        // The phone sidebar is a drawer over the chat, so it always starts
+        // closed there; elsewhere the last state the user left it in wins.
+        let storedCollapsed = UserDefaults.standard.object(forKey: Self.sidebarCollapsedKey) as? Bool
         #if targetEnvironment(macCatalyst)
-            isSidebarCollapsed = false
+            isSidebarCollapsed = storedCollapsed ?? false
         #else
-            isSidebarCollapsed = true
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                isSidebarCollapsed = storedCollapsed ?? true
+            } else {
+                isSidebarCollapsed = true
+            }
         #endif
 
         super.init(nibName: nil, bundle: nil)

@@ -163,40 +163,18 @@ extension ConversationManager {
             ],
         )
 
+        let metadataModel = session.models.auxiliary ?? session.models.chat
+        let metadataModelSupportsTools = metadataModel
+            .map { ModelManager.shared.modelCapabilities(identifier: $0).contains(.tool) }
+            ?? false
         let automationMenu = UIMenu(
             title: String(localized: "Automation"),
             options: [.displayInline],
             children: [
                 UIAction(
-                    title: String(localized: "Generate New Icon"),
-                    image: UIImage(systemName: "arrow.clockwise"),
-                ) { _ in
-                    Indicator.progress(
-                        title: "Generating New Icon",
-                        controller: controller,
-                    ) { completion in
-                        let sessionManager = ConversationSessionManager.shared
-                        let session = sessionManager.session(for: conv.id)
-                        let emoji = await session.generateConversationIcon()
-                        await completion {
-                            if let emoji {
-                                ConversationManager.shared.editConversation(identifier: conv.id) { conversation in
-                                    let icon = emoji.textToImage(size: 128)?.pngData() ?? .init()
-                                    conversation.update(\.icon, to: icon)
-                                }
-                            } else {
-                                Indicator.present(
-                                    title: "Unable to generate icon",
-                                    preset: .error,
-                                    referencingView: view,
-                                )
-                            }
-                        }
-                    }
-                },
-                UIAction(
                     title: String(localized: "Generate New Title"),
                     image: UIImage(systemName: "arrow.clockwise"),
+                    attributes: metadataModelSupportsTools ? [] : [.disabled],
                 ) { _ in
                     Indicator.progress(
                         title: "Generating New Title",
@@ -204,11 +182,17 @@ extension ConversationManager {
                     ) { completion in
                         let sessionManager = ConversationSessionManager.shared
                         let session = sessionManager.session(for: conv.id)
-                        let title = await session.generateConversationTitle()
+                        let metadata = await session.generateConversationMetadata()
                         await completion {
-                            if let title {
+                            if let metadata, metadata.hasGeneratedContent {
                                 ConversationManager.shared.editConversation(identifier: conv.id) { conversation in
-                                    conversation.update(\.title, to: title)
+                                    if let title = metadata.title {
+                                        conversation.update(\.title, to: title)
+                                    }
+                                    if let icon = metadata.icon {
+                                        let iconData = icon.textToImage(size: 128)?.pngData() ?? .init()
+                                        conversation.update(\.icon, to: iconData)
+                                    }
                                 }
                             } else {
                                 Indicator.present(

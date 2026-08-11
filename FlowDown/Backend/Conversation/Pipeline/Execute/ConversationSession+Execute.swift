@@ -116,10 +116,17 @@ extension ConversationSession {
             save()
         } catch {
             logger.errorFile("\(error.localizedDescription)")
-            let errorMessage = appendNewMessage(role: .assistant)
             let sanitized = error.localizedDescription
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            errorMessage.update(\.document, to: "```\n\(sanitized)")
+            if error is InferenceUserCancellationError {
+                // A cancellation is the user's own doing, not a failure worth an
+                // assistant bubble; show it like the date separators do.
+                let hintMessage = appendNewMessage(role: .hint)
+                hintMessage.update(\.document, to: sanitized)
+            } else {
+                let errorMessage = appendNewMessage(role: .assistant)
+                errorMessage.update(\.document, to: "```\n\(sanitized)")
+            }
             await requestUpdate(view: currentMessageListView)
             await requestUpdate(view: currentMessageListView)
         }
