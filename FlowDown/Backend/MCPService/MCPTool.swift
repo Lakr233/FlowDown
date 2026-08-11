@@ -11,7 +11,6 @@ import ConfigurableKit
 import Foundation
 import MCP
 import Storage
-import XMLCoder
 
 class MCPTool: ModelTool, @unchecked Sendable {
     // MARK: - Properties

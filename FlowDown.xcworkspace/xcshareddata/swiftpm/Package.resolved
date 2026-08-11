@@ -145,15 +145,6 @@
       }
     },
     {
-      "identity" : "lookinside-release",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/LookInsideApp/LookInside-Release.git",
-      "state" : {
-        "revision" : "dffa978344968ce7f175b70342b8470ba9043cb2",
-        "version" : "0.2.7"
-      }
-    },
-    {
       "identity" : "lrucache",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nicklockwood/LRUCache",
@@ -385,15 +376,6 @@
       "state" : {
         "revision" : "98edf55b91436b2c13a76fc2b66dc3b34627d8d4",
         "version" : "2.1.5"
-      }
-    },
-    {
-      "identity" : "xmlcoder",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CoreOffice/XMLCoder",
-      "state" : {
-        "revision" : "42f62383dbcd074440cb1f6a750b9c02df9e7325",
-        "version" : "0.18.2"
       }
     },
     {

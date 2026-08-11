@@ -13,6 +13,9 @@ public enum ModelCapabilities: String, Codable, CaseIterable, Equatable {
     case auditory
     case tool
     case developerRole
+    /// Thinking models that require the original reasoning of every turn to
+    /// be preserved: prior reasoning is sent back as `reasoning_content`.
+    case preservedThinking
 }
 
 public enum ModelContextLength: Int, Codable, CaseIterable, Equatable {

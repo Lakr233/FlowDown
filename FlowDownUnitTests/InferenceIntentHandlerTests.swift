@@ -14,9 +14,10 @@ struct InferenceIntentHandlerTests {
         dependencies.shouldExposeMemory = { _, _ in false }
         dependencies.proactiveMemoryContextProvider = { nil }
         dependencies.memoryWritingToolsProvider = { [] }
-        dependencies.streamingInfer = { _, messages, tools in
+        dependencies.streamingInfer = { _, messages, tools, toolChoice in
             #expect(messages.count == 2)
             #expect(tools == nil)
+            #expect(toolChoice == nil)
             return makeResponseStream([.text("shortcut response")])
         }
         dependencies.persistConversation = { _, _, _, _, _, _ in
@@ -50,7 +51,7 @@ struct InferenceIntentHandlerTests {
         dependencies.shouldExposeMemory = { _, _ in false }
         dependencies.proactiveMemoryContextProvider = { nil }
         dependencies.memoryWritingToolsProvider = { [] }
-        dependencies.streamingInfer = { _, _, _ in
+        dependencies.streamingInfer = { _, _, _, _ in
             makeResponseStream([.tool(toolRequest)])
         }
 

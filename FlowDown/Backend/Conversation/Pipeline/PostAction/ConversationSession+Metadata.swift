@@ -8,7 +8,6 @@
 import ChatClientKit
 import Foundation
 import Storage
-import XMLCoder
 
 struct ConversationMetadata: Equatable {
     let title: String?
@@ -19,42 +18,47 @@ struct ConversationMetadata: Equatable {
     }
 }
 
-private struct ConversationMetadataResponse: Codable {
-    let title: String?
-    let icon: String?
-}
+enum ConversationMetadataToolCall {
+    static let name = "save_conversation_metadata"
 
-private struct ConversationMetadataXML: Codable {
-    let task: String
-    let last_user_message: String
-    let last_assistant_message: String
-    let output_format: OutputFormat
-
-    private enum CodingKeys: String, CodingKey {
-        case task
-        case last_user_message
-        case last_assistant_message
-        case output_format
+    static var definition: ChatRequestBody.Tool {
+        .function(
+            name: name,
+            description: "Save the generated title and icon for the conversation.",
+            parameters: [
+                "type": "object",
+                "properties": [
+                    "title": [
+                        "type": "string",
+                        "description": "A concise 3-5 word title summarizing the conversation, in the user's primary language, without any prefix, label, or markdown.",
+                    ],
+                    "icon": [
+                        "type": "string",
+                        "description": "A single emoji character that best represents the conversation.",
+                    ],
+                ],
+                "required": ["title", "icon"],
+                "additionalProperties": false,
+            ],
+            strict: true,
+        )
     }
 
-    struct OutputFormat: Codable {
-        let title: String
-        let icon: String
-    }
-}
-
-enum ConversationMetadataParser {
-    static func parseResponse(_ response: String) -> ConversationMetadata? {
-        parseXML(ModelResponseSanitizer.stripReasoning(from: response))
+    private struct Arguments: Decodable {
+        let title: String?
+        let icon: String?
     }
 
-    static func parseXML(_ xmlString: String) -> ConversationMetadata? {
-        let extracted = extractUsingXMLCoder(xmlString) ?? extractUsingRegex(xmlString)
-        guard let extracted else { return nil }
+    static func parse(arguments: String) -> ConversationMetadata? {
+        guard let data = arguments.data(using: .utf8),
+              let decoded = try? JSONDecoder().decode(Arguments.self, from: data)
+        else {
+            return nil
+        }
 
         let metadata = ConversationMetadata(
-            title: normalizedTitle(extracted.title),
-            icon: normalizedIcon(extracted.icon),
+            title: normalizedTitle(decoded.title),
+            icon: normalizedIcon(decoded.icon),
         )
 
         return metadata.hasGeneratedContent ? metadata : nil
@@ -87,53 +91,6 @@ enum ConversationMetadataParser {
 
         return normalized
     }
-
-    private static func extractUsingXMLCoder(_ xmlString: String) -> ConversationMetadata? {
-        let decoder = XMLDecoder()
-
-        guard let data = xmlString.data(using: .utf8),
-              let response = try? decoder.decode(ConversationMetadataResponse.self, from: data)
-        else {
-            return nil
-        }
-
-        guard response.title != nil || response.icon != nil else {
-            return nil
-        }
-
-        return ConversationMetadata(
-            title: response.title,
-            icon: response.icon,
-        )
-    }
-
-    private static func extractUsingRegex(_ xmlString: String) -> ConversationMetadata? {
-        let metadata = ConversationMetadata(
-            title: firstMatch(in: xmlString, pattern: #"<title>(.*?)</title>"#),
-            icon: firstMatch(in: xmlString, pattern: #"<icon>(.*?)</icon>"#),
-        )
-
-        return metadata.hasGeneratedContent ? metadata : nil
-    }
-
-    private static func firstMatch(in xmlString: String, pattern: String) -> String? {
-        guard let regex = try? NSRegularExpression(
-            pattern: pattern,
-            options: [.caseInsensitive, .dotMatchesLineSeparators],
-        ) else {
-            return nil
-        }
-
-        let range = NSRange(xmlString.startIndex ..< xmlString.endIndex, in: xmlString)
-        guard let match = regex.firstMatch(in: xmlString, options: [], range: range),
-              let valueRange = Range(match.range(at: 1), in: xmlString)
-        else {
-            return nil
-        }
-
-        let value = String(xmlString[valueRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-        return value.isEmpty ? nil : value
-    }
 }
 
 extension ConversationSessionManager.Session {
@@ -145,42 +102,41 @@ extension ConversationSessionManager.Session {
             return nil
         }
 
-        let task = """
-        Generate conversation metadata from the chat history. Respond ONLY with valid XML in this exact format:
-        <conversation>
-        <title>3-5 word title in the user's primary language with no prefix, label, or markdown</title>
-        <icon>single emoji that best represents the conversation</icon>
-        </conversation>
-        """
+        guard let model = models.auxiliary else { return nil }
+        guard ModelManager.shared.modelCapabilities(identifier: model).contains(.tool) else {
+            Logger.model.infoFile("skipping conversation metadata generation: model has no tool call capability")
+            return nil
+        }
 
-        let conversationData = ConversationMetadataXML(
-            task: task,
-            last_user_message: userMessage,
-            last_assistant_message: assistantMessage,
-            output_format: .init(
-                title: "your_title_here",
-                icon: "💬",
-            ),
-        )
+        let input: [ChatRequestBody.Message] = [
+            .system(content: .text(
+                "Generate metadata for the conversation. You must call \(ConversationMetadataToolCall.name) exactly once with a title and an icon. Do not respond with plain text.",
+            )),
+            .user(content: .text(
+                """
+                [last user message]
+                \(userMessage)
+
+                [last assistant message]
+                \(assistantMessage)
+                """,
+            )),
+        ]
 
         do {
-            let encoder = XMLEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let xmlData = try encoder.encode(conversationData, withRootKey: "conversation")
-            let xmlString = String(data: xmlData, encoding: .utf8) ?? ""
-
-            let input: [ChatRequestBody.Message] = [
-                .system(content: .text(task)),
-                .user(content: .text(xmlString)),
-            ]
-
-            guard let model = models.auxiliary else { throw NSError() }
             let response = try await ModelManager.shared.infer(
                 with: model,
                 input: input,
+                tools: [ConversationMetadataToolCall.definition],
+                toolChoice: .function(name: ConversationMetadataToolCall.name),
             )
 
-            return ConversationMetadataParser.parseResponse(response.text)
+            guard let call = response.tools.first(where: { $0.name == ConversationMetadataToolCall.name }) else {
+                Logger.model.errorFile("conversation metadata generation returned no tool call")
+                return nil
+            }
+
+            return ConversationMetadataToolCall.parse(arguments: call.args)
         } catch {
             Logger.model.errorFile("failed to generate conversation metadata: \(error)")
             return nil

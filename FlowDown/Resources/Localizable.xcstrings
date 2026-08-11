@@ -10321,6 +10321,53 @@
         }
       }
     },
+    "Contemplation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontemplation"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contemplation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contemplación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contemplation"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "熟考"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "숙고"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沉思"
+          }
+        }
+      }
+    },
     "Content" : {
       "localizations" : {
         "de" : {
@@ -49812,6 +49859,53 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "思考已完成，但没有输出任何内容。"
+          }
+        }
+      }
+    },
+    "Thinking models of this kind require the original reasoning of every turn to be preserved. When enabled, previous thinking is sent back to the model as reasoning content during inference. Some models require this feature." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solche Denkmodelle erfordern, dass die ursprünglichen Überlegungen jeder Runde erhalten bleiben. Wenn aktiviert, werden frühere Überlegungen bei der Inferenz an das Modell zurückgesendet. Einige Modelle setzen diese Funktion voraus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thinking models of this kind require the original reasoning of every turn to be preserved. When enabled, previous thinking is sent back to the model as reasoning content during inference. Some models require this feature."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este tipo de modelos de razonamiento requiere conservar el razonamiento original de cada turno. Al activarlo, el razonamiento previo se reenvía al modelo durante la inferencia. Algunos modelos requieren esta función."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce type de modèle de réflexion exige de conserver le raisonnement original de chaque tour. Une fois activé, le raisonnement précédent est renvoyé au modèle lors de l'inférence. Certains modèles exigent cette fonctionnalité."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この種の思考モデルでは、各ターンの元の思考内容を保持する必要があります。有効にすると、推論時に以前の思考内容がモデルに送り返されます。一部のモデルではこの機能が必須です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이러한 사고 모델은 각 턴의 원본 사고 내용을 보존해야 합니다. 활성화하면 추론 시 이전 사고 내용이 모델로 다시 전송됩니다. 일부 모델은 이 기능이 필수입니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此类思考模型要求保留每轮思考的原始内容。启用后,推理时会将之前的思考内容一并发回给模型。部分模型要求启用此功能。"
           }
         }
       }

@@ -18,17 +18,23 @@ enum InferenceIntentHandler {
         let allowsAudio: Bool
         let saveToConversation: Bool
         let enableMemory: Bool
+        /// When set, the model must answer through this single tool; the
+        /// returned value is the raw JSON arguments of that call. Requires a
+        /// model with tool call capability and bypasses memory tools.
+        let forcedTool: ChatRequestBody.Tool?
 
         init(
             allowsImages: Bool,
             allowsAudio: Bool = false,
             saveToConversation: Bool = false,
             enableMemory: Bool = false,
+            forcedTool: ChatRequestBody.Tool? = nil,
         ) {
             self.allowsImages = allowsImages
             self.allowsAudio = allowsAudio
             self.saveToConversation = saveToConversation
             self.enableMemory = enableMemory
+            self.forcedTool = forcedTool
         }
     }
 
@@ -64,11 +70,12 @@ enum InferenceIntentHandler {
             InferenceIntentHandler.allWritingMemoryTools()
         }
 
-        var streamingInfer: (ModelManager.ModelIdentifier, [ChatRequestBody.Message], [ChatRequestBody.Tool]?) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> = { modelID, input, tools in
+        var streamingInfer: (ModelManager.ModelIdentifier, [ChatRequestBody.Message], [ChatRequestBody.Tool]?, ChatRequestBody.ToolChoice?) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> = { modelID, input, tools, toolChoice in
             try await ModelManager.shared.streamingInfer(
                 with: modelID,
                 input: input,
                 tools: tools,
+                toolChoice: toolChoice,
             )
         }
 
@@ -137,6 +144,9 @@ enum InferenceIntentHandler {
         let modelCapabilities = await MainActor.run {
             dependencies.modelCapabilities(modelIdentifier)
         }
+        if options.forcedTool != nil, !modelCapabilities.contains(.tool) {
+            throw ShortcutError.toolCallNotSupportedByModel
+        }
         let prompt = dependencies.preparePrompt()
 
         var requestMessages: [ChatRequestBody.Message] = []
@@ -147,7 +157,8 @@ enum InferenceIntentHandler {
         var proactiveMemoryProvided = false
         var memoryWritingTools: [ModelTool] = []
         let enabledTools = dependencies.enabledToolsProvider()
-        let shouldExposeMemory = dependencies.shouldExposeMemory(options.enableMemory, enabledTools)
+        let shouldExposeMemory = options.forcedTool == nil
+            && dependencies.shouldExposeMemory(options.enableMemory, enabledTools)
 
         if shouldExposeMemory {
             if let memoryContext = await dependencies.proactiveMemoryContextProvider(),
@@ -196,8 +207,16 @@ enum InferenceIntentHandler {
 
         requestMessages.append(userMessage)
 
-        let toolDefinitions = memoryWritingTools.isEmpty ? nil : memoryWritingTools.map(\.definition)
-        let inference = try await dependencies.streamingInfer(modelIdentifier, requestMessages, toolDefinitions)
+        var toolDefinitions = memoryWritingTools.isEmpty ? nil : memoryWritingTools.map(\.definition)
+        var toolChoice: ChatRequestBody.ToolChoice?
+        if let forcedTool = options.forcedTool {
+            toolDefinitions = [forcedTool]
+            switch forcedTool {
+            case let .function(name, _, _, _):
+                toolChoice = .function(name: name)
+            }
+        }
+        let inference = try await dependencies.streamingInfer(modelIdentifier, requestMessages, toolDefinitions, toolChoice)
 
         var content = ""
         var reasoningContent = ""
@@ -213,6 +232,15 @@ enum InferenceIntentHandler {
             case .image:
                 break
             }
+        }
+
+        if let forcedTool = options.forcedTool {
+            guard case let .function(forcedName, _, _, _) = forcedTool,
+                  let call = toolRequests.first(where: { $0.name == forcedName })
+            else {
+                throw ShortcutError.emptyResponse
+            }
+            return call.args
         }
 
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)

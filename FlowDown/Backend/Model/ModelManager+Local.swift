@@ -35,6 +35,7 @@ extension ModelCapabilities {
         case .tool: "hammer"
         case .developerRole: "person.crop.circle.badge.checkmark"
         case .auditory: "waveform"
+        case .preservedThinking: "brain"
         }
     }
 
@@ -44,6 +45,7 @@ extension ModelCapabilities {
         case .auditory: "Audio"
         case .tool: "Tool"
         case .developerRole: "Role"
+        case .preservedThinking: "Contemplation"
         }
     }
 
@@ -53,6 +55,7 @@ extension ModelCapabilities {
         case .tool: "Specially trained models can use tools to read and write accurate information and automatically perform multi-turn processing."
         case .developerRole: "Specially trained models can use roles to distinguish the priority and importance of instructions. Some models require this feature."
         case .auditory: "Audio models can listen to sounds in attachments."
+        case .preservedThinking: "Thinking models of this kind require the original reasoning of every turn to be preserved. When enabled, previous thinking is sent back to the model as reasoning content during inference. Some models require this feature."
         }
     }
 }

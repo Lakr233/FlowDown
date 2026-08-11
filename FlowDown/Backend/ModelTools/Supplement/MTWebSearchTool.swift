@@ -11,7 +11,6 @@ import Foundation
 @preconcurrency import ScrubberKit
 import Storage
 import UIKit
-import XMLCoder
 
 class MTWebSearchTool: ModelTool, @unchecked Sendable {
     override var shortDescription: String {

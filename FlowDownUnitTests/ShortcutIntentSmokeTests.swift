@@ -258,7 +258,7 @@ private extension ShortcutIntentSmokeTests {
         }
         dependencies.proactiveMemoryContextProvider = { nil }
         dependencies.memoryWritingToolsProvider = { [] }
-        dependencies.streamingInfer = { _, messages, _ in
+        dependencies.streamingInfer = { _, messages, _, _ in
             recorder.streamedMessages.append(messages)
             return makeResponseStream([.text(responseText)])
         }

@@ -47,9 +47,7 @@
 		50DDB1712DDF16F200351E46 /* ListViewKit in Frameworks */ = {isa = PBXBuildFile; productRef = 50DDB1702DDF16F200351E46 /* ListViewKit */; };
 		50E3FA092D6D7FB8000405BD /* GPTEncoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50E3FA082D6D7FB8000405BD /* GPTEncoder */; };
 		50F6E0002F00A0B500123456 /* FlowDownModelExchange in Frameworks */ = {isa = PBXBuildFile; productRef = 50F6E0012F00A0B500123456 /* FlowDownModelExchange */; };
-		50FBFC6C2DEA2E5400098EC4 /* XMLCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50FBFC6B2DEA2E5400098EC4 /* XMLCoder */; };
 		86B4FDC22E1190C000C6DC8F /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = 86B4FDC12E1190C000C6DC8F /* MCP */; };
-		E7C99B17D5D676F620653AB0 /* LookInsideServer in Frameworks */ = {isa = PBXBuildFile; productRef = FA30BB662ED329E2DCF59D4D /* LookInsideServer */; };
 		ED16359C2D5C5BDA0081BD0B /* ChatClientKit in Frameworks */ = {isa = PBXBuildFile; productRef = ED16359B2D5C5BDA0081BD0B /* ChatClientKit */; };
 		EDF9A13E2D67788A001D183C /* Respring in Frameworks */ = {isa = PBXBuildFile; productRef = EDF9A13D2D67788A001D183C /* Respring */; };
 /* End PBXBuildFile section */
@@ -160,7 +158,6 @@
 				Configuration/Version.xcconfig,
 				"Resources/InfoPlist/Info-Catalyst.plist",
 				"Resources/InfoPlist/Info-iOS.plist",
-				Resources/LookInsideServer.xcframework,
 			);
 			target = 503498BC2D23053D004672BD /* FlowDown */;
 		};
@@ -217,7 +214,6 @@
 			files = (
 				EDF9A13E2D67788A001D183C /* Respring in Frameworks */,
 				506373A62EC0DC7900C8A9FB /* ColorfulX in Frameworks */,
-				50FBFC6C2DEA2E5400098EC4 /* XMLCoder in Frameworks */,
 				50B4CDAC2D4794F90028EB33 /* Digger in Frameworks */,
 				50C9035B2D428DAD00E6E3A8 /* Storage in Frameworks */,
 				50F6E0002F00A0B500123456 /* FlowDownModelExchange in Frameworks */,
@@ -245,7 +241,6 @@
 				5081A0142D6DBBBA0079ECBE /* RunestoneEditor in Frameworks */,
 				50AE75802EF436FC00D2C845 /* OrderedCollections in Frameworks */,
 				50B514782D23157A0092284C /* SnapKit in Frameworks */,
-				E7C99B17D5D676F620653AB0 /* LookInsideServer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,7 +369,6 @@
 				50014D7E2D8A9B3C00C10932 /* GlyphixTextFx */,
 				50DDB1702DDF16F200351E46 /* ListViewKit */,
 				50CB4E742DE30A57009C58E1 /* Digger */,
-				50FBFC6B2DEA2E5400098EC4 /* XMLCoder */,
 				86B4FDC12E1190C000C6DC8F /* MCP */,
 				505742462E1B8B8100A26090 /* DpkgVersion */,
 				502272D12EB3DE3200AF9D28 /* UIEffectKit */,
@@ -383,7 +377,6 @@
 				50AE757D2EF436FC00D2C845 /* Collections */,
 				50AE757F2EF436FC00D2C845 /* OrderedCollections */,
 				509038612FB0EB8500110DDB /* iCalendarParser */,
-				FA30BB662ED329E2DCF59D4D /* LookInsideServer */,
 			);
 			productName = FlowDown;
 			productReference = 503498BD2D23053D004672BD /* FlowDown.app */;
@@ -494,7 +487,6 @@
 				50CB4E732DE30A57009C58E1 /* XCRemoteSwiftPackageReference "Digger" */,
 				50A350B92DE4B5C3008F094E /* XCRemoteSwiftPackageReference "MarkdownView" */,
 				50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */,
-				50FBFC6A2DEA2E5400098EC4 /* XCRemoteSwiftPackageReference "XMLCoder" */,
 				86B4FDBE2E1190AD00C6DC8F /* XCRemoteSwiftPackageReference "swift-sdk" */,
 				505742432E1B8B2A00A26090 /* XCRemoteSwiftPackageReference "DpkgVersion" */,
 				502272D02EB3DE3200AF9D28 /* XCRemoteSwiftPackageReference "UIEffectKit" */,
@@ -502,7 +494,6 @@
 				506373A42EC0DC7900C8A9FB /* XCRemoteSwiftPackageReference "ColorfulX" */,
 				50AE757C2EF436FC00D2C845 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				509038602FB0EB8500110DDB /* XCRemoteSwiftPackageReference "iCalendarParser" */,
-				36DBADE12AFFAEDBD3909D03 /* XCRemoteSwiftPackageReference "LookInside-Release" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 503498BE2D23053D004672BD /* Products */;
@@ -698,10 +689,6 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				EXCLUDED_SOURCE_FILE_NAMES = (
-					"$(inherited)",
-					"LookInsideServer*",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "FlowDown/Resources/InfoPlist/Info-iOS.plist";
 				"INFOPLIST_FILE[sdk=macosx*]" = "FlowDown/Resources/InfoPlist/Info-Catalyst.plist";
@@ -782,10 +769,6 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				EXCLUDED_SOURCE_FILE_NAMES = (
-					"$(inherited)",
-					"LookInsideServer*",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "FlowDown/Resources/InfoPlist/Info-iOS.plist";
 				"INFOPLIST_FILE[sdk=macosx*]" = "FlowDown/Resources/InfoPlist/Info-Catalyst.plist";
@@ -1136,14 +1119,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		36DBADE12AFFAEDBD3909D03 /* XCRemoteSwiftPackageReference "LookInside-Release" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/LookInsideApp/LookInside-Release.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.2.2;
-			};
-		};
 		50014D7B2D8A98F900C10932 /* XCRemoteSwiftPackageReference "ScrubberKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lakr233/ScrubberKit";
@@ -1302,14 +1277,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.4;
-			};
-		};
-		50FBFC6A2DEA2E5400098EC4 /* XCRemoteSwiftPackageReference "XMLCoder" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/CoreOffice/XMLCoder";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.18.1;
 			};
 		};
 		86B4FDBE2E1190AD00C6DC8F /* XCRemoteSwiftPackageReference "swift-sdk" */ = {
@@ -1479,11 +1446,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = FlowDownModelExchange;
 		};
-		50FBFC6B2DEA2E5400098EC4 /* XMLCoder */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 50FBFC6A2DEA2E5400098EC4 /* XCRemoteSwiftPackageReference "XMLCoder" */;
-			productName = XMLCoder;
-		};
 		86B4FDC12E1190C000C6DC8F /* MCP */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 86B4FDBE2E1190AD00C6DC8F /* XCRemoteSwiftPackageReference "swift-sdk" */;
@@ -1497,11 +1459,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EDF9A13C2D67788A001D183C /* XCRemoteSwiftPackageReference "Respring" */;
 			productName = Respring;
-		};
-		FA30BB662ED329E2DCF59D4D /* LookInsideServer */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 36DBADE12AFFAEDBD3909D03 /* XCRemoteSwiftPackageReference "LookInside-Release" */;
-			productName = LookInsideServer;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

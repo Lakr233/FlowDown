@@ -48,7 +48,13 @@ extension ConversationSession {
                 }
             case .assistant:
                 guard !message.document.isEmpty else { continue }
-                requestMessages.append(.assistant(content: .text(message.document)))
+                // Reasoning rides along for preserved-thinking models; the
+                // encoder drops it unless the model opted in.
+                let reasoning = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
+                requestMessages.append(.assistant(
+                    content: .text(message.document),
+                    reasoning: reasoning.isEmpty ? nil : reasoning,
+                ))
             case .webSearch:
                 let result = message.webSearchStatus.searchResults
                 var index = 0

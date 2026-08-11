@@ -121,6 +121,10 @@ final class MessageListView: UIView {
         listView.contentInsetAdjustmentBehavior = .never
         listView.automaticallyAdjustsScrollIndicatorInsets = false
         listView.showsHorizontalScrollIndicator = false
+        // Rows trail the scroll on springs; the content offset itself is
+        // untouched, so the auto-scroll-to-bottom math is unaffected.
+        // Same tuning as AirBuild, by feel.
+        listView.rowAnimator = ListBouncyAnimator(damping: 0.975, frequency: 25.0)
         addSubview(listView)
         listView.snp.makeConstraints { make in
             make.edges.equalToSuperview()

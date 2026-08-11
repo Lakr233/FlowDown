@@ -332,17 +332,20 @@ extension ModelManager {
         maxCompletionTokens: Int? = nil,
         input: [ChatRequestBody.Message],
         tools: [ChatRequestBody.Tool]? = nil,
+        toolChoice: ChatRequestBody.ToolChoice? = nil,
     ) async throws -> ChatResponse {
         let client = try chatService(
             for: modelID,
             additionalBodyField: modelBodyFields(for: modelID),
         )
-        let body = try ChatRequestBody(
+        var body = try ChatRequestBody(
             messages: prepareRequestBody(modelID: modelID, messages: input),
             maxCompletionTokens: maxCompletionTokens,
             temperature: temperature < 0 ? nil : .init(temperature),
             tools: tools,
+            toolChoice: toolChoice,
         )
+        body.preservesReasoningContent = modelCapabilities(identifier: modelID).contains(.preservedThinking)
         return try await client.chat(body: body)
     }
 
@@ -351,17 +354,20 @@ extension ModelManager {
         maxCompletionTokens: Int? = nil,
         input: [ChatRequestBody.Message],
         tools: [ChatRequestBody.Tool]? = nil,
+        toolChoice: ChatRequestBody.ToolChoice? = nil,
     ) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> {
         let client = try chatService(
             for: modelID,
             additionalBodyField: modelBodyFields(for: modelID),
         )
-        let body = try ChatRequestBody(
+        var body = try ChatRequestBody(
             messages: prepareRequestBody(modelID: modelID, messages: input),
             maxCompletionTokens: maxCompletionTokens,
             temperature: temperature < 0 ? nil : .init(temperature),
             tools: tools,
+            toolChoice: toolChoice,
         )
+        body.preservesReasoningContent = modelCapabilities(identifier: modelID).contains(.preservedThinking)
         return AsyncThrowingStream(ChatResponseChunk.self, bufferingPolicy: .unbounded) { cont in
             Task.detached {
                 let reasoningEmitter = BalancedEmitter(

@@ -313,6 +313,7 @@ extension ConversationManager {
                         UIAction(
                             title: String(localized: "Generate Chat Template"),
                             image: UIImage(systemName: "wind"),
+                            attributes: ChatTemplateManager.modelSupportsToolCalls(session.models.chat) ? [] : [.disabled],
                         ) { _ in
                             let model = session.models.chat
                             let name = ModelManager.shared.modelName(identifier: model)

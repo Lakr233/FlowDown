@@ -12,7 +12,6 @@ import Foundation
 import OrderedCollections
 import Storage
 import UIKit
-import XMLCoder
 
 class ChatTemplateManager {
     static let shared = ChatTemplateManager()
@@ -292,42 +291,47 @@ class ChatTemplateManager {
         request: String,
         model: ModelManager.ModelIdentifier,
     ) async throws -> ChatTemplate {
+        try Self.ensureToolCallCapability(of: model)
+
         let prompt = """
-        You are a chat template expert. Please modify the following chat template according to the user's request. 
+        Modify the following chat template according to the user's request.
 
         IMPORTANT RULES:
         - Only change what the user specifically requests
         - If the user doesn't mention name or prompt, keep them unchanged
-        - Respond ONLY with valid XML following the exact format provided
-        - Do not include any text outside the XML structure
         - Use the user's preferred language for content
 
-        Current template:
-        <template>
-        <name>\(template.name)</name>
-        <prompt>\(template.prompt)</prompt>
-        </template>
+        [current template name]
+        \(template.name)
 
-        User request: \(request)
+        [current template prompt]
+        \(template.prompt)
 
-        Please return the modified template in the same XML format, keeping unchanged fields exactly as they are.
+        [user request]
+        \(request)
         """
 
         let messages: [ChatRequestBody.Message] = [
-            .system(content: .text("You are a chat template editor. Modify only what the user requests, keeping everything else unchanged. Respond ONLY with valid XML in the exact format provided.")),
+            .system(content: .text("You are a chat template editor. Modify only what the user requests, keeping everything else unchanged. You must call \(ChatTemplateToolCall.name) exactly once with the full resulting template. Do not respond with plain text.")),
             .user(content: .text(prompt)),
         ]
 
-        let response = try await ModelManager.shared.infer(with: model, input: messages)
-        let raw = response.text.isEmpty ? response.reasoning : response.text
-        let parsedResponse = try parseTemplateResponse(raw)
+        let response = try await ModelManager.shared.infer(
+            with: model,
+            input: messages,
+            tools: [ChatTemplateToolCall.definition],
+            toolChoice: .function(name: ChatTemplateToolCall.name),
+        )
+        let arguments = try ChatTemplateToolCall.parse(response)
         return template.with {
-            $0.name = parsedResponse.name
-            $0.prompt = parsedResponse.prompt
+            $0.name = arguments.trimmedName
+            $0.prompt = arguments.trimmedPrompt
         }
     }
 
     private func generateChatTemplate(from conversation: Conversation, using model: ModelManager.ModelIdentifier) async throws -> ChatTemplate {
+        try Self.ensureToolCallCapability(of: model)
+
         let session = ConversationSessionManager.shared.session(for: conversation.id)
 
         // Get conversation messages for analysis
@@ -348,141 +352,110 @@ class ChatTemplateManager {
         let conversationContext = userMessages.prefix(3).map(\.document).joined(separator: "\n\n")
         let responseContext = assistantMessages.prefix(3).map(\.document).joined(separator: "\n\n")
 
-        // Create XML structure for template generation
-        let templateRequest = TemplateGenerationXML(
-            task: String(localized: "Analyze the conversation and generate a reusable chat template. Extract the core purpose, create a concise name, suggest an appropriate emoji, and write a system prompt that captures the essence of the conversation pattern."),
-            conversation_context: conversationContext,
-            response_context: responseContext,
-            output_format: TemplateGenerationXML.OutputFormat(
-                name: "Short descriptive name for the template using concise language",
-                emoji: "Single emoji representing the template purpose",
-                prompt: "System prompt that captures the conversation pattern and purpose",
-                inherit_app_prompt: true,
-            ),
-        )
+        let prompt = """
+        \(String(localized: "Analyze the conversation and generate a reusable chat template. Extract the core purpose, create a concise name, suggest an appropriate emoji, and write a system prompt that captures the essence of the conversation pattern."))
 
-        let encoder = XMLEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let xmlData = try encoder.encode(templateRequest, withRootKey: "template_generation")
-        let xmlString = String(data: xmlData, encoding: .utf8) ?? ""
+        [conversation context]
+        \(conversationContext)
+
+        [response context]
+        \(responseContext)
+        """
 
         let messages: [ChatRequestBody.Message] = [
-            .system(content: .text("You are a chat template generator. Analyze conversations and create reusable templates. Respond ONLY with valid XML following the exact format provided. Do not include any text outside the XML structure. Please ensure using user's preferred language inside conversation.")),
-            .user(content: .text(xmlString)),
+            .system(content: .text("You are a chat template generator. Analyze conversations and create reusable templates. You must call \(ChatTemplateToolCall.name) exactly once with the generated template. Do not respond with plain text. Please ensure using user's preferred language inside conversation.")),
+            .user(content: .text(prompt)),
         ]
 
-        let response = try await ModelManager.shared.infer(with: model, input: messages)
-        let raw = response.text.isEmpty ? response.reasoning : response.text
-        return try parseTemplateResponse(raw)
-    }
-
-    private func parseTemplateResponse(_ xmlString: String) throws -> ChatTemplate {
-        let decoder = XMLDecoder()
-
-        if let data = xmlString.data(using: .utf8),
-           let templateResponse = try? decoder.decode(TemplateResponse.self, from: data)
-        {
-            let emojiData = templateResponse.emoji.textToImage(size: 64)?.pngData() ?? Data()
-
-            return ChatTemplate(
-                name: templateResponse.name.trimmingCharacters(in: .whitespacesAndNewlines),
-                avatar: emojiData,
-                prompt: templateResponse.prompt.trimmingCharacters(in: .whitespacesAndNewlines),
-                inheritApplicationPrompt: templateResponse.inherit_app_prompt,
-            )
-        }
-
-        return try parseTemplateUsingRegex(xmlString)
-    }
-
-    private func parseTemplateUsingRegex(_ xmlString: String) throws -> ChatTemplate {
-        let namePattern = #"<name>(.*?)</name>"#
-        let emojiPattern = #"<emoji>(.*?)</emoji>"#
-        let promptPattern = #"<prompt>(.*?)</prompt>"#
-        let inheritPattern = #"<inherit_app_prompt>(.*?)</inherit_app_prompt>"#
-
-        guard let nameRegex = try? NSRegularExpression(pattern: namePattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
-              let emojiRegex = try? NSRegularExpression(pattern: emojiPattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
-              let promptRegex = try? NSRegularExpression(pattern: promptPattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
-              let inheritRegex = try? NSRegularExpression(pattern: inheritPattern, options: [.caseInsensitive, .dotMatchesLineSeparators])
-        else {
-            throw NSError(
-                domain: "ChatTemplateGenerator",
-                code: 2,
-                userInfo: [NSLocalizedDescriptionKey: String(localized: "Failed to create regex patterns")],
-            )
-        }
-
-        let range = NSRange(xmlString.startIndex ..< xmlString.endIndex, in: xmlString)
-
-        let name = if let nameMatch = nameRegex.firstMatch(in: xmlString, options: [], range: range),
-                      let nameRange = Range(nameMatch.range(at: 1), in: xmlString)
-        {
-            String(xmlString[nameRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            throw NSError(domain: "ChatTemplate", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Failed to extract required information from model response."),
-            ])
-        }
-
-        let emoji = if let emojiMatch = emojiRegex.firstMatch(in: xmlString, options: [], range: range),
-                       let emojiRange = Range(emojiMatch.range(at: 1), in: xmlString)
-        {
-            String(xmlString[emojiRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            "🤖"
-        }
-
-        let prompt = if let promptMatch = promptRegex.firstMatch(in: xmlString, options: [], range: range),
-                        let promptRange = Range(promptMatch.range(at: 1), in: xmlString)
-        {
-            String(xmlString[promptRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            throw NSError(domain: "ChatTemplate", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Failed to extract required information from model response."),
-            ])
-        }
-
-        let inheritAppPrompt: Bool
-        if let inheritMatch = inheritRegex.firstMatch(in: xmlString, options: [], range: range),
-           let inheritRange = Range(inheritMatch.range(at: 1), in: xmlString)
-        {
-            let inheritValue = String(xmlString[inheritRange]).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            inheritAppPrompt = inheritValue == "true"
-        } else {
-            inheritAppPrompt = true
-        }
-
-        let emojiData = emoji.textToImage(size: 64)?.pngData() ?? Data()
+        let response = try await ModelManager.shared.infer(
+            with: model,
+            input: messages,
+            tools: [ChatTemplateToolCall.definition],
+            toolChoice: .function(name: ChatTemplateToolCall.name),
+        )
+        let arguments = try ChatTemplateToolCall.parse(response)
+        let emojiData = arguments.trimmedEmoji.textToImage(size: 64)?.pngData() ?? Data()
 
         return ChatTemplate(
-            name: name,
+            name: arguments.trimmedName,
             avatar: emojiData,
-            prompt: prompt,
-            inheritApplicationPrompt: inheritAppPrompt,
+            prompt: arguments.trimmedPrompt,
+            inheritApplicationPrompt: arguments.inherit_app_prompt ?? true,
         )
     }
-}
 
-// MARK: - XML Models for Template Generation
+    static func modelSupportsToolCalls(_ model: ModelManager.ModelIdentifier?) -> Bool {
+        guard let model else { return false }
+        return ModelManager.shared.modelCapabilities(identifier: model).contains(.tool)
+    }
 
-private struct TemplateGenerationXML: Codable {
-    let task: String
-    let conversation_context: String
-    let response_context: String
-    let output_format: OutputFormat
-
-    struct OutputFormat: Codable {
-        let name: String
-        let emoji: String
-        let prompt: String
-        let inherit_app_prompt: Bool
+    private static func ensureToolCallCapability(of model: ModelManager.ModelIdentifier) throws {
+        guard modelSupportsToolCalls(model) else {
+            throw NSError(domain: "ChatTemplate", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: String(localized: "This model does not support tool call or no model is selected."),
+            ])
+        }
     }
 }
 
-private struct TemplateResponse: Codable {
-    let name: String
-    let emoji: String
-    let prompt: String
-    let inherit_app_prompt: Bool
+// MARK: - Template Tool Call
+
+private enum ChatTemplateToolCall {
+    static let name = "save_chat_template"
+
+    static var definition: ChatRequestBody.Tool {
+        .function(
+            name: name,
+            description: "Save the resulting chat template.",
+            parameters: [
+                "type": "object",
+                "properties": [
+                    "name": [
+                        "type": "string",
+                        "description": "Short descriptive name for the template using concise language.",
+                    ],
+                    "emoji": [
+                        "type": "string",
+                        "description": "Single emoji representing the template purpose.",
+                    ],
+                    "prompt": [
+                        "type": "string",
+                        "description": "System prompt that captures the conversation pattern and purpose.",
+                    ],
+                    "inherit_app_prompt": [
+                        "type": "boolean",
+                        "description": "Whether the template should inherit the application-wide system prompt.",
+                    ],
+                ],
+                "required": ["name", "emoji", "prompt", "inherit_app_prompt"],
+                "additionalProperties": false,
+            ],
+            strict: true,
+        )
+    }
+
+    struct Arguments: Decodable {
+        let name: String
+        let emoji: String?
+        let prompt: String
+        let inherit_app_prompt: Bool?
+
+        var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
+        var trimmedEmoji: String { (emoji ?? "🤖").trimmingCharacters(in: .whitespacesAndNewlines) }
+        var trimmedPrompt: String { prompt.trimmingCharacters(in: .whitespacesAndNewlines) }
+    }
+
+    static func parse(_ response: ChatResponse) throws -> Arguments {
+        guard let call = response.tools.first(where: { $0.name == name }),
+              let data = call.args.data(using: .utf8),
+              let arguments = try? JSONDecoder().decode(Arguments.self, from: data),
+              !arguments.trimmedName.isEmpty,
+              !arguments.trimmedPrompt.isEmpty
+        else {
+            throw NSError(domain: "ChatTemplate", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: String(localized: "Failed to extract required information from model response."),
+            ])
+        }
+        return arguments
+    }
 }

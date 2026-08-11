@@ -19,6 +19,7 @@ enum ShortcutError: LocalizedError {
     case audioNotSupportedByModel
     case invalidAudio
     case invalidCandidates
+    case toolCallNotSupportedByModel
 
     var errorDescription: String? {
         switch self {
@@ -42,6 +43,8 @@ enum ShortcutError: LocalizedError {
             String(localized: "The provided audio could not be processed.")
         case .invalidCandidates:
             String(localized: "At least one candidate is required.")
+        case .toolCallNotSupportedByModel:
+            String(localized: "This model does not support tool call or no model is selected.")
         }
     }
 }

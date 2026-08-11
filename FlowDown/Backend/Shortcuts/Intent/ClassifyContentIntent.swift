@@ -1,4 +1,5 @@
 import AppIntents
+import ChatClientKit
 import Foundation
 
 struct ClassifyContentIntent: AppIntent {
@@ -83,7 +84,7 @@ struct ClassifyContentIntent: AppIntent {
             message: request.message,
             image: nil,
             audio: nil,
-            options: .init(allowsImages: false),
+            options: .init(allowsImages: false, forcedTool: request.tool),
         )
 
         let resolved = request.resolveCandidate(from: response)
@@ -172,7 +173,7 @@ struct ClassifyContentWithImageIntent: AppIntent {
             message: request.message,
             image: image,
             audio: nil,
-            options: .init(allowsImages: true),
+            options: .init(allowsImages: true, forcedTool: request.tool),
         )
 
         let resolved = request.resolveCandidate(from: response)
@@ -181,30 +182,52 @@ struct ClassifyContentWithImageIntent: AppIntent {
     }
 }
 
+private enum ClassificationToolCall {
+    static let name = "submit_classification"
+
+    static func definition(candidates: [String]) -> ChatRequestBody.Tool {
+        .function(
+            name: name,
+            description: "Report the candidate label that best matches the provided content.",
+            parameters: [
+                "type": "object",
+                "properties": [
+                    "label": [
+                        "type": "string",
+                        "enum": .array(candidates.map { .string($0) }),
+                        "description": "The chosen candidate, exactly as listed.",
+                    ],
+                ],
+                "required": ["label"],
+                "additionalProperties": false,
+            ],
+            strict: true,
+        )
+    }
+
+    struct Arguments: Decodable {
+        let label: String?
+    }
+}
+
 private enum ClassificationPromptBuilder {
     struct Request {
         let message: String
+        let tool: ChatRequestBody.Tool
         let sanitizedCandidates: [String]
         let primaryCandidate: String
 
-        func resolveCandidate(from response: String) -> String {
-            if let label = response.extractXMLLabelValue() {
-                let normalizedLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
-                if let matchedCandidate = sanitizedCandidates.first(where: {
-                    $0.compare(normalizedLabel, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
-                }) {
-                    return matchedCandidate
-                }
+        /// `arguments` is the raw JSON of the forced tool call.
+        func resolveCandidate(from arguments: String) -> String {
+            guard let data = arguments.data(using: .utf8),
+                  let decoded = try? JSONDecoder().decode(ClassificationToolCall.Arguments.self, from: data),
+                  let label = decoded.label?.trimmingCharacters(in: .whitespacesAndNewlines)
+            else {
+                return primaryCandidate
             }
 
-            let normalized = response
-                .components(separatedBy: .newlines)
-                .first?
-                .trimmingCharacters(in: .whitespacesAndNewlines.union(.init(charactersIn: "\"'")))
-                ?? ""
-
             return sanitizedCandidates.first {
-                $0.compare(normalized, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+                $0.compare(label, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
             } ?? primaryCandidate
         }
     }
@@ -224,17 +247,8 @@ private enum ClassificationPromptBuilder {
             throw ShortcutError.invalidCandidates
         }
 
-        let candidateList = sanitizedCandidates.enumerated()
-            .map { index, value in
-                // use xml tagging to help model better recognize the candidates
-                let key = index + 1
-                let keyText = "Label-\(key)"
-                return "<\(keyText)>\(value)</\(keyText)>"
-            }
-            .joined(separator: "\n")
-
         var instructionSegments = [
-            "You are a classification assistant. Choose the best candidate for the provided content.",
+            "You are a classification assistant. Choose the best candidate for the provided content and report it by calling \(ClassificationToolCall.name).",
         ]
 
         if includeImageInstruction {
@@ -243,12 +257,8 @@ private enum ClassificationPromptBuilder {
             )
         }
 
-        instructionSegments.append(
-            "An image is provided with this request. Consider the visual details when selecting the candidate.",
-        )
-
         instructionSegments.append("Candidates:")
-        instructionSegments.append(candidateList)
+        instructionSegments.append(sanitizedCandidates.map { "- \($0)" }.joined(separator: "\n"))
 
         if !trimmedContent.isEmpty {
             instructionSegments.append("Content:")
@@ -256,16 +266,14 @@ private enum ClassificationPromptBuilder {
         }
 
         instructionSegments.append(
-            "Respond only with XML formatted as <classification><label>VALUE</label></classification>, replacing VALUE with a label from the candidate list. Without explanation or additional text or quotation marks.",
-        )
-        instructionSegments.append(
-            "If you are unsure, use \(primaryCandidate) for VALUE.",
+            "If you are unsure, choose \(primaryCandidate).",
         )
 
         let message = instructionSegments.joined(separator: "\n\n")
 
         return Request(
             message: message,
+            tool: ClassificationToolCall.definition(candidates: sanitizedCandidates),
             sanitizedCandidates: sanitizedCandidates,
             primaryCandidate: primaryCandidate,
         )
@@ -294,21 +302,5 @@ private enum CandidateInputResolver {
         }
 
         return ordered
-    }
-}
-
-private extension String {
-    func extractXMLLabelValue() -> String? {
-        guard let labelStart = range(of: "<label>") else {
-            return nil
-        }
-
-        let searchRange = labelStart.upperBound ..< endIndex
-        guard let labelEnd = range(of: "</label>", range: searchRange) else {
-            return nil
-        }
-
-        let valueRange = labelStart.upperBound ..< labelEnd.lowerBound
-        return String(self[valueRange])
     }
 }
