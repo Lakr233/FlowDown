@@ -51,7 +51,7 @@ extension ConversationSession {
                     }
                 }
 
-                await currentMessageListView.loading()
+                showActivity()
                 await requestUpdate(view: currentMessageListView)
                 await doInfereExecute(
                     modelID: modelID,
@@ -69,8 +69,7 @@ extension ConversationSession {
         }
     }
 
-    func requestUpdate(view: MessageListView) async {
-        await view.stopLoading()
+    func requestUpdate(view _: MessageListView) async {
         notifyMessagesDidChange()
     }
 
@@ -132,6 +131,7 @@ extension ConversationSession {
 
         await requestUpdate(view: currentMessageListView)
         await MainActor.run { UIApplication.shared.isIdleTimerDisabled = false }
+        endActivity()
     }
 
     func requestLinkContentIndex(_ url: URL) -> Int {
@@ -153,7 +153,7 @@ extension ConversationSession {
         _ modelID: ModelManager.ModelIdentifier,
     ) async throws {
         try checkCancellation()
-        await currentMessageListView.loading()
+        showActivity()
 
         // MARK: - 添加用户的消息到储存框架
 
@@ -183,7 +183,7 @@ extension ConversationSession {
         // MARK: - 添加这次的附件
 
         if !object.attachments.isEmpty {
-            await currentMessageListView.loading(with: String(localized: "Processing Attachments"))
+            showActivity(String(localized: "Processing Attachments"))
             let attachmentMessages = await makeMessageFromAttachments(
                 object.attachments,
                 modelCapabilities: modelCapabilities,
@@ -197,8 +197,12 @@ extension ConversationSession {
         let servers = MCPService.shared.servers.value
         let shouldPrepareMCP = servers.filter(\.isEnabled).count > 0
         if shouldPrepareMCP {
-            await currentMessageListView.loading(with: String(localized: "Preparing Model Context"))
-            await MCPService.shared.prepareForConversation()
+            showActivity(String(localized: "Preparing Model Context"))
+            await MCPService.shared.prepareForConversation { [weak self] status in
+                self?.showActivity(status)
+            }
+            try checkCancellation()
+            showActivity(String(localized: "Preparing Model Context"))
         }
 
         var tools: [ModelTool] = []
@@ -218,8 +222,6 @@ extension ConversationSession {
             webSearchEnabled,
             object,
         )
-
-        await currentMessageListView.stopLoading()
 
         // MARK: - 删除超出上下文长度限制的消息
 

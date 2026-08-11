@@ -37,7 +37,7 @@ final class MessageListView: UIView {
             sessionScopedCancellables.removeAll()
             Publishers.CombineLatest(
                 session.messagesDidChange,
-                loadingIndicatorPublisher,
+                session.activityText.removeDuplicates(),
             )
             .receive(on: updateQueue)
             .sink { [weak self] v1, v2 in
@@ -59,7 +59,6 @@ final class MessageListView: UIView {
     private var isAutoScrollingToBottom: Bool = true
     private var viewCancellables: Set<AnyCancellable> = .init()
     private var sessionScopedCancellables: Set<AnyCancellable> = .init()
-    private let loadingIndicatorPublisher = CurrentValueSubject<String?, Never>(nil)
 
     var contentSafeAreaInsets: UIEdgeInsets = .zero {
         didSet {
@@ -153,14 +152,6 @@ final class MessageListView: UIView {
         return abs(listView.contentOffset.y - listView.maximumContentOffset.y) <= tolerance
     }
 
-    func loading(with message: String = .init()) {
-        loadingIndicatorPublisher.send(message)
-    }
-
-    func stopLoading() {
-        loadingIndicatorPublisher.send(nil)
-    }
-
     func handleLinkTapped(_ link: LinkPayload, in _: NSRange, at point: CGPoint) {
         // long press handled
         guard parentViewController?.presentedViewController == nil else { return }
@@ -222,8 +213,8 @@ final class MessageListView: UIView {
         parentViewController?.present(alert, animated: true)
     }
 
-    func updateList() {
-        listView.apply(entries(from: session.messages))
+    func updateList(animated: Bool = false) {
+        listView.apply(entries(from: session.messages), animated: animated)
     }
 
     func updateFromUpstreamPublisher(_ messages: [Message], _ scrolling: Bool, isLoading: String?) {

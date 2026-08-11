@@ -34,6 +34,81 @@ final class ConversationSession: Identifiable {
         userDidSendMessageSubject.eraseToAnyPublisher()
     }
 
+    // MARK: - Activity Indicator
+
+    /// The loading indicator's text: non-nil shows the indicator row (empty
+    /// string = plain dots), nil hides it. Only written on the main queue.
+    let activityText = CurrentValueSubject<String?, Never>(nil)
+
+    // Main-queue-confined; every mutation funnels through DispatchQueue.main
+    // so state transitions keep the order their call sites issued them in —
+    // an unstructured Task per call would not guarantee that.
+    private var activityRoundActive = false
+    private var activityLastProgressAt: Date = .distantPast
+    private var activitySilenceTimer: Timer?
+    private static let activitySilenceInterval: TimeInterval = 2
+
+    /// Shows the indicator with `text` until other activity replaces it.
+    func showActivity(_ text: String = "") {
+        DispatchQueue.main.async {
+            self.activityRoundActive = true
+            self.stopActivitySilenceTimer()
+            if self.activityText.value != text { self.activityText.send(text) }
+        }
+    }
+
+    /// Reports visible progress (a rendered token, an inserted row): hides the
+    /// indicator, but re-shows it if the stream then stays silent for a while.
+    func recordVisibleProgress() {
+        DispatchQueue.main.async {
+            self.activityRoundActive = true
+            self.activityLastProgressAt = .now
+            if self.activityText.value != nil { self.activityText.send(nil) }
+            self.startActivitySilenceTimerIfNeeded()
+        }
+    }
+
+    /// Hides the indicator without arming the silence fallback — for phases
+    /// whose progress is visible elsewhere (tool status row, dialogs).
+    func hideActivity() {
+        DispatchQueue.main.async {
+            self.stopActivitySilenceTimer()
+            if self.activityText.value != nil { self.activityText.send(nil) }
+        }
+    }
+
+    /// Ends the round: hides the indicator and disables the silence fallback.
+    func endActivity() {
+        DispatchQueue.main.async {
+            self.activityRoundActive = false
+            self.stopActivitySilenceTimer()
+            if self.activityText.value != nil { self.activityText.send(nil) }
+        }
+    }
+
+    private func startActivitySilenceTimerIfNeeded() {
+        guard activitySilenceTimer == nil else { return }
+        // One repeating probe instead of a timer per token: streaming can
+        // deliver dozens of updates a second.
+        let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] timer in
+            guard let self else {
+                timer.invalidate()
+                return
+            }
+            guard activityRoundActive else { return }
+            guard Date.now.timeIntervalSince(activityLastProgressAt) >= Self.activitySilenceInterval else { return }
+            stopActivitySilenceTimer()
+            if activityText.value == nil { activityText.send("") }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        activitySilenceTimer = timer
+    }
+
+    private func stopActivitySilenceTimer() {
+        activitySilenceTimer?.invalidate()
+        activitySilenceTimer = nil
+    }
+
     var shouldAutoRename: Bool {
         get { ConversationManager.shared.conversation(identifier: id)?.shouldAutoRename ?? false }
         set {
@@ -64,7 +139,7 @@ final class ConversationSession: Identifiable {
             Self.allowedInit = nil
         #endif
 
-        refreshContentsFromDatabase()
+        refreshContentsFromDatabase(sanitizeInterrupted: true)
         updateModels()
     }
 
@@ -160,13 +235,17 @@ final class ConversationSession: Identifiable {
         messagesSubject.send((messages, scrolling))
     }
 
-    func refreshContentsFromDatabase() {
+    /// - Parameter sanitizeInterrupted: Marks tool calls still recorded as
+    ///   running as failed. Only the initial restore passes true: a running
+    ///   state found there can only be a leftover from a terminated app.
+    func refreshContentsFromDatabase(sanitizeInterrupted: Bool = false) {
         // Load historical messages from the database.
         assert(Thread.isMainThread, "refreshContentsFromDatabase must be called on main thread for UI coherence")
         messages.removeAll()
         attachments.removeAll()
         messages = sdb.listMessages(within: id)
         linkedContents.removeAll()
+        var interruptedMessages: [Message] = []
         for message in messages {
             let id = message.objectId
             let attachments = sdb.attachment(for: id)
@@ -176,6 +255,16 @@ final class ConversationSession: Identifiable {
             {
                 message.update(\.document, to: String(localized: "Empty message."))
             }
+            if sanitizeInterrupted, message.role == .toolHint, message.toolStatus.state == 0 {
+                var status = message.toolStatus
+                status.state = 2
+                status.message = String(localized: "Tool call was interrupted.")
+                message.update(\.toolStatus, to: status)
+                interruptedMessages.append(message)
+            }
+        }
+        if !interruptedMessages.isEmpty {
+            sdb.messagePut(messages: interruptedMessages)
         }
         #if DEBUG
             assert(messages.allSatisfy { $0.conversationId == id })

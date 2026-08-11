@@ -7,6 +7,7 @@
 
 import ChatClientKit
 import Foundation
+import ScrubberKit
 import Storage
 import UniformTypeIdentifiers
 
@@ -21,7 +22,7 @@ extension ConversationSession {
         requestLinkContentIndex: @escaping (URL) -> Int,
     ) async throws -> Bool {
         await requestUpdate(view: currentMessageListView)
-        await currentMessageListView.loading()
+        showActivity()
 
         let message = appendNewMessage(role: .assistant)
         encodeAdditionalInfoAndAttachToMessage(message, dic: [
@@ -57,6 +58,7 @@ extension ConversationSession {
                 message.update(\.reasoningContent, to: newValue)
                 let delta = newValue.count - oldCount
                 if delta > 0 {
+                    recordVisibleProgress()
                     await MainActor.run {
                         ConversationSessionManager.shared.countIncomingTokens(delta)
                     }
@@ -67,11 +69,15 @@ extension ConversationSession {
                 message.update(\.document, to: newValue)
                 let delta = newValue.count - oldCount
                 if delta > 0 {
+                    recordVisibleProgress()
                     await MainActor.run {
                         ConversationSessionManager.shared.countIncomingTokens(delta)
                     }
                 }
             case let .tool(call):
+                // Tool-call deltas render nothing; without the indicator the
+                // stream looks stalled while the model emits arguments.
+                showActivity()
                 pendingToolCalls.append(call)
             case let .image(imageContent):
                 // Skip invalid image payloads
@@ -79,6 +85,7 @@ extension ConversationSession {
                     Logger.model.warning("skip invalid generated image payload (size: \(imageContent.data.count) bytes)")
                     break
                 }
+                recordVisibleProgress()
                 generatedImages.append(imageContent)
 
                 let sequence = generatedImages.count
@@ -192,9 +199,10 @@ extension ConversationSession {
         assert(modelWillExecuteTools)
 
         await requestUpdate(view: currentMessageListView)
-        await currentMessageListView.loading(with: String(localized: "Utilizing tool call"))
+        showActivity(String(localized: "Utilizing tool call"))
 
         for request in pendingToolCalls {
+            try checkCancellation()
             guard let tool = await ModelToolsManager.shared.findTool(for: request) else {
                 Logger.chatService.errorFile("unable to find tool for request: \(request)")
                 await Logger.chatService.infoFile("available tools: \(ModelToolsManager.shared.getEnabledToolsIncludeMCP())")
@@ -206,18 +214,25 @@ extension ConversationSession {
                     ],
                 )
             }
-            await currentMessageListView.loading(with: String(localized: "Utilizing tool: \(tool.interfaceName)"))
+            showActivity(String(localized: "Utilizing tool: \(tool.interfaceName)"))
 
             // 检查是否是网络搜索工具，如果是则直接执行
             if let tool = tool as? MTWebSearchTool {
                 let webSearchMessage = appendNewMessage(role: .webSearch)
                 encodeToolRequestAndAttachToToolMessage(request, message: webSearchMessage)
-                let searchResult = try await tool.execute(
-                    with: request.args,
-                    session: self,
-                    webSearchMessage: webSearchMessage,
-                    anchorTo: currentMessageListView,
-                )
+                // The web search row reports its own progress from here on.
+                hideActivity()
+                let searchResult: [Scrubber.Document]
+                do {
+                    searchResult = try await tool.execute(
+                        with: request.args,
+                        session: self,
+                        webSearchMessage: webSearchMessage,
+                        anchorTo: currentMessageListView,
+                    )
+                } catch is CancellationError {
+                    throw InferenceUserCancellationError()
+                }
                 var webAttachments: [RichEditorView.Object.Attachment] = []
                 for doc in searchResult {
                     let index = requestLinkContentIndex(doc.url)
@@ -234,7 +249,7 @@ extension ConversationSession {
                         storageSuffix: UUID().uuidString,
                     ))
                 }
-                await currentMessageListView.loading()
+                showActivity()
 
                 if webAttachments.isEmpty {
                     requestMessages.append(.tool(
@@ -253,6 +268,9 @@ extension ConversationSession {
                 toolMessage.update(\.toolStatus, to: toolStatus)
                 encodeToolRequestAndAttachToToolMessage(request, message: toolMessage)
                 await requestUpdate(view: currentMessageListView)
+                // The running tool row (and a possible confirmation dialog)
+                // is the visible progress now.
+                hideActivity()
 
                 // 标准工具
                 do {
@@ -284,7 +302,7 @@ extension ConversationSession {
 
                         var audioAttachments: [RichEditorView.Object.Attachment] = []
                         for (index, audio) in result.audioAttachments.enumerated() {
-                            await currentMessageListView.loading(with: String(localized: "Transcoding audio attachment \(index + 1)"))
+                            showActivity(String(localized: "Transcoding audio attachment \(index + 1)"))
                             do {
                                 let fileExtension = audio.mimeType.flatMap { mime in
                                     UTType(mimeType: mime)?.preferredFilenameExtension
@@ -351,10 +369,17 @@ extension ConversationSession {
                         toolCallID: request.id,
                     ))
                 } catch {
+                    let cancelled = error is CancellationError || error is InferenceUserCancellationError
                     toolStatus.state = 2
-                    toolStatus.message = error.localizedDescription
+                    toolStatus.message = cancelled
+                        ? String(localized: "Cancelled by user.")
+                        : error.localizedDescription
                     toolMessage.update(\.toolStatus, to: toolStatus)
+                    save()
                     await requestUpdate(view: currentMessageListView)
+                    // The row is settled; only then may cancellation abort the
+                    // round, otherwise it would stay "running" forever.
+                    if cancelled { throw InferenceUserCancellationError() }
                     requestMessages.append(.tool(content: .text("Tool execution failed. Reason: \(error.localizedDescription)"), toolCallID: request.id))
                 }
             }

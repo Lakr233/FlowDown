@@ -103,7 +103,7 @@ extension ConversationSession {
         }
         stopThinking(for: message.objectId)
         await requestUpdate(view: currentMessageListView)
-        await currentMessageListView.loading()
+        showActivity()
 
         llmText = llmText
             .trimmingCharacters(in: .whitespacesAndNewlines)

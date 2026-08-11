@@ -56,7 +56,7 @@ struct ConversationExecutionSupportTests {
 
     @Test
     @MainActor
-    func `requestUpdate stops loading and republishes message updates to the list view`() async throws {
+    func `activity indicator drives the loading row and requestUpdate republishes messages`() async throws {
         try await withTemporarySession { _, session in
             let message = session.appendNewMessage(role: .user) {
                 $0.update(\.document, to: "Hello FlowDown")
@@ -86,7 +86,7 @@ struct ConversationExecutionSupportTests {
                 }
             defer { cancellable.cancel() }
 
-            listView.loading(with: "Working")
+            session.showActivity("Working")
             try await waitUntil {
                 snapshotEntries(in: listView).contains {
                     if case let .activityReporting(content) = $0 {
@@ -96,7 +96,18 @@ struct ConversationExecutionSupportTests {
                 }
             }
 
+            // requestUpdate republishes messages but no longer touches the
+            // indicator — the activity row must survive it.
             await session.requestUpdate(view: listView)
+            try await waitUntil {
+                publisherEmissionCount >= 1
+            }
+            #expect(snapshotEntries(in: listView).contains {
+                if case .activityReporting = $0 { return true }
+                return false
+            })
+
+            session.endActivity()
 
             try await waitUntil {
                 let snapshot = snapshotEntries(in: listView)
@@ -113,9 +124,6 @@ struct ConversationExecutionSupportTests {
                     return false
                 }
                 return hasUserMessage && !hasLoadingEntry
-            }
-            try await waitUntil {
-                publisherEmissionCount >= 1
             }
         }
     }

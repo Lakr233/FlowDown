@@ -224,95 +224,96 @@ class ModelToolsManager {
   func perform(withTool tool: ModelTool, parms: String, anchorTo view: UIView) async throws
     -> ToolResultContents
   {
-    if Self.skipConfirmationValue {
-      let ans = try await tool.execute(with: parms, anchorTo: view)
-      return processToolResult(ans)
-    } else {
-      return try await withCheckedThrowingContinuation { continuation in
-        Task { @MainActor in
-          let setupContext: (ActionContext) -> Void = { context in
-            context.addAction(title: "Cancel") {
-              context.dispose {
-                let error = NSError(
-                  domain: "ToolCall",
-                  code: 500,
-                  userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Tool execution cancelled by user")
-                  ],
-                )
-                continuation.resume(throwing: error)
-              }
-            }
-            context.addAction(title: "Use Tool", attribute: .accent) {
-              context.dispose {
-                Task.detached(priority: .userInitiated) {
-                  do {
-                    let ans = try await tool.execute(with: parms, anchorTo: view)
-                    let result = self.processToolResult(ans)
-                    continuation.resume(returning: result)
-                  } catch {
-                    let error = NSError(
-                      domain: "ToolCall",
-                      code: 500,
-                      userInfo: [
-                        NSLocalizedDescriptionKey: String(
-                          localized: "Tool execution failed: \(error.localizedDescription)")
-                      ],
-                    )
-                    continuation.resume(throwing: error)
-                  }
-                }
-              }
-            }
-          }
+    if !Self.skipConfirmationValue {
+      try await confirmToolUse(tool, anchorTo: view)
+    }
+    // Executed in the calling task, never detached: a detached task would not
+    // inherit cancellation, which is exactly what made hung MCP calls
+    // impossible to stop.
+    let ans = try await tool.execute(with: parms, anchorTo: view)
+    return processToolResult(ans)
+  }
 
-          let alert =
-            if let tool = tool as? MCPTool {
-              AlertViewController(
-                title: "Execute MCP Tool",
-                message:
-                  "The model wants to execute '\(tool.toolInfo.name)' from \(tool.toolInfo.serverName). This tool can access external resources.\n\nDescription: \(tool.toolInfo.description?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "No description available")",
-                setupActions: setupContext,
-              )
-            } else {
-              AlertViewController(
-                title: "Tool Call",
-                message: "Your model is calling a tool: \(tool.interfaceName)",
-                setupActions: setupContext,
-              )
-            }
+  /// Presents the confirmation dialog and returns when the user approves.
+  /// Throws when the user declines, the dialog cannot be presented, or the
+  /// calling task is cancelled — cancellation also dismisses the dialog.
+  private func confirmToolUse(_ tool: ModelTool, anchorTo view: UIView) async throws {
+    let waiter = CancellableWaiter<Void>()
+    let presentedAlert = PresentedAlertHolder()
 
-          // Check if view controller already has a presented view controller
-          guard let parentVC = view.parentViewController else {
+    Task { @MainActor in
+      let setupContext: (ActionContext) -> Void = { context in
+        context.addAction(title: "Cancel") {
+          context.dispose {
             let error = NSError(
               domain: "ToolCall",
               code: 500,
               userInfo: [
-                NSLocalizedDescriptionKey: String(
-                  localized: "Tool execution failed: parent view controller not found.")
+                NSLocalizedDescriptionKey: String(localized: "Tool execution cancelled by user")
               ],
             )
-            continuation.resume(throwing: error)
-            return
+            waiter.complete(with: .failure(error))
           }
-
-          guard parentVC.presentedViewController == nil else {
-            let error = NSError(
-              domain: "ToolCall",
-              code: 500,
-              userInfo: [
-                NSLocalizedDescriptionKey: String(
-                  localized: "Tool execution failed: authorization dialog is already presented.")
-              ],
-            )
-            continuation.resume(throwing: error)
-            return
+        }
+        context.addAction(title: "Use Tool", attribute: .accent) {
+          context.dispose {
+            waiter.complete(with: .success(()))
           }
-
-          parentVC.present(alert, animated: true)
         }
       }
+
+      let alert =
+        if let tool = tool as? MCPTool {
+          AlertViewController(
+            title: "Execute MCP Tool",
+            message:
+              "The model wants to execute '\(tool.toolInfo.name)' from \(tool.toolInfo.serverName). This tool can access external resources.\n\nDescription: \(tool.toolInfo.description?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "No description available")",
+            setupActions: setupContext,
+          )
+        } else {
+          AlertViewController(
+            title: "Tool Call",
+            message: "Your model is calling a tool: \(tool.interfaceName)",
+            setupActions: setupContext,
+          )
+        }
+
+      // Check if view controller already has a presented view controller
+      guard let parentVC = view.parentViewController else {
+        let error = NSError(
+          domain: "ToolCall",
+          code: 500,
+          userInfo: [
+            NSLocalizedDescriptionKey: String(
+              localized: "Tool execution failed: parent view controller not found.")
+          ],
+        )
+        waiter.complete(with: .failure(error))
+        return
+      }
+
+      guard parentVC.presentedViewController == nil else {
+        let error = NSError(
+          domain: "ToolCall",
+          code: 500,
+          userInfo: [
+            NSLocalizedDescriptionKey: String(
+              localized: "Tool execution failed: authorization dialog is already presented.")
+          ],
+        )
+        waiter.complete(with: .failure(error))
+        return
+      }
+
+      presentedAlert.alert = alert
+      parentVC.present(alert, animated: true)
     }
+
+    try await waiter.value(onAbandon: {
+      Task { @MainActor in
+        presentedAlert.alert?.dismiss(animated: true)
+      }
+    })
   }
 
   private func processToolResult(_ ans: String) -> ToolResultContents {
@@ -411,4 +412,11 @@ class ModelToolsManager {
   private func parseDataFromString(_ dataString: String) -> Data? {
     AttachmentDataParser.decodeData(from: dataString)
   }
+}
+
+/// Holds the presented confirmation dialog so an abandoned wait can dismiss it.
+@MainActor
+private final class PresentedAlertHolder {
+  weak var alert: UIViewController?
+  nonisolated init() {}
 }

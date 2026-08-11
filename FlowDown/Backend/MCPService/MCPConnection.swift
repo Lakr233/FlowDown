@@ -8,11 +8,12 @@
 import Combine
 import Foundation
 import MCP
+import os
 import Storage
 
 // MARK: - Connection Manager
 
-protocol MCPConnectionControlling: AnyObject {
+protocol MCPConnectionControlling: AnyObject, Sendable {
     var hasClient: Bool { get }
     var isConnected: Bool { get }
 
@@ -22,11 +23,17 @@ protocol MCPConnectionControlling: AnyObject {
     func callTool(name: String, arguments: [String: Value]?) async throws -> (content: [Tool.Content], isError: Bool?)
 }
 
-class MCPConnection: MCPConnectionControlling {
+final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
     // MARK: - Properties
 
     private let config: ModelContextServer
-    private(set) var client: MCP.Client?
+    // Guards the only mutable state; an MCP.Client taken out of the lock is an
+    // actor, so calls on it are safe from any concurrency domain.
+    private let clientLock = OSAllocatedUnfairLock<MCP.Client?>(initialState: nil)
+
+    var client: MCP.Client? {
+        clientLock.withLock { $0 }
+    }
 
     // MARK: - Initialization
 
@@ -48,16 +55,30 @@ class MCPConnection: MCPConnectionControlling {
         Logger.network.infoFile("connecting client for server: \(config.id)")
         try await client.connect(transport: transport)
 
-        self.client = client
+        let raced: MCP.Client? = clientLock.withLock { current in
+            if current == nil {
+                current = client
+                return nil
+            }
+            return client
+        }
+        if let raced {
+            // Another connect won while we were awaiting; drop ours.
+            Task.detached { await raced.disconnect() }
+            return
+        }
         Logger.network.infoFile("successfully connected to server: \(config.id)")
     }
 
     func disconnect() {
+        let client = clientLock.withLock { current -> MCP.Client? in
+            defer { current = nil }
+            return current
+        }
         guard let client else { return }
 
         Logger.network.infoFile("disconnecting client for server: \(config.id)")
         Task.detached { await client.disconnect() }
-        self.client = nil
         Logger.network.infoFile("client disconnected for server: \(config.id)")
     }
 
@@ -89,7 +110,19 @@ class MCPConnection: MCPConnectionControlling {
             throw MCPError.connectionFailed
         }
 
-        return try await client.callTool(name: name, arguments: arguments)
+        // The RequestContext overload (explicit annotation selects it over the
+        // async tuple one) lets us stop waiting the moment the user cancels:
+        // our own continuation returns immediately, while cancelRequest tells
+        // the server and cleans up the SDK side on a best-effort basis. The
+        // SDK's plain callTool awaits an unstructured task that no amount of
+        // cooperative cancellation can interrupt.
+        let context: RequestContext<CallTool.Result> = try await client.callTool(name: name, arguments: arguments)
+        let result = try await awaitCancellable {
+            try await context.value
+        } onAbandon: {
+            Task { try? await client.cancelRequest(context.requestID, reason: "User cancelled") }
+        }
+        return (content: result.content, isError: result.isError)
     }
 
     private func createClient() -> MCP.Client {

@@ -76,7 +76,7 @@ extension MessageListView {
                             return
                         }
                         thinkingMessage.update(\.isThinkingFold, to: !newValue)
-                        updateList()
+                        updateList(animated: true)
                         session.save()
                     }
                 }

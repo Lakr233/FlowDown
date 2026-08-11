@@ -45,7 +45,7 @@ extension ConversationSession {
                 continue
             }
             let hint = String(localized: "Identifying an image: \(processCount)/\(attachmentThatRequiresProcess.count)")
-            await currentMessageListView.loading(with: hint)
+            showActivity(hint)
             let text = try await self.processImageToText(
                 image: image,
                 currentMessageListView,
@@ -54,7 +54,7 @@ extension ConversationSession {
         }
 
         if processCount > 0 {
-            await currentMessageListView.loading(with: String(localized: "Processed \(processCount) image(s)"))
+            showActivity(String(localized: "Processed \(processCount) image(s)"))
         }
 
         updateAttachments(object.attachments, for: userMessage)

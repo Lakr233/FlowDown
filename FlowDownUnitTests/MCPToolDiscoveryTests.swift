@@ -154,7 +154,7 @@ private extension MCPToolDiscoveryTests {
     }
 }
 
-private final class DiscoveryConnectionSpy: MCPConnectionControlling {
+private final class DiscoveryConnectionSpy: MCPConnectionControlling, @unchecked Sendable {
     private let toolNames: [String]
     private let toolDescriptions: [String: String]
     private let listToolError: Error?
