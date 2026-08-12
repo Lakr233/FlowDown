@@ -123,7 +123,7 @@ export default function FeaturesSection() {
             accentColor="#3b82f6" // Blue
             description={
               <>
-                Your conversations and API keys never leave your device.{" "}
+                Your conversations and API credentials never leave your device.{" "}
                 <strong>
                   All data is stored locally or synced via your private iCloud
                 </strong>

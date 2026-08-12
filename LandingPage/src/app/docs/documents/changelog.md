@@ -2,6 +2,80 @@
 
 This log tracks FlowDown version history and key changes.
 
+## 5.0.2
+
+- Retired the complimentary cloud model presets previously provided via OpenRouter and Pollinations AI. To use cloud models, bring your own API from any OpenAI-compatible provider; on-device MLX models and Apple Intelligence are unaffected.
+- Replaced XML-based tool-call parsing with forced tool calls and added a contemplation capability for supported models.
+- Merged conversation title and icon generation into a single pass, and the app now auto-selects a model when none is chosen.
+- Persisted sidebar state across launches and softened the conversation cancellation message.
+- Compressed tool and system prompts and completed the conversation API migration, removing legacy backend code.
+
+## 4.11.2
+
+- Made MCP server setup visible in Tool settings; tool calls are now cancellable and indicators are state-driven.
+- Updated Markdown rendering, list components, SnapKit, and the local model stack.
+
+## 4.10.3
+
+- Merged web search into tool calls and remembered the Tools toggle across conversations.
+- Rebuilt sidebar resizing so divider drags commit within a single frame, eliminating piled-up animations and flicker on Mac.
+- Fixed blank-frame flicker while streaming and enabled deferred row sizing for smoother message updates.
+- Fixed macOS release signing and restored Catalyst signing compatibility.
+
+## 4.9.10
+
+- Added Reminders tools so the assistant can create, query, update, complete, and delete items in Apple Reminders with permission, alongside grouped Calendar and Reminders toggles in Tool settings.
+- Improved Calendar event creation through iCalendar parsing and Reminders filtering by due, alert, and completion dates.
+- Restored the vertical scroll indicator in Mac Catalyst chat views and refined alerts and Markdown handling.
+
+## 4.8.6
+
+- Improved conversation metadata generation for better titles, icons, and organization.
+- Improved Responses API handling for supported cloud models and strengthened memory context behavior.
+- Fixed an import and unpacking issue that could affect model exchange workflows.
+- Improved Mac Catalyst exit handling, added log clearing support, and improved local model download progress presentation.
+
+## 4.7.9
+
+- Overhauled memory with automatic extraction, cross-session context, and smarter conversation summarization that syncs across devices.
+- Added speculative decoding to the local MLX engine for faster generation on supported devices.
+- Improved web search, model tool, and Shortcut integration reliability.
+- Fixed the Memory toggle behavior in settings and improved local model download progress alerts.
+
+## 4.6.6
+
+- Added a refreshed glass-style chat interface and a dedicated Mac Catalyst chat header.
+- Added a Translate Text Shortcut that translates selected text with a chosen model into many target languages.
+- Added a left-edge swipe gesture to open the sidebar on iOS and improved iPad Split View sizing.
+- Fixed reasoning sections collapsing repeatedly while streaming and cleaned up empty assistant replies after tool calls.
+- Refined settings controls for Live Activity, memory, and model tools.
+
+## 4.5.9
+
+- Added reasoning effort presets for supported models, giving quick control over how deeply a model thinks before answering.
+- Added GPU support checks for local model inference and raised the app baseline to iOS 17.
+- Updated Markdown rendering for better message display and improved database dependency handling.
+
+## 4.4.10
+
+- Added Live Activity support so streaming responses stay visible while FlowDown runs in the background, with audio feedback options for background inference.
+- Added model evaluation sessions with an **Evaluate** action in model menus, plus import/export for evaluation results, chat templates, MCP servers, and models.
+- Added a **New Chat (Use Once)** action to model menus.
+- Enabled hardened runtime with checked allocations and hardened heap entitlements, and restored support for iOS 16.2 devices.
+
+## 4.3.3
+
+- Added glass effect support for the Catalyst helper with continuous corners.
+- Improved model selection logic and placeholder styling.
+
+## 4.2.9
+
+- Introduced the FlowDown Translation Provider extension: translate text system-wide with your own models, with segmented results, multi-language support, and structured tool-based output.
+- Added chat templates with iCloud sync and storage support, plus settings backup import/export.
+- Added Model Exchange support and a refreshed welcome experience.
+- Added a recovery mode for launch errors and a balanced emitter for smoother streaming output.
+- Fixed a destructive database table error that could break sync, and added default model list endpoint detection for cloud models.
+
 ## 4.1.2
 
 - You can now toggle Apple Intelligence in Inference settings with availability hints; default chat and auxiliary models update automatically.

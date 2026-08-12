@@ -252,8 +252,8 @@ export default function FAQSection() {
                     download an MLX model on supported hardware
                   </li>
                   <li>
-                    <strong>Custom configuration:</strong> Support for adding
-                    your own API keys
+                    <strong>Custom configuration:</strong> Support for bringing
+                    your own API
                   </li>
                   <li>
                     <strong>Import/Export:</strong> Support for importing and
@@ -317,7 +317,7 @@ export default function FAQSection() {
 
         <StaggerItem>
           <FAQItem
-            question="How do I configure a custom API key?"
+            question="How do I bring my own API?"
             isOpen={openFAQ === 6}
             onClick={() => setOpenFAQ(openFAQ === 6 ? -1 : 6)}
             answer={

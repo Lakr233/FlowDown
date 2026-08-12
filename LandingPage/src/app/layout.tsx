@@ -180,7 +180,7 @@ const structuredData = [
       },
       {
         "@type": "Question",
-        name: "How do users configure a custom API key?",
+        name: "How do users bring their own API?",
         acceptedAnswer: {
           "@type": "Answer",
           text: "Users add an OpenAI-compatible model profile inside FlowDown, enter the provider endpoint, token, optional headers, and additional request body fields, then verify the model configuration.",

@@ -27,9 +27,8 @@ When requesting support or testing, you might share logs or screenshots. They ar
 
 ### Cloud model services
 
-- When you use a cloud model, data goes to the provider you select.
-- Provider policies:
-  - **OpenRouter**: [https://openrouter.ai/privacy](https://openrouter.ai/privacy)
+- FlowDown does not bundle cloud model services; you bring your own API from a provider you trust.
+- When you use a cloud model, data goes directly to the provider you configure. Review that provider's privacy policy before use.
 
 ### User-defined settings & risk management
 

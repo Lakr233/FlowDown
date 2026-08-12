@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           items: [
             "Conversation data is stored on the user's device.",
             "Optional iCloud sync uses the user's Apple iCloud account through CloudKit.",
-            "Provider API keys are entered by the user and used to contact selected AI services.",
+            "Provider API credentials are entered by the user and used to contact selected AI services.",
             "MCP server headers are configured by the user inside FlowDown.",
             "Logs can be exported by the user for support after sensitive data is removed.",
           ],

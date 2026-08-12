@@ -48,7 +48,7 @@ export default function ContactPage() {
         {
           title: "Before sending logs",
           items: [
-            "Remove API keys, provider tokens, private URLs, and personal text.",
+            "Remove access tokens, provider credentials, private URLs, and personal text.",
             "Blur sensitive fields in screenshots.",
             "Include the FlowDown version, platform, model provider, and reproduction steps.",
             "For App Store purchase issues, include the storefront region and purchase date.",
