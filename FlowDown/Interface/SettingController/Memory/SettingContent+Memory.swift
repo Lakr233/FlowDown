@@ -164,7 +164,7 @@ extension SettingController.SettingContent {
             } catch {
                 let alert = AlertViewController(
                     title: "Export Failed",
-                    message: "Failed to export memories: \(error.localizedDescription)",
+                    message: String(localized: "Failed to export memories: \(error.localizedDescription)"),
                 ) { context in
                     context.allowSimpleDispose()
                     context.addAction(title: "OK", attribute: .accent) {

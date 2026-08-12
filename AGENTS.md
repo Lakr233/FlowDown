@@ -128,6 +128,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - When a model object exposes `package(set)` state through public update methods, do not carry a writable key path across the package boundary; model the closed set of target fields explicitly and invoke the owner's update API inside each branch.
 - For local reasoning models, use the resolved model `reasoningConfig` and seed stream routing from the prepared prompt. Chat templates may prefill the opening reasoning delimiter, so generated output can begin inside reasoning and emit only the closing delimiter; parsers must also preserve partial delimiters across chunks.
 - Treat evaluation tool parameters as a wire-schema boundary: normalize shorthand parameter types into a root `type: object` JSON Schema before inference, preserve already-complete schemas, and test the encoded request shape against provider validation. Verify no-argument calls explicitly by tool name instead of leaving their verifier list empty.
+- Do not rebuild `UIScrollEdgeEffect` on pre-26 systems. The private `variableBlur` filter only honours its mask gradient on a backdrop layer we own; installed on a `UIVisualEffectView`'s backdrop, UIKit re-asserts the material's own filters and it renders as a uniform blur cut off at the layer edge. The chat header uses a plain `.regular` blur with a hairline separator below 26 and `UIGlassContainerEffect` at 26+.
 
 ## Testing Expectations
 
@@ -180,19 +181,19 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 
 ## Localization Guidelines
 
-- `AlertViewController` and `ConfigurableKit` APIs expect `String.LocalizationValue`; pass localization values directly for consistency
+- `ConfigurableKit` and `Indicator.present` expect `String.LocalizationValue`; pass localization values directly for consistency
+- `AlertViewController` declares both a `String.LocalizationValue` init and an `@_disfavoredOverload` `String` one, and a string literal argument picks the `String` overload. That overload converts the *finished* text into a key, so an interpolated `title:`/`message:` silently looks up "…browser?\n\nhttps://example.com" and ships English. Wrap interpolated alert strings in `String(localized:)` yourself.
 - Other UI entry points should continue using `String(localized: ...)` for user-facing strings
 - Source all user-visible strings from localization files instead of hardcoded literals
 
 ### Dynamic values (avoid missed translations)
 
-When a localized string includes runtime values (counts, sizes, etc.), do NOT build the key as a `String` via interpolation.
+When a localized string includes runtime values (counts, sizes, etc.), the key must be a `String.LocalizationValue` so interpolations become `%@`/`%lld` and match the `.xcstrings` entry.
 
-- Bad (produces a runtime `String` key like "3 chances" and will NOT match entries like "%lld chances"):
+- `String(localized:)` takes only a `String.LocalizationValue`, so interpolating inline is safe and matches "%lld chances":
   - `String(localized: "\(value) chances")`
-- Good (ensures a `String.LocalizationValue` is produced, so it matches the formatted key in `.xcstrings`):
+- The danger is any parameter that also accepts a plain `String` — the literal resolves to `String` and the formatted key is never looked up. Bind the value explicitly there:
   - `let key: String.LocalizationValue = "\(value) chances"`
-  - `String(localized: key)`
 
 Prefer `String.LocalizationValue`/`LocalizedStringResource` formatting over `String(format:)` in app code. Use `String(format:)` only when needed for compatibility.
 

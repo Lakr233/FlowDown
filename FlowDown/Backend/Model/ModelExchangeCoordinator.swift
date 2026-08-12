@@ -150,7 +150,7 @@ final class ModelExchangeCoordinator {
                 guard let target = presentationRoot else { return }
                 let alert = AlertViewController(
                     title: "Share Failed",
-                    message: "Model encryption or delivery failed: \(error.localizedDescription)",
+                    message: String(localized: "Model encryption or delivery failed: \(error.localizedDescription)"),
                 ) { context in
                     context.allowSimpleDispose()
                     context.addAction(title: "OK") {

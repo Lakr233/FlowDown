@@ -15,7 +15,6 @@ final class LegacyGlassBackdropView: UIView {
     private let hostedContentView = UIView()
     private var isCapsule = false
     private var isEffectEnabled = true
-    var contentTopOffset: CGFloat = 0
 
     var contentView: UIView {
         hostedContentView
@@ -84,16 +83,7 @@ final class LegacyGlassBackdropView: UIView {
 
         tintOverlay.frame = bounds
 
-        if contentTopOffset > 0 {
-            hostedContentView.frame = CGRect(
-                x: 0,
-                y: contentTopOffset,
-                width: bounds.width,
-                height: max(0, bounds.height - contentTopOffset),
-            )
-        } else {
-            hostedContentView.frame = bounds
-        }
+        hostedContentView.frame = bounds
 
         if isCapsule {
             layer.cornerRadius = min(bounds.width, bounds.height) / 2

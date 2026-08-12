@@ -246,7 +246,7 @@ extension ConversationManager {
                             }
                             let alert = AlertViewController(
                                 title: "Compress to New Chat",
-                                message: "This will use \(name) compress the current conversation into a short summary and create a new chat with it. The original conversation will remain unchanged.",
+                                message: String(localized: "This will use \(name) compress the current conversation into a short summary and create a new chat with it. The original conversation will remain unchanged."),
                             ) { context in
                                 context.allowSimpleDispose()
                                 context.addAction(title: "Cancel") {
@@ -309,7 +309,7 @@ extension ConversationManager {
                             }
                             let alert = AlertViewController(
                                 title: "Generate Chat Template",
-                                message: "This will extract your requests from the current conversation using \(name) and save it as a template for later use. This may take some time.",
+                                message: String(localized: "This will extract your requests from the current conversation using \(name) and save it as a template for later use. This may take some time."),
                             ) { context in
                                 context.allowSimpleDispose()
                                 context.addAction(title: "Cancel") {
@@ -332,7 +332,7 @@ extension ConversationManager {
                                                 ChatTemplateManager.shared.addTemplate(template)
                                                 let alert = AlertViewController(
                                                     title: "Template Generated",
-                                                    message: "Template \(template.name) has been successfully generated and saved.",
+                                                    message: String(localized: "Template \(template.name) has been successfully generated and saved."),
                                                 ) { context in
                                                     context.allowSimpleDispose()
                                                     context.addAction(title: "OK") {

@@ -245,7 +245,7 @@ class ModelToolsManager {
         } else {
           AlertViewController(
             title: "Tool Call",
-            message: "Your model is calling a tool: \(tool.interfaceName)",
+            message: String(localized: "Your model is calling a tool: \(tool.interfaceName)"),
             setupActions: setupContext,
           )
         }

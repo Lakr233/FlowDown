@@ -326,7 +326,8 @@ extension ChatView {
             let bg = UIView().with { $0.backgroundColor = .background }
             let sep = SeparatorView()
         #else
-            let edgeEffectView = ChatHeaderEdgeEffectView()
+            let bg = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+            let sep = SeparatorView()
             let backgroundContainer = ChatHeaderGlassBackgroundContainerView()
         #endif
 
@@ -381,7 +382,17 @@ extension ChatView {
             #else
                 clipsToBounds = false
 
-                addSubview(edgeEffectView)
+                addSubview(bg)
+                bg.snp.makeConstraints { make in
+                    make.left.bottom.right.equalToSuperview()
+                    make.top.equalToSuperview().offset(-128)
+                }
+                addSubview(sep)
+                sep.snp.makeConstraints { make in
+                    make.left.right.equalToSuperview()
+                    make.bottom.equalToSuperview()
+                    make.height.equalTo(1)
+                }
                 addSubview(backgroundContainer)
 
                 backgroundContainer.contentView.addSubview(icon)
@@ -444,39 +455,11 @@ extension ChatView {
                 super.layoutSubviews()
 
                 let safeTop = safeAreaInsets.top
-
-                let usesUnifiedBackdrop = if #available(iOS 26.0, *) {
-                    false
-                } else {
-                    true
-                }
-
-                if usesUnifiedBackdrop {
-                    backgroundContainer.frame = CGRect(
-                        x: 0,
-                        y: 0,
-                        width: bounds.width,
-                        height: bounds.height,
-                    )
-                    backgroundContainer.setContentTopOffset(safeTop)
-                } else {
-                    backgroundContainer.frame = CGRect(
-                        x: 0,
-                        y: safeTop,
-                        width: bounds.width,
-                        height: max(0, bounds.height - safeTop),
-                    )
-                    backgroundContainer.setContentTopOffset(0)
-                }
-
-                let edgeHeight = bounds.height + 14
-                edgeEffectView.update(
-                    content: .background,
-                    blur: usesUnifiedBackdrop,
-                    alpha: 0.85,
-                    rect: CGRect(x: 0, y: 0, width: bounds.width, height: edgeHeight),
-                    edge: .top,
-                    edgeSize: min(54, edgeHeight),
+                backgroundContainer.frame = CGRect(
+                    x: 0,
+                    y: safeTop,
+                    width: bounds.width,
+                    height: max(0, bounds.height - safeTop),
                 )
             }
         #endif
@@ -502,7 +485,8 @@ extension ChatView {
 
             func setDecorativeBackgroundHidden(_ isHidden: Bool) {
                 backgroundContainer.setVisualEffectEnabled(!isHidden)
-                edgeEffectView.isHidden = isHidden
+                bg.isHidden = isHidden
+                sep.isHidden = isHidden
             }
         #else
             func setDecorativeBackgroundHidden(_ isHidden: Bool) {

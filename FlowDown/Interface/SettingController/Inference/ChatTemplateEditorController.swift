@@ -123,7 +123,7 @@ class ChatTemplateEditorController: StackScrollController, UITextViewDelegate {
 
         let input = AlertInputViewController(
             title: "Rewrite",
-            message: "You can use \(modelName) to rewrite this template, e.g., 'Add more instructions to the template.', or 'Make it more concise.'...",
+            message: String(localized: "You can use \(modelName) to rewrite this template, e.g., 'Add more instructions to the template.', or 'Make it more concise.'..."),
             placeholder: "Enter instructions...",
             text: "",
         ) { [self] instructions in

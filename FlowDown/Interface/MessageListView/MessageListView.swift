@@ -232,9 +232,12 @@ final class MessageListView: UIView {
             return
         }
 
+        // The alert initializer resolves to its plain-String overload, which uses
+        // the finished string as the lookup key — an interpolated message never
+        // matches the catalog, so it must be localized here first.
         let alert = AlertViewController(
             title: "Open Link",
-            message: "Do you want to open this link in your default browser?\n\n\(link.absoluteString)",
+            message: String(localized: "Do you want to open this link in your default browser?\n\n\(link.absoluteString)"),
         ) { context in
             context.allowSimpleDispose()
             context.addAction(title: "Cancel") {
