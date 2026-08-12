@@ -28,7 +28,7 @@ jobs:
           echo "Tag ${VERSION} does not match x.x.x (no v/beta/rev); skipping notarization." >> "$GITHUB_STEP_SUMMARY"
       - name: Checkout
         if: steps.tag_check.outputs.ok == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
