@@ -146,7 +146,7 @@ final class ModelExchangeSelectionController: UIViewController {
         }
         let alert = AlertViewController(
             title: "Confirm Sharing",
-            message: String(localized: "Models may contain credentials or secrets. Share with \(appName)?"),
+            message: "Models may contain credentials or secrets. Share with \(appName)?",
         ) { [weak self] context in
             context.addAction(title: String(localized: "Cancel")) {
                 context.dispose {}

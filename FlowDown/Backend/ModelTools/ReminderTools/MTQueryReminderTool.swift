@@ -208,16 +208,12 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
                 due: due,
                 alert: alert,
                 completed: completed,
-            ) { [weak self] result in
+            ) { result in
                 // EventKit's fetchReminders callback fires on a background
                 // queue; hop back to the main actor before touching UI.
-                Task { @MainActor [weak self] in
-                    guard let self else {
-                        cont.resume(returning: result)
-                        return
-                    }
+                Task { @MainActor in
                     self.showResults(result: result, controller: controller, continuation: cont)
-        }
+                }
             }
         }
     }
