@@ -13,10 +13,12 @@ extension ConversationSession {
         _ requestMessages: inout [ChatRequestBody.Message],
         _ tools: [ChatRequestBody.Tool]?,
         _ modelContextLength: Int,
+        preservesReasoning: Bool,
     ) throws -> Bool {
         let estimatedTokenCount = ModelManager.shared.calculateEstimateTokensUsingCommonEncoder(
             input: requestMessages,
             tools: tools ?? [],
+            includingReasoning: preservesReasoning,
         )
         Logger.model.debugFile("estimated token count: \(estimatedTokenCount)")
 
@@ -25,10 +27,15 @@ extension ConversationSession {
         }
 
         // Phase 1: Identify — collect indices of messages to evict (front-to-back, skip system)
+        //
+        // The final message carries the user's current input. Evicting it
+        // would send the provider a request with no user content at all,
+        // and the model would answer as if the user had said nothing.
+        let evictionUpperBound = requestMessages.isEmpty ? 0 : requestMessages.count - 1
         var indicesToEvict: [Int] = []
         var currentTokenCount = estimatedTokenCount
 
-        for idx in 0 ..< requestMessages.count {
+        for idx in 0 ..< evictionUpperBound {
             guard currentTokenCount > modelContextLength else { break }
             let item = requestMessages[idx]
             if case .system = item { continue }
@@ -41,6 +48,7 @@ extension ConversationSession {
             currentTokenCount = ModelManager.shared.calculateEstimateTokensUsingCommonEncoder(
                 input: candidateMessages,
                 tools: tools ?? [],
+                includingReasoning: preservesReasoning,
             )
         }
 

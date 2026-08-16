@@ -426,6 +426,7 @@ extension ModelManager {
     func calculateEstimateTokensUsingCommonEncoder(
         input: [ChatRequestBody.Message],
         tools: [ChatRequestBody.Tool],
+        includingReasoning: Bool = true,
     ) -> Int {
         assert(!Thread.isMainThread)
 
@@ -451,7 +452,10 @@ extension ModelManager {
             case let .assistant(content, toolCalls, reasoning):
                 estimatedInferenceText += "role: assistant\n"
                 if let content { estimatedInferenceText += text(content) }
-                if let reasoning, !reasoning.isEmpty {
+                // Reasoning only reaches the wire for preserved-thinking
+                // models; counting it otherwise inflates the estimate and
+                // triggers evictions the provider would never ask for.
+                if includingReasoning, let reasoning, !reasoning.isEmpty {
                     estimatedInferenceText += "reasoning: \(reasoning)\n"
                 }
                 if let toolCalls, !toolCalls.isEmpty {
