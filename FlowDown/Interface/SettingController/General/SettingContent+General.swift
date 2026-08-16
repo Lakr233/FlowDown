@@ -108,6 +108,9 @@ extension SettingController.SettingContent {
             stackView.addArrangedSubviewWithMargin(MarkdownTheme.configurableObject.createView())
             stackView.addArrangedSubview(SeparatorView())
 
+            stackView.addArrangedSubviewWithMargin(CodeBlockCollapseSetting.configurableObject.createView())
+            stackView.addArrangedSubview(SeparatorView())
+
             stackView.addArrangedSubviewWithMargin(
                 ConfigurableSectionFooterView().with(
                     footer: "The above setting only adjusts the text size in conversations. To change the font size globally, please go to the system settings, as this app follows the system’s font size preferences.",

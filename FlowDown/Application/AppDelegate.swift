@@ -43,6 +43,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         MLX.GPU.subscribeToConfigurableItem()
         EditorBehavior.subscribeToConfigurableItem()
         MarkdownTheme.subscribeToConfigurableItem()
+        CodeBlockCollapseSetting.subscribeToConfigurableItem()
         ScrubberConfiguration.subscribeToConfigurableItem()
         ScrubberConfiguration.setup() // build access control rule
 

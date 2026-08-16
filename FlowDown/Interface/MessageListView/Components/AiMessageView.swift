@@ -19,6 +19,11 @@ final class AiMessageView: MessageListRowView {
     private var pendingPackage: MarkdownContent?
     private var displayLink: CADisplayLink?
 
+    var codeExpandedBlocks: Set<Int> = [] {
+        didSet { markdownView.expandedCodeBlocks = codeExpandedBlocks }
+    }
+    var codeBlockExpansionHandler: ((_ blockIndex: Int, _ isExpanded: Bool) -> Void)?
+
     var linkTapHandler: ((LinkPayload, NSRange, CGPoint) -> Void)? {
         get { markdownView.linkHandler }
         set { markdownView.linkHandler = newValue }
@@ -44,6 +49,9 @@ final class AiMessageView: MessageListRowView {
     }
 
     private func configureSubviews() {
+        markdownView.codeBlockExpansionDidChange = { [weak self] blockIndex, isExpanded in
+            self?.codeBlockExpansionHandler?(blockIndex, isExpanded)
+        }
         contentView.addSubview(markdownView)
     }
 
@@ -72,6 +80,8 @@ final class AiMessageView: MessageListRowView {
         displayLink = nil
         pendingPackage = nil
         representedMessageID = nil
+        codeExpandedBlocks = []
+        codeBlockExpansionHandler = nil
         // Parked cells still receive CodeHighlighter notifications which trigger
         // a full document rebuild; empty their content so that rebuild is free.
         markdownView.reset()
@@ -87,6 +97,17 @@ final class AiMessageView: MessageListRowView {
         if displayLink == nil {
             flushPendingPackageIfPossible()
         }
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        // A conversation opened for the first time installs its rows while the
+        // hierarchy is not attached to a window yet. Force one real layout pass
+        // once it is, so fenced-code views placed against the detached tree are
+        // re-synced instead of waiting for a window resize.
+        guard window != nil else { return }
+        setNeedsLayout()
+        layoutIfNeeded()
     }
 
     private func schedulePendingPackage() {

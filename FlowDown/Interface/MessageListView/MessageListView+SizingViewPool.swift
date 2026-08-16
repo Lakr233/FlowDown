@@ -40,6 +40,7 @@ extension MessageListView {
         func view(
             for message: MessageRepresentation,
             theme: MarkdownTheme,
+            expandedCodeBlocks: Set<Int>,
             content: () -> MarkdownContent,
         ) -> MarkdownTextView {
             let contentHash = message.content.hashValue
@@ -47,15 +48,21 @@ extension MessageListView {
                entry.contentHash == contentHash,
                entry.theme == theme
             {
+                entry.view.expandedCodeBlocks = expandedCodeBlocks
                 touch(message.id)
                 return entry.view
             }
 
             let view = entries[message.id]?.view ?? MarkdownTextView()
-            // Assigning the theme reinstalls the current content, so it goes
-            // first while the view is still empty or already stale.
-            view.theme = theme
-            view.setContentImmediately(content())
+            // The expansion state goes in before the content: the height a
+            // fence reserves is decided while the content is built, so a view
+            // that receives the state afterwards measures one build short.
+            view.expandedCodeBlocks = expandedCodeBlocks
+            // Theme assignment alone rebuilds whatever the view already holds.
+            // A sizing pass always has new content in the same breath, so both
+            // land in one build — otherwise a fence can be measured against an
+            // empty document and the on-screen row is given a blank height.
+            view.setContentImmediately(content(), theme: theme)
             entries[message.id] = .init(view: view, contentHash: contentHash, theme: theme)
             touch(message.id)
             evictIfNeeded()

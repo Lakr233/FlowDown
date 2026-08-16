@@ -1209,10 +1209,10 @@
 		};
 		50A350B92DE4B5C3008F094E /* XCRemoteSwiftPackageReference "MarkdownView" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Lakr233/MarkdownView";
+			repositoryURL = "https://github.com/pengpercy/MarkdownView";
 			requirement = {
 				kind = exactVersion;
-				version = 4.3.1;
+				version = 4.3.2-flowdown.11;
 			};
 		};
 		50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */ = {

@@ -30,10 +30,10 @@
     {
       "identity" : "markdownview",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Lakr233/MarkdownView",
+      "location" : "https://github.com/pengpercy/MarkdownView",
       "state" : {
-        "revision" : "782352446014a579d64f2c5508aa7434747845e8",
-        "version" : "4.3.1"
+        "revision" : "232880ad9a8e93fa7a793d30f6c7fef678eedf6a",
+        "version" : "4.3.2-flowdown.11"
       }
     },
     {

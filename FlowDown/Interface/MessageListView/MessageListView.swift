@@ -86,6 +86,7 @@ final class MessageListView: UIView {
     private(set) lazy var labelForSizeCalculation: TextLabelView = .init()
     private(set) lazy var markdownSizingViewPool: MarkdownSizingViewPool = .init()
     private(set) lazy var markdownPackageCache: MarkdownPackageCache = .init()
+    var expandedCodeBlocks: [Message.ID: Set<Int>] = [:]
 
     #if DEBUG
         // TEMP scroll-diag: remove after #2.
@@ -144,6 +145,17 @@ final class MessageListView: UIView {
             .sink { [weak self] _ in
                 guard let self else { return }
                 theme = MarkdownTheme.default
+                listView.reloadData()
+                updateList()
+            }
+            .store(in: &viewCancellables)
+        CodeBlockCollapseSetting.collapsibilityDidChange
+            .ensureMainThread()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                // Every stored measurement and every rendered block carries
+                // the old collapsing behavior; start them all over.
+                markdownSizingViewPool.removeAll()
                 listView.reloadData()
                 updateList()
             }
@@ -290,7 +302,16 @@ final class MessageListView: UIView {
                     }
                 }
             } else {
-                listView.apply(entries, animated: true)
+                // Animate structural changes (rows appearing or going away),
+                // but apply content-only updates outright: streaming rewrites
+                // the same rows many times a second, and every pass through
+                // the list animation re-springs each row's frame, which reads
+                // as a flicker in anything laid out inside the row — fenced
+                // code blocks most of all.
+                let current = listView.content
+                let structureChanged = entries.count != current.count
+                    || !zip(entries, current).allSatisfy { $0.id == $1.id }
+                listView.apply(entries, animated: structureChanged)
                 #if DEBUG
                     // TEMP scroll-diag: remove after #2.
                     Logger.ui.infoFile("[scroll-diag] apply shouldScroll=\(shouldScrolling) offset=\(Int(listView.contentOffset.y)) max=\(Int(listView.maximumContentOffset.y))")

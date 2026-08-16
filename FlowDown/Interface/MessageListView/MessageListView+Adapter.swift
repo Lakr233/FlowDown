@@ -86,7 +86,11 @@ extension MessageListView {
                 .height { [weak self] entry, context in
                     guard let self, case let .aiContent(_, message) = entry else { return 0 }
                     return rowHeight(inListWidth: context.width) { containerWidth in
-                        let sizingView = self.markdownSizingViewPool.view(for: message, theme: self.theme) {
+                        let sizingView = self.markdownSizingViewPool.view(
+                            for: message,
+                            theme: self.theme,
+                            expandedCodeBlocks: self.expandedCodeBlocks[message.id] ?? [],
+                        ) {
                             self.markdownPackageCache.package(for: message, theme: self.theme)
                         }
                         return ceil(sizingView.boundingSize(for: containerWidth).height)
@@ -96,7 +100,43 @@ extension MessageListView {
                     guard let self, case let .aiContent(messageID, message) = entry else { return }
                     prepare(row, for: entry)
                     let package = markdownPackageCache.package(for: message, theme: theme)
-                    row.setMarkdownPackage(package, for: messageID)
+                    row.codeExpandedBlocks = expandedCodeBlocks[messageID] ?? []
+                    row.codeBlockExpansionHandler = { [weak self] blockIndex, isExpanded in
+                        guard let self else { return }
+                        let offsetBeforeToggle = self.listView.contentOffset.y
+                        if isExpanded {
+                            self.expandedCodeBlocks[messageID, default: []].insert(blockIndex)
+                        } else {
+                            self.expandedCodeBlocks[messageID]?.remove(blockIndex)
+                            if self.expandedCodeBlocks[messageID]?.isEmpty == true {
+                                self.expandedCodeBlocks[messageID] = nil
+                            }
+                        }
+                        self.listView.invalidateLayout(forRowWith: entry.id)
+                        self.listView.layoutIfNeeded()
+                        if isExpanded {
+                            // The reader tapped a block they are looking at:
+                            // it grows downward. Undo the list's anchor
+                            // compensation so their place stays put instead
+                            // of the block sliding up out from under them.
+                            let rowFrame = self.listView.rectForRow(with: entry.id)
+                            let viewport = CGRect(
+                                origin: self.listView.contentOffset,
+                                size: self.listView.bounds.size
+                            )
+                            if rowFrame.intersects(viewport) {
+                                self.listView.setContentOffset(
+                                    CGPoint(x: 0, y: offsetBeforeToggle),
+                                    animated: false
+                                )
+                            }
+                        }
+                    }
+                    // The handlers go in before the package: a new message
+                    // flushes its content synchronously, and that first sync
+                    // hands the code views whatever preview handler is set at
+                    // the time — installed afterwards, their eye button stays
+                    // hidden until a later rebuild happens to sync it again.
                     row.linkTapHandler = { [weak self, weak row] link, range, touchLocation in
                         guard let self, let row else { return }
                         handleLinkTapped(link, in: range, at: row.convert(touchLocation, to: self))
@@ -108,6 +148,7 @@ extension MessageListView {
                             title: String(localized: "Code Viewer"),
                         )
                     }
+                    row.setMarkdownPackage(package, for: messageID)
                 }
 
             ListRow(HintMessageView.self)
