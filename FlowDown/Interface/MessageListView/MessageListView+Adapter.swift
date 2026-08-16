@@ -490,13 +490,14 @@ extension MessageListView {
             controller.title = title
         }
 
+        let size = ModalWindowSize.resolve(in: parentViewController?.view.window)
         #if targetEnvironment(macCatalyst)
             let nav = UINavigationController(rootViewController: controller)
             nav.view.backgroundColor = .background
             let holder = AlertBaseController(
                 rootViewController: nav,
-                preferredWidth: 555,
-                preferredHeight: 555,
+                preferredWidth: size.width,
+                preferredHeight: size.height,
             )
             holder.shouldDismissWhenTappedAround = true
             holder.shouldDismissWhenEscapeKeyPressed = true

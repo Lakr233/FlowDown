@@ -24,17 +24,40 @@ import UIKit
 
         var content: NavigationController! = .init()
 
+        private var sheetSizingConstraints: [NSLayoutConstraint] = []
+
         override convenience init() {
             let nav = NavigationController()
+            // No fixed size up front: the sheet sizes itself against the
+            // window it is actually presented into, read once it is there.
             self.init(
                 rootViewController: nav,
-                preferredWidth: 600,
-                preferredHeight: 600,
+                preferredWidth: nil,
+                preferredHeight: nil,
             )
 
             content = nav
             shouldDismissWhenTappedAround = false
             shouldDismissWhenEscapeKeyPressed = true
+        }
+
+        override func viewWillLayoutSubviews() {
+            super.viewWillLayoutSubviews()
+            // Size against the window the sheet is actually presented into,
+            // refreshing on every pass so a live window resize is followed.
+            guard let window = view.window else { return }
+            let size = ModalWindowSize.resolve(in: window)
+            if sheetSizingConstraints.isEmpty {
+                let constraints = [
+                    contentView.widthAnchor.constraint(equalToConstant: size.width),
+                    contentView.heightAnchor.constraint(equalToConstant: size.height),
+                ]
+                NSLayoutConstraint.activate(constraints)
+                sheetSizingConstraints = constraints
+            } else {
+                sheetSizingConstraints[0].constant = size.width
+                sheetSizingConstraints[1].constant = size.height
+            }
         }
 
         override func contentViewDidLoad() {
