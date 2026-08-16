@@ -59,6 +59,10 @@ FlowDown 内置了免费模型供您快速上手。如需更多控制权，可�
 
 如需批量管理，浮望支持导入和导出模型配置文件（`.fdmodel` 格式）。你可以编写脚本批量生成配置文件，然后一次性导入。欢迎加入我们的 [Discord](https://discord.gg/UHKMRyJcgc) 讨论配置方案，但请记住：社区建议不能替代你自己的测试验证。
 
+## Star 历史
+
+[![Star History Chart](https://star-history.dera.page/svg?repos=Lakr233/FlowDown&type=date&legend=top-left)](https://star-history.dera.page/#Lakr233/FlowDown&type=date&legend=top-left)
+
 ## 许可证
 
 项目源代码基于 AGPL-3.0 许可证。你可以在 [LICENSE](../../../LICENSE) 文件中找到完整的许可证文本。

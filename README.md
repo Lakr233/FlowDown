@@ -61,6 +61,10 @@ Every model behaves differently based on its capabilities, deployment method, an
 
 For bulk management, FlowDown supports importing and exporting model configurations (`.fdmodel` files). You can script the generation of configuration files and import them all at once. Join our [Discord](https://discord.gg/UHKMRyJcgc) to discuss setups, but remember: community advice doesn't replace your own testing.
 
+## Star History
+
+[![Star History Chart](https://star-history.dera.page/svg?repos=Lakr233/FlowDown&type=date&legend=top-left)](https://star-history.dera.page/#Lakr233/FlowDown&type=date&legend=top-left)
+
 ## License
 
 The source code is licensed under AGPL-3.0. You can find the full license text in the [LICENSE](./LICENSE) file.
