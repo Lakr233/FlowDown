@@ -48,10 +48,8 @@ extension MainController {
         }
 
         #if !targetEnvironment(macCatalyst)
-            contentView.keyboardLayoutGuide.usesBottomSafeArea = false
             contentView.contentView.snp.remakeConstraints { make in
-                make.left.right.top.equalToSuperview()
-                make.bottom.equalTo(contentView.keyboardLayoutGuide.snp.top)
+                make.edges.equalToSuperview()
             }
         #endif
 

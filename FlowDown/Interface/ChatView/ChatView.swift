@@ -89,11 +89,14 @@ class ChatView: UIView {
 
         editor.handlerColor = handlerColor
         editor.delegate = self
+        #if !targetEnvironment(macCatalyst)
+            keyboardLayoutGuide.usesBottomSafeArea = false
+        #endif
         editor.snp.makeConstraints { make in
             #if targetEnvironment(macCatalyst)
                 make.bottom.equalToSuperview()
             #else
-                make.bottom.equalTo(safeAreaLayoutGuide)
+                make.bottom.equalTo(keyboardLayoutGuide.snp.top)
             #endif
             make.centerX.equalToSuperview()
             make.width.lessThanOrEqualTo(750)
