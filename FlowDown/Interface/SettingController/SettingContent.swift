@@ -92,13 +92,15 @@ extension SettingController {
             if #available(iOS 26, macCatalyst 26, *) {
                 navigationItem.rightBarButtonItem = .init(customView: closeButton)
             } else {
-                let closeView = UIView()
-                closeView.addSubview(closeButton)
+                // Float the button above the scrolling content instead of
+                // scrolling away with the first row — the reader has to be
+                // able to close the sheet from wherever they are in it.
+                view.addSubview(closeButton)
                 closeButton.snp.makeConstraints { make in
-                    make.top.right.bottom.equalToSuperview()
+                    make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
+                    make.trailing.equalTo(view.safeAreaLayoutGuide.snp.trailing).offset(-8)
                     make.width.height.equalTo(32)
                 }
-                stackView.addArrangedSubviewWithMargin(closeView)
             }
             closeButton.actionBlock = { [weak self] in
                 self?.navigationController?.dismiss(animated: true, completion: nil)
