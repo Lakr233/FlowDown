@@ -162,10 +162,9 @@ extension ConversationManager {
             ],
         )
 
-        let metadataModel = session.models.auxiliary ?? session.models.chat
-        let metadataModelSupportsTools = metadataModel
-            .map { ModelManager.shared.modelCapabilities(identifier: $0).contains(.tool) }
-            ?? false
+        // Title generation falls back to a plain completion when the model
+        // cannot answer a forced tool call, so the action is never gated on
+        // tool capability — a greyed-out entry reads as a broken feature.
         let automationMenu = UIMenu(
             title: String(localized: "Automation"),
             options: [.displayInline],
@@ -173,7 +172,6 @@ extension ConversationManager {
                 UIAction(
                     title: String(localized: "Generate New Title"),
                     image: UIImage(systemName: "arrow.clockwise"),
-                    attributes: metadataModelSupportsTools ? [] : [.disabled],
                 ) { _ in
                     Indicator.progress(
                         title: "Generating New Title",

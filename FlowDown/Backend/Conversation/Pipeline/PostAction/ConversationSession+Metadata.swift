@@ -126,11 +126,32 @@ extension ConversationSessionManager.Session {
         }
 
         guard let model = models.auxiliary else { return nil }
-        guard ModelManager.shared.modelCapabilities(identifier: model).contains(.tool) else {
-            Logger.model.infoFile("skipping conversation metadata generation: model has no tool call capability")
-            return nil
+
+        if ModelManager.shared.modelCapabilities(identifier: model).contains(.tool),
+           let metadata = await generateMetadataWithToolCall(
+               model: model,
+               userMessage: userMessage,
+               assistantMessage: assistantMessage,
+           ) {
+            return metadata
         }
 
+        // Not every auxiliary endpoint answers a forced tool call — plain chat
+        // models and proxy endpoints without tool support among them. A plain
+        // completion still produces a title, so fall back instead of skipping.
+        Logger.model.infoFile("conversation metadata generation: using plain-text fallback")
+        return await generateMetadataWithPlainText(
+            model: model,
+            userMessage: userMessage,
+            assistantMessage: assistantMessage,
+        )
+    }
+
+    private func generateMetadataWithToolCall(
+        model: ModelManager.ModelIdentifier,
+        userMessage: String,
+        assistantMessage: String,
+    ) async -> ConversationMetadata? {
         let input: [ChatRequestBody.Message] = [
             .system(content: .text(
                 "Generate metadata for the conversation. You must call \(ConversationMetadataToolCall.name) exactly once with a title and an icon. Do not respond with plain text.",
@@ -164,6 +185,113 @@ extension ConversationSessionManager.Session {
             Logger.model.errorFile("failed to generate conversation metadata: \(error)")
             return nil
         }
+    }
+
+    private func generateMetadataWithPlainText(
+        model: ModelManager.ModelIdentifier,
+        userMessage: String,
+        assistantMessage: String,
+    ) async -> ConversationMetadata? {
+        let input: [ChatRequestBody.Message] = [
+            .system(content: .text(
+                """
+                Generate metadata for the conversation. Respond with ONLY one JSON object in this exact shape, with no markdown, code fence, or commentary:
+                {"title": "3-5 word title in the user's primary language, no prefix, label, or markdown", "icon": "a single emoji"}
+                """,
+            )),
+            .user(content: .text(
+                """
+                [last user message]
+                \(userMessage)
+
+                [last assistant message]
+                \(assistantMessage)
+                """,
+            )),
+        ]
+
+        do {
+            let response = try await ModelManager.shared.infer(with: model, input: input)
+            return ConversationMetadataPlainTextParser.parse(response.text)
+        } catch {
+            Logger.model.errorFile("failed to generate conversation metadata (plain text): \(error)")
+            return nil
+        }
+    }
+}
+
+/// Reads a title and an icon out of a plain completion. Models without tool
+/// support format their answer however they please, so this tries a JSON
+/// object first, then `title:` / `icon:` lines, and finally takes the first
+/// line as the title.
+enum ConversationMetadataPlainTextParser {
+    private struct PlainArguments: Decodable {
+        let title: String?
+        let icon: String?
+    }
+
+    static func parse(_ response: String) -> ConversationMetadata? {
+        if let metadata = parseJSONObject(in: response) { return metadata }
+        if let metadata = parseLabeledLines(in: response) { return metadata }
+        return parseFirstLine(in: response)
+    }
+
+    private static func parseJSONObject(in response: String) -> ConversationMetadata? {
+        guard let start = response.firstIndex(of: "{"),
+              let end = response.lastIndex(of: "}"),
+              start < end,
+              let data = response[start ... end].data(using: .utf8),
+              let decoded = try? JSONDecoder().decode(PlainArguments.self, from: data)
+        else {
+            return nil
+        }
+
+        let metadata = ConversationMetadata(
+            title: ConversationMetadataToolCall.normalizedTitle(decoded.title),
+            icon: ConversationMetadataToolCall.normalizedIcon(decoded.icon),
+        )
+        return metadata.hasGeneratedContent ? metadata : nil
+    }
+
+    private static func parseLabeledLines(in response: String) -> ConversationMetadata? {
+        var title: String?
+        var icon: String?
+
+        for rawLine in response.components(separatedBy: .newlines) {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            guard let colon = line.firstIndex(where: { $0 == ":" || $0 == "：" }) else { continue }
+
+            let quoteAndSpace = CharacterSet.whitespacesAndNewlines.union(.init(charactersIn: "\"'`"))
+            let key = line[..<colon].trimmingCharacters(in: quoteAndSpace)
+            let value = line[line.index(after: colon)...].trimmingCharacters(in: quoteAndSpace)
+
+            switch key.lowercased() {
+            case "title", "标题": title = value
+            case "icon", "emoji", "图标": icon = value
+            default: break
+            }
+        }
+
+        guard title != nil || icon != nil else { return nil }
+
+        let metadata = ConversationMetadata(
+            title: ConversationMetadataToolCall.normalizedTitle(title),
+            icon: ConversationMetadataToolCall.normalizedIcon(icon),
+        )
+        return metadata.hasGeneratedContent ? metadata : nil
+    }
+
+    private static func parseFirstLine(in response: String) -> ConversationMetadata? {
+        let line = response.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first { !$0.isEmpty }
+        guard let line else { return nil }
+
+        let metadata = ConversationMetadata(
+            title: ConversationMetadataToolCall.normalizedTitle(line),
+            icon: nil,
+        )
+        return metadata.hasGeneratedContent ? metadata : nil
     }
 }
 
