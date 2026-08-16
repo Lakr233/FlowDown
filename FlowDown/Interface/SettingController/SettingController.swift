@@ -26,10 +26,11 @@ import UIKit
 
         override convenience init() {
             let nav = NavigationController()
+            let size = ModalWindowSize.resolve(in: ModalWindowSize.keyWindow)
             self.init(
                 rootViewController: nav,
-                preferredWidth: 600,
-                preferredHeight: 600,
+                preferredWidth: size.width,
+                preferredHeight: size.height,
             )
 
             content = nav
@@ -87,7 +88,8 @@ import UIKit
             navigationBar.prefersLargeTitles = false
             modalPresentationStyle = .formSheet
             modalTransitionStyle = .coverVertical
-            preferredContentSize = .init(width: 550, height: 550 - navigationBar.height)
+            let size = ModalWindowSize.resolve(in: ModalWindowSize.keyWindow)
+            preferredContentSize = .init(width: size.width, height: size.height - navigationBar.height)
             view.backgroundColor = .background
         }
 
