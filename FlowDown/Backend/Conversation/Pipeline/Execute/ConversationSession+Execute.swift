@@ -234,7 +234,12 @@ extension ConversationSession {
         // MARK: - 删除超出上下文长度限制的消息
 
         try checkCancellation()
-        if try removeOutOfContextContents(&requestMessages, toolsDefinitions, modelContextLength) {
+        if try removeOutOfContextContents(
+            &requestMessages,
+            toolsDefinitions,
+            modelContextLength,
+            preservesReasoning: modelCapabilities.contains(.preservedThinking),
+        ) {
             let hintMessage = appendNewMessage(role: .hint)
             hintMessage.update(\.document, to: String(localized: "Some messages have been removed to fit the model context length."))
             await requestUpdate()
