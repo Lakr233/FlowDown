@@ -28,11 +28,4 @@ enum ModalWindowSize {
             height: min(height, max(bounds.height - 32, 0))
         )
     }
-
-    static var keyWindow: UIWindow? {
-        let windows = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-        return windows.first(where: \.isKeyWindow) ?? windows.first
-    }
 }
