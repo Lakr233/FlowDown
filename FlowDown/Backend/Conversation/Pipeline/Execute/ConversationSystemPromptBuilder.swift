@@ -35,7 +35,7 @@ enum ConversationSystemPromptBuilder {
                         """
                         Current context:
                         Your Name: \(modelName)
-                        Date: \(Date().formatted(date: .long, time: .complete))
+                        Date: \(Date().promptTimestamp)
                         User Locale: \(Locale.current.identifier)
                         """)
                 },

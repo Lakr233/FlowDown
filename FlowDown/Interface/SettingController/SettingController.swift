@@ -24,40 +24,17 @@ import UIKit
 
         var content: NavigationController! = .init()
 
-        private var sheetSizingConstraints: [NSLayoutConstraint] = []
-
         override convenience init() {
             let nav = NavigationController()
-            // No fixed size up front: the sheet sizes itself against the
-            // window it is actually presented into, read once it is there.
             self.init(
                 rootViewController: nav,
-                preferredWidth: nil,
-                preferredHeight: nil,
+                preferredWidth: 600,
+                preferredHeight: 600,
             )
 
             content = nav
             shouldDismissWhenTappedAround = false
             shouldDismissWhenEscapeKeyPressed = true
-        }
-
-        override func viewWillLayoutSubviews() {
-            super.viewWillLayoutSubviews()
-            // Size against the window the sheet is actually presented into,
-            // refreshing on every pass so a live window resize is followed.
-            guard let window = view.window else { return }
-            let size = ModalWindowSize.resolve(in: window)
-            if sheetSizingConstraints.isEmpty {
-                let constraints = [
-                    contentView.widthAnchor.constraint(equalToConstant: size.width),
-                    contentView.heightAnchor.constraint(equalToConstant: size.height),
-                ]
-                NSLayoutConstraint.activate(constraints)
-                sheetSizingConstraints = constraints
-            } else {
-                sheetSizingConstraints[0].constant = size.width
-                sheetSizingConstraints[1].constant = size.height
-            }
         }
 
         override func contentViewDidLoad() {
@@ -110,8 +87,16 @@ import UIKit
             navigationBar.prefersLargeTitles = false
             modalPresentationStyle = .formSheet
             modalTransitionStyle = .coverVertical
-            preferredContentSize = .init(width: 550, height: 550 - navigationBar.height)
             view.backgroundColor = .background
+        }
+
+        // UINavigationController derives its preferred content size from the
+        // top view controller, so pages that stack a search bar under the
+        // navigation bar (Model, Memory, Logs) grow the form sheet on push
+        // and shrink it back on pop. Pin the size so the sheet stays put.
+        override var preferredContentSize: CGSize {
+            get { .init(width: 550, height: 550) }
+            set { _ = newValue }
         }
 
         @available(*, unavailable)

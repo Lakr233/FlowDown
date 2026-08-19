@@ -241,7 +241,7 @@ extension ModelManager.PromptType {
             )
             .replacingOccurrences(
                 of: "{{Template.currentDateTime}}",
-                with: DateFormatter.localizedString(from: Date(), dateStyle: .full, timeStyle: .full),
+                with: Date().promptTimestamp,
             )
             .replacingOccurrences(
                 of: "{{Template.systemLanguage}}",
