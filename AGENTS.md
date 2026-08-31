@@ -28,7 +28,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 
 - `FlowDown/`: Application sources divided into `Application/` (entry surfaces), `Backend/` (conversations, models, storage, security), `Interface/` (UIKit), `PlatformSupport/` (macOS/Catalyst glue), `Extension/`, and `BundledResources/` (curated assets shipped with the app).
 - `FlowDown/DerivedSources/`: Generated during builds (`BuildInfo.swift`, `CloudKitConfig.swift`). Treat as generated—schemes will overwrite changes.
-- `Frameworks/`: Shared Swift packages (`ChatClientKit`, `Storage`, `Logger`, `RunestoneEditor`, `FlowDownModelExchange`) plus the `mlx-swift-lm` submodule. Each package owns its manifest and dependency graph.
+- `Frameworks/`: Shared Swift packages (`ChatClientKit`, `Storage`, `Logger`, `FlowDownModelExchange`) plus the `mlx-swift-lm` submodule. Each package owns its manifest and dependency graph.
 - `FlowDownUnitTests/`: App-level tests using Swift's `Testing` package (`@Test` entry points).
 - `Resources/`: Shared assets, localization collateral, privacy documents, and DevKit utilities. `Resources/DevKit/scripts/` holds the automation helpers—extend these rather than adding stand-alone scripts.
 - `Examples/`: Companion sample projects (e.g. `ModelExchange`); not shipped with the app.

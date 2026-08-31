@@ -60,7 +60,7 @@ struct ConversationTrimTests {
                 .user(content: .text("Hello")),
             ]
 
-            let threw = await runOffMain {
+            let threw = try await runOffMain {
                 do {
                     _ = try session.removeOutOfContextContents(
                         &requestMessages,

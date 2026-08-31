@@ -21,6 +21,21 @@ PACKAGE_RESOLVED_FILES=(
 # part of the dependency graph. See strip_mlx_cuda_plugin.sh.
 "$SCRIPT_DIR/strip_mlx_cuda_plugin.sh" --restore
 
+# Xcode re-resolves from the SourcePackages workspace state, not from scratch,
+# so dropping Package.resolved alone keeps every cached pin. Drop the state too.
+typeset -a source_packages
+for variable in CI_DERIVED_DATA_PATH DERIVED_DATA; do
+    derived="${(P)variable:-}"
+    [[ -n "$derived" ]] && source_packages+=("${derived}/SourcePackages")
+done
+source_packages+=(/private/tmp/flowdown-deriveddata/SourcePackages)
+source_packages+=("$HOME"/Library/Developer/Xcode/DerivedData/FlowDown-*/SourcePackages(N))
+for dir in "${(@u)source_packages}"; do
+    [[ -f "$dir/workspace-state.json" ]] || continue
+    echo "[+] clearing cached package state in $dir"
+    rm -f "$dir/workspace-state.json"
+done
+
 echo "[+] upgrading workspace packages..."
 rm -f "$WORKSPACE_RESOLVED"
 xcodebuild \

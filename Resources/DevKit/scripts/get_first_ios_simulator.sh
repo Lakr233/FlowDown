@@ -30,7 +30,7 @@ if not available_ios_runtimes:
 for runtime_id in sorted(available_ios_runtimes, reverse=True):
     devices = data.get('devices', {}).get(runtime_id, [])
     for device in devices:
-        if device.get('isAvailable', False) and 'iPhone' in device.get('name', ''):
+        if device.get('isAvailable', False) and 'iphone' in device.get('name', '').lower():
             print(device['udid'])
             sys.exit(0)
 

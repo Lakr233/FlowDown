@@ -6,8 +6,6 @@
 //
 
 import RunestoneEditor
-import RunestoneLanguageSupport
-import RunestoneThemeSupport
 import UIKit
 
 class CodeEditorController: UIViewController {

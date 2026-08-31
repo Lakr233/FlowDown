@@ -494,6 +494,7 @@
 				506373A42EC0DC7900C8A9FB /* XCRemoteSwiftPackageReference "ColorfulX" */,
 				50AE757C2EF436FC00D2C845 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				509038602FB0EB8500110DDB /* XCRemoteSwiftPackageReference "iCalendarParser" */,
+				5081A0152FC5A1B200079ECB /* XCRemoteSwiftPackageReference "Runestone.xcframework" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 503498BE2D23053D004672BD /* Products */;
@@ -1295,6 +1296,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		5081A0152FC5A1B200079ECB /* XCRemoteSwiftPackageReference "Runestone.xcframework" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Lakr233/Runestone.xcframework";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1364,6 +1373,7 @@
 		};
 		5081A0132D6DBBBA0079ECBE /* RunestoneEditor */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 5081A0152FC5A1B200079ECB /* XCRemoteSwiftPackageReference "Runestone.xcframework" */;
 			productName = RunestoneEditor;
 		};
 		509038612FB0EB8500110DDB /* iCalendarParser */ = {
