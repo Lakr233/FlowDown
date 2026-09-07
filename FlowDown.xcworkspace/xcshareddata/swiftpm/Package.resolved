@@ -379,9 +379,9 @@
       }
     },
     {
-      "identity" : "wcdb-spm-prebuilt",
+      "identity" : "wcdb.xcframework",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Lakr233/wcdb-spm-prebuilt",
+      "location" : "https://github.com/Lakr233/wcdb.xcframework",
       "state" : {
         "revision" : "619a4ce1b5b3b59b14832ec5bbe414d542703469",
         "version" : "2.1.16"
