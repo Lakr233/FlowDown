@@ -279,15 +279,15 @@ extension AppDelegate {
 
     @objc func deleteConversationFromMenu(_: Any?) {
         withCurrentConversation { _, conversationID, _ in
-            let conversations = ConversationManager.shared.conversations.value.values
+            let conversations = Self.sidebarOrderedIdentifiers(ConversationManager.shared.conversations.value.values)
             let nextIdentifier: Conversation.ID? = {
-                guard let currentIndex = conversations.firstIndex(where: { $0.id == conversationID }) else {
+                guard let currentIndex = conversations.firstIndex(of: conversationID) else {
                     return nil
                 }
                 if currentIndex + 1 < conversations.count {
-                    return conversations[currentIndex + 1].id
+                    return conversations[currentIndex + 1]
                 } else if currentIndex > 0 {
-                    return conversations[currentIndex - 1].id
+                    return conversations[currentIndex - 1]
                 } else {
                     return nil
                 }
@@ -303,9 +303,9 @@ extension AppDelegate {
     /// conversation navigation
     @objc func selectPreviousConversationFromMenu(_: Any?) {
         withCurrentConversation { mainVC, conversationID, _ in
-            let list = ConversationManager.shared.conversations.value.values
-            guard let currentIndex = list.firstIndex(where: { $0.id == conversationID }), currentIndex > 0 else { return }
-            let previousID = list[currentIndex - 1].id
+            let list = Self.sidebarOrderedIdentifiers(ConversationManager.shared.conversations.value.values)
+            guard let currentIndex = list.firstIndex(of: conversationID), currentIndex > 0 else { return }
+            let previousID = list[currentIndex - 1]
             ChatSelection.shared.select(previousID)
             mainVC.chatView.use(conversation: previousID) {
                 mainVC.chatView.focusEditor()
@@ -315,9 +315,9 @@ extension AppDelegate {
 
     @objc func selectNextConversationFromMenu(_: Any?) {
         withCurrentConversation { mainVC, conversationID, _ in
-            let list = ConversationManager.shared.conversations.value.values
-            guard let currentIndex = list.firstIndex(where: { $0.id == conversationID }), currentIndex < list.count - 1 else { return }
-            let nextID = list[currentIndex + 1].id
+            let list = Self.sidebarOrderedIdentifiers(ConversationManager.shared.conversations.value.values)
+            guard let currentIndex = list.firstIndex(of: conversationID), currentIndex < list.count - 1 else { return }
+            let nextID = list[currentIndex + 1]
             ChatSelection.shared.select(nextID)
             mainVC.chatView.use(conversation: nextID) {
                 mainVC.chatView.focusEditor()
@@ -329,5 +329,16 @@ extension AppDelegate {
         if let mainVC = mainWindow?.rootViewController as? MainController {
             mainVC.view.doWithAnimation { mainVC.isSidebarCollapsed.toggle() }
         }
+    }
+
+    /// The order the sidebar shows, as built by
+    /// `ConversationSelectionView.updateDataSource`: favorites first, then the
+    /// rest. Both keep the creation-descending storage order, which the day
+    /// sections preserve, so menu navigation steps through the visible rows.
+    static func sidebarOrderedIdentifiers(
+        _ conversations: some Collection<Conversation>,
+    ) -> [Conversation.ID] {
+        conversations.filter(\.isFavorite).map(\.id)
+            + conversations.filter { !$0.isFavorite }.map(\.id)
     }
 }
