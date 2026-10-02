@@ -14,10 +14,6 @@
         private init() {}
 
         func install() {
-            swizzleDidCreateUIScene()
-        }
-
-        private func swizzleDidCreateUIScene() {
             guard let appDelegateClass = NSClassFromString("UINSApplicationDelegate") else {
                 return
             }
@@ -30,12 +26,10 @@
             let originalIMP = method_getImplementation(method)
 
             let block: @convention(block) (AnyObject, UIScene, AnyObject) -> Void = { _self, scene, context in
-                // Call original implementation
                 typealias OriginalFunction = @convention(c) (AnyObject, Selector, UIScene, AnyObject) -> Void
                 let originalFunc = unsafeBitCast(originalIMP, to: OriginalFunction.self)
                 originalFunc(_self, selector, scene, context)
 
-                // Apply visual effect view
                 FLDCatalystHelper.applyVisualEffectView(to: scene)
             }
 
@@ -101,16 +95,10 @@
                 return
             }
 
-            let effectViewClass: NSObject.Type
-
-            if let glassEffectViewClass = NSClassFromString("NSGlassEffectView") as? NSObject.Type {
-                effectViewClass = glassEffectViewClass
-            } else {
-                // Create NSVisualEffectView
-                guard let visualEffectViewClass = NSClassFromString("NSVisualEffectView") as? NSObject.Type else {
-                    return
-                }
-                effectViewClass = visualEffectViewClass
+            guard let effectViewClass = (NSClassFromString("NSGlassEffectView")
+                ?? NSClassFromString("NSVisualEffectView")) as? NSObject.Type
+            else {
+                return
             }
 
             let visualEffectView = effectViewClass.init()
@@ -124,8 +112,7 @@
                 visualEffectView.setValue(0, forKey: "blendingMode")
             }
             if visualEffectView.responds(to: NSSelectorFromString("style")) {
-                // 3> NSGlassEffectView.Style.regular.rawValue
-                // $R1: Int = 0
+                // NSGlassEffectView.Style.regular = 0
                 visualEffectView.setValue(0, forKey: "style")
             }
 
@@ -133,40 +120,27 @@
             _ = contentView.perform(addSubviewSelector, with: visualEffectView)
             _ = contentView.perform(addSubviewSelector, with: sceneView)
 
-            // Setup constraints
             visualEffectView.setValue(false, forKey: "translatesAutoresizingMaskIntoConstraints")
 
             guard let nsLayoutConstraintClass = NSClassFromString("NSLayoutConstraint") as? NSObject.Type else {
                 return
             }
 
-            guard let topAnchor = visualEffectView.value(forKey: "topAnchor") as? NSObject,
-                  let leadingAnchor = visualEffectView.value(forKey: "leadingAnchor") as? NSObject,
-                  let trailingAnchor = visualEffectView.value(forKey: "trailingAnchor") as? NSObject,
-                  let bottomAnchor = visualEffectView.value(forKey: "bottomAnchor") as? NSObject
-            else {
-                return
-            }
-
-            guard let contentTopAnchor = contentView.value(forKey: "topAnchor") as? NSObject,
-                  let contentLeadingAnchor = contentView.value(forKey: "leadingAnchor") as? NSObject,
-                  let contentTrailingAnchor = contentView.value(forKey: "trailingAnchor") as? NSObject,
-                  let contentBottomAnchor = contentView.value(forKey: "bottomAnchor") as? NSObject
-            else {
-                return
-            }
-
             let constraintEqualToAnchorSelector = sel_registerName("constraintEqualToAnchor:")
-
-            guard let topConstraint = topAnchor.perform(constraintEqualToAnchorSelector, with: contentTopAnchor)?.takeUnretainedValue() as? NSObject,
-                  let leadingConstraint = leadingAnchor.perform(constraintEqualToAnchorSelector, with: contentLeadingAnchor)?.takeUnretainedValue() as? NSObject,
-                  let trailingConstraint = trailingAnchor.perform(constraintEqualToAnchorSelector, with: contentTrailingAnchor)?.takeUnretainedValue() as? NSObject,
-                  let bottomConstraint = bottomAnchor.perform(constraintEqualToAnchorSelector, with: contentBottomAnchor)?.takeUnretainedValue() as? NSObject
-            else {
+            let anchorKeys = ["topAnchor", "leadingAnchor", "trailingAnchor", "bottomAnchor"]
+            let constraints = anchorKeys.compactMap { key -> NSObject? in
+                guard let anchor = visualEffectView.value(forKey: key) as? NSObject,
+                      let contentAnchor = contentView.value(forKey: key) as? NSObject
+                else {
+                    return nil
+                }
+                let constraint = anchor.perform(constraintEqualToAnchorSelector, with: contentAnchor)
+                return constraint?.takeUnretainedValue() as? NSObject
+            }
+            guard constraints.count == anchorKeys.count else {
                 return
             }
 
-            let constraints = [topConstraint, leadingConstraint, trailingConstraint, bottomConstraint]
             let activateConstraintsSelector = sel_registerName("activateConstraints:")
             _ = nsLayoutConstraintClass.perform(activateConstraintsSelector, with: constraints)
         }

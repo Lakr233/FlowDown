@@ -5,25 +5,18 @@
 //  Created by Alan Ye on 8/14/25.
 //
 
-import Combine
 import Foundation
 import Storage
 
 @MainActor
-class MemoryStore: ObservableObject {
+class MemoryStore {
     static let shared = MemoryStore()
 
     private let queue = DispatchQueue(label: "wiki.qaq.MemoryStore", qos: .utility)
     private let maxMemoryCount = 1000
     private let maxMemoryLength = 2000
 
-    @Published var memoryCount: Int = 0
-
-    private init() {
-        Task {
-            await updateMemoryCount()
-        }
-    }
+    private init() {}
 
     // MARK: - Public Async API
 
@@ -45,10 +38,6 @@ class MemoryStore: ObservableObject {
                     try storage.insertMemory(memory)
 
                     try storage.deleteOldMemories(keepCount: self.maxMemoryCount)
-
-                    Task { @MainActor in
-                        await self.updateMemoryCount()
-                    }
 
                     continuation.resume(returning: memory)
                 } catch {
@@ -148,10 +137,6 @@ class MemoryStore: ObservableObject {
                     let storage = try Storage.db()
                     try storage.deleteMemory(id: id)
 
-                    Task { @MainActor in
-                        await self.updateMemoryCount()
-                    }
-
                     continuation.resume()
                 } catch let error as Storage.MemoryError {
                     continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
@@ -169,25 +154,7 @@ class MemoryStore: ObservableObject {
                     let storage = try Storage.db()
                     try storage.deleteAllMemories()
 
-                    Task { @MainActor in
-                        await self.updateMemoryCount()
-                    }
-
                     continuation.resume()
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
-            }
-        }
-    }
-
-    func getMemoryCount() async throws -> Int {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    let count = try storage.getMemoryCount()
-                    continuation.resume(returning: count)
                 } catch {
                     continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
                 }
@@ -263,10 +230,6 @@ class MemoryStore: ObservableObject {
             let storage = try Storage.db()
             try storage.deleteMemory(id: id)
 
-            Task { @MainActor in
-                await self.updateMemoryCount()
-            }
-
             if let reason {
                 return "Memory deleted successfully. Reason: \(reason)"
             } else {
@@ -339,15 +302,6 @@ class MemoryStore: ObservableObject {
         } catch {
             Logger.database.errorFile("MemoryStore failed to build proactive memory context: \(error)")
             return nil
-        }
-    }
-
-    private func updateMemoryCount() async {
-        do {
-            let count = try await getMemoryCount()
-            memoryCount = count
-        } catch {
-            Logger.database.errorFile("MemoryStore failed to update memory count: \(error)")
         }
     }
 }

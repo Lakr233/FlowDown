@@ -21,6 +21,9 @@ package protocol Syncable: TableDecodable {
     /// 删除标记
     var removed: Bool { get }
 
+    /// Sets the last modified time.
+    func markModified(_ date: Date)
+
     /// 用于标识来源设备
     var deviceId: String { get }
 

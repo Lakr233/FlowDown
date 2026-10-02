@@ -237,11 +237,8 @@ private extension SceneDelegate {
             }
             return
         }
-        guard let host = url.host(), !host.isEmpty else { return }
-        switch host {
-        case "new": handleNewMessageURL(url)
-        default: break
-        }
+        guard url.host() == "new" else { return }
+        handleNewMessageURL(url)
     }
 
     func handleNewMessageURL(_ url: URL) {

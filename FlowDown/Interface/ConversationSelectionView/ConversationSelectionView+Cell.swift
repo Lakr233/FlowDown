@@ -105,16 +105,5 @@ extension ConversationSelectionView {
             Logger.ui.debugFile("did select conversation cell: \(id)")
             ChatSelection.shared.select(id, options: [.collapseSidebar])
         }
-
-        private var sidebar: Sidebar? {
-            var view: UIView? = superview
-            while let v = view {
-                if let v = v as? Sidebar {
-                    return v
-                }
-                view = v.superview
-            }
-            return nil
-        }
     }
 }

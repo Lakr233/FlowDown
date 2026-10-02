@@ -1,6 +1,5 @@
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations";
 
-// Star rating component
 function StarRating() {
   return (
     <div className="flex gap-0.5">
@@ -13,7 +12,6 @@ function StarRating() {
   );
 }
 
-// Testimonial component
 function Testimonial({
   text,
   author,

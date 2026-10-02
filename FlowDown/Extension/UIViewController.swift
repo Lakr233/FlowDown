@@ -15,14 +15,13 @@ extension UIViewController {
     func presentDeleteConfirmation(
         title: String.LocalizationValue,
         message: String.LocalizationValue,
-        deleteTitle: String.LocalizationValue = "Delete",
         onConfirm: @escaping @MainActor () -> Void,
     ) {
         let alert = AlertViewController(title: title, message: message) { context in
             context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: deleteTitle, attribute: .accent) {
+            context.addAction(title: "Delete", attribute: .accent) {
                 context.dispose { onConfirm() }
             }
         }
@@ -58,12 +57,8 @@ extension UIViewController {
                 current = next
             }
 
-            // loook for child controller that has the same frame as current
-            for child in current.children {
-                if child.view.frame == current.view.frame {
-                    current = child
-                    continue
-                }
+            for child in current.children where child.view.frame == current.view.frame {
+                current = child
             }
 
             break

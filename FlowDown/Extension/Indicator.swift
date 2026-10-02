@@ -53,20 +53,8 @@ enum Indicator {
         controller: UIViewController,
         completionExecutor: @escaping ExecutionWithCompletion,
     ) {
-        Task { @MainActor in
-            let titleString = String(localized: title)
-            let messageString = if let message { String(localized: message) } else { String("") }
-            let alert = AlertProgressIndicatorViewController(
-                title: titleString,
-                message: messageString,
-            )
-            controller.present(alert, animated: true) {
-                Task.detached(priority: .userInitiated) {
-                    await runProgressTask(on: controller, alert: alert) { _, completion in
-                        try await completionExecutor(completion)
-                    }
-                }
-            }
+        progress(title: title, message: message, controller: controller) { _, completion in
+            try await completionExecutor(completion)
         }
     }
 

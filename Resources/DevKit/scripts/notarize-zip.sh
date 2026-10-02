@@ -55,12 +55,16 @@ echo "$SUBMIT_OUTPUT"
 
 SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep "id:" | head -n 1 | awk '{print $2}')
 
-if [[ "$SUBMIT_EXIT" -ne 0 ]]; then
-  echo "[-] notarytool submit failed (exit ${SUBMIT_EXIT})"
+fetch_notary_log() {
   if [[ -n "$SUBMISSION_ID" ]]; then
     echo "[*] fetching notarization log for submission: $SUBMISSION_ID"
     xcrun notarytool log "$SUBMISSION_ID" --keychain-profile "$NOTARIZE_KEYCHAIN_PROFILE" || true
   fi
+}
+
+if [[ "$SUBMIT_EXIT" -ne 0 ]]; then
+  echo "[-] notarytool submit failed (exit ${SUBMIT_EXIT})"
+  fetch_notary_log
   exit "$SUBMIT_EXIT"
 fi
 
@@ -68,10 +72,7 @@ if echo "$SUBMIT_OUTPUT" | grep -q "status: Accepted"; then
   echo "[+] notarization accepted"
 else
   echo "[-] notarization failed or timed out"
-  if [[ -n "$SUBMISSION_ID" ]]; then
-    echo "[*] fetching notarization log for submission: $SUBMISSION_ID"
-    xcrun notarytool log "$SUBMISSION_ID" --keychain-profile "$NOTARIZE_KEYCHAIN_PROFILE" || true
-  fi
+  fetch_notary_log
   exit 1
 fi
 

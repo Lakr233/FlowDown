@@ -15,28 +15,18 @@ extension ConversationManager {
         let lowercasedQuery = query.lowercased()
         var messageResults: [ConversationSearchResult] = []
         var titleResults: [ConversationSearchResult] = []
-        var addedConversations = Set<Conversation.ID>()
 
         for conversation in conversations.value.values {
-            var foundInMessage = false
-
             let messages = message(within: conversation.id).filter { $0.role != .system }
-            for message in messages {
-                if message.document.range(of: query, options: [.caseInsensitive]) != nil {
-                    let preview = extractPreview(from: message.document, around: query)
-                    messageResults.append(ConversationSearchResult(
-                        conversation: conversation,
-                        matchType: .message,
-                        matchedText: query,
-                        messagePreview: preview,
-                    ))
-                    addedConversations.insert(conversation.id)
-                    foundInMessage = true
-                    break
-                }
-            }
-
-            if !foundInMessage, conversation.title.lowercased().contains(lowercasedQuery) {
+            if let match = messages.first(where: { $0.document.range(of: query, options: [.caseInsensitive]) != nil }) {
+                let preview = extractPreview(from: match.document, around: query)
+                messageResults.append(ConversationSearchResult(
+                    conversation: conversation,
+                    matchType: .message,
+                    matchedText: query,
+                    messagePreview: preview,
+                ))
+            } else if conversation.title.lowercased().contains(lowercasedQuery) {
                 titleResults.append(ConversationSearchResult(
                     conversation: conversation,
                     matchType: .title,

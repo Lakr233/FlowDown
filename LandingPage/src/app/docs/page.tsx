@@ -4,8 +4,6 @@ import { getDocsConfig } from "@/lib/docs-config";
 
 export const metadata: Metadata = {
   title: "FlowDown Documentation",
-  description:
-    "FlowDown documentation - Learn how to use FlowDown, a privacy-first AI workspace for iOS and macOS.",
   alternates: {
     canonical: "/docs",
   },
@@ -32,25 +30,23 @@ export default function DocsHomePage() {
             <h2 className="font-semibold text-[#242424] mb-3 text-base">
               {section.title}
             </h2>
-            {section.items && (
-              <ul className="space-y-1.5">
-                {section.items.slice(0, 4).map((item, itemIdx) => (
-                  <li key={itemIdx}>
-                    <Link
-                      href={item.href || "#"}
-                      className="text-[#454545] hover:text-[#242424] text-sm transition-colors"
-                    >
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
-                {section.items.length > 4 && (
-                  <li className="text-[#9d9d9d] text-sm">
-                    +{section.items.length - 4} more...
-                  </li>
-                )}
-              </ul>
-            )}
+            <ul className="space-y-1.5">
+              {section.items.slice(0, 4).map((item, itemIdx) => (
+                <li key={itemIdx}>
+                  <Link
+                    href={item.href}
+                    className="text-[#454545] hover:text-[#242424] text-sm transition-colors"
+                  >
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+              {section.items.length > 4 && (
+                <li className="text-[#9d9d9d] text-sm">
+                  +{section.items.length - 4} more...
+                </li>
+              )}
+            </ul>
           </div>
         ))}
       </div>

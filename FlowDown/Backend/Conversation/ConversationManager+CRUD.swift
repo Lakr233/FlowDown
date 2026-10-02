@@ -142,10 +142,6 @@ extension ConversationManager {
             ConversationSessionManager.shared.invalidateSession(for: identifier)
         }
     }
-
-    func conversationIdentifierLookup(from messageIdentifier: Message.ID) -> Conversation.ID? {
-        sdb.conversationIdentifierLookup(identifier: messageIdentifier)
-    }
 }
 
 extension ConversationManager {

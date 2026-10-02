@@ -9,18 +9,13 @@ import Foundation
 
 public protocol Withable {}
 
-extension Withable where Self: Any {
+extension Withable {
     @inlinable
     @discardableResult
     func with(_ block: (inout Self) throws -> Void) rethrows -> Self {
         var copy = self
         try block(&copy)
         return copy
-    }
-
-    @inlinable
-    func `do`(_ block: (Self) throws -> Void) rethrows {
-        try block(self)
     }
 }
 

@@ -9,20 +9,11 @@ import UIKit
 
 final class LegacyGlassBackdropView: UIView {
     private let backdropLayer: CALayer?
-    private let blurRadius: CGFloat
-    private let showsBorder: Bool
     private let tintOverlay = UIView()
-    private let hostedContentView = UIView()
-    private var isCapsule = false
-    private var isEffectEnabled = true
 
-    var contentView: UIView {
-        hostedContentView
-    }
+    let contentView = UIView()
 
-    init(blurRadius: CGFloat = 4.0, showsBorder: Bool = true) {
-        self.blurRadius = blurRadius
-        self.showsBorder = showsBorder
+    init() {
         backdropLayer = PrivateBlurEngine.makeBackdropLayer()
 
         super.init(frame: .zero)
@@ -41,14 +32,14 @@ final class LegacyGlassBackdropView: UIView {
                 : UIColor(white: 1.0, alpha: 0.45)
         }
         addSubview(tintOverlay)
-        addSubview(hostedContentView)
+        addSubview(contentView)
 
-        if showsBorder {
-            layer.borderWidth = 0.33
-            updateBorderColor()
+        if let blurFilter = PrivateBlurEngine.makeGaussianBlurFilter(radius: 4.0) {
+            backdropLayer?.filters = [blurFilter]
         }
 
-        updateEffectAppearance()
+        layer.borderWidth = 0.33
+        updateBorderColor()
 
         _ = registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: LegacyGlassBackdropView, _: UITraitCollection) in
             view.updateBorderColor()
@@ -58,19 +49,6 @@ final class LegacyGlassBackdropView: UIView {
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError()
-    }
-
-    func setCapsuleCorners() {
-        isCapsule = true
-    }
-
-    func setEffectEnabled(_ isEnabled: Bool) {
-        guard isEffectEnabled != isEnabled else {
-            return
-        }
-
-        isEffectEnabled = isEnabled
-        updateEffectAppearance()
     }
 
     override func layoutSubviews() {
@@ -83,34 +61,14 @@ final class LegacyGlassBackdropView: UIView {
 
         tintOverlay.frame = bounds
 
-        hostedContentView.frame = bounds
+        contentView.frame = bounds
 
-        if isCapsule {
-            layer.cornerRadius = min(bounds.width, bounds.height) / 2
-        }
+        layer.cornerRadius = min(bounds.width, bounds.height) / 2
     }
 
     private func updateBorderColor() {
-        guard layer.borderWidth > 0 else {
-            return
-        }
-
         layer.borderColor = traitCollection.userInterfaceStyle == .dark
             ? UIColor.white.withAlphaComponent(0.2).cgColor
             : UIColor.black.withAlphaComponent(0.08).cgColor
-    }
-
-    private func updateEffectAppearance() {
-        if isEffectEnabled,
-           let blurFilter = PrivateBlurEngine.makeGaussianBlurFilter(radius: blurRadius)
-        {
-            backdropLayer?.filters = [blurFilter]
-        } else {
-            backdropLayer?.filters = nil
-        }
-
-        tintOverlay.alpha = isEffectEnabled ? 1 : 0
-        layer.borderWidth = isEffectEnabled && showsBorder ? 0.33 : 0
-        updateBorderColor()
     }
 }

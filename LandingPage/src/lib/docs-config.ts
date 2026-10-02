@@ -1,9 +1,13 @@
 import { getAllDocs } from "@/lib/docs";
 
-export interface NavItem {
+export interface NavLink {
   title: string;
-  href?: string;
-  items?: NavItem[];
+  href: string;
+}
+
+export interface NavSection {
+  title: string;
+  items: NavLink[];
 }
 
 const sectionTitles: Record<string, string> = {
@@ -34,7 +38,6 @@ const sectionOrder = [
 
 const docOrderOverrides: Record<string, string[]> = {
   root: ["welcome", "app_store", "pricing_timeline", "changelog"],
-  quickstart: ["basic_usage"],
 };
 
 const getDocOrderIndex = (section: string, slug: string[]) => {
@@ -82,42 +85,20 @@ export const getDocsConfig = () => {
     sections.set(doc.section, items);
   }
 
-  const sidebarNav: NavItem[] = [];
-
-  for (const sectionKey of sectionOrder) {
-    const items = sections.get(sectionKey);
-    if (!items || items.length === 0) {
-      continue;
-    }
-
-    const sorted = sortDocs(
-      sectionKey,
-      items.map((item) => ({ slug: item.slug, title: item.title })),
-    );
-
-    sidebarNav.push({
-      title: sectionTitles[sectionKey] || sectionKey,
-      items: sorted.map((entry) => ({
-        title: entry.title,
-        href: `/docs/documents/${entry.slug.join("/")}`,
-      })),
-    });
-  }
-
   const remainingSections = Array.from(sections.keys())
     .filter((section) => !sectionOrder.includes(section))
     .sort((a, b) => a.localeCompare(b));
+  const orderedKeys = [...sectionOrder, ...remainingSections];
 
-  for (const sectionKey of remainingSections) {
+  const sidebarNav: NavSection[] = [];
+
+  for (const sectionKey of orderedKeys) {
     const items = sections.get(sectionKey);
-    if (!items || items.length === 0) {
+    if (!items) {
       continue;
     }
 
-    const sorted = sortDocs(
-      sectionKey,
-      items.map((item) => ({ slug: item.slug, title: item.title })),
-    );
+    const sorted = sortDocs(sectionKey, items);
 
     sidebarNav.push({
       title: sectionTitles[sectionKey] || sectionKey,

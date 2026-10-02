@@ -7,14 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 
-# Prefer the git toplevel, but fall back to walking upward until we find the workspace.
-if PROJECT_ROOT_CANDIDATE=$(cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null); then
-  PROJECT_ROOT="$PROJECT_ROOT_CANDIDATE"
-else
-  PROJECT_ROOT="$SCRIPT_DIR"
-fi
-
-SEARCH_ROOT="$PROJECT_ROOT"
+SEARCH_ROOT="$SCRIPT_DIR"
 while [[ "$SEARCH_ROOT" != "/" && ! -e "$SEARCH_ROOT/FlowDown.xcworkspace" ]]; do
   SEARCH_ROOT=$(dirname "$SEARCH_ROOT")
 done

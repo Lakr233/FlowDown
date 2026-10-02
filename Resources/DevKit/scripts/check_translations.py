@@ -17,7 +17,7 @@ if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else default_file_path()
 
     data = load_strings(file_path)
-    languages, incomplete, removed = find_incomplete_translations(data, clean_stale=True)
+    languages, incomplete, removed = find_incomplete_translations(data)
 
     if removed:
         save_strings(file_path, data)

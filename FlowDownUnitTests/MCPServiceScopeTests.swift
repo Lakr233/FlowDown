@@ -6,13 +6,7 @@ struct MCPServiceScopeTests {
     @Test
     func `mcp errors expose human readable descriptions`() {
         let cases: [MCPError] = [
-            .serverDisabled,
             .connectionFailed,
-            .capabilityNotSupported,
-            .samplingDenied,
-            .noViewController,
-            .noModelAvailable,
-            .elicitationDenied,
             .invalidConfiguration,
         ]
 

@@ -11,48 +11,30 @@ reset to the key. Review the list first: some entries, such as
 """
 
 import json
-import re
 import sys
 from pathlib import Path
 
-from i18n_tools import save_strings
-
-POSITIONAL_SPECIFIER = re.compile(r'%(\d+)\$')
+from i18n_tools import inconsistent_english_value, save_strings
 
 
 def fix_inconsistent_keys(xcstrings_path, dry_run=False):
     """Fix entries where key != English value by resetting the English value to the key."""
     with open(xcstrings_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    
+
     strings = data.get('strings', {})
     fixed = []
-    
+
     for key, entry in strings.items():
-        # Skip special entries
-        if 'shouldTranslate' in entry and not entry['shouldTranslate']:
-            continue
-        
-        localizations = entry.get('localizations', {})
-        en_value = None
-        
-        # Get English value
-        if 'en' in localizations:
-            en_unit = localizations['en'].get('stringUnit', {})
-            en_value = en_unit.get('value')
-        
-        # If there's no explicit English localization, the key is the English value
+        en_value = inconsistent_english_value(key, entry)
         if en_value is None:
             continue
-        
-        # Check if key matches English value, ignoring Xcode's positional specifiers
-        if key != en_value and key != POSITIONAL_SPECIFIER.sub('%', en_value):
-            fixed.append({
-                'key': key,
-                'old_value': en_value
-            })
-            if not dry_run:
-                en_unit['value'] = key
+        fixed.append({
+            'key': key,
+            'old_value': en_value
+        })
+        if not dry_run:
+            entry['localizations']['en']['stringUnit']['value'] = key
     
     if not fixed:
         print("✅ All keys already match their English translations!")

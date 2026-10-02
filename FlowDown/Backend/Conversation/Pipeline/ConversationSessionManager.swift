@@ -25,10 +25,9 @@ final class ConversationSessionManager {
     private var pendingRefresh: Set<Conversation.ID> = []
     private let logger = Logger(subsystem: "wiki.qaq.flowdown", category: "ConversationSessionManager")
 
-    private var executingSessions: Set<Conversation.ID> = []
     let executingSessionsPublisher = CurrentValueSubject<Set<Conversation.ID>, Never>([])
 
-    @Published private(set) var streamingSessionTextCount: Int = 0
+    private(set) var streamingSessionTextCount: Int = 0
     private var cancellables: Set<AnyCancellable> = []
 
     // MARK: - Lifecycle
@@ -130,8 +129,7 @@ final class ConversationSessionManager {
     // MARK: - Execution State Management
 
     func markSessionExecuting(_ sessionID: Conversation.ID) {
-        executingSessions.insert(sessionID)
-        executingSessionsPublisher.send(executingSessions)
+        executingSessionsPublisher.value.insert(sessionID)
 
         Task { @MainActor in
             refreshLiveActivity()
@@ -139,11 +137,10 @@ final class ConversationSessionManager {
     }
 
     func markSessionCompleted(_ sessionID: Conversation.ID) {
-        executingSessions.remove(sessionID)
-        executingSessionsPublisher.send(executingSessions)
+        executingSessionsPublisher.value.remove(sessionID)
 
         Task { @MainActor in
-            if executingSessions.isEmpty {
+            if executingSessionsPublisher.value.isEmpty {
                 streamingSessionTextCount = 0
             }
             refreshLiveActivity()
@@ -151,11 +148,11 @@ final class ConversationSessionManager {
     }
 
     func isSessionExecuting(_ sessionID: Conversation.ID) -> Bool {
-        executingSessions.contains(sessionID)
+        executingSessionsPublisher.value.contains(sessionID)
     }
 
     var hasExecutingSessions: Bool {
-        !executingSessions.isEmpty
+        !executingSessionsPublisher.value.isEmpty
     }
 
     /// Called when any streaming output receives new text.
@@ -177,7 +174,7 @@ final class ConversationSessionManager {
         #if canImport(ActivityKit) && os(iOS) && !targetEnvironment(macCatalyst)
             if #available(iOS 16.2, *) {
                 LiveActivityService.shared.update(
-                    conversationCount: executingSessions.count,
+                    conversationCount: executingSessionsPublisher.value.count,
                     streamingSessionTextCount: streamingSessionTextCount,
                     enabled: enabled,
                 )

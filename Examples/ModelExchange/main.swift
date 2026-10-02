@@ -46,7 +46,6 @@ private struct ExampleView: View {
 
     private let callbackScheme = "example-callback"
     @State private var selectedCapabilities: Set<ModelExchangeCapability> = [.audio, .developerRole]
-    private let allCapabilities: [ModelExchangeCapability] = [.audio, .visual, .tool, .developerRole]
 
     private var builder: ModelExchangeRequestBuilder {
         ModelExchangeRequestBuilder(
@@ -77,7 +76,7 @@ private struct ExampleView: View {
             }
 
             Section("Capabilities") {
-                ForEach(allCapabilities, id: \.self) { capability in
+                ForEach(ModelExchangeCapability.allCases, id: \.self) { capability in
                     Toggle(name(for: capability), isOn: binding(for: capability))
                 }
             }

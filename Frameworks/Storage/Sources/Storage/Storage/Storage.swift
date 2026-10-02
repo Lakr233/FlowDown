@@ -12,7 +12,6 @@ import ZIPFoundation
 
 public class Storage {
     private static let DeviceIDKey = "FlowdownStorageDeviceId"
-    private static let SyncFirstSetupKey = "FlowdownSyncFirstSetup"
 
     let db: Database
     let initVersion: DBVersion
@@ -26,7 +25,7 @@ public class Storage {
     package weak var syncEngine: SyncEngine?
 
     /// UploadQueue enqueue 事件回调类型
-    package typealias UploadQueueEnqueueHandler = (_ queues: [UploadQueue]) -> Void
+    package typealias UploadQueueEnqueueHandler = () -> Void
     package var uploadQueueEnqueueHandler: UploadQueueEnqueueHandler?
 
     private let existsDatabaseFile: Bool
@@ -171,33 +170,6 @@ public class Storage {
         }
     }
 
-    /// 清除本地所有数据
-    func clearLocalData() throws {
-        try db.run(transaction: {
-            try $0.delete(fromTable: CloudModel.tableName)
-            try $0.delete(fromTable: Attachment.tableName)
-            try $0.delete(fromTable: Message.tableName)
-            try $0.delete(fromTable: Conversation.tableName)
-            try $0.delete(fromTable: ModelContextServer.tableName)
-            try $0.delete(fromTable: Memory.tableName)
-            try $0.delete(fromTable: SyncMetadata.tableName)
-            try $0.delete(fromTable: SyncDeferredDeletion.tableName)
-            try $0.delete(fromTable: UploadQueue.tableName)
-            try $0.delete(fromTable: ChatTemplateRecord.tableName)
-            try $0.delete(fromTable: ConversationSummary.tableName)
-
-            let nameColumn = WCDBSwift.Column(named: "name")
-            let seqColumn = WCDBSwift.Column(named: "seq")
-            let updateTableSequence = StatementUpdate()
-                .update(table: "sqlite_sequence")
-                .set(seqColumn)
-                .to(0)
-                .where(nameColumn == UploadQueue.tableName)
-
-            try $0.exec(updateTableSequence)
-        })
-    }
-
     /// 重置上传队列自增ID初始值
     private func resetUploadQueueMaxID() throws {
         let select = StatementSelect().select(UploadQueue.Properties.id.count())
@@ -239,11 +211,6 @@ private extension Storage {
             return DBVersion(rawValue: result.intValue) ?? initVersion
         }
         return initVersion
-    }
-
-    func setVersion(_ version: DBVersion) throws {
-        let statement = StatementPragma().pragma(.userVersion).to(version.rawValue)
-        try db.exec(statement)
     }
 }
 

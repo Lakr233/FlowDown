@@ -33,11 +33,11 @@ package extension SyncEngine {
             failedRecordDeletes: [CKRecord.ID: CKError],
         )
         case willFetchChanges
-        case willFetchRecordZoneChanges(zoneID: CKRecordZone.ID)
+        case willFetchRecordZoneChanges
         case didFetchChanges
-        case didFetchRecordZoneChanges(zoneID: CKRecordZone.ID, error: CKError?)
-        case willSendChanges(context: CKSyncEngine.SendChangesContext)
-        case didSendChanges(context: CKSyncEngine.SendChangesContext)
+        case didFetchRecordZoneChanges
+        case willSendChanges
+        case didSendChanges
 
         init?(_ event: CKSyncEngine.Event) {
             switch event {
@@ -73,16 +73,16 @@ package extension SyncEngine {
                 )
             case .willFetchChanges:
                 self = .willFetchChanges
-            case let .willFetchRecordZoneChanges(event):
-                self = .willFetchRecordZoneChanges(zoneID: event.zoneID)
+            case .willFetchRecordZoneChanges:
+                self = .willFetchRecordZoneChanges
             case .didFetchChanges:
                 self = .didFetchChanges
-            case let .didFetchRecordZoneChanges(event):
-                self = .didFetchRecordZoneChanges(zoneID: event.zoneID, error: event.error)
-            case let .willSendChanges(event):
-                self = .willSendChanges(context: event.context)
-            case let .didSendChanges(event):
-                self = .didSendChanges(context: event.context)
+            case .didFetchRecordZoneChanges:
+                self = .didFetchRecordZoneChanges
+            case .willSendChanges:
+                self = .willSendChanges
+            case .didSendChanges:
+                self = .didSendChanges
             @unknown default:
                 return nil
             }

@@ -25,18 +25,15 @@ struct TranslationProviderView: View {
     @State var translateOnAppear = true
 
     var canTranslate: Bool {
-        guard models.map(\.id).contains(selectedModelIdentifier),
-              !inputText.isEmpty
-        else { return false }
-        return true
+        selectedModel != nil && !inputText.isEmpty
     }
 
-    var model: CloudModel {
-        models.first { $0.id == selectedModelIdentifier } ?? .init(deviceId: "")
+    var selectedModel: CloudModel? {
+        models.first { $0.id == selectedModelIdentifier }
     }
 
-    var currentLocaleDescription: String {
-        Locale.current.identifier
+    var targetLanguage: String {
+        selectedLanguageHint.isEmpty ? Locale.current.identifier : selectedLanguageHint
     }
 
     init(context c: TranslationUIProviderContext) {
@@ -59,7 +56,7 @@ struct TranslationProviderView: View {
         .animation(.spring, value: translationModel.translationReasoning)
         .animation(.spring, value: translationModel.translationPlainResult)
         .animation(.spring, value: translationModel.translationSegmentedResult)
-        .animation(.spring, value: translationModel.isTranslating ? 1 : 0)
+        .animation(.spring, value: translationModel.isTranslating)
         .animation(.spring, value: selectedModelIdentifier)
         .animation(.spring, value: selectedLanguageHint)
         .onAppear {
@@ -74,7 +71,7 @@ struct TranslationProviderView: View {
                 }
                 inputText = candidate
             }
-            if selectedModelIdentifier == "" || !models.map(\.id).contains(selectedModelIdentifier) {
+            if selectedModel == nil {
                 selectedModelIdentifier = models.first?.id ?? ""
             }
             translate()
@@ -85,8 +82,7 @@ struct TranslationProviderView: View {
     }
 
     func translate() {
-        guard canTranslate else { return }
-        let targetLanguage = selectedLanguageHint.isEmpty ? currentLocaleDescription : selectedLanguageHint
+        guard let model = selectedModel, !inputText.isEmpty else { return }
         translationModel.translate(
             inputText: inputText,
             model: model,

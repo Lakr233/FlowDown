@@ -46,46 +46,8 @@ public extension Storage {
         guard !objects.isEmpty else {
             return
         }
-        let modified = Date.now
-//        objects.forEach { $0.markModified(modified) }
 
-        try? runTransaction { [weak self] in
-            guard let self else { return }
-
-            let diff = try diffSyncable(objects: objects, handle: $0)
-            guard !diff.isEmpty else {
-                return
-            }
-
-            // 恢复修改时间
-//            diff.insert.forEach { $0.markModified($0.creation) }
-
-            try $0.insertOrReplace(diff.insertOrReplace(), intoTable: ModelContextServer.tableName)
-
-            if !diff.deleted.isEmpty {
-                let deletedIds = diff.deleted.map(\.objectId)
-                let update = StatementUpdate().update(table: ModelContextServer.tableName)
-                    .set(ModelContextServer.Properties.removed)
-                    .to(true)
-                    .set(ModelContextServer.Properties.modified)
-                    .to(modified)
-                    .where(ModelContextServer.Properties.objectId.in(deletedIds))
-
-                try $0.exec(update)
-            }
-
-            if skipSync {
-                return
-            }
-
-            var changes = diff.insert.map { ($0, UploadQueue.Changes.insert) }
-                + diff.updated.map { ($0, UploadQueue.Changes.update) }
-                + diff.deleted.map { ($0, UploadQueue.Changes.delete) }
-            // 按 modified 升序
-            changes.sort { $0.0.modified < $1.0.modified }
-
-            try pendingUploadEnqueue(sources: changes, handle: $0)
-        }
+        try? putSyncable(objects, restoreInsertModified: false, skipSync: skipSync)
     }
 
     func modelContextServerWith(_ identifier: ModelContextServer.ID) -> ModelContextServer? {
@@ -105,12 +67,11 @@ public extension Storage {
         modelContextServerPut(objects: [object], skipSync: skipSync)
     }
 
-    func modelContextServerRemove(identifier: ModelContextServer.ID, handle: Handle? = nil) {
-        let object: ModelContextServer? = if let handle {
-            try? handle.getObject(fromTable: ModelContextServer.tableName, where: ModelContextServer.Properties.objectId == identifier)
-        } else {
-            try? db.getObject(fromTable: ModelContextServer.tableName, where: ModelContextServer.Properties.objectId == identifier)
-        }
+    func modelContextServerRemove(identifier: ModelContextServer.ID) {
+        let object: ModelContextServer? = try? db.getObject(
+            fromTable: ModelContextServer.tableName,
+            where: ModelContextServer.Properties.objectId == identifier,
+        )
 
         guard let object else {
             return
@@ -125,12 +86,8 @@ public extension Storage {
             .to(object.modified)
             .where(ModelContextServer.Properties.objectId == identifier)
 
-        if let handle {
-            try? handle.exec(update)
-        } else {
-            try? db.exec(update)
-        }
+        try? db.exec(update)
 
-        try? pendingUploadEnqueue(sources: [(object, .delete)], handle: handle)
+        try? pendingUploadEnqueue(sources: [(object, .delete)])
     }
 }

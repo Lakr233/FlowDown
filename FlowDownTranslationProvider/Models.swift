@@ -17,7 +17,7 @@ func scanModels() -> [CloudModel] {
         return []
     }
     var build = [CloudModel]()
-    lazy var decoder = PropertyListDecoder()
+    let decoder = PropertyListDecoder()
     for item in list {
         guard let data = try? Data(contentsOf: dir.appendingPathComponent(item)),
               let object = try? decoder.decode(CloudModel.self, from: data)

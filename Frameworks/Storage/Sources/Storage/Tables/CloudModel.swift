@@ -202,11 +202,6 @@ extension CloudModel: Updatable {
         self[keyPath: keyPath] = newValue
         markModified()
     }
-
-    package func update(_ block: (CloudModel) -> Void) {
-        block(self)
-        markModified()
-    }
 }
 
 extension CloudModel.ResponseFormat: ColumnCodable {

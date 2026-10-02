@@ -102,6 +102,11 @@ while IFS= read -r line; do
 done < <(python3 "$SCANNER" "$APP_PATH")
 echo "[*] found ${#FILE_CANDIDATES[@]} candidates to sign"
 
+KEYCHAIN_ARGS=()
+if [[ -n "${KEYCHAIN_DB:-}" ]]; then
+  KEYCHAIN_ARGS=(--keychain "$KEYCHAIN_DB")
+fi
+
 sign_item() {
   local item_path="$1"
   local args=(
@@ -111,10 +116,8 @@ sign_item() {
     --strip-disallowed-xattrs
     --options runtime
     --sign "$CODE_SIGNING_IDENTITY"
+    "${KEYCHAIN_ARGS[@]}"
   )
-  if [[ -n "${KEYCHAIN_DB:-}" ]]; then
-    args+=(--keychain "$KEYCHAIN_DB")
-  fi
   if [[ "$item_path" == *.app ]]; then
     echo "[+] signing $(basename "$item_path") with entitlements"
     args+=(--entitlements "$RESOLVED_ENTITLEMENTS")
@@ -130,10 +133,7 @@ for ITEM in "${FILE_CANDIDATES[@]}"; do
 done
 
 echo "[*] verifying..."
-VERIFY_ARGS=(--verify --deep --strict)
-if [[ -n "${KEYCHAIN_DB:-}" ]]; then
-  VERIFY_ARGS+=(--keychain "$KEYCHAIN_DB")
-fi
+VERIFY_ARGS=(--verify --deep --strict "${KEYCHAIN_ARGS[@]}")
 /usr/bin/codesign "${VERIFY_ARGS[@]}" "$APP_PATH"
 
 echo "[+] codesign completed for ${APP_PATH}"

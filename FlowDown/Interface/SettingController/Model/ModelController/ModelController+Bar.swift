@@ -265,8 +265,4 @@ extension SettingController.SettingContent.ModelController {
             )
         }
     }
-
-    func createModelMenu(for itemIdentifier: ModelViewModel) -> UIMenu {
-        UIMenu(children: createModelMenuElements(for: itemIdentifier))
-    }
 }

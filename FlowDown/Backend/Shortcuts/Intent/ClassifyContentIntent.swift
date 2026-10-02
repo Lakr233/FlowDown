@@ -59,7 +59,7 @@ struct ClassifyContentIntent: AppIntent {
         }
 
         let resolvedCandidates = try CandidateInputResolver.resolveCandidates(
-            manualCandidates: CandidateInputResolver.manualCandidates(candidateA, candidateB, candidateC, candidateD),
+            manualCandidates: [candidateA, candidateB, candidateC, candidateD],
         )
 
         let request = try ClassificationPromptBuilder.make(
@@ -137,7 +137,7 @@ struct ClassifyContentWithImageIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
         let resolvedCandidates = try CandidateInputResolver.resolveCandidates(
-            manualCandidates: CandidateInputResolver.manualCandidates(candidateA, candidateB, candidateC, candidateD),
+            manualCandidates: [candidateA, candidateB, candidateC, candidateD],
         )
 
         let request = try ClassificationPromptBuilder.make(
@@ -217,11 +217,7 @@ private enum ClassificationPromptBuilder {
     ) throws -> Request {
         let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
-        let sanitizedCandidates = candidates
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        guard let primaryCandidate = sanitizedCandidates.first else {
+        guard let primaryCandidate = candidates.first else {
             throw ShortcutError.invalidCandidates
         }
 
@@ -236,7 +232,7 @@ private enum ClassificationPromptBuilder {
         }
 
         instructionSegments.append("Candidates:")
-        instructionSegments.append(sanitizedCandidates.map { "- \($0)" }.joined(separator: "\n"))
+        instructionSegments.append(candidates.map { "- \($0)" }.joined(separator: "\n"))
 
         if !trimmedContent.isEmpty {
             instructionSegments.append("Content:")
@@ -251,8 +247,8 @@ private enum ClassificationPromptBuilder {
 
         return Request(
             message: message,
-            tool: ClassificationToolCall.definition(candidates: sanitizedCandidates),
-            sanitizedCandidates: sanitizedCandidates,
+            tool: ClassificationToolCall.definition(candidates: candidates),
+            sanitizedCandidates: candidates,
             primaryCandidate: primaryCandidate,
         )
     }
@@ -280,14 +276,5 @@ private enum CandidateInputResolver {
         }
 
         return ordered
-    }
-}
-
-extension CandidateInputResolver {
-    /// Trims the fixed candidate slots exposed to Shortcuts and drops the empty ones.
-    static func manualCandidates(_ values: String...) -> [String] {
-        values
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
     }
 }

@@ -10,12 +10,14 @@ import SwiftUI
 import UIKit
 
 enum RecoveryMode {
-    private(set) static var isActivated = false
+    static var isActivated: Bool {
+        error != nil
+    }
+
     private(set) static var error: Error?
 
     static func launch(with error: Error) -> Never {
-        self.error = error
-        isActivated = true // 在存在 user default 的情况下 window group 可能不会被使用
+        self.error = error // 在存在 user default 的情况下 window group 可能不会被使用
         UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, nil, nil)
         fatalError()
     }
@@ -38,23 +40,13 @@ enum RecoveryMode {
         UserDefaults.standard.synchronize()
         debugPrint(Array(UserDefaults.standard.dictionaryRepresentation().keys).count)
 
-        let documents = FileManager
-            .default
-            .urls(for: .documentDirectory, in: .userDomainMask)
-
-        let libraries = FileManager
-            .default
-            .urls(for: .libraryDirectory, in: .userDomainMask)
-
-        let caches = FileManager
-            .default
-            .urls(for: .cachesDirectory, in: .userDomainMask)
-
-        let trashs = FileManager
-            .default
-            .urls(for: .trashDirectory, in: .userDomainMask)
-
-        for dir in documents + libraries + caches + trashs {
+        let directories: [FileManager.SearchPathDirectory] = [
+            .documentDirectory,
+            .libraryDirectory,
+            .cachesDirectory,
+            .trashDirectory,
+        ]
+        for dir in directories.flatMap({ FileManager.default.urls(for: $0, in: .userDomainMask) }) {
             try? FileManager.default.removeItem(at: dir)
         }
 

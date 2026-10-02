@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { NavItem } from "@/lib/docs-config";
+import { NavSection } from "@/lib/docs-config";
+import { DocsNavSections } from "./Sidebar";
 
 interface MobileNavProps {
-  items: NavItem[];
+  items: NavSection[];
 }
 
 export function MobileNav({ items }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
 
   return (
     <>
@@ -73,35 +71,7 @@ export function MobileNav({ items }: MobileNavProps) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-4 pt-16 space-y-6">
-          {items.map((section, idx) => (
-            <div key={idx}>
-              <h4 className="font-semibold text-[#242424] text-sm mb-2 px-2">
-                {section.title}
-              </h4>
-              {section.items && (
-                <ul className="space-y-0.5">
-                  {section.items.map((item, itemIdx) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <li key={itemIdx}>
-                        <Link
-                          href={item.href || "#"}
-                          onClick={() => setIsOpen(false)}
-                          className={`block text-sm py-2 px-3 rounded-lg transition-all ${
-                            isActive
-                              ? "bg-[#ebebeb] text-[#242424] font-medium"
-                              : "text-[#828282] hover:bg-[#ebebeb]/50 hover:text-[#242424]"
-                          }`}
-                        >
-                          {item.title}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          ))}
+          <DocsNavSections items={items} onNavigate={() => setIsOpen(false)} />
         </nav>
       </div>
     </>

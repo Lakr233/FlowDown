@@ -93,9 +93,4 @@ extension Attachment: Updatable {
         self[keyPath: keyPath] = newValue
         markModified()
     }
-
-    package func update(_ block: (Attachment) -> Void) {
-        block(self)
-        markModified()
-    }
 }

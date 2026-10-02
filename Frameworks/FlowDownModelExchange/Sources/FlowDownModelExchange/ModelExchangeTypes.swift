@@ -3,7 +3,6 @@ import Foundation
 
 public nonisolated enum ModelExchangeAPI {
     public nonisolated static let signatureHeader = "X-FlowDown-Signature"
-    nonisolated static let hkdfSalt = Data("flowdown-model-exchange".utf8)
 
     public nonisolated static func sign(path: String, privateKey: Curve25519.Signing.PrivateKey) throws -> String {
         let digest = sha256(path)
@@ -114,10 +113,7 @@ public nonisolated struct ModelExchangeRequestBuilder: Sendable {
     }
 
     public nonisolated func makeHandshakeURL() -> URL? {
-        var components = URLComponents()
-        components.scheme = flowdownScheme
-        components.host = "models"
-        components.path = "/exchange"
+        var components = makeRouteComponents()
         components.queryItems = [
             .init(name: "pk", value: keyPair.encodedPublicKey),
             .init(name: "callback", value: callbackScheme),
@@ -133,10 +129,7 @@ public nonisolated struct ModelExchangeRequestBuilder: Sendable {
         multipleSelection: Bool,
         timestamp: Date = .init(),
     ) throws -> ModelExchangeSignedRequest {
-        var components = URLComponents()
-        components.scheme = flowdownScheme
-        components.host = "models"
-        components.path = "/exchange"
+        var components = makeRouteComponents()
         let caps = capabilities.map(\.rawValue).joined(separator: ",")
         components.queryItems = [
             .init(name: "session", value: session),
@@ -155,5 +148,13 @@ public nonisolated struct ModelExchangeRequestBuilder: Sendable {
         guard let finalURL = components.url else { throw URLError(.badURL) }
         let header = [ModelExchangeAPI.signatureHeader: signature]
         return .init(url: finalURL, headers: header)
+    }
+
+    private nonisolated func makeRouteComponents() -> URLComponents {
+        var components = URLComponents()
+        components.scheme = flowdownScheme
+        components.host = ModelExchangeURL.routeHost
+        components.path = ModelExchangeURL.routePath
+        return components
     }
 }

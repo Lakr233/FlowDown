@@ -10,5 +10,4 @@ import Foundation
 protocol KeyboardNavigationDelegate: AnyObject {
     func didPressUpArrow()
     func didPressDownArrow()
-    func didPressEnter()
 }

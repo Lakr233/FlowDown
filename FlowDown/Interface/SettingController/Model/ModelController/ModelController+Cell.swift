@@ -58,32 +58,3 @@ extension SettingController.SettingContent.ModelController {
         }
     }
 }
-
-extension SettingController.SettingContent.ModelController {
-    class HeaderCell: UITableViewCell {
-        let vfx = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-        let titleLabel = UILabel()
-        init() {
-            super.init(style: .default, reuseIdentifier: nil)
-            backgroundColor = .clear
-            selectionStyle = .none
-            vfx.contentView.addSubview(titleLabel)
-            contentView.addSubview(vfx)
-            vfx.snp.makeConstraints { make in
-                make.edges.equalToSuperview()
-            }
-            titleLabel.snp.makeConstraints { make in
-                make.center.equalToSuperview()
-            }
-            titleLabel.font = .footnote
-            titleLabel.textColor = .secondaryLabel
-            titleLabel.numberOfLines = 1
-            titleLabel.textAlignment = .left
-        }
-
-        @available(*, unavailable)
-        required init?(coder _: NSCoder) {
-            fatalError()
-        }
-    }
-}

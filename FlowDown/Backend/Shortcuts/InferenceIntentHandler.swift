@@ -67,7 +67,7 @@ enum InferenceIntentHandler {
         }
 
         var memoryWritingToolsProvider: () -> [ModelTool] = {
-            InferenceIntentHandler.allWritingMemoryTools()
+            ModelToolsManager.shared.enabledMemoryWritingTools
         }
 
         var streamingInfer: (ModelManager.ModelIdentifier, [ChatRequestBody.Message], [ChatRequestBody.Tool]?, ChatRequestBody.ToolChoice?) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> = { modelID, input, tools, toolChoice in
@@ -168,7 +168,10 @@ enum InferenceIntentHandler {
                 requestMessages.append(.system(content: .text(memoryContext)))
             }
             if modelCapabilities.contains(.tool) {
-                let guidance = memoryToolGuidance(proactiveMemoryProvided: proactiveMemoryProvided)
+                let guidance = ConversationSystemPromptBuilder.toolGuidance(
+                    includesMemoryTools: true,
+                    proactiveMemoryProvided: proactiveMemoryProvided,
+                )
                 requestMessages.append(.system(content: .text(guidance)))
                 memoryWritingTools = dependencies.memoryWritingToolsProvider()
             }
@@ -255,23 +258,17 @@ enum InferenceIntentHandler {
             }
         }
 
-        if shouldExposeMemory,
-           modelCapabilities.contains(.tool),
-           !memoryWritingTools.isEmpty,
-           !toolRequests.isEmpty
-        {
+        if !memoryWritingTools.isEmpty, !toolRequests.isEmpty {
             await dependencies.executeMemoryWritingToolCalls(toolRequests, memoryWritingTools)
         }
 
         if options.saveToConversation {
             let now = dependencies.clock()
-            let attachments = attachmentsForConversation
-            let responseToPersist = response
             await dependencies.persistConversation(
                 modelIdentifier,
                 trimmedMessage,
-                attachments,
-                responseToPersist,
+                attachmentsForConversation,
+                response,
                 trimmedReasoning,
                 now,
             )
@@ -499,25 +496,6 @@ enum InferenceIntentHandler {
 
         session.save()
         session.notifyMessagesDidChange()
-    }
-
-    private static func memoryToolGuidance(proactiveMemoryProvided: Bool) -> String {
-        var guidance = String(localized:
-            """
-            Use the provided tools when they fit the user's request. Don't look up what is already given or easily inferred.
-            """)
-
-        guidance += "\n\n" + MemoryStore.memoryToolsPrompt
-
-        if proactiveMemoryProvided {
-            guidance += "\n\n" + String(localized: "The memory summary above follows the user's settings. Treat it as reliable and keep it current with the memory tools.")
-        }
-
-        return guidance
-    }
-
-    private static func allWritingMemoryTools() -> [ModelTool] {
-        ModelToolsManager.shared.enabledMemoryWritingTools
     }
 
     private static func executeMemoryWritingToolCalls(_ toolCalls: [ToolRequest], using tools: [ModelTool]) async {

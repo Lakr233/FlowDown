@@ -33,11 +33,9 @@ struct SearchConversationsIntent: AppIntent {
     func perform() async throws -> some IntentResult & ReturnsValue<[String]> & ProvidesDialog {
         let sanitizedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
 
-        let normalizedLimit = SearchConversationsIntentHelper.normalizeLimit(resultLimit)
-
         let results = SearchConversationsIntentHelper.search(
             keyword: sanitizedKeyword,
-            maxResults: normalizedLimit,
+            maxResults: resultLimit,
         )
 
         if results.isEmpty {
@@ -58,7 +56,7 @@ struct SearchConversationsIntent: AppIntent {
 enum SearchConversationsIntentHelper {
     private static let maximumResultLimit = 50
 
-    static func normalizeLimit(_ limit: Int) -> Int {
+    private static func normalizeLimit(_ limit: Int) -> Int {
         min(max(limit, 1), maximumResultLimit)
     }
 
@@ -67,7 +65,6 @@ enum SearchConversationsIntentHelper {
         maxResults: Int,
     ) -> [String] {
         let conversations = sdb.conversationList()
-        guard !conversations.isEmpty else { return [] }
 
         var results: [String] = []
         let limit = normalizeLimit(maxResults)

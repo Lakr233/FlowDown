@@ -1,12 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export interface DocEntry {
+interface DocEntry {
   slug: string[];
   section: string;
   title: string;
-  description: string;
-  content: string;
 }
 
 const docsRoot = path.join(process.cwd(), "src", "app", "docs", "documents");
@@ -109,14 +107,11 @@ export const getAllDocs = (): DocEntry[] => {
     const slug = toSlug(relative);
     const content = readDocFile(filePath);
     const title = extractTitle(content);
-    const description = extractDescription(content);
 
     return {
       slug,
       section: toSection(slug),
       title,
-      description,
-      content,
     };
   });
 };
@@ -145,8 +140,6 @@ export const getDocBySlug = (slug: string[]) => {
   const description = extractDescription(content);
 
   return {
-    slug,
-    section: toSection(slug),
     title,
     description,
     content,

@@ -7,19 +7,15 @@ interface StaggerContainerProps {
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  staggerChildren?: number;
-  once?: boolean;
 }
 
 export default function StaggerContainer({
   children,
   className = "",
   delay = 0,
-  staggerChildren = 0.1,
-  once = true,
 }: StaggerContainerProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once, margin: "-50px" });
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
     <motion.div
@@ -32,7 +28,7 @@ export default function StaggerContainer({
           opacity: 1,
           transition: {
             delayChildren: delay,
-            staggerChildren: staggerChildren,
+            staggerChildren: 0.1,
           },
         },
       }}

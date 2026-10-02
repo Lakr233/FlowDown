@@ -12,7 +12,6 @@ const workflowTexts = [
   "Shortcuts Integration: Deep integration with system Shortcuts for automating your workflows.",
 ];
 
-// Rotating text component with smooth vertical slide
 function RotatingText() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -43,13 +42,12 @@ function RotatingText() {
   );
 }
 
-// Glass icon component for feature cards
 function GlassIcon({
   iconSrc,
   accentColor,
 }: {
   iconSrc: string;
-  accentColor?: string;
+  accentColor: string;
 }) {
   return (
     <div className="relative group-hover:scale-110 transition-transform duration-500 ease-out">
@@ -58,7 +56,7 @@ function GlassIcon({
       {/* Shadow ellipse - colored hover state */}
       <div
         className="absolute w-[60px] h-[60px] left-[20px] top-[40px] rounded-full blur-xl opacity-0 transition-all duration-500 ease-out group-hover:opacity-60"
-        style={{ backgroundColor: accentColor || "#e0e0e0" }}
+        style={{ backgroundColor: accentColor }}
       />
 
       {/* Glass container */}
@@ -69,23 +67,20 @@ function GlassIcon({
   );
 }
 
-// Feature card component
 function FeatureCard({
   iconSrc,
   title,
   description,
-  className = "",
-  accentColor = "#242424", // Default accent color
+  accentColor,
 }: {
   iconSrc: string;
   title: string;
   description: React.ReactNode;
-  className?: string;
-  accentColor?: string;
+  accentColor: string;
 }) {
   return (
     <div
-      className={`border border-[rgba(221,221,221,0.42)] rounded-[36px] feature-card-bg overflow-hidden h-full ${className} group transition-all duration-500 bg-white`}
+      className="border border-[rgba(221,221,221,0.42)] rounded-[36px] feature-card-bg overflow-hidden h-full group transition-all duration-500 bg-white"
       style={
         {
           "--accent-color": accentColor,

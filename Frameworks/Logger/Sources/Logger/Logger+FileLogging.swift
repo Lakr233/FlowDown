@@ -2,9 +2,7 @@ import Foundation
 import OSLog
 
 enum LogCategoryResolver {
-    static func resolve(category: String?, fileID: String) -> String {
-        if let category, !category.isEmpty { return category }
-
+    static func resolve(fileID: String) -> String {
         let lowercased = fileID.lowercased()
         if lowercased.contains("model") { return "Model" }
         if lowercased.contains("network") { return "Network" }
@@ -15,21 +13,21 @@ enum LogCategoryResolver {
 }
 
 public extension Logger {
-    func debugFile(_ message: String, category: String? = nil, fileID: String = #fileID) {
-        logToFile(.debug, message, category: category, fileID: fileID)
+    func debugFile(_ message: String, fileID: String = #fileID) {
+        logToFile(.debug, message, fileID: fileID)
     }
 
-    func infoFile(_ message: String, category: String? = nil, fileID: String = #fileID) {
-        logToFile(.info, message, category: category, fileID: fileID)
+    func infoFile(_ message: String, fileID: String = #fileID) {
+        logToFile(.info, message, fileID: fileID)
     }
 
-    func errorFile(_ message: String, category: String? = nil, fileID: String = #fileID) {
-        logToFile(.error, message, category: category, fileID: fileID)
+    func errorFile(_ message: String, fileID: String = #fileID) {
+        logToFile(.error, message, fileID: fileID)
     }
 
-    private func logToFile(_ level: LogLevel, _ message: String, category: String?, fileID: String) {
+    private func logToFile(_ level: LogLevel, _ message: String, fileID: String) {
         log(level: level.osLogType, "\(message)")
-        let resolvedCategory = LogCategoryResolver.resolve(category: category, fileID: fileID)
+        let resolvedCategory = LogCategoryResolver.resolve(fileID: fileID)
         LogStore.shared.append(level: level, category: resolvedCategory, message: message)
     }
 }

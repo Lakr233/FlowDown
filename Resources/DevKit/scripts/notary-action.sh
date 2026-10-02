@@ -42,10 +42,6 @@ for var in "${REQUIRED_VARS[@]}"; do
   fi
 done
 
-if [[ "$ENABLE_NOTARIZE" == "1" && -z "${NOTARIZE_KEYCHAIN_PROFILE:-}" ]]; then
-  fatal "NOTARIZE_KEYCHAIN_PROFILE is required when ENABLE_NOTARIZE=1"
-fi
-
 log "selecting newest Xcode"
 "${SCRIPT_DIR}/select_newest_xcode.sh"
 
@@ -79,10 +75,6 @@ env \
   CODE_SIGNING_IDENTITY="$CODE_SIGNING_IDENTITY" \
   NOTARIZE_KEYCHAIN_PROFILE="$NOTARIZE_KEYCHAIN_PROFILE" \
   "${SCRIPT_DIR}/notarize-zip.sh" "$APP_PATH" "$ZIP_OUTPUT"
-
-if [[ ! -f "$ZIP_OUTPUT" ]]; then
-  fatal "expected zip not found at $ZIP_OUTPUT"
-fi
 
 if [[ -n "$OUTPUT_FILE" ]]; then
   echo "zip_path=${ZIP_OUTPUT}" >> "$OUTPUT_FILE"

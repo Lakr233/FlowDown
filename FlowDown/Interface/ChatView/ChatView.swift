@@ -341,7 +341,6 @@ extension ChatView {
             let backgroundContainer = ChatHeaderGlassBackgroundContainerView()
         #endif
 
-        let rightClick = RightClickFinder()
         var cancellables: Set<AnyCancellable> = .init()
 
         var onCreateNewChat: (() -> Void)?
@@ -514,15 +513,6 @@ extension ChatView {
             }
         }
 
-        func contextMenuInteraction(
-            _: UIContextMenuInteraction,
-            configurationForMenuAtLocation _: CGPoint,
-        ) -> UIContextMenuConfiguration? {
-            UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
-                self?.buildMenu()
-            }
-        }
-
         private func buildMenu() -> UIMenu? {
             guard let conv else { return nil }
             guard let convMenu = ConversationManager.shared.menu(
@@ -555,23 +545,14 @@ extension ChatView {
                     let templates = ChatTemplateManager.shared.templates
                     var newChatOptions: [UIMenuElement] = []
 
-                    if templates.isEmpty {
-                        // No templates, just show "Start New Chat"
-                        newChatOptions.append(UIAction(
-                            title: String(localized: "Start New Chat"),
-                            image: UIImage(systemName: "plus"),
-                        ) { [weak self] _ in
-                            self?.onCreateNewChat?()
-                        })
-                    } else {
-                        // Show template options
-                        newChatOptions.append(UIAction(
-                            title: String(localized: "Start New Chat"),
-                            image: UIImage(systemName: "plus"),
-                        ) { [weak self] _ in
-                            self?.onCreateNewChat?()
-                        })
+                    newChatOptions.append(UIAction(
+                        title: String(localized: "Start New Chat"),
+                        image: UIImage(systemName: "plus"),
+                    ) { [weak self] _ in
+                        self?.onCreateNewChat?()
+                    })
 
+                    if !templates.isEmpty {
                         var templatesMenuActions: [UIAction] = []
                         for template in templates.values {
                             templatesMenuActions.append(UIAction(

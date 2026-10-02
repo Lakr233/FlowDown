@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TranslationSegment: Identifiable, Equatable, Hashable {
+struct TranslationSegment: Identifiable, Equatable {
     let id: UUID = .init()
 
     let input: String

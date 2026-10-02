@@ -48,75 +48,10 @@ public extension Storage {
             return
         }
 
-        let modified = Date.now
-//        attachments.forEach { $0.markModified(modified) }
-
-        try? runTransaction { [weak self] in
-            guard let self else { return }
-
-            let diff = try diffSyncable(objects: attachments, handle: $0)
-            guard !diff.isEmpty else {
-                return
-            }
-
-            // 恢复修改时间
-            diff.insert.forEach { $0.markModified($0.creation) }
-
-            try $0.insertOrReplace(diff.insertOrReplace(), intoTable: Attachment.tableName)
-
-            if !diff.deleted.isEmpty {
-                let deletedIds = diff.deleted.map(\.objectId)
-                let update = StatementUpdate().update(table: Attachment.tableName)
-                    .set(Attachment.Properties.removed)
-                    .to(true)
-                    .set(Attachment.Properties.modified)
-                    .to(modified)
-                    .where(Attachment.Properties.objectId.in(deletedIds))
-
-                try $0.exec(update)
-            }
-
-            var changes = diff.insert.map { ($0, UploadQueue.Changes.insert) }
-                + diff.updated.map { ($0, UploadQueue.Changes.update) }
-                + diff.deleted.map { ($0, UploadQueue.Changes.delete) }
-            // 按 modified 升序
-            changes.sort { $0.0.modified < $1.0.modified }
-
-            try pendingUploadEnqueue(sources: changes, handle: $0)
-        }
+        try? putSyncable(attachments)
     }
 
-    func attachmentsMarkDelete(messageId: Message.ID, handle: Handle? = nil) throws {
-        guard !messageId.isEmpty else {
-            return
-        }
-
-        try runTransaction(handle: handle) { [weak self] in
-            guard let self else { return }
-
-            let object: Attachment? = try $0.getObject(fromTable: Attachment.tableName, where: Attachment.Properties.messageId == messageId)
-
-            guard let object else {
-                return
-            }
-
-            object.removed = true
-            object.markModified()
-
-            let update = StatementUpdate().update(table: Attachment.tableName)
-                .set(Attachment.Properties.removed)
-                .to(true)
-                .set(Attachment.Properties.modified)
-                .to(object.modified)
-                .where(Attachment.Properties.messageId == messageId)
-
-            try $0.exec(update)
-
-            try pendingUploadEnqueue(sources: [(object, .delete)], handle: $0)
-        }
-    }
-
-    func attachmentsMarkDelete(messageIds: [Message.ID], skipSync: Bool = false, handle: Handle? = nil) throws {
+    func attachmentsMarkDelete(messageIds: [Message.ID], handle: Handle? = nil) throws {
         guard !messageIds.isEmpty else {
             return
         }
@@ -150,15 +85,12 @@ public extension Storage {
 
             try $0.exec(update)
 
-            guard !skipSync else {
-                return
-            }
-
             try pendingUploadEnqueue(sources: objects.map { ($0, .delete) }, handle: $0)
         }
     }
 
-    func attachmentsMarkDelete(skipSync: Bool = false, handle: Handle? = nil) throws {
+    /// - Parameter handle: The handle of the enclosing transaction.
+    func attachmentsMarkDelete(handle: Handle) throws {
         try runTransaction(handle: handle) { [weak self] in
             guard let self else { return }
 
@@ -186,10 +118,6 @@ public extension Storage {
                 .where(Attachment.Properties.removed == false)
 
             try $0.exec(update)
-
-            guard !skipSync else {
-                return
-            }
 
             try pendingUploadEnqueue(sources: objects.map { ($0, .delete) }, handle: $0)
         }

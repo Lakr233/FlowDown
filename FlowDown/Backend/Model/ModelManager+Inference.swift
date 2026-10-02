@@ -275,22 +275,19 @@ extension ModelManager {
     func prepareRequestBody(
         modelID: ModelIdentifier,
         messages: [ChatRequestBody.Message],
-    ) throws -> [ChatRequestBody.Message] {
-        var messages = messages
-        if let model = cloudModel(identifier: modelID) {
-            // this model requires developer mode to work
-            if model.capabilities.contains(.developerRole) {
-                messages = messages.map { message in
-                    switch message {
-                    case let .system(content, name):
-                        .developer(content: content, name: name)
-                    default:
-                        message
-                    }
-                }
+    ) -> [ChatRequestBody.Message] {
+        // this model requires developer mode to work
+        guard let model = cloudModel(identifier: modelID), model.capabilities.contains(.developerRole) else {
+            return messages
+        }
+        return messages.map { message in
+            switch message {
+            case let .system(content, name):
+                .developer(content: content, name: name)
+            default:
+                message
             }
         }
-        return messages
     }
 
     func infer(
@@ -323,7 +320,7 @@ extension ModelManager {
             for: modelID,
             additionalBodyField: modelBodyFields(for: modelID),
         )
-        var body = try ChatRequestBody(
+        var body = ChatRequestBody(
             messages: prepareRequestBody(modelID: modelID, messages: input),
             maxCompletionTokens: maxCompletionTokens,
             temperature: temperature < 0 ? nil : .init(temperature),

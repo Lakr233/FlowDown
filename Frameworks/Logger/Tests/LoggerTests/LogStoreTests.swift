@@ -8,7 +8,7 @@ struct LogStoreTests {
         let expected = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory())
 
-        let resolved = LogStore.defaultBaseDirectory(fileManager: .default)
+        let resolved = LogStore.defaultBaseDirectory()
 
         #expect(resolved.standardizedFileURL == expected.standardizedFileURL)
     }
@@ -141,37 +141,18 @@ struct LogStoreTests {
     }
 
     @Test
-    func `removeLogDirectory deletes an entire legacy log directory`() throws {
-        let (store, directory) = try makeStore()
-        defer { try? FileManager.default.removeItem(at: directory) }
-
-        let legacyBase = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let legacyDirectory = LogStore.logDirectory(baseDirectory: legacyBase)
-        try FileManager.default.createDirectory(at: legacyDirectory, withIntermediateDirectories: true)
-        FileManager.default.createFile(
-            atPath: legacyDirectory.appendingPathComponent("FlowDown.log").path,
-            contents: Data("legacy".utf8),
-        )
-
-        store.removeLogDirectory(at: legacyDirectory)
-
-        #expect(!FileManager.default.fileExists(atPath: legacyDirectory.path))
-    }
-
-    @Test
     func `category resolver infers sensible defaults`() {
-        #expect(LogCategoryResolver.resolve(category: nil, fileID: "/tmp/ModelInference.swift") == "Model")
-        #expect(LogCategoryResolver.resolve(category: nil, fileID: "/tmp/NetworkService.swift") == "Network")
-        #expect(LogCategoryResolver.resolve(category: nil, fileID: "/tmp/UserInterfaceView.swift") == "UI")
-        #expect(LogCategoryResolver.resolve(category: nil, fileID: "/tmp/DatabaseManager.swift") == "Database")
-        #expect(LogCategoryResolver.resolve(category: nil, fileID: "/tmp/Other.swift") == "App")
-        #expect(LogCategoryResolver.resolve(category: "Custom", fileID: "/tmp/Other.swift") == "Custom")
+        #expect(LogCategoryResolver.resolve(fileID: "/tmp/ModelInference.swift") == "Model")
+        #expect(LogCategoryResolver.resolve(fileID: "/tmp/NetworkService.swift") == "Network")
+        #expect(LogCategoryResolver.resolve(fileID: "/tmp/UserInterfaceView.swift") == "UI")
+        #expect(LogCategoryResolver.resolve(fileID: "/tmp/DatabaseManager.swift") == "Database")
+        #expect(LogCategoryResolver.resolve(fileID: "/tmp/Other.swift") == "App")
     }
 }
 
 private func makeStore(maxFileSize: Int = 512, maxFiles: Int = 3) throws -> (LogStore, URL) {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    let store = LogStore(directory: directory, fileManager: .default, maxFileSize: maxFileSize, maxFiles: maxFiles)
+    let store = LogStore(directory: directory, maxFileSize: maxFileSize, maxFiles: maxFiles)
     return (store, directory)
 }

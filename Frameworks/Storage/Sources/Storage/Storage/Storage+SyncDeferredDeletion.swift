@@ -8,27 +8,17 @@ import WCDBSwift
 
 package extension Storage {
     /// Keeps remote deletions whose Sync Scope group is turned off, replacing any earlier entry for the same record.
-    func syncDeferredDeletionSave(_ deletions: [SyncDeferredDeletion], handle: Handle? = nil) throws {
+    func syncDeferredDeletionSave(_ deletions: [SyncDeferredDeletion]) throws {
         guard !deletions.isEmpty else {
             return
         }
-        if let handle {
-            try handle.insertOrReplace(deletions, intoTable: SyncDeferredDeletion.tableName)
-        } else {
-            try db.insertOrReplace(deletions, intoTable: SyncDeferredDeletion.tableName)
-        }
+        try db.insertOrReplace(deletions, intoTable: SyncDeferredDeletion.tableName)
     }
 
     /// Lists the deferred remote deletions of the given tables.
-    func syncDeferredDeletionList(tables: [String], handle: Handle? = nil) throws -> [SyncDeferredDeletion] {
+    func syncDeferredDeletionList(tables: [String]) throws -> [SyncDeferredDeletion] {
         guard !tables.isEmpty else {
             return []
-        }
-        if let handle {
-            return try handle.getObjects(
-                fromTable: SyncDeferredDeletion.tableName,
-                where: SyncDeferredDeletion.Properties.tableName.in(tables),
-            )
         }
         return try db.getObjects(
             fromTable: SyncDeferredDeletion.tableName,

@@ -178,7 +178,6 @@ private func createUploadQueueTable(db: Database) throws {
 protocol DBMigration {
     var fromVersion: DBVersion { get }
     var toVersion: DBVersion { get }
-    var requiresDataMigration: Bool { get }
     func migrate(db: Database) throws
 }
 
@@ -205,7 +204,6 @@ extension DBMigration {
 struct MigrationV0ToV1: DBMigration {
     let fromVersion: DBVersion = .Version0
     let toVersion: DBVersion = .Version1
-    let requiresDataMigration: Bool = false
 
     func migrate(db: Database) throws {
         let start = Date.now
@@ -653,7 +651,6 @@ struct MigrationV1ToV2: DBMigration {
 struct MigrationV2ToV3: DBMigration {
     let fromVersion: DBVersion = .Version2
     let toVersion: DBVersion = .Version3
-    let requiresDataMigration: Bool = false
 
     func migrate(db: Database) throws {
         let start = Date.now
@@ -674,7 +671,6 @@ struct MigrationV2ToV3: DBMigration {
 struct MigrationV3ToV4: DBMigration {
     let fromVersion: DBVersion = .Version3
     let toVersion: DBVersion = .Version4
-    let requiresDataMigration: Bool = false
 
     func migrate(db: Database) throws {
         let start = Date.now
@@ -693,7 +689,6 @@ struct MigrationV3ToV4: DBMigration {
 struct MigrationV4ToV5: DBMigration {
     let fromVersion: DBVersion = .Version4
     let toVersion: DBVersion = .Version5
-    let requiresDataMigration: Bool = false
 
     func migrate(db: Database) throws {
         let start = Date.now
@@ -711,7 +706,6 @@ struct MigrationV4ToV5: DBMigration {
 struct MigrationV5ToV6: DBMigration {
     let fromVersion: DBVersion = .Version5
     let toVersion: DBVersion = .Version6
-    let requiresDataMigration: Bool = false
 
     func migrate(db: Database) throws {
         let start = Date.now
@@ -729,7 +723,6 @@ struct MigrationV5ToV6: DBMigration {
 struct MigrationV6ToV7: DBMigration {
     let fromVersion: DBVersion = .Version6
     let toVersion: DBVersion = .Version7
-    let requiresDataMigration: Bool = false
 
     func migrate(db: Database) throws {
         let start = Date.now

@@ -86,8 +86,6 @@ enum PrivateBlurEngine {
         return s
     }
 
-    static let maskSourceLayerName = "mask_source"
-
     static func configureBackdropLayer(_ backdropLayer: CALayer) {
         backdropLayer.delegate = layerDelegate
         backdropLayer.setValue(0.5, forKey: _k("c2NhbGU="))
@@ -95,10 +93,7 @@ enum PrivateBlurEngine {
     }
 
     private static func makeFilter(type: String) -> NSObject? {
-        guard let data = Data(base64Encoded: "Q0FGaWx0ZXI="),
-              let filterClassString = String(data: data, encoding: .utf8),
-              let filterClass = NSClassFromString(filterClassString)
-        else {
+        guard let filterClass = NSClassFromString(_k("Q0FGaWx0ZXI=")) else {
             return nil
         }
 
@@ -117,141 +112,5 @@ enum PrivateBlurEngine {
         let blurFilter = makeFilter(type: _k("Z2F1c3NpYW5CbHVy"))
         blurFilter?.setValue(radius as NSNumber, forKey: _k("aW5wdXRSYWRpdXM="))
         return blurFilter
-    }
-
-    static func makeVariableBlurFilter(
-        radius: CGFloat,
-        maskImage: CGImage,
-        isTransparent: Bool,
-    ) -> NSObject? {
-        guard let variableBlur = makeFilter(type: _k("dmFyaWFibGVCbHVy")) else {
-            return nil
-        }
-
-        variableBlur.setValue(radius, forKey: _k("aW5wdXRSYWRpdXM="))
-        variableBlur.setValue(maskImage, forKey: _k("aW5wdXRNYXNrSW1hZ2U="))
-        if isTransparent {
-            variableBlur.setValue(true, forKey: _k("aW5wdXROb3JtYWxpemVFZGdlc1RyYW5zcGFyZW50"))
-        } else {
-            variableBlur.setValue(true, forKey: _k("aW5wdXROb3JtYWxpemVFZGdlcw=="))
-        }
-        return variableBlur
-    }
-
-    static func makeVariableBlurFilter(
-        radius: CGFloat,
-        sublayerSourceName: String,
-        isTransparent: Bool,
-    ) -> NSObject? {
-        guard let variableBlur = makeFilter(type: _k("dmFyaWFibGVCbHVy")) else {
-            return nil
-        }
-
-        variableBlur.setValue(radius, forKey: _k("aW5wdXRSYWRpdXM="))
-        variableBlur.setValue(sublayerSourceName, forKey: _k("aW5wdXRTb3VyY2VTdWJsYXllck5hbWU="))
-        if isTransparent {
-            variableBlur.setValue(true, forKey: _k("aW5wdXROb3JtYWxpemVFZGdlc1RyYW5zcGFyZW50"))
-        } else {
-            variableBlur.setValue(true, forKey: _k("aW5wdXROb3JtYWxpemVFZGdlcw=="))
-        }
-        return variableBlur
-    }
-
-    final class MaskedBlurView: UIView {
-        private let maxBlurRadius: CGFloat
-        private let isTransparent: Bool
-        private let backdropLayer: CALayer?
-        private let maskSourceView: UIImageView?
-        private let usesSublayerSource: Bool
-
-        init(maxBlurRadius: CGFloat = 20, isTransparent: Bool = false) {
-            self.maxBlurRadius = maxBlurRadius
-            self.isTransparent = isTransparent
-
-            let backdrop = PrivateBlurEngine.makeBackdropLayer()
-            backdropLayer = backdrop
-
-            if #available(iOS 26.0, macCatalyst 26.0, *) {
-                let maskView = UIImageView()
-                maskView.contentMode = .scaleToFill
-                maskView.layer.name = PrivateBlurEngine.maskSourceLayerName
-                maskSourceView = maskView
-                usesSublayerSource = true
-            } else {
-                maskSourceView = nil
-                usesSublayerSource = false
-            }
-
-            super.init(frame: .zero)
-
-            if let backdrop {
-                layer.addSublayer(backdrop)
-                PrivateBlurEngine.configureBackdropLayer(backdrop)
-
-                if usesSublayerSource, let maskSourceView {
-                    backdrop.addSublayer(maskSourceView.layer)
-                    if let filter = PrivateBlurEngine.makeVariableBlurFilter(
-                        radius: maxBlurRadius,
-                        sublayerSourceName: PrivateBlurEngine.maskSourceLayerName,
-                        isTransparent: isTransparent,
-                    ) {
-                        backdrop.filters = [filter]
-                    }
-                }
-            }
-
-            isUserInteractionEnabled = false
-        }
-
-        @available(*, unavailable)
-        required init?(coder _: NSCoder) {
-            fatalError()
-        }
-
-        override func layoutSubviews() {
-            super.layoutSubviews()
-
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            backdropLayer?.frame = bounds
-            maskSourceView?.frame = bounds
-            CATransaction.commit()
-        }
-
-        func update(size: CGSize, maskImage: UIImage?) {
-            guard size.width > 0, size.height > 0 else {
-                maskSourceView?.image = nil
-                if !usesSublayerSource {
-                    backdropLayer?.filters = nil
-                }
-                return
-            }
-
-            let bounds = CGRect(origin: .zero, size: size)
-
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            backdropLayer?.frame = bounds
-            maskSourceView?.frame = bounds
-            CATransaction.commit()
-
-            if usesSublayerSource {
-                maskSourceView?.image = maskImage
-                return
-            }
-
-            guard let cgImage = maskImage?.cgImage,
-                  let filter = PrivateBlurEngine.makeVariableBlurFilter(
-                      radius: maxBlurRadius,
-                      maskImage: cgImage,
-                      isTransparent: isTransparent,
-                  )
-            else {
-                backdropLayer?.filters = nil
-                return
-            }
-
-            backdropLayer?.filters = [filter]
-        }
     }
 }

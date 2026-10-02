@@ -11,7 +11,6 @@ class QuickSettingBar: EditorSectionView {
     let scrollView = UIScrollView()
 
     let modelPicker = BlockButton(text: "", icon: "asterisk")
-    let modelPickerRightClickFinder = RightClickFinder()
 
     let toolsToggle = ToggleBlockButton(
         text: NSLocalizedString("Tools", comment: ""),

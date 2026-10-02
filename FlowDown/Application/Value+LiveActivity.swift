@@ -37,7 +37,7 @@ enum LiveActivitySetting {
         ConfigurableKit.publisher(forKey: StreamAudioEffectSetting.storageKey, type: Int.self)
             .ensureMainThread()
             .sink { rawValue in
-                let mode = StreamAudioEffectSetting(rawValue: rawValue ?? StreamAudioEffectSetting.off.rawValue) ?? .off
+                let mode = rawValue.flatMap(StreamAudioEffectSetting.init(rawValue:)) ?? .off
                 if mode == .off {
                     LiveActivitySetting.setEnabled(false)
                 }

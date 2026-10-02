@@ -1,6 +1,9 @@
 import Foundation
 
 public nonisolated enum ModelExchangeURL {
+    nonisolated static let routeHost = "models"
+    nonisolated static let routePath = "/exchange"
+
     public nonisolated struct Handshake: Sendable {
         public let publicKey: String
         public let callbackScheme: String
@@ -23,8 +26,8 @@ public nonisolated enum ModelExchangeURL {
     }
 
     public nonisolated static func resolve(_ url: URL) -> Stage? {
-        guard let host = url.host?.lowercased(), host == "models" else { return nil }
-        guard url.path.lowercased() == "/exchange" else { return nil }
+        guard let host = url.host?.lowercased(), host == routeHost else { return nil }
+        guard url.path.lowercased() == routePath else { return nil }
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
         let items = components.queryItems ?? []
         let dict = Dictionary(items.compactMap { item -> (String, String)? in
@@ -51,7 +54,7 @@ public nonisolated enum ModelExchangeURL {
         let rawCapabilities = dict["capabilities"] ?? ""
         let rawList = rawCapabilities.split(separator: ",").map(String.init)
         let caps = rawList.compactMap { ModelExchangeCapability(rawValue: $0) }
-        if !rawList.isEmpty, caps.count != rawList.count { return nil }
+        if caps.count != rawList.count { return nil }
         let signature = dict["sig"]
         let exchange = Exchange(
             session: session,

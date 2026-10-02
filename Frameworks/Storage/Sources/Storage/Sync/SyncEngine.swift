@@ -195,7 +195,7 @@ public final actor SyncEngine: Sendable {
             try? FileManager.default.createDirectory(at: SyncEngine.temporaryAssetStorage, withIntermediateDirectories: true)
         }
 
-        storage.uploadQueueEnqueueHandler = { [weak self] _ in
+        storage.uploadQueueEnqueueHandler = { [weak self] in
             guard let self else { return }
             Task {
                 await self.onUploadQueueEnqueue()
@@ -220,7 +220,7 @@ public final actor SyncEngine: Sendable {
             try? FileManager.default.createDirectory(at: SyncEngine.temporaryAssetStorage, withIntermediateDirectories: true)
         }
 
-        storage.uploadQueueEnqueueHandler = { [weak self] _ in
+        storage.uploadQueueEnqueueHandler = { [weak self] in
             guard SyncEngine.isSyncEnabled else { return }
             guard let self else { return }
 
@@ -286,8 +286,6 @@ public extension SyncEngine {
         }
 
         // 这里不检查账户，由后面的 handleAccountChange 事件统一处理账户变化
-//        let accountStatus = try await container.accountStatus()
-//        guard accountStatus == .available else { return }
 
         if #available(iOS 17, macCatalyst 17, *) {
             var needDelay = false
@@ -525,9 +523,8 @@ private extension SyncEngine {
     }
 
     /// 调度上传队列
-    /// - Parameter immediateSendChanges: 是否立即发送变化，仅在 automaticallySync = false 有效
     @available(iOS 17, macCatalyst 17, *)
-    func scheduleUploadIfNeeded(_ immediateSendChanges: Bool = false) async throws {
+    func scheduleUploadIfNeeded() async throws {
         try Task.checkCancellation()
 
         guard SyncEngine.isCloudSyncSupported else {
@@ -590,91 +587,71 @@ private extension SyncEngine {
             var needDelay = false
             if let syncEngine = try? await syncEngineOrThrow(initializingIfNeeded: false, needDelay: &needDelay) {
                 syncEngine.state.add(pendingRecordZoneChanges: pendingRecordZoneChanges)
-
-                if !isAutomaticallySyncEnabled, immediateSendChanges {
-                    try await syncEngine.performingSendChanges()
-                }
             }
         }
     }
 
     func enqueueSendingChanges() async {
         sendingChangesCount += 1
-        if sendingChangesCount == 1, fetchingChangesCount == 0 {
-            beginSyncDate = .now
-            Logger.syncEngine.infoFile("Begin synchronization")
-            await MainActor.run {
-                SyncEngine.isSynchronizing = true
-                NotificationCenter.default.post(
-                    name: SyncEngine.SyncStatusChanged,
-                    object: nil,
-                    userInfo: [
-                        "isSynchronizing": true,
-                    ],
-                )
-            }
-        }
+        await beginSyncActivity()
     }
 
     func dequeueSendingChanges() async {
         sendingChangesCount = max(sendingChangesCount - 1, 0)
-
-        if sendingChangesCount == 0, fetchingChangesCount == 0 {
-            let nowDate = Date.now
-            let elapsed = nowDate.timeIntervalSince(beginSyncDate) * 1000.0
-            // swiftformat:disable:next redundantSelf
-            Logger.syncEngine.infoFile("Finish synchronization beging \(self.beginSyncDate) elapsed \(Int(elapsed))ms")
-            await MainActor.run {
-                SyncEngine.LastSyncDate = nowDate
-                SyncEngine.isSynchronizing = false
-                NotificationCenter.default.post(
-                    name: SyncEngine.SyncStatusChanged,
-                    object: nil,
-                    userInfo: [
-                        "isSynchronizing": false,
-                    ],
-                )
-            }
-        }
+        await endSyncActivity()
     }
 
     func enqueueFetchingChanges() async {
         fetchingChangesCount += 1
-        if fetchingChangesCount == 1, sendingChangesCount == 0 {
-            beginSyncDate = .now
-            Logger.syncEngine.infoFile("Begin synchronization")
-            await MainActor.run {
-                SyncEngine.isSynchronizing = true
-                NotificationCenter.default.post(
-                    name: SyncEngine.SyncStatusChanged,
-                    object: nil,
-                    userInfo: [
-                        "isSynchronizing": true,
-                    ],
-                )
-            }
-        }
+        await beginSyncActivity()
     }
 
     func dequeueFetchingChanges() async {
         fetchingChangesCount = max(fetchingChangesCount - 1, 0)
+        await endSyncActivity()
+    }
 
-        if fetchingChangesCount == 0, sendingChangesCount == 0 {
-            let nowDate = Date.now
-            let elapsed = nowDate.timeIntervalSince(beginSyncDate) * 1000.0
-            // swiftformat:disable:next redundantSelf
-            Logger.syncEngine.infoFile("Finish synchronization beging \(self.beginSyncDate) elapsed \(Int(elapsed))ms")
-            await MainActor.run {
-                SyncEngine.LastSyncDate = nowDate
-                SyncEngine.isSynchronizing = false
-                NotificationCenter.default.post(
-                    name: SyncEngine.SyncStatusChanged,
-                    object: nil,
-                    userInfo: [
-                        "isSynchronizing": false,
-                    ],
-                )
-            }
+    /// Posts the start of synchronization when the first send or fetch begins.
+    func beginSyncActivity() async {
+        // Neither counter goes below zero, so a sum of one after an increment means nothing else was running.
+        guard sendingChangesCount + fetchingChangesCount == 1 else {
+            return
+        }
+
+        beginSyncDate = .now
+        Logger.syncEngine.infoFile("Begin synchronization")
+        await MainActor.run {
+            SyncEngine.isSynchronizing = true
+            NotificationCenter.default.post(
+                name: SyncEngine.SyncStatusChanged,
+                object: nil,
+                userInfo: [
+                    "isSynchronizing": true,
+                ],
+            )
+        }
+    }
+
+    /// Posts the end of synchronization once no send or fetch is running.
+    func endSyncActivity() async {
+        guard sendingChangesCount + fetchingChangesCount == 0 else {
+            return
+        }
+
+        let nowDate = Date.now
+        let elapsed = nowDate.timeIntervalSince(beginSyncDate) * 1000.0
+        // swiftformat:disable:next redundantSelf
+        Logger.syncEngine.infoFile("Finish synchronization beging \(self.beginSyncDate) elapsed \(Int(elapsed))ms")
+        await MainActor.run {
+            SyncEngine.LastSyncDate = nowDate
+            SyncEngine.isSynchronizing = false
+            NotificationCenter.default.post(
+                name: SyncEngine.SyncStatusChanged,
+                object: nil,
+                userInfo: [
+                    "isSynchronizing": false,
+                ],
+            )
         }
     }
 
@@ -737,12 +714,10 @@ private extension SyncEngine {
     ) async {
         Logger.syncEngine.infoFile("Received DatabaseChanges modifications: \(modifications.count) deletions: \(deletions.count)")
 
-        var resetLocalData = false
         var needsFullReupload = false
         for deletion in deletions {
             switch deletion.zoneID.zoneName {
             case SyncEngine.zoneID.zoneName:
-                resetLocalData = true
                 Logger.syncEngine.infoFile("Received deletion zone \(deletion.zoneID)")
                 if deletion.reason == .encryptedDataReset {
                     needsFullReupload = true
@@ -750,11 +725,6 @@ private extension SyncEngine {
             default:
                 Logger.syncEngine.infoFile("Received deletion for unknown zone: \(deletion.zoneID)")
             }
-        }
-
-        if resetLocalData {
-            // 收到其他设备发出的删除操作，当前设备应该同步清除本地所有数据
-//            try? await deleteLocalData()
         }
 
         if needsFullReupload {
@@ -818,33 +788,19 @@ private extension SyncEngine {
             }
         }
 
-        // Deletions are collected before they are applied, because the message lookup reads the rows being deleted.
-        var deletedConversations: [Conversation.ID] = []
-        var deletedMessages: [Message.ID] = []
-        var deletedCloudModels: [CloudModel.ID] = []
-        var deletedMCPS: [ModelContextServer.ID] = []
-        var deletedMemorys: [Memory.ID] = []
-        var deletedTemplates: [ChatTemplateRecord.ID] = []
-        var deletedSummaries: [ConversationSummary.ID] = []
-        for deletion in filteredDeletions {
-            let recordID = deletion.recordID
-            guard let (objectId, tableName) = UploadQueue.parseCKRecordID(recordID.recordName) else { continue }
-            if tableName == Conversation.tableName {
-                deletedConversations.append(objectId)
-            } else if tableName == Message.tableName {
-                deletedMessages.append(objectId)
-            } else if tableName == CloudModel.tableName {
-                deletedCloudModels.append(objectId)
-            } else if tableName == ModelContextServer.tableName {
-                deletedMCPS.append(objectId)
-            } else if tableName == Memory.tableName {
-                deletedMemorys.append(objectId)
-            } else if tableName == ChatTemplateRecord.tableName {
-                deletedTemplates.append(objectId)
-            } else if tableName == ConversationSummary.tableName {
-                deletedSummaries.append(objectId)
+        /// Groups the object IDs by table name, keeping their order within each table.
+        func objectIdsByTable(_ recordIDs: [CKRecord.ID]) -> [String: [String]] {
+            var objectIds: [String: [String]] = [:]
+            for recordID in recordIDs {
+                guard let (objectId, tableName) = UploadQueue.parseCKRecordID(recordID.recordName) else { continue }
+                objectIds[tableName, default: []].append(objectId)
             }
+            return objectIds
         }
+
+        // Deletions are collected before they are applied, because the message lookup reads the rows being deleted.
+        let deletionsByTable = objectIdsByTable(filteredDeletions.map { $0.recordID })
+        let deletedMessages = deletionsByTable[Message.tableName] ?? []
 
         var deletionMessageMap: [Conversation.ID: [Message.ID]] = [:]
         if !deletedMessages.isEmpty {
@@ -866,46 +822,39 @@ private extension SyncEngine {
         }
 
         // 收集变化
-        var modificationConversations: [Conversation.ID] = []
-        var modificationMessages: [Message.ID] = []
-        var modificationCloudModels: [CloudModel.ID] = []
-        var modificationMCPS: [ModelContextServer.ID] = []
-        var modificationMemorys: [Memory.ID] = []
-        var modificationTemplates: [ChatTemplateRecord.ID] = []
-        var modificationSummaries: [ConversationSummary.ID] = []
-
-        for modification in filteredModifications {
-            let recordID = modification.recordID
-            guard let (objectId, tableName) = UploadQueue.parseCKRecordID(recordID.recordName) else { continue }
-            if tableName == Conversation.tableName {
-                modificationConversations.append(objectId)
-            } else if tableName == Message.tableName {
-                modificationMessages.append(objectId)
-            } else if tableName == CloudModel.tableName {
-                modificationCloudModels.append(objectId)
-            } else if tableName == ModelContextServer.tableName {
-                modificationMCPS.append(objectId)
-            } else if tableName == Memory.tableName {
-                modificationMemorys.append(objectId)
-            } else if tableName == ChatTemplateRecord.tableName {
-                modificationTemplates.append(objectId)
-            } else if tableName == ConversationSummary.tableName {
-                modificationSummaries.append(objectId)
-            }
-        }
+        let modificationsByTable = objectIdsByTable(filteredModifications.map(\.recordID))
+        let modificationMessages = modificationsByTable[Message.tableName] ?? []
 
         var modificationMessageMap: [Conversation.ID: [Message.ID]] = [:]
         if !modificationMessages.isEmpty {
             modificationMessageMap = storage.conversationIds(by: modificationMessages)
         }
 
-        let conversationNotificationInfo = ConversationNotificationInfo(modifications: modificationConversations, deletions: deletedConversations)
+        let conversationNotificationInfo = ConversationNotificationInfo(
+            modifications: modificationsByTable[Conversation.tableName] ?? [],
+            deletions: deletionsByTable[Conversation.tableName] ?? [],
+        )
         let messageNotificationInfo = MessageNotificationInfo(modifications: modificationMessageMap, deletions: deletionMessageMap)
-        let cloudModelNotificationInfo = CloudModelNotificationInfo(modifications: modificationCloudModels, deletions: deletedCloudModels)
-        let MCPNotificationInfo = ModelContextServerNotificationInfo(modifications: modificationMCPS, deletions: deletedMCPS)
-        let memoryNotificationInfo = MemoryNotificationInfo(modifications: modificationMemorys, deletions: deletedMemorys)
-        let templateNotificationInfo = ChatTemplateNotificationInfo(modifications: modificationTemplates, deletions: deletedTemplates)
-        let summaryNotificationInfo = ConversationSummaryNotificationInfo(modifications: modificationSummaries, deletions: deletedSummaries)
+        let cloudModelNotificationInfo = CloudModelNotificationInfo(
+            modifications: modificationsByTable[CloudModel.tableName] ?? [],
+            deletions: deletionsByTable[CloudModel.tableName] ?? [],
+        )
+        let MCPNotificationInfo = ModelContextServerNotificationInfo(
+            modifications: modificationsByTable[ModelContextServer.tableName] ?? [],
+            deletions: deletionsByTable[ModelContextServer.tableName] ?? [],
+        )
+        let memoryNotificationInfo = MemoryNotificationInfo(
+            modifications: modificationsByTable[Memory.tableName] ?? [],
+            deletions: deletionsByTable[Memory.tableName] ?? [],
+        )
+        let templateNotificationInfo = ChatTemplateNotificationInfo(
+            modifications: modificationsByTable[ChatTemplateRecord.tableName] ?? [],
+            deletions: deletionsByTable[ChatTemplateRecord.tableName] ?? [],
+        )
+        let summaryNotificationInfo = ConversationSummaryNotificationInfo(
+            modifications: modificationsByTable[ConversationSummary.tableName] ?? [],
+            deletions: deletionsByTable[ConversationSummary.tableName] ?? [],
+        )
 
         await MainActor.run {
             if !conversationNotificationInfo.isEmpty {
@@ -999,9 +948,6 @@ private extension SyncEngine {
         for deletedRecordZoneId in deletedRecordZoneIDs {
             Logger.syncEngine.infoFile("DeletedRecordZone: \(deletedRecordZoneId)")
             if deletedRecordZoneId == SyncEngine.zoneID {
-                // 云端删除zone成功后，需要将本地保存的云端记录元数据删除
-//                try? storage.syncMetadataRemoveAll()
-
                 await MainActor.run {
                     NotificationCenter.default.post(
                         name: SyncEngine.ServerDataDeleted,

@@ -7,7 +7,6 @@ This script adds missing English localizations and fixes 'new' state translation
 import sys
 
 from i18n_tools import (
-    DEFAULT_KEEP_LANGUAGES,
     default_file_path,
     load_strings,
     print_update_summary,
@@ -148,7 +147,6 @@ if __name__ == "__main__":
     counts = update_missing_translations(
         data,
         new_strings=NEW_STRINGS,
-        keep_languages=DEFAULT_KEEP_LANGUAGES,
     )
     save_strings(file_path, data)
 

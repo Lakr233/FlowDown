@@ -12,11 +12,6 @@ import WidgetKit
 struct FlowDownWidgetsLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FlowDownWidgetsAttributes.self) { context in
-            let finished = context.state.conversationCount <= 0
-            let text = finished
-                ? String(localized: "All conversation(s) completed.")
-                : String(localized: "Streaming \(context.state.conversationCount) conversation(s).")
-
             VStack {
                 HStack(spacing: 16) {
                     Image(systemName: "bird")
@@ -28,7 +23,7 @@ struct FlowDownWidgetsLiveActivity: Widget {
                                 .bold()
                             Spacer()
                             Group {
-                                if finished {
+                                if context.state.isFinished {
                                     Image(systemName: "checkmark.circle.fill")
                                 } else {
                                     Image(systemName: "arrow.down")
@@ -38,7 +33,7 @@ struct FlowDownWidgetsLiveActivity: Widget {
                             .monospaced()
                             .opacity(0.5)
                         }
-                        Text(text)
+                        Text(context.state.statusText)
                             .contentTransition(.numericText())
                     }
                     .font(.body)
@@ -53,36 +48,28 @@ struct FlowDownWidgetsLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.bottom) {
-                    let finished = context.state.conversationCount <= 0
-                    let text = finished
-                        ? String(localized: "All conversation(s) completed.")
-                        : String(localized: "Streaming \(context.state.conversationCount) conversation(s).")
-
                     VStack(spacing: 8) {
                         Spacer()
 
                         Image(systemName: "bird.fill")
                             .bold()
 
-                        Text(text)
+                        Text(context.state.statusText)
                             .contentTransition(.numericText())
                             .animation(.interactiveSpring, value: context.state)
                     }
                     .font(.footnote)
                 }
             } compactLeading: {
-                let finished = context.state.conversationCount <= 0
-
                 Image(systemName: "bird.fill")
-                    .foregroundStyle(finished ? .accent : .white)
+                    .foregroundStyle(context.state.isFinished ? .accent : .white)
                     .animation(.interactiveSpring, value: context.state)
             } compactTrailing: {
-                let finished = context.state.conversationCount <= 0
                 let tokenCount = context.state.streamingSessionTextCount
 
-                if finished {
+                if context.state.isFinished {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(finished ? .accent : .white)
+                        .foregroundStyle(.accent)
                         .animation(.interactiveSpring, value: context.state)
                 } else {
                     HStack(spacing: 2) {
@@ -94,10 +81,8 @@ struct FlowDownWidgetsLiveActivity: Widget {
                     .animation(.interactiveSpring, value: context.state)
                 }
             } minimal: {
-                let finished = context.state.conversationCount <= 0
-
                 Image(systemName: "bird.fill")
-                    .foregroundStyle(finished ? .accent : .white)
+                    .foregroundStyle(context.state.isFinished ? .accent : .white)
                     .animation(.interactiveSpring, value: context.state)
                     .widgetURL(URL(string: "flowdown://live-activity"))
             }
@@ -105,13 +90,17 @@ struct FlowDownWidgetsLiveActivity: Widget {
     }
 }
 
-private extension FlowDownWidgetsAttributes {
-    static var preview: FlowDownWidgetsAttributes {
-        FlowDownWidgetsAttributes()
-    }
-}
-
 private extension FlowDownWidgetsAttributes.ContentState {
+    var isFinished: Bool {
+        conversationCount <= 0
+    }
+
+    var statusText: String {
+        isFinished
+            ? String(localized: "All conversation(s) completed.")
+            : String(localized: "Streaming \(conversationCount) conversation(s).")
+    }
+
     static var none: FlowDownWidgetsAttributes.ContentState {
         FlowDownWidgetsAttributes.ContentState(
             conversationCount: 0,
@@ -135,7 +124,7 @@ private extension FlowDownWidgetsAttributes.ContentState {
 }
 
 @available(iOS 17.0, *)
-#Preview("Notification", as: .content, using: FlowDownWidgetsAttributes.preview) {
+#Preview("Notification", as: .content, using: FlowDownWidgetsAttributes()) {
     FlowDownWidgetsLiveActivity()
 } contentStates: {
     FlowDownWidgetsAttributes.ContentState.none

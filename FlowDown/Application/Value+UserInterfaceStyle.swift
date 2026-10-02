@@ -75,10 +75,7 @@ extension UIUserInterfaceStyle {
         assert(cancellables.isEmpty)
         ConfigurableKit.publisher(forKey: storageKey, type: Int.self)
             .sink { input in
-                var style: UIUserInterfaceStyle = .unspecified
-                if let input, let value = UIUserInterfaceStyle(rawValue: input) {
-                    style = value
-                }
+                let style = input.flatMap(UIUserInterfaceStyle.init(rawValue:)) ?? .unspecified
                 UIView.animate(withDuration: 0.25) {
                     apply(style: style)
                 }

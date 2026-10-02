@@ -35,30 +35,28 @@ git commit -m "Archive Commit $(date)"
 
 ./Resources/DevKit/scripts/scan.license.sh
 
-archive_ios() {
-    XCBUILD_LABEL=archive-ios ./Resources/DevKit/scripts/run_xcodebuild.sh \
+archive_platform() {
+    local label="$1"
+    local destination="$2"
+    local archive_name="$3"
+    XCBUILD_LABEL="$label" ./Resources/DevKit/scripts/run_xcodebuild.sh \
         -workspace FlowDown.xcworkspace \
         -scheme FlowDown \
         -configuration Release \
-        -destination 'generic/platform=iOS' \
-        -archivePath "$PROJECT_ROOT/.build/FlowDown.xcarchive" \
+        -destination "$destination" \
+        -archivePath "$PROJECT_ROOT/.build/$archive_name" \
         archive
 
-    echo "[*] registering FlowDown.xcarchive in Xcode Organizer..."
-    open "$PROJECT_ROOT/.build/FlowDown.xcarchive" -g
+    echo "[*] registering $archive_name in Xcode Organizer..."
+    open "$PROJECT_ROOT/.build/$archive_name" -g
+}
+
+archive_ios() {
+    archive_platform archive-ios 'generic/platform=iOS' FlowDown.xcarchive
 }
 
 archive_macos() {
-    XCBUILD_LABEL=archive-macos ./Resources/DevKit/scripts/run_xcodebuild.sh \
-        -workspace FlowDown.xcworkspace \
-        -scheme FlowDown \
-        -configuration Release \
-        -destination "$CATALYST_ARCHIVE_DESTINATION" \
-        -archivePath "$PROJECT_ROOT/.build/FlowDown-macOS.xcarchive" \
-        archive
-
-    echo "[*] registering FlowDown-macOS.xcarchive in Xcode Organizer..."
-    open "$PROJECT_ROOT/.build/FlowDown-macOS.xcarchive" -g
+    archive_platform archive-macos "$CATALYST_ARCHIVE_DESTINATION" FlowDown-macOS.xcarchive
 }
 
 case "$ARCHIVE_MODE" in

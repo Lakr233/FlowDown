@@ -13,7 +13,6 @@ package final class MockSyncEngine: SyncEngineProtocol {
     package let database: MockCloudDatabase
     package let parentSyncEngine: SyncEngine
     package let _state: LockIsolated<MockSyncEngineState>
-    package let _fetchChangesScopes = LockIsolated<[CKSyncEngine.FetchChangesOptions.Scope]>([])
     package let _delegate: LockIsolated<(any SyncEngineDelegate)?>
     package var automaticallySync: Bool {
         get {
@@ -48,10 +47,6 @@ package final class MockSyncEngine: SyncEngineProtocol {
 
     package var description: String {
         "\(type(of: self))"
-    }
-
-    package var scope: CKDatabase.Scope {
-        database.databaseScope
     }
 
     package var state: MockSyncEngineState {
@@ -249,10 +244,6 @@ package final class MockSyncEngine: SyncEngineProtocol {
 
     package func performingFetchChanges(_: CKSyncEngine.FetchChangesOptions) async throws {}
 
-    package func nextRecordZoneChangeBatch(recordsToSave _: [CKRecord], recordIDsToDelete _: [CKRecord.ID], atomicByZone _: Bool, syncEngine _: any SyncEngineProtocol) async -> CKSyncEngine.RecordZoneChangeBatch? {
-        nil
-    }
-
     package func performingSendChanges() async throws {
         try await performingSendChanges(.init())
     }
@@ -278,11 +269,6 @@ package final class MockSyncEngineState: CKSyncEngineStateProtocol {
 
     package var pendingDatabaseChanges: [CKSyncEngine.PendingDatabaseChange] {
         _pendingDatabaseChanges.withValue { Array($0) }
-    }
-
-    package func removePendingChanges() {
-        _pendingDatabaseChanges.withValue { $0.removeAll() }
-        _pendingRecordZoneChanges.withValue { $0.removeAll() }
     }
 
     package func add(pendingRecordZoneChanges: [CKSyncEngine.PendingRecordZoneChange]) {

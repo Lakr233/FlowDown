@@ -4,6 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 
+const navLinks = [
+  { href: "/docs", label: "Documentation" },
+  { href: "/compare", label: "Compare" },
+  { href: "https://github.com/Lakr233/FlowDown", label: "Get Source Code", external: true },
+  { href: "/docs/documents/models/cloud_models_setup", label: "Add Models" },
+];
+
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -25,31 +32,16 @@ export default function Navigation() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            <Link
-              href="/docs"
-              className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
-            >
-              Documentation
-            </Link>
-            <Link
-              href="/compare"
-              className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
-            >
-              Compare
-            </Link>
-            <Link
-              href="https://github.com/Lakr233/FlowDown"
-              target="_blank"
-              className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
-            >
-              Get Source Code
-            </Link>
-            <Link
-              href="/docs/documents/models/cloud_models_setup"
-              className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
-            >
-              Add Models
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
+              >
+                {link.label}
+              </Link>
+            ))}
             <Link
               href="https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198"
               target="_blank"
@@ -91,35 +83,17 @@ export default function Navigation() {
             className="fixed inset-0 bg-[#f6f6f6] z-40 md:hidden pt-[100px] px-6"
           >
             <div className="flex flex-col gap-6 text-center">
-              <Link
-                href="/docs"
-                className="text-xl font-medium text-[#242424]"
-                onClick={() => setIsOpen(false)}
-              >
-                Documentation
-              </Link>
-              <Link
-                href="/compare"
-                className="text-xl font-medium text-[#242424]"
-                onClick={() => setIsOpen(false)}
-              >
-                Compare
-              </Link>
-              <Link
-                href="https://github.com/Lakr233/FlowDown"
-                target="_blank"
-                className="text-xl font-medium text-[#242424]"
-                onClick={() => setIsOpen(false)}
-              >
-                Get Source Code
-              </Link>
-              <Link
-                href="/docs/documents/models/cloud_models_setup"
-                className="text-xl font-medium text-[#242424]"
-                onClick={() => setIsOpen(false)}
-              >
-                Add Models
-              </Link>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  target={link.external ? "_blank" : undefined}
+                  className="text-xl font-medium text-[#242424]"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
               <Link
                 href="https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198"
                 target="_blank"

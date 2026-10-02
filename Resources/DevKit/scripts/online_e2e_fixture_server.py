@@ -34,10 +34,14 @@ class FixtureStore:
         stream = bool(body.get("stream", False))
 
         if self.mode == "record":
-            status, content_type, data = self.record(key, body, stream)
-            return status, content_type, data
+            return self.record(key, body, stream)
 
         return self.replay(key, stream)
+
+    def fixture_paths(self, key: str, stream: bool) -> tuple[Path, Path]:
+        """Return (response_path, metadata_path) for a captured case."""
+        suffix = "sse" if stream else "json"
+        return self.case_dir / f"{key}.response.{suffix}", self.case_dir / f"{key}.meta.json"
 
     def record(self, key: str, body: dict[str, Any], stream: bool) -> tuple[int, str, bytes]:
         if not self.upstream_endpoint or not self.upstream_model or not self.api_key:
@@ -48,10 +52,8 @@ class FixtureStore:
         status, data = self.capture_with_curl(request_body)
         content_type = "text/event-stream" if stream else "application/json"
 
-        suffix = "sse" if stream else "json"
-        response_path = self.case_dir / f"{key}.response.{suffix}"
+        response_path, metadata_path = self.fixture_paths(key, stream)
         request_path = self.case_dir / f"{key}.request.json"
-        metadata_path = self.case_dir / f"{key}.meta.json"
 
         request_path.write_text(
             json.dumps(request_body, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -78,9 +80,7 @@ class FixtureStore:
         return status, content_type, data
 
     def replay(self, key: str, stream: bool) -> tuple[int, str, bytes]:
-        suffix = "sse" if stream else "json"
-        response_path = self.case_dir / f"{key}.response.{suffix}"
-        metadata_path = self.case_dir / f"{key}.meta.json"
+        response_path, metadata_path = self.fixture_paths(key, stream)
 
         if not response_path.exists() or not metadata_path.exists():
             return self.error_response(503, f"missing captured online e2e fixture: {key}")

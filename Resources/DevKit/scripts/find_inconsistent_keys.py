@@ -4,44 +4,28 @@ Find localization entries where the key doesn't match the English translation.
 """
 
 import json
-import re
 import sys
 from pathlib import Path
+
+from i18n_tools import inconsistent_english_value
 
 
 def find_inconsistent_keys(xcstrings_path):
     """Find entries where key != English value."""
     with open(xcstrings_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    
+
     inconsistent = []
-    
+
     for key, entry in data.get('strings', {}).items():
-        # Skip special entries
-        if 'shouldTranslate' in entry and not entry['shouldTranslate']:
-            continue
-        
-        localizations = entry.get('localizations', {})
-        en_value = None
-        
-        # Get English value
-        if 'en' in localizations:
-            en_unit = localizations['en'].get('stringUnit', {})
-            en_value = en_unit.get('value')
-        
-        # If there's no explicit English localization, the key is the English value
-        if en_value is None:
-            continue
-        
-        # Check if key matches English value, ignoring the positional
-        # specifiers Xcode writes for multi-argument keys (%1$@ for %@)
-        if key != en_value and key != re.sub(r'%(\d+)\$', '%', en_value):
+        en_value = inconsistent_english_value(key, entry)
+        if en_value is not None:
             inconsistent.append({
                 'key': key,
                 'en_value': en_value,
-                'has_zh': 'zh-Hans' in localizations
+                'has_zh': 'zh-Hans' in entry['localizations']
             })
-    
+
     return inconsistent
 
 

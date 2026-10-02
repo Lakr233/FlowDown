@@ -16,11 +16,14 @@ const instrumentSerif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
+const siteTitle = "FlowDown - AI That Works Even Without Us";
+const siteDescription =
+  "You can OWN a blazing fast and smooth Agent app. Switch between your AI services or use local models on your device.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://flowdown.ai"),
-  title: "FlowDown - AI That Works Even Without Us",
-  description:
-    "You can OWN a blazing fast and smooth Agent app. Switch between your AI services or use local models on your device.",
+  title: siteTitle,
+  description: siteDescription,
   alternates: {
     canonical: "/",
   },
@@ -47,9 +50,8 @@ export const metadata: Metadata = {
     apple: "/favicon.png",
   },
   openGraph: {
-    title: "FlowDown - AI That Works Even Without Us",
-    description:
-      "You can OWN a blazing fast and smooth Agent app. Switch between your AI services or use local models on your device.",
+    title: siteTitle,
+    description: siteDescription,
     type: "website",
     locale: "en_US",
     images: [
@@ -57,15 +59,14 @@ export const metadata: Metadata = {
         url: "/og-Image.png",
         width: 1200,
         height: 630,
-        alt: "FlowDown - AI That Works Even Without Us",
+        alt: siteTitle,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FlowDown - AI That Works Even Without Us",
-    description:
-      "You can OWN a blazing fast and smooth Agent app. Switch between your AI services or use local models on your device.",
+    title: siteTitle,
+    description: siteDescription,
     images: ["/og-Image.png"],
   },
   robots: {

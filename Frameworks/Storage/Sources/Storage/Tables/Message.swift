@@ -105,11 +105,6 @@ extension Message: Updatable {
         self[keyPath: keyPath] = newValue
         markModified()
     }
-
-    package func update(_ block: (Message) -> Void) {
-        block(self)
-        markModified()
-    }
 }
 
 public extension Message.Role {

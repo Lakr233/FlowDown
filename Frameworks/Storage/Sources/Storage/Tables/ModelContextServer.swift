@@ -184,11 +184,6 @@ extension ModelContextServer: Updatable {
         self[keyPath: keyPath] = newValue
         markModified()
     }
-
-    package func update(_ block: (ModelContextServer) -> Void) {
-        block(self)
-        markModified()
-    }
 }
 
 public extension ModelContextServer {

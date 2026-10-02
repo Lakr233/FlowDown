@@ -11,27 +11,18 @@ import UIKit
 // MARK: - Glass Effect
 
 enum GlassEffectCornerStyle {
-    case none
-    case fixed(CGFloat)
     case capsule
 }
 
 extension UIView {
-    func wrappedInGlassEffect(
-        interactive: Bool = true,
-        cornerStyle: GlassEffectCornerStyle = .none,
-    ) -> UIView {
+    func wrappedInGlassEffect(cornerStyle: GlassEffectCornerStyle = .capsule) -> UIView {
         #if !targetEnvironment(macCatalyst)
             if #available(iOS 26, *) {
                 let effect = UIGlassEffect()
-                effect.isInteractive = interactive
+                effect.isInteractive = true
                 let container = UIVisualEffectView(effect: effect)
                 container.clipsToBounds = true
                 switch cornerStyle {
-                case .none:
-                    break
-                case let .fixed(radius):
-                    container.cornerConfiguration = .corners(radius: .fixed(radius))
                 case .capsule:
                     container.cornerConfiguration = .capsule()
                 }
@@ -41,29 +32,10 @@ extension UIView {
             }
         #endif
 
-        let container = LegacyGlassBackdropView(blurRadius: 4.0)
-        switch cornerStyle {
-        case .none:
-            break
-        case let .fixed(radius):
-            container.layer.cornerRadius = radius
-        case .capsule:
-            container.setCapsuleCorners()
-        }
+        let container = LegacyGlassBackdropView()
         container.contentView.addSubview(self)
         snp.makeConstraints { $0.edges.equalToSuperview() }
         return container
-    }
-}
-
-extension UIVisualEffectView {
-    static func adaptive(style: UIBlurEffect.Style = .systemMaterial) -> UIVisualEffectView {
-        #if !targetEnvironment(macCatalyst)
-            if #available(iOS 26, *) {
-                return UIVisualEffectView(effect: UIGlassEffect())
-            }
-        #endif
-        return UIVisualEffectView(effect: UIBlurEffect(style: style))
     }
 }
 
@@ -99,15 +71,6 @@ extension UIView {
         transform = CGAffineTransform(scaleX: 0.975, y: 0.975)
         layoutIfNeeded()
         doWithAnimation { self.transform = .identity }
-    }
-
-    func shake() {
-        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
-        animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
-        animation.duration = 0.5
-        animation.values = [-10, 10, -8, 8, -6, 6, -4, 4, 0]
-        animation.isRemovedOnCompletion = true
-        layer.add(animation, forKey: "shake")
     }
 }
 

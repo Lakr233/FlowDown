@@ -29,14 +29,6 @@ package final class MockCloudContainer: CloudContainer {
         }
     }
 
-    package func accountStatus() -> CKAccountStatus {
-        _accountStatus.withValue(\.self)
-    }
-
-    package var rawValue: CKContainer {
-        fatalError("This should never be called in tests.")
-    }
-
     package func accountStatus() async throws -> CKAccountStatus {
         _accountStatus.withValue { $0 }
     }

@@ -13,18 +13,6 @@ import Storage
 import UIKit
 
 extension ModelManager {
-    private func openModelManagementPage(controller: UIViewController?) {
-        guard let controller else { return }
-        if let nav = controller.navigationController {
-            let controller = SettingController.SettingContent.ModelController()
-            nav.pushViewController(controller, animated: true)
-        } else {
-            let setting = SettingController()
-            SettingController.setNextEntryPage(.modelManagement)
-            controller.present(setting, animated: true)
-        }
-    }
-
     func buildModelSelectionMenu(
         currentSelection: ModelIdentifier? = nil,
         requiresCapabilities: Set<ModelCapabilities> = [],

@@ -8,11 +8,15 @@ and remove duplication across per-locale entrypoints.
 
 import json
 import os
+import re
 import sys
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-# Languages we keep without auto-filling from English
+# Target languages every translatable string must have a non-empty value for
 DEFAULT_KEEP_LANGUAGES = {"ja", "de", "fr", "es", "ko", "zh-Hans"}
+
+# Xcode writes positional specifiers into the English value of multi-argument keys (%1$@ for %@)
+POSITIONAL_SPECIFIER = re.compile(r"%(\d+)\$")
 
 
 def default_file_path() -> str:
@@ -58,6 +62,20 @@ def save_strings(file_path: str, data: Dict[str, Any]) -> None:
 def should_translate(entry: Dict[str, Any]) -> bool:
     """Return whether this entry should be translated based on JSON flag."""
     return entry.get("shouldTranslate", True) is not False
+
+
+def inconsistent_english_value(key: str, entry: Dict[str, Any]) -> Optional[str]:
+    """
+    Return the explicit English value when it differs from the key, ignoring
+    positional specifiers; None when they match. Without an explicit English
+    value the key is the English value, so that also returns None.
+    """
+    if not should_translate(entry):
+        return None
+    en_value = entry.get("localizations", {}).get("en", {}).get("stringUnit", {}).get("value")
+    if en_value is None or key in (en_value, POSITIONAL_SPECIFIER.sub("%", en_value)):
+        return None
+    return en_value
 
 
 def merge_new_strings(strings: Dict[str, Any], new_strings: Dict[str, Dict[str, str]]) -> int:
@@ -111,7 +129,6 @@ def collect_languages(strings: Dict[str, Any]) -> set:
 def update_missing_translations(
     data: Dict[str, Any],
     new_strings: Optional[Dict[str, Dict[str, str]]] = None,
-    keep_languages: Optional[Iterable[str]] = None,
 ) -> Dict[str, int]:
     """
     Fill missing English anchors and apply explicit translations.
@@ -151,76 +168,15 @@ def update_missing_translations(
                 en_unit["value"] = key
             en_unit["state"] = "translated"
             counts["fixed_en_state"] += 1
-        english_value = en_unit.get("value", key)
-
-        for language, translation in new_strings.get(key, {}).items():
-            current_unit = locs.get(language, {}).get("stringUnit", {})
-            current_value = current_unit.get("value", "").strip()
-            if current_value:
-                if (
-                    current_value == english_value
-                    and translation
-                    and translation != english_value
-                ):
-                    locs[language] = {
-                        "stringUnit": {
-                            "state": "translated",
-                            "value": translation,
-                        }
-                    }
-                    counts["applied_translations"] += 1
-                continue
-
-            locs[language] = {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": translation,
-                }
-            }
-            counts["applied_translations"] += 1
 
     return counts
 
 
-def apply_translation_map(
-    data: Dict[str, Any],
-    translation_map: Dict[str, str],
-    target_language: str = "zh-Hans",
-) -> int:
-    """Apply a one-to-one English → target language translation map."""
-    strings = data["strings"]
-    applied = 0
-
-    for english_key, translation in translation_map.items():
-        if english_key not in strings:
-            continue
-
-        value = strings[english_key]
-        locs = value.setdefault("localizations", {})
-        target_unit = locs.get(target_language, {}).get("stringUnit")
-        current_value = target_unit.get("value", "").strip() if target_unit else ""
-
-        if current_value:
-            continue
-
-        locs[target_language] = {
-            "stringUnit": {
-                "state": "translated",
-                "value": translation,
-            }
-        }
-        applied += 1
-
-    return applied
-
-
 def find_untranslated(
     data: Dict[str, Any],
-    target_langs: Optional[Iterable[str]] = None,
     exceptions: Optional[Iterable[str]] = None,
 ) -> List[Dict[str, Any]]:
     """Return entries where target languages are missing or have empty values."""
-    target_langs = set(target_langs or DEFAULT_KEEP_LANGUAGES)
     exceptions = set(exceptions or [])
     strings = data["strings"]
     untranslated: List[Dict[str, Any]] = []
@@ -234,7 +190,7 @@ def find_untranslated(
         locs = value.get("localizations", {})
         missing_langs: List[str] = []
 
-        for lang in target_langs:
+        for lang in DEFAULT_KEEP_LANGUAGES:
             target_unit = locs.get(lang, {}).get("stringUnit", {})
             target_value = target_unit.get("value", "").strip()
 
@@ -261,13 +217,12 @@ def prune_stale_strings(data: Dict[str, Any]) -> List[str]:
 
 def find_incomplete_translations(
     data: Dict[str, Any],
-    clean_stale: bool = True,
 ) -> Tuple[List[str], List[Tuple[str, str, str]], List[str]]:
     """
     Find missing/empty/non-translated entries.
     Returns (languages, incomplete list, removed_stale_keys)
     """
-    removed = prune_stale_strings(data) if clean_stale else []
+    removed = prune_stale_strings(data)
     strings = data["strings"]
     translatable = {k: v for k, v in strings.items() if should_translate(v)}
 
@@ -297,11 +252,4 @@ def print_update_summary(file_path: str, counts: Dict[str, int]) -> None:
     print(f"   - Added {counts['added_en']} missing English localizations")
     print(f"   - Fixed {counts['fixed_en_state']} 'new' English states")
     print(f"   - Applied {counts['applied_translations']} provided translations")
-
-
-def print_apply_summary(applied: int, file_path: str, target_language: str) -> None:
-    if applied:
-        print(f"✅ Added {applied} {target_language} translations in {file_path}")
-    else:
-        print(f"ℹ️ No {target_language} translations needed in {file_path}")
 

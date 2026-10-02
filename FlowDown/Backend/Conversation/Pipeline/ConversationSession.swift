@@ -154,9 +154,7 @@ final class ConversationSession: Identifiable {
         var visualAuxiliary: ModelManager.ModelIdentifier?
     }
 
-    var models: Models = .init() {
-        didSet { Logger.model.infoFile("models updated \(models)") }
-    }
+    let models = Models()
 
     func prepareSystemPrompt() {
         let modelManager = ModelManager.shared

@@ -117,31 +117,24 @@ log "notary profile: $NOTARIZE_KEYCHAIN_PROFILE"
 # Prefer using the hash as signing identity for deterministic behavior
 CODE_SIGNING_IDENTITY="$CODE_SIGNING_IDENTITY_HASH"
 
-emit_output() {
-  local key="$1"
-  local value="$2"
-  if [[ -n "$OUTPUT_FILE" ]]; then
-    echo "${key}=${value}" >> "$OUTPUT_FILE"
+emit() {
+  local file="$1"
+  local key="$2"
+  local value="$3"
+  if [[ -n "$file" ]]; then
+    echo "${key}=${value}" >> "$file"
   fi
 }
 
-emit_env() {
-  local key="$1"
-  local value="$2"
-  if [[ -n "$ENV_FILE" ]]; then
-    echo "${key}=${value}" >> "$ENV_FILE"
-  fi
-}
+emit "$OUTPUT_FILE" "keychain_db" "$KEYCHAIN_DB"
+emit "$OUTPUT_FILE" "code_signing_identity" "$CODE_SIGNING_IDENTITY"
+emit "$OUTPUT_FILE" "code_signing_team" "$CODE_SIGNING_TEAM"
+emit "$OUTPUT_FILE" "notarize_keychain_profile" "$NOTARIZE_KEYCHAIN_PROFILE"
 
-emit_output "keychain_db" "$KEYCHAIN_DB"
-emit_output "code_signing_identity" "$CODE_SIGNING_IDENTITY"
-emit_output "code_signing_team" "$CODE_SIGNING_TEAM"
-emit_output "notarize_keychain_profile" "$NOTARIZE_KEYCHAIN_PROFILE"
-
-emit_env "KEYCHAIN_DB" "$KEYCHAIN_DB"
-emit_env "CODE_SIGNING_IDENTITY" "$CODE_SIGNING_IDENTITY"
-emit_env "CODE_SIGNING_TEAM" "$CODE_SIGNING_TEAM"
-emit_env "NOTARIZE_KEYCHAIN_PROFILE" "$NOTARIZE_KEYCHAIN_PROFILE"
+emit "$ENV_FILE" "KEYCHAIN_DB" "$KEYCHAIN_DB"
+emit "$ENV_FILE" "CODE_SIGNING_IDENTITY" "$CODE_SIGNING_IDENTITY"
+emit "$ENV_FILE" "CODE_SIGNING_TEAM" "$CODE_SIGNING_TEAM"
+emit "$ENV_FILE" "NOTARIZE_KEYCHAIN_PROFILE" "$NOTARIZE_KEYCHAIN_PROFILE"
 
 log "setup completed successfully (toolbox kept at ${TOOLBOX_DIR})"
 

@@ -5,7 +5,6 @@
 //  Created by 秋星桥 on 1/21/25.
 //
 
-import Combine
 import Storage
 import UIKit
 
@@ -16,8 +15,6 @@ class Sidebar: UIView {
     let settingButton = SettingButton()
     let conversationSelectionView = ConversationSelectionView()
     let syncIndicator = SidebarSyncLabel()
-
-    private var cancellables = Set<AnyCancellable>()
 
     init() {
         super.init(frame: .zero)

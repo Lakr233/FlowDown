@@ -3,17 +3,18 @@ import Navigation from "@/components/sections/Navigation";
 import { Sidebar, MobileNav } from "@/components/docs";
 import { getDocsConfig } from "@/lib/docs-config";
 
+const description =
+  "FlowDown documentation - Learn how to use FlowDown, a privacy-first AI workspace for iOS and macOS.";
+
 export const metadata: Metadata = {
   title: {
     template: "%s | FlowDown Docs",
     default: "FlowDown Documentation",
   },
-  description:
-    "FlowDown documentation - Learn how to use FlowDown, a privacy-first AI workspace for iOS and macOS.",
+  description,
   openGraph: {
     title: "FlowDown Documentation",
-    description:
-      "FlowDown documentation - Learn how to use FlowDown, a privacy-first AI workspace for iOS and macOS.",
+    description,
     type: "website",
   },
 };

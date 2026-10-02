@@ -29,12 +29,11 @@ capture_with_pty() {
 }
 
 normalize_log() {
-    perl -ne '
+    FILTER_RE="$FILTER_RE" perl -ne '
         s/\r/\n/g;
         s/\x08//g;
         s/\x04//g;
-        next if m{Metal\.xctoolchain/usr/lib/swift/maccatalyst};
-        next if m{CoreData: error: Failed to create NSXPCConnection};
+        next if /$ENV{FILTER_RE}/;
         print;
     ' "$RAW_LOG" >"$LOG"
 }

@@ -104,23 +104,31 @@ enum ConversationSystemPromptBuilder {
         }
 
         if input.modelWillExecuteTools {
-            var toolGuidance = String(localized:
-                """
-                Use the provided tools when they fit the user's request. Don't look up what is already given or easily inferred.
-                """)
-
-            if shouldExposeMemory {
-                toolGuidance += "\n\n" + MemoryStore.memoryToolsPrompt
-            }
-
-            if proactiveMemoryProvided {
-                toolGuidance += "\n\n" +
-                    String(localized: "The memory summary above follows the user's settings. Treat it as reliable and keep it current with the memory tools.")
-            }
-
-            requestMessages.append(.system(content: .text(toolGuidance)))
+            let guidance = toolGuidance(
+                includesMemoryTools: shouldExposeMemory,
+                proactiveMemoryProvided: proactiveMemoryProvided,
+            )
+            requestMessages.append(.system(content: .text(guidance)))
         }
 
         requestMessages.append(.user(content: .text(input.userText)))
+    }
+
+    static func toolGuidance(includesMemoryTools: Bool, proactiveMemoryProvided: Bool) -> String {
+        var guidance = String(localized:
+            """
+            Use the provided tools when they fit the user's request. Don't look up what is already given or easily inferred.
+            """)
+
+        if includesMemoryTools {
+            guidance += "\n\n" + MemoryStore.memoryToolsPrompt
+        }
+
+        if proactiveMemoryProvided {
+            guidance += "\n\n" +
+                String(localized: "The memory summary above follows the user's settings. Treat it as reliable and keep it current with the memory tools.")
+        }
+
+        return guidance
     }
 }

@@ -10,7 +10,6 @@ Exit codes:
 import sys
 
 from i18n_tools import (
-    DEFAULT_KEEP_LANGUAGES,
     default_file_path,
     find_untranslated,
     load_strings,
@@ -27,7 +26,6 @@ if __name__ == "__main__":
 
     untranslated = find_untranslated(
         data,
-        target_langs=DEFAULT_KEEP_LANGUAGES,
         exceptions=EXCEPTIONS,
     )
 

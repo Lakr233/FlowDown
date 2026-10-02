@@ -20,47 +20,25 @@ package extension Storage {
         }
     }
 
-    func syncMetadataRemoveAll(handle: Handle? = nil) throws {
-        if let handle {
-            try handle.delete(fromTable: SyncMetadata.tableName)
-        } else {
-            try db.delete(fromTable: SyncMetadata.tableName)
-        }
+    func syncMetadataRemoveAll() throws {
+        try db.delete(fromTable: SyncMetadata.tableName)
     }
 
-    func syncMetadataRemove(zoneName: String, ownerName: String, recordName: String, handle: Handle? = nil) throws {
-        if let handle {
-            try handle.delete(
-                fromTable: SyncMetadata.tableName,
-                where: SyncMetadata.Properties.recordName == recordName
-                    && SyncMetadata.Properties.zoneName == zoneName
-                    && SyncMetadata.Properties.ownerName == ownerName,
-            )
-        } else {
-            try db.delete(
-                fromTable: SyncMetadata.tableName,
-                where: SyncMetadata.Properties.recordName == recordName
-                    && SyncMetadata.Properties.zoneName == zoneName
-                    && SyncMetadata.Properties.ownerName == ownerName,
-            )
-        }
+    func syncMetadataRemove(zoneName: String, ownerName: String, recordName: String) throws {
+        try db.delete(
+            fromTable: SyncMetadata.tableName,
+            where: SyncMetadata.Properties.recordName == recordName
+                && SyncMetadata.Properties.zoneName == zoneName
+                && SyncMetadata.Properties.ownerName == ownerName,
+        )
     }
 
-    func findSyncMetadata(zoneName: String, ownerName: String, recordName: String, handle: Handle? = nil) throws -> SyncMetadata? {
-        if let handle {
-            try handle.getObject(
-                fromTable: SyncMetadata.tableName,
-                where: SyncMetadata.Properties.recordName == recordName
-                    && SyncMetadata.Properties.zoneName == zoneName
-                    && SyncMetadata.Properties.ownerName == ownerName,
-            )
-        } else {
-            try db.getObject(
-                fromTable: SyncMetadata.tableName,
-                where: SyncMetadata.Properties.recordName == recordName
-                    && SyncMetadata.Properties.zoneName == zoneName
-                    && SyncMetadata.Properties.ownerName == ownerName,
-            )
-        }
+    func findSyncMetadata(zoneName: String, ownerName: String, recordName: String) throws -> SyncMetadata? {
+        try db.getObject(
+            fromTable: SyncMetadata.tableName,
+            where: SyncMetadata.Properties.recordName == recordName
+                && SyncMetadata.Properties.zoneName == zoneName
+                && SyncMetadata.Properties.ownerName == ownerName,
+        )
     }
 }

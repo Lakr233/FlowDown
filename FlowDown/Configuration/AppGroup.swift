@@ -8,25 +8,27 @@
 import Foundation
 
 enum AppGroup {
-    static let identifier = "group.wiki.qaq"
+    private static let identifier = "group.wiki.qaq"
 
-    static var containerURL: URL? {
+    private static var containerURL: URL? {
         FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: identifier,
         )
     }
 
+    private static var flowDownDirectoryURL: URL? {
+        containerURL?.appendingPathComponent("FlowDown")
+    }
+
     static var sharedCloudModelsURL: URL? {
-        containerURL?
-            .appendingPathComponent("FlowDown")
+        flowDownDirectoryURL?
             .appendingPathComponent("Models")
             .appendingPathComponent("Cloud")
     }
 
     /// The app writes this file and FlowDownTranslationProvider, which links this source file, reads it.
     static var sharedAdditionalPromptURL: URL? {
-        containerURL?
-            .appendingPathComponent("FlowDown")
+        flowDownDirectoryURL?
             .appendingPathComponent("Prompts")
             .appendingPathComponent("Additional.txt")
     }

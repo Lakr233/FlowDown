@@ -20,12 +20,8 @@ private extension CloudModel {
 }
 
 extension TranslationProviderView {
-    private var selectedLanguageHintText: String {
-        selectedLanguageHint.isEmpty ? currentLocaleDescription : selectedLanguageHint
-    }
-
     private var controlText: String {
-        "\(model.buttonName) - \(selectedLanguageHintText)"
+        "\(selectedModel?.buttonName ?? "") - \(targetLanguage)"
     }
 
     var footer: some View {

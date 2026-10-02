@@ -15,44 +15,22 @@ nonisolated enum AppEnvironment {
         nonisolated let syncEngine: SyncEngine
     }
 
-    private static var containerStack: [Container] = []
+    private static var container: Container?
 
     nonisolated static var isBootstrapped: Bool {
-        !containerStack.isEmpty
+        container != nil
     }
 
     nonisolated static var current: Container {
-        guard let container = containerStack.last else {
+        guard let container else {
             fatalError("Call AppEnvironment.bootstrap(_) before accessing dependencies.")
         }
         return container
     }
 
-    @discardableResult
-    nonisolated static func bootstrap(_ container: Container) -> Container {
-        containerStack = [container]
-        apply(container)
-        return container
-    }
-
-    nonisolated static func push(_ container: Container) {
-        containerStack.append(container)
-        apply(container)
-    }
-
-    nonisolated static func pop() {
-        guard containerStack.count > 1 else {
-            assertionFailure("Attempted to pop the root AppEnvironment container.")
-            return
-        }
-        _ = containerStack.popLast()
-        if let container = containerStack.last {
-            apply(container)
-        }
-    }
-
-    private nonisolated static func apply(_ container: Container) {
-        Storage.setSyncEngine(container.syncEngine)
+    nonisolated static func bootstrap(_ newValue: Container) {
+        container = newValue
+        Storage.setSyncEngine(newValue.syncEngine)
     }
 }
 
@@ -63,12 +41,11 @@ nonisolated extension AppEnvironment.Container {
 
         let shouldEnableCloudSync = SyncEngine.isCloudSyncSupported(containerIdentifier: CloudKitConfig.containerIdentifier)
         let shouldUseMockSync = isRunningTests || !shouldEnableCloudSync
-        if !shouldEnableCloudSync || shouldUseMockSync {
+        if shouldUseMockSync {
             SyncEngine.setSyncEnabled(false)
         }
 
         let mode: SyncEngine.Mode = shouldUseMockSync ? .mock : .live
-        let automaticallySync = shouldUseMockSync ? false : shouldEnableCloudSync
 
         #if DEBUG
             let infoDic = Bundle.main.infoDictionary
@@ -80,7 +57,7 @@ nonisolated extension AppEnvironment.Container {
             storage: storage,
             containerIdentifier: CloudKitConfig.containerIdentifier,
             mode: mode,
-            automaticallySync: automaticallySync,
+            automaticallySync: !shouldUseMockSync,
         )
         return .init(storage: storage, syncEngine: syncEngine)
     }

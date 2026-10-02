@@ -21,12 +21,12 @@ extension String {
         let stringAttributes = [NSAttributedString.Key.font: font]
         let imageSize = nsString.size(withAttributes: stringAttributes)
 
-        UIGraphicsBeginImageContextWithOptions(imageSize, false, 0) //  begin image context
-        UIColor.clear.set() // clear background
-        UIRectFill(CGRect(origin: CGPoint(), size: imageSize)) // set rect size
-        nsString.draw(at: CGPoint.zero, withAttributes: stringAttributes) // draw text within rect
-        let image = UIGraphicsGetImageFromCurrentImageContext() // create image from context
-        UIGraphicsEndImageContext() //  end image context
+        UIGraphicsBeginImageContextWithOptions(imageSize, false, 0)
+        UIColor.clear.set()
+        UIRectFill(CGRect(origin: CGPoint(), size: imageSize))
+        nsString.draw(at: CGPoint.zero, withAttributes: stringAttributes)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
 
         return image ?? UIImage()
     }

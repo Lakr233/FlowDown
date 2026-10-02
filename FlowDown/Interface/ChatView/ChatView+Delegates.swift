@@ -69,7 +69,6 @@ extension ChatView: RichEditorView.Delegate {
       guard currentModelCanSee || auxModelExists else {
         presentModelRequiredAlert(
           message: "A visual model is required for image attachments.",
-          entryPage: .modelManagement,
         )
         completion(false)
         return
@@ -94,7 +93,6 @@ extension ChatView: RichEditorView.Delegate {
 
   private func presentModelRequiredAlert(
     message: String.LocalizationValue,
-    entryPage: SettingController.EntryPage,
   ) {
     let alert = AlertViewController(
       title: "Error",
@@ -106,7 +104,7 @@ extension ChatView: RichEditorView.Delegate {
       }
       context.addAction(title: "Configure", attribute: .accent) { [weak self] in
         context.dispose { [weak self] in
-          SettingController.setNextEntryPage(entryPage)
+          SettingController.setNextEntryPage(.modelManagement)
           let setting = SettingController()
           self?.parentViewController?.present(setting, animated: true)
         }
@@ -121,10 +119,6 @@ extension ChatView: RichEditorView.Delegate {
       preset: .error,
       referencingView: self,
     )
-  }
-
-  func onRichEditorTogglesUpdate(object: RichEditorView.Object) {
-    _ = object
   }
 
   func onRichEditorRequestObjectForRestore() -> RichEditorView.Object? {
@@ -217,37 +211,6 @@ extension ChatView: RichEditorView.Delegate {
       },
       includeQuickActions: true,
     )
-  }
-
-  func onRichEditorBuildAlternativeModelMenu() -> [UIMenuElement] {
-    let isAppleIntelligence: Bool = {
-      guard let id = modelIdentifier(), !id.isEmpty else { return false }
-      if #available(iOS 26.0, macCatalyst 26.0, *) {
-        return id == AppleIntelligenceModel.shared.modelIdentifier
-      }
-      return false
-    }()
-    return [
-      { () -> UIAction? in
-        guard !isAppleIntelligence, let id = modelIdentifier(), !id.isEmpty else { return nil }
-        return UIAction(
-          title: String(localized: "Edit Model"),
-          image: UIImage(systemName: "slider.horizontal.3"),
-        ) { [weak self] _ in
-          SettingController.setNextEntryPage(.modelEditor(model: id))
-          let settingController = SettingController()
-          self?.parentViewController?.present(settingController, animated: true)
-        }
-      }(),
-      UIAction(
-        title: String(localized: "Inference Settings"),
-        image: UIImage(systemName: "gearshape"),
-      ) { [weak self] _ in
-        SettingController.setNextEntryPage(.inference)
-        let settingController = SettingController()
-        self?.parentViewController?.present(settingController, animated: true)
-      },
-    ].compactMap(\.self)
   }
 
   func onRichEditorBuildAlternativeToolsMenu(
@@ -383,18 +346,6 @@ extension ChatView: RichEditorView.Delegate {
 
   func onRichEditorCheckIfModelSupportsToolCall(_ modelIdentifier: String) -> Bool {
     ModelManager.shared.modelCapabilities(identifier: modelIdentifier).contains(.tool)
-  }
-
-  func onSelectLocalModel(_ model: LocalModel) {
-    onSelectModel(model_id: model.id)
-  }
-
-  func onSelectCloudModel(_ model: CloudModel) {
-    onSelectModel(model_id: model.id)
-  }
-
-  private func onSelectModel(model_id: String) {
-    offloadModelsToSession(modelIdentifier: model_id)
   }
 
   func offloadModelsToSession(modelIdentifier: ModelManager.ModelIdentifier?) {

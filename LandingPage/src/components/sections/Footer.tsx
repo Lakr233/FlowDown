@@ -1,6 +1,45 @@
 import Link from "next/link";
 import { FadeIn } from "@/components/animations";
 
+const footerColumns: { heading: string; links: { href: string; label: string; external?: boolean }[] }[] = [
+  {
+    heading: "Download",
+    links: [
+      {
+        href: "https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198",
+        label: "iOS App Store",
+        external: true,
+      },
+      {
+        href: "https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198",
+        label: "macOS App Store",
+        external: true,
+      },
+      { href: "https://github.com/Lakr233/FlowDown", label: "Get Source Code", external: true },
+    ],
+  },
+  {
+    heading: "Doc",
+    links: [
+      { href: "/docs/documents/models/inference_configuration", label: "Get Local Models" },
+      { href: "/docs/documents/models/cloud_models_setup", label: "Get Cloud Models" },
+      { href: "/docs/documents/quickstart/basic_usage", label: "Basic Usage" },
+      { href: "/docs/documents/troubleshooting/faq", label: "FAQ" },
+    ],
+  },
+  {
+    heading: "Others",
+    links: [
+      { href: "/pricing", label: "Price" },
+      { href: "/compare", label: "Compare" },
+      { href: "/about", label: "About" },
+      { href: "/contact", label: "Contact" },
+      { href: "/privacy", label: "Privacy" },
+      { href: "/docs/documents/legal/software_license", label: "Terms of Service" },
+    ],
+  },
+];
+
 export default function Footer() {
   return (
     <footer className="bg-white mt-[120px] relative overflow-hidden">
@@ -55,107 +94,23 @@ export default function Footer() {
 
             {/* Right side - Links */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-8">
-              {/* Download links */}
-              <div className="flex flex-col gap-4">
-                <p className="text-sm font-medium text-[#242424]">Download</p>
-                <div className="flex flex-col gap-3 text-sm font-medium text-[#454545]">
-                  <Link
-                    href="https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198"
-                    target="_blank"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    iOS App Store
-                  </Link>
-                  <Link
-                    href="https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198"
-                    target="_blank"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    macOS App Store
-                  </Link>
-                  <Link
-                    href="https://github.com/Lakr233/FlowDown"
-                    target="_blank"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Get Source Code
-                  </Link>
+              {footerColumns.map((column) => (
+                <div key={column.heading} className="flex flex-col gap-4">
+                  <p className="text-sm font-medium text-[#242424]">{column.heading}</p>
+                  <div className="flex flex-col gap-3 text-sm font-medium text-[#454545]">
+                    {column.links.map((link) => (
+                      <Link
+                        key={link.label}
+                        href={link.href}
+                        target={link.external ? "_blank" : undefined}
+                        className="hover:text-[#242424] transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Doc links */}
-              <div className="flex flex-col gap-4">
-                <p className="text-sm font-medium text-[#242424]">Doc</p>
-                <div className="flex flex-col gap-3 text-sm font-medium text-[#454545]">
-                  <Link
-                    href="/docs/documents/models/inference_configuration"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Get Local Models
-                  </Link>
-                  <Link
-                    href="/docs/documents/models/cloud_models_setup"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Get Cloud Models
-                  </Link>
-                  <Link
-                    href="/docs/documents/quickstart/basic_usage"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Basic Usage
-                  </Link>
-                  <Link
-                    href="/docs/documents/troubleshooting/faq"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    FAQ
-                  </Link>
-                </div>
-              </div>
-
-              {/* Other links */}
-              <div className="flex flex-col gap-4">
-                <p className="text-sm font-medium text-[#242424]">Others</p>
-                <div className="flex flex-col gap-3 text-sm font-medium text-[#454545]">
-                  <Link
-                    href="/pricing"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Price
-                  </Link>
-                  <Link
-                    href="/compare"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Compare
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    About
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Contact
-                  </Link>
-                  <Link
-                    href="/privacy"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Privacy
-                  </Link>
-                  <Link
-                    href="/docs/documents/legal/software_license"
-                    className="hover:text-[#242424] transition-colors"
-                  >
-                    Terms of Service
-                  </Link>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 

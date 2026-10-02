@@ -323,13 +323,3 @@ extension SettingController.SettingContent {
         }
     }
 }
-
-extension StackScrollController {
-    func setupConfigurableObjectViews(from objects: [ConfigurableObject]) {
-        for (idx, object) in objects.enumerated() {
-            let view = object.createView()
-            stackView.addArrangedSubviewWithMargin(view)
-            if idx < objects.count - 1 { stackView.addArrangedSubview(SeparatorView()) }
-        }
-    }
-}

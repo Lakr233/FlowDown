@@ -20,8 +20,6 @@ nonisolated(unsafe) extension ScrubberConfiguration {
 
     private static var cancellables: Set<AnyCancellable> = []
 
-    static let engineConfigChanged: PassthroughSubject<Void, Never> = .init()
-
     nonisolated(unsafe) static let googleEnabledConfigurableObject: ConfigurableObject = .init(
         icon: "sparkle.magnifyingglass",
         title: "Google Search",
@@ -78,43 +76,33 @@ nonisolated(unsafe) extension ScrubberConfiguration {
     static func subscribeToConfigurableItem() {
         assert(cancellables.isEmpty)
 
-        let publisher: AnyPublisher<(Bool, Bool, Bool, Bool), Never> = Publishers.CombineLatest4(
+        Publishers.CombineLatest4(
             ConfigurableKit.publisher(forKey: googleEnabledKey, type: Bool.self)
-                .compactMap { $0 ?? true }
-                .eraseToAnyPublisher(),
+                .map { $0 ?? true },
             ConfigurableKit.publisher(forKey: duckduckgoEnabledKey, type: Bool.self)
-                .compactMap { $0 ?? true }
-                .eraseToAnyPublisher(),
+                .map { $0 ?? true },
             ConfigurableKit.publisher(forKey: yahooEnabledKey, type: Bool.self)
-                .compactMap { $0 ?? true }
-                .eraseToAnyPublisher(),
+                .map { $0 ?? true },
             ConfigurableKit.publisher(forKey: bingEnabledKey, type: Bool.self)
-                .compactMap { $0 ?? true }
-                .eraseToAnyPublisher(),
+                .map { $0 ?? true },
         )
-        .eraseToAnyPublisher()
-
-        let disabledEnginesPublisher = publisher
-            .map { g, d, y, b in
-                var disabledEnginesBuilder: Set<ScrubEngine> = []
-                if !g { disabledEnginesBuilder.insert(.google) }
-                if !d { disabledEnginesBuilder.insert(.duckduckgo) }
-                if !y { disabledEnginesBuilder.insert(.yahoo) }
-                if !b { disabledEnginesBuilder.insert(.bing) }
-                return disabledEnginesBuilder
+        .map { g, d, y, b in
+            var disabledEnginesBuilder: Set<ScrubEngine> = []
+            if !g { disabledEnginesBuilder.insert(.google) }
+            if !d { disabledEnginesBuilder.insert(.duckduckgo) }
+            if !y { disabledEnginesBuilder.insert(.yahoo) }
+            if !b { disabledEnginesBuilder.insert(.bing) }
+            return disabledEnginesBuilder
+        }
+        .ensureMainThread()
+        .sink { input in
+            if input.count == ScrubEngine.allCases.count {
+                disabledEngines = []
+                ConfigurableKit.set(value: true, forKey: googleEnabledKey)
+            } else {
+                disabledEngines = input
             }
-            .eraseToAnyPublisher()
-
-        disabledEnginesPublisher
-            .ensureMainThread()
-            .sink { input in
-                if input.count == ScrubEngine.allCases.count {
-                    disabledEngines = []
-                    ConfigurableKit.set(value: true, forKey: googleEnabledKey)
-                } else {
-                    disabledEngines = input
-                }
-            }
-            .store(in: &cancellables)
+        }
+        .store(in: &cancellables)
     }
 }

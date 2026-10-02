@@ -2,13 +2,13 @@ import Link from "next/link";
 import Navigation from "@/components/sections/Navigation";
 import Footer from "@/components/sections/Footer";
 
-export interface ResourceLink {
+interface ResourceLink {
   label: string;
   href: string;
   description: string;
 }
 
-export interface ResourceSection {
+interface ResourceSection {
   title: string;
   body?: string;
   items?: string[];

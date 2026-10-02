@@ -100,11 +100,6 @@ extension ChatTemplateRecord: Updatable {
         self[keyPath: keyPath] = newValue
         markModified()
     }
-
-    package func update(_ block: (ChatTemplateRecord) -> Void) {
-        block(self)
-        markModified()
-    }
 }
 
 extension ChatTemplateRecord: Equatable {

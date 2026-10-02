@@ -112,13 +112,14 @@ enum MemoryProactiveProvisionScope: String, CaseIterable, Codable {
 
 enum MemoryProactiveProvisionSetting {
     static let storageKey = "app.memory.proactive.provision.scope"
+    private static let defaultScope: MemoryProactiveProvisionScope = .recent30
 
     static let configurableObject: ConfigurableObject = .init(
         icon: "brain.head.profile",
         title: "Proactive Memory Context",
         explain: "Choose how we proactively shares stored memories with the model during conversations and automations. This includes system Shortcuts.",
         key: storageKey,
-        defaultValue: MemoryProactiveProvisionScope.recent30.rawValue,
+        defaultValue: defaultScope.rawValue,
         annotation: .menu {
             MemoryProactiveProvisionScope.allCases.map { scope in
                 .init(
@@ -132,19 +133,12 @@ enum MemoryProactiveProvisionSetting {
 
     static var currentScope: MemoryProactiveProvisionScope {
         let raw: String? = ConfigurableKit.value(forKey: storageKey)
-        if let raw, let scope = MemoryProactiveProvisionScope(rawValue: raw) {
-            return scope
-        }
-        return .recent30
+        return raw.flatMap(MemoryProactiveProvisionScope.init(rawValue:)) ?? defaultScope
     }
 
     static func shouldInjectRecentConversationContext(
         for scope: MemoryProactiveProvisionScope,
     ) -> Bool {
         scope != .off
-    }
-
-    static var shouldInjectRecentConversationContext: Bool {
-        shouldInjectRecentConversationContext(for: currentScope)
     }
 }

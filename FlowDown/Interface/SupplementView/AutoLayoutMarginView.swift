@@ -62,13 +62,4 @@ extension UIStackView {
         addArrangedSubview(view)
         return view
     }
-
-    @discardableResult
-    func insertArrangedSubviewWithMargin(_ view: UIView, at stackIndex: Int, adjustMargin: (inout UIEdgeInsets) -> Void = { _ in }) -> UIView {
-        var margin = defaultMargin
-        adjustMargin(&margin)
-        let view = AutoLayoutMarginView(view, insets: margin)
-        insertArrangedSubview(view, at: stackIndex)
-        return view
-    }
 }

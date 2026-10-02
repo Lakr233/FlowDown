@@ -101,10 +101,6 @@ final class EvaluationStatusCollectionView: UIView {
         collectionView.register(EvaluationStatusCell.self, forCellWithReuseIdentifier: "EvaluationStatusCell")
     }
 
-    func setStopped() {
-        // Intentionally left blank.
-    }
-
     func applySessionUpdate(animated: Bool) {
         requestApplySnapshot(animated: animated)
     }

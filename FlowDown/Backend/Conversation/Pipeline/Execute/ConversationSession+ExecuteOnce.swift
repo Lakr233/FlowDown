@@ -152,23 +152,18 @@ extension ConversationSession {
 
         let trimmedReasoning = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDocument = message.document.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // A cancelled consumer ends the stream normally instead of throwing,
-        // so an empty round under cancellation is the user's cancellation.
-        if trimmedReasoning.isEmpty,
-           trimmedDocument.isEmpty,
-           generatedImages.isEmpty,
-           pendingToolCalls.isEmpty,
-           Task.isCancelled
-        {
-            throw InferenceUserCancellationError()
-        }
-
-        let shouldSilentlyDropEmptyAssistantMessage = isImmediateFollowUpAfterToolCall
-            && trimmedReasoning.isEmpty
+        let producedNothing = trimmedReasoning.isEmpty
             && trimmedDocument.isEmpty
             && generatedImages.isEmpty
             && pendingToolCalls.isEmpty
+
+        // A cancelled consumer ends the stream normally instead of throwing,
+        // so an empty round under cancellation is the user's cancellation.
+        if producedNothing, Task.isCancelled {
+            throw InferenceUserCancellationError()
+        }
+
+        let shouldSilentlyDropEmptyAssistantMessage = isImmediateFollowUpAfterToolCall && producedNothing
 
         if shouldSilentlyDropEmptyAssistantMessage {
             discard(messageIdentifier: message.objectId)
@@ -201,7 +196,7 @@ extension ConversationSession {
             ),
         )
 
-        if trimmedDocument.isEmpty, trimmedReasoning.isEmpty, generatedImages.isEmpty, pendingToolCalls.isEmpty {
+        if producedNothing {
             throw NSError(
                 domain: "Inference Service",
                 code: -1,
@@ -217,7 +212,6 @@ extension ConversationSession {
             return false
         }
         guard !pendingToolCalls.isEmpty else { return false }
-        assert(modelWillExecuteTools)
 
         await requestUpdate()
         showActivity(String(localized: "Utilizing tool call"))
@@ -335,18 +329,10 @@ extension ConversationSession {
                                     data: audio.data,
                                     fileExtension: fileExtension,
                                 )
-                                var suggestedName = audio.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                                if suggestedName.isEmpty {
-                                    suggestedName = if result.audioAttachments.count > 1 {
-                                        String(localized: "Tool Provided Audio #\(index + 1)")
-                                    } else {
-                                        String(localized: "Tool Provided Audio")
-                                    }
-                                }
                                 let attachment = try await RichEditorView.Object.Attachment.makeAudioAttachment(
                                     transcoded: transcoded,
                                     storage: nil,
-                                    suggestedName: suggestedName,
+                                    suggestedName: audio.name,
                                 )
                                 audioAttachments.append(attachment)
                             } catch {

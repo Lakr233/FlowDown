@@ -34,10 +34,6 @@ enum CommonTranslationLanguage: String, CaseIterable, Identifiable {
         rawValue
     }
 
-    var description: String {
-        rawValue
-    }
-
     var localizedDescription: String {
         let key: String.LocalizationValue = switch self {
         case .arabic: "Arabic"

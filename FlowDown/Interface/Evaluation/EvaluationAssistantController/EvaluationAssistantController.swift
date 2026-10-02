@@ -77,7 +77,6 @@ class EvaluationAssistantController: StackScrollController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // refreshUI()
         refreshEx()
     }
 
@@ -115,11 +114,6 @@ class EvaluationAssistantController: StackScrollController {
 private extension EvaluationAssistantController {
     func attemptsText(_ value: Int) -> String {
         let key: String.LocalizationValue = "\(value) attempts"
-        return String(localized: key)
-    }
-
-    func repeatsText(_ value: Int) -> String {
-        let key: String.LocalizationValue = "Test \(value) times"
         return String(localized: key)
     }
 
@@ -278,20 +272,6 @@ private extension EvaluationAssistantController {
         }
     }
 
-    func isManifestEnabled(_ manifest: EvaluationManifest) -> Bool {
-        options.manifesets.contains(where: { $0 === manifest })
-    }
-
-    func setManifestEnabled(_ manifest: EvaluationManifest, enabled: Bool) {
-        if enabled {
-            if !options.manifesets.contains(where: { $0 === manifest }) {
-                options.manifesets.append(manifest)
-            }
-        } else {
-            options.manifesets.removeAll(where: { $0 === manifest })
-        }
-    }
-
     func isSuiteExcluded(_ id: EvaluationManifest.Suite.ID) -> Bool {
         options.excludedSuites.contains(id)
     }
@@ -303,20 +283,6 @@ private extension EvaluationAssistantController {
             }
         } else {
             options.excludedSuites.removeAll(where: { $0 == id })
-        }
-    }
-
-    func isCaseExcluded(_ id: EvaluationManifest.Suite.Case.ID) -> Bool {
-        options.excludedCases.contains(id)
-    }
-
-    func setCaseExcluded(_ id: EvaluationManifest.Suite.Case.ID, excluded: Bool) {
-        if excluded {
-            if !options.excludedCases.contains(id) {
-                options.excludedCases.append(id)
-            }
-        } else {
-            options.excludedCases.removeAll(where: { $0 == id })
         }
     }
 

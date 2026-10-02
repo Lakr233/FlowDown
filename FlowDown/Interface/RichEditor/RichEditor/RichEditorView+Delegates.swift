@@ -154,14 +154,14 @@ extension RichEditorView {
             }
             context.addAction(title: NSLocalizedString("Convert to Image", comment: ""), attribute: .accent) {
                 context.dispose {
-                    self?.convertPDFToImages(pdfDocument: pdfDocument, fileName: file.lastPathComponent)
+                    self?.convertPDFToImages(pdfDocument: pdfDocument)
                 }
             }
         }
         parentViewController?.present(alert, animated: true)
     }
 
-    func convertPDFToImages(pdfDocument: PDFDocument, fileName _: String) {
+    func convertPDFToImages(pdfDocument: PDFDocument) {
         let pageCount = pdfDocument.pageCount
 
         let indicator = AlertProgressIndicatorViewController(
@@ -175,10 +175,9 @@ extension RichEditorView {
                     guard let page = pdfDocument.page(at: pageIndex) else { continue }
 
                     let pageRect = page.bounds(for: .mediaBox)
-                    let scaleFactor: CGFloat = 1.0
                     let targetSize = CGSize(
-                        width: pageRect.width * scaleFactor,
-                        height: pageRect.height * scaleFactor,
+                        width: pageRect.width,
+                        height: pageRect.height,
                     )
 
                     let renderer = UIGraphicsImageRenderer(size: targetSize)
@@ -188,7 +187,6 @@ extension RichEditorView {
 
                         context.cgContext.translateBy(x: 0, y: targetSize.height)
                         context.cgContext.scaleBy(x: 1, y: -1)
-                        context.cgContext.scaleBy(x: scaleFactor, y: scaleFactor)
                         context.cgContext.translateBy(x: -pageRect.minX, y: -pageRect.minY)
                         page.draw(with: .mediaBox, to: context.cgContext)
                     }
@@ -444,10 +442,6 @@ extension RichEditorView: QuickSettingBar.Delegate {
         } ?? []
     }
 
-    func quickSettingBarBuildAlternativeModelMenu() -> [UIMenuElement] {
-        delegate?.onRichEditorBuildAlternativeModelMenu() ?? []
-    }
-
     func quickSettingBarBuildAlternativeToolsMenu(isEnabled: Bool, requestReload: @escaping (Bool) -> Void) -> [UIMenuElement] {
         delegate?.onRichEditorBuildAlternativeToolsMenu(isEnabled: isEnabled, requestReload: requestReload) ?? []
     }
@@ -469,7 +463,6 @@ extension RichEditorView: QuickSettingBar.Delegate {
 
     func quickSettingBarOnValueChagned() {
         publishNewEditorStatus()
-        delegate?.onRichEditorTogglesUpdate(object: collectObject())
 
         if quickSettingBar.toolsToggle.isOn {
             let newModelIdentifier = delegate?.onRichEditorRequestCurrentModelIdentifier()
@@ -627,16 +620,6 @@ extension RichEditorView.Object.Attachment {
 }
 
 extension RichEditorView.Object.Attachment {
-    private static func fileExtension(from mimeType: String?) -> String? {
-        guard let mimeType,
-              let type = UTType(mimeType: mimeType),
-              let ext = type.preferredFilenameExtension
-        else {
-            return nil
-        }
-        return ext
-    }
-
     private static func formattedDuration(_ duration: TimeInterval) -> String {
         guard duration.isFinite,
               duration > 0

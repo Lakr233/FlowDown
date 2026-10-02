@@ -143,9 +143,6 @@ extension MCPTool {
         if result["properties"] == nil {
             result["properties"] = .object([:])
         }
-        if result["additionalProperties"] == nil {
-            result["additionalProperties"] = .bool(false)
-        }
         return normalizeStrictJSONSchema(result)
     }
 

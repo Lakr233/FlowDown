@@ -76,11 +76,6 @@ extension Memory: Updatable {
         self[keyPath: keyPath] = newValue
         markModified()
     }
-
-    package func update(_ block: (Memory) -> Void) {
-        block(self)
-        markModified()
-    }
 }
 
 extension Memory: Equatable {

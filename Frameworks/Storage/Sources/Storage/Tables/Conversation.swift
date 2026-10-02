@@ -77,11 +77,6 @@ extension Conversation: Updatable {
         self[keyPath: keyPath] = newValue
         markModified()
     }
-
-    package func update(_ block: (Conversation) -> Void) {
-        block(self)
-        markModified()
-    }
 }
 
 extension Conversation: Equatable {

@@ -2,7 +2,7 @@
 @_exported import OSLog
 
 public extension Logger {
-    static let loggingSubsystem: String = {
+    private static let loggingSubsystem: String = {
         if let identifier = Bundle.main.bundleIdentifier, !identifier.isEmpty {
             return identifier
         }

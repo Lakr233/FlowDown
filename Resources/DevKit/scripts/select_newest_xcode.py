@@ -31,8 +31,7 @@ def discover_xcodes() -> list[Path]:
         if path.is_symlink():
             log(f"skipping {path} (symlink)")
             continue
-        resolved = path.resolve()
-        if "beta" in path.name.lower() or "beta" in resolved.name.lower():
+        if "beta" in path.name.lower():
             log(f"skipping {path} (beta build)")
             continue
         bundles.append(path)
@@ -67,8 +66,6 @@ def read_metadata(bundle: Path):
 
 
 def select_newest(candidates):
-    if not candidates:
-        return None
     return sorted(candidates, key=lambda item: item["sort_key"])[-1]
 
 
@@ -99,9 +96,6 @@ def main() -> int:
         candidates = filtered
 
     newest = select_newest(candidates)
-    if not newest:
-        print("[-] failed to determine newest Xcode", file=sys.stderr)
-        return 1
 
     xcode_path = newest["path"]
     developer_dir = xcode_path / "Contents/Developer"

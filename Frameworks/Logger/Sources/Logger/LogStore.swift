@@ -3,14 +3,14 @@ import Foundation
 public final class LogStore: @unchecked Sendable {
     public static let shared = LogStore()
 
-    let queue: DispatchQueue
-    let fileManager: FileManager
-    let maxFileSize: Int
-    let maxFiles: Int
+    private let queue = DispatchQueue(label: "wiki.qaq.flowdown.logstore", qos: .utility)
+    private let fileManager = FileManager.default
+    private let maxFileSize: Int
+    private let maxFiles: Int
     let logDirectory: URL
-    let logFileName: String
+    private let logFileName = "FlowDown.log"
 
-    private lazy var timestampFormatter: ISO8601DateFormatter = {
+    private let timestampFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
@@ -18,22 +18,15 @@ public final class LogStore: @unchecked Sendable {
 
     public init(
         directory: URL? = nil,
-        fileManager: FileManager = .default,
-        queue: DispatchQueue? = nil,
         maxFileSize: Int = 5 * 1024 * 1024,
         maxFiles: Int = 5,
-        fileName: String = "FlowDown.log",
     ) {
-        self.fileManager = fileManager
         self.maxFileSize = maxFileSize
         self.maxFiles = maxFiles
-        logFileName = fileName
-        self.queue = queue ?? DispatchQueue(label: "wiki.qaq.flowdown.logstore", qos: .utility)
 
-        let base = directory ?? Self.defaultBaseDirectory(fileManager: fileManager)
-        let dir = Self.logDirectory(baseDirectory: base)
-        try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
-        logDirectory = dir
+        let base = directory ?? Self.defaultBaseDirectory()
+        logDirectory = Self.logDirectory(baseDirectory: base)
+        try? fileManager.createDirectory(at: logDirectory, withIntermediateDirectories: true)
     }
 
     var logFileURL: URL {
@@ -74,7 +67,10 @@ public final class LogStore: @unchecked Sendable {
 
     public func clear() {
         queue.sync {
-            removeCurrentLogs()
+            try? fileManager.removeItem(at: logFileURL)
+            for index in 1 ... maxFiles {
+                try? fileManager.removeItem(at: rotatedFileURL(index: index))
+            }
         }
     }
 
@@ -84,23 +80,21 @@ public final class LogStore: @unchecked Sendable {
 
     public func clearLegacyCacheDirectory() {
         queue.sync {
-            guard let legacyDirectory = Self.legacyCacheLogDirectory(fileManager: fileManager) else { return }
+            guard let legacyDirectory = Self.legacyCacheLogDirectory() else { return }
             guard legacyDirectory.standardizedFileURL != logDirectory.standardizedFileURL else { return }
-            removeLogDirectory(at: legacyDirectory)
+            try? fileManager.removeItem(at: legacyDirectory)
         }
     }
 
     private func formattedLine(level: LogLevel, category: String, message: String) -> Data {
         let timestamp = timestampFormatter.string(from: Date())
-        return "\(timestamp) [\(level.rawValue)] [\(category)] \(message)\n".data(using: .utf8) ?? Data()
+        return Data("\(timestamp) [\(level.rawValue)] [\(category)] \(message)\n".utf8)
     }
 
     private func ensureLogFileExists() throws {
-        if !fileManager.fileExists(atPath: logFileURL.path) {
-            let dir = logFileURL.deletingLastPathComponent()
-            try fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
-            fileManager.createFile(atPath: logFileURL.path, contents: nil)
-        }
+        guard !fileManager.fileExists(atPath: logFileURL.path) else { return }
+        try fileManager.createDirectory(at: logDirectory, withIntermediateDirectories: true)
+        fileManager.createFile(atPath: logFileURL.path, contents: nil)
     }
 
     private func rotateIfNeeded() throws {
@@ -110,18 +104,12 @@ public final class LogStore: @unchecked Sendable {
         for index in stride(from: maxFiles - 1, through: 1, by: -1) {
             let source = rotatedFileURL(index: index)
             let destination = rotatedFileURL(index: index + 1)
-            if fileManager.fileExists(atPath: destination.path) {
-                try? fileManager.removeItem(at: destination)
-            }
-            if fileManager.fileExists(atPath: source.path) {
-                try? fileManager.moveItem(at: source, to: destination)
-            }
+            try? fileManager.removeItem(at: destination)
+            try? fileManager.moveItem(at: source, to: destination)
         }
 
         let first = rotatedFileURL(index: 1)
-        if fileManager.fileExists(atPath: first.path) {
-            try? fileManager.removeItem(at: first)
-        }
+        try? fileManager.removeItem(at: first)
         try fileManager.moveItem(at: logFileURL, to: first)
         fileManager.createFile(atPath: logFileURL.path, contents: nil)
     }
@@ -130,28 +118,13 @@ public final class LogStore: @unchecked Sendable {
         logDirectory.appendingPathComponent("\(logFileName).\(index)")
     }
 
-    private func removeRotatedFiles() {
-        for index in 1 ... maxFiles {
-            try? fileManager.removeItem(at: rotatedFileURL(index: index))
-        }
-    }
-
-    func removeCurrentLogs() {
-        try? fileManager.removeItem(at: logFileURL)
-        removeRotatedFiles()
-    }
-
-    func removeLogDirectory(at directory: URL) {
-        try? fileManager.removeItem(at: directory)
-    }
-
-    static func defaultBaseDirectory(fileManager: FileManager) -> URL {
-        fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
+    static func defaultBaseDirectory() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory())
     }
 
-    static func legacyCacheLogDirectory(fileManager: FileManager) -> URL? {
-        guard let base = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+    static func legacyCacheLogDirectory() -> URL? {
+        guard let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
             return nil
         }
         return logDirectory(baseDirectory: base)

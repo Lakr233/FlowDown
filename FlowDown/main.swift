@@ -58,7 +58,7 @@ private func boot() throws -> Never {
         try? FileManager.default.removeItem(at: disposableResourcesDir)
     }
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if targetEnvironment(macCatalyst)
         _ = UpdateManager.shared
         FLDCatalystHelper.shared.install()
     #endif

@@ -135,9 +135,7 @@ extension ConversationSession {
     }
 
     func encodeAdditionalInfoAndAttachToMessage(_ message: Message, dic: [String: Any]) {
-        let read = message.metadata ?? .init()
-        let orig = try? JSONSerialization.jsonObject(with: read, options: [.fragmentsAllowed]) as? [String: Any]
-        var existing = orig ?? .init()
+        var existing = metadataDictionary(of: message) ?? [:]
         for (key, value) in dic {
             existing[key] = value
         }
@@ -160,10 +158,9 @@ extension ConversationSession {
     }
 
     func documentIsPlaceholder(_ message: Message) -> Bool {
-        guard let read = message.metadata,
-              let orig = try? JSONSerialization.jsonObject(with: read, options: [.fragmentsAllowed]) as? [String: Any],
-              let placeholder = orig["placeholder_document"] as? String
-        else { return false }
+        guard let placeholder = metadataDictionary(of: message)?["placeholder_document"] as? String else {
+            return false
+        }
         return placeholder == message.document
     }
 
@@ -179,13 +176,17 @@ extension ConversationSession {
     }
 
     func decodeToolRequestFromToolMessage(_ message: Message) -> ToolRequest? {
-        let read = message.metadata ?? .init()
-        guard let orig = try? JSONSerialization.jsonObject(with: read, options: [.fragmentsAllowed]) as? [String: Any],
-              let toolRequestDic = orig["tool_request"],
+        guard let toolRequestDic = metadataDictionary(of: message)?["tool_request"],
               let data = try? JSONSerialization.data(withJSONObject: toolRequestDic, options: [.fragmentsAllowed]),
               let toolRequest = try? JSONDecoder().decode(ToolRequest.self, from: data)
         else { return nil }
         return toolRequest
+    }
+
+    /// The message metadata as a JSON object, or nil when it is missing or not a dictionary.
+    private func metadataDictionary(of message: Message) -> [String: Any]? {
+        guard let metadata = message.metadata else { return nil }
+        return try? JSONSerialization.jsonObject(with: metadata, options: [.fragmentsAllowed]) as? [String: Any]
     }
 
     func normalizeStoredToolRequest(_ request: ToolRequest) async -> ToolRequest {

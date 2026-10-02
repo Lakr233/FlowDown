@@ -44,7 +44,7 @@ export default function HeroSection() {
 
       {/* App Screenshot */}
       <section className="px-6 mt-6 max-w-[1280px] mx-auto">
-        <FadeIn delay={0.5} direction="up" className="w-full">
+        <FadeIn delay={0.5} className="w-full">
           <img
             src="/hero-image.png"
             alt="FlowDown App Screenshot"

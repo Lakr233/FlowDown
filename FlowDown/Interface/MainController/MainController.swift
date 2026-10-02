@@ -220,16 +220,10 @@ class MainController: UIViewController {
         setupViews()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-    }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         scheduleWelcomeIfNeeded()
     }
-
-    private var previousLayoutRect: CGRect = .zero
 
     /// Whether the chat side accepts input.
     ///
@@ -408,15 +402,6 @@ class MainController: UIViewController {
         firstTouchLocation = nil
         touchesMoved = false
         updateLayoutGuideToOriginalStatus()
-    }
-
-    @objc private func contentViewButtonTapped() {
-        #if targetEnvironment(macCatalyst)
-            return
-        #else
-            guard !allowSidebarPersistence else { return }
-            view.doWithAnimation { self.isSidebarCollapsed.toggle() }
-        #endif
     }
 
     @objc func requestNewChat() {
