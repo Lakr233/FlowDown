@@ -54,6 +54,19 @@ struct LogStoreTests {
     }
 
     @Test
+    func readTail_cutInsideMultibyteCharacter_returnsTail() throws {
+        let (store, directory) = try makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        store.append(level: .info, category: "Tail", message: String(repeating: "中", count: 100))
+        store.flush()
+
+        for maxBytes in 10 ... 12 {
+            #expect(store.readTail(maxBytes: maxBytes) == "中中中\n")
+        }
+    }
+
+    @Test
     func `log files rotate once max size is reached`() throws {
         let (store, directory) = try makeStore(maxFileSize: 128, maxFiles: 2)
         defer { try? FileManager.default.removeItem(at: directory) }

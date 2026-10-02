@@ -66,7 +66,9 @@ public final class LogStore: @unchecked Sendable {
             let startOffset = fileSize > UInt64(maxBytes) ? fileSize - UInt64(maxBytes) : 0
             try? handle.seek(toOffset: startOffset)
             let data = (try? handle.readToEnd()) ?? Data()
-            return String(data: data, encoding: .utf8) ?? ""
+            // The byte cut can land inside a multi-byte character; skip its continuation bytes.
+            let body = startOffset > 0 ? data.drop(while: { $0 & 0xC0 == 0x80 }) : data
+            return String(decoding: body, as: UTF8.self)
         }
     }
 
