@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/ColorfulX",
       "state" : {
-        "revision" : "bdf19698a9fdd3d2cd3ade4a9434d443b4313b36",
-        "version" : "6.1.0"
+        "revision" : "2f933d3c6be349c5c36084fb644f46988ba1f401",
+        "version" : "6.1.1"
       }
     },
     {
@@ -70,6 +70,15 @@
       "state" : {
         "revision" : "6bd5c7dfb07b0be8635241fe60508636de83cd43",
         "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "displaylink",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Lakr233/DisplayLink.git",
+      "state" : {
+        "revision" : "41bea2661e04bebcb1c4f15fc0b6197850100fdd",
+        "version" : "3.0.1"
       }
     },
     {
@@ -109,15 +118,6 @@
       }
     },
     {
-      "identity" : "highlightr",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/raspu/Highlightr",
-      "state" : {
-        "revision" : "05e7fcc63b33925cd0c1faaa205cdd5681e7bbef",
-        "version" : "2.3.0"
-      }
-    },
-    {
       "identity" : "icalendarparser",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dmail-me/iCalendarParser",
@@ -131,8 +131,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/ListViewKit",
       "state" : {
-        "revision" : "c6a067ba837758a50612f88dd1d6bb025175df6c",
-        "version" : "4.3.2"
+        "revision" : "89dbd39b0ca80ce4a1e30e49ada2cc24c880bd57",
+        "version" : "4.5.0"
       }
     },
     {
@@ -140,8 +140,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/Litext",
       "state" : {
-        "revision" : "130b4eef642d76a3d2dcf07ab966f32f08e14b90",
-        "version" : "2.2.1"
+        "revision" : "20a9e37a569fa952884abe45411050716edc5c87",
+        "version" : "3.3.2"
       }
     },
     {
@@ -158,8 +158,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/MarkdownView",
       "state" : {
-        "revision" : "782352446014a579d64f2c5508aa7434747845e8",
-        "version" : "4.3.1"
+        "revision" : "cdec64b1a6ced572e206d0b4546046278f3024b6",
+        "version" : "4.6.5"
       }
     },
     {
@@ -169,15 +169,6 @@
       "state" : {
         "revision" : "0bb916c67f4b9e5c682cbe02a42c701c93ab5021",
         "version" : "0.31.6"
-      }
-    },
-    {
-      "identity" : "msdisplaylink",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Lakr233/MSDisplayLink.git",
-      "state" : {
-        "revision" : "87eb0af130744c8cbe2e31b6e1a5bcd659f1c220",
-        "version" : "2.2.0"
       }
     },
     {
@@ -257,8 +248,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-cmark",
       "state" : {
-        "revision" : "924936d0427cb25a61169739a7660230bffa6ea6",
-        "version" : "0.8.0"
+        "revision" : "08ddb528923cc1a6527e02b7a1aee9e516ca749a",
+        "version" : "0.9.0"
       }
     },
     {
@@ -266,8 +257,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections.git",
       "state" : {
-        "revision" : "a0cb0954ecb21e4e31b0070e6ed5674e8556685a",
-        "version" : "1.6.0"
+        "revision" : "98ef3c98609a1e31b7e157b5b619579001a789d6",
+        "version" : "1.7.1"
       }
     },
     {

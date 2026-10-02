@@ -217,8 +217,7 @@ extension MessageListView {
             lookup.append(contentsOf: view.subviews)
             if let label = view as? TextLabelView {
                 if label.selectionRange != nil {
-                    let location = label.convert(location, from: listView)
-                    if label.selectionContains(location) {
+                    if label.selectionContains(location, from: listView) {
                         Logger.ui.debugFile("event is activate on \(label)")
                         return true
                     }
