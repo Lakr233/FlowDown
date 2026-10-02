@@ -38,12 +38,6 @@ if [[ -n $(git status --porcelain) ]]; then
     fi
 fi
 
-echo "[*] cleaning framework dir..."
-pushd Frameworks >/dev/null
-# spm may have duplicated LICENSE file inside their own .build directory
-git clean -fdx -f
-popd >/dev/null
-
 echo "[*] resolving packages..."
 
 with_retry xcodebuild -resolvePackageDependencies \
@@ -51,6 +45,8 @@ with_retry xcodebuild -resolvePackageDependencies \
     -workspace *.xcworkspace \
     -scheme FlowDown |
     xcbeautify
+(( ${pipestatus[1]} == 0 )) || { echo "[-] package resolution failed"; exit 1; }
+[[ -d "$PACKAGE_CLONE_ROOT/checkouts" ]] || { echo "[-] no package checkouts found"; exit 1; }
 
 echo "[*] scanning licenses..."
 
@@ -109,11 +105,12 @@ SCANNED_LICENSE_CONTENT="# Open Source License\n\n"
 
 for dir in "${SCANNER_DIR[@]}"; do
     if [[ -d "$dir" ]]; then
-        for file in $(find "$dir" -name "LICENSE*" -type f); do
+        # spm may have duplicated LICENSE file inside their own .build directory
+        for file in $(find "$dir" -name .build -prune -o -name "LICENSE*" -type f -print); do
             PACKAGE_NAME=$(get_correct_package_name $(basename $(dirname $file)))
             SCANNED_LICENSE_CONTENT="${SCANNED_LICENSE_CONTENT}\n\n## ${PACKAGE_NAME}\n\n$(cat $file)"
         done
-        for file in $(find "$dir" -name "COPYING*" -type f); do
+        for file in $(find "$dir" -name .build -prune -o -name "COPYING*" -type f -print); do
             PACKAGE_NAME=$(get_correct_package_name $(basename $(dirname $file)))
 
             # special handling for zstd license, it was dual licensed with BSD and GPL
