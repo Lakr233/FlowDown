@@ -42,9 +42,28 @@ extension RichEditorView: PHPickerViewControllerDelegate {
 extension RichEditorView: UIDocumentPickerDelegate {
     public func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         for url in urls {
-            guard url.startAccessingSecurityScopedResource() else { return }
-            defer { url.stopAccessingSecurityScopedResource() }
-            process(file: url)
+            // Files inside our own container are not security scoped, so a false
+            // return only means there is no scope to stop later.
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            // Some imports, such as audio transcoding, read the file after this
+            // returns and the scope has ended, so work from a local copy.
+            let tempDir = disposableResourcesDir.appendingPathComponent(UUID().uuidString)
+            try? FileManager.default.createDirectory(
+                at: tempDir,
+                withIntermediateDirectories: true,
+            )
+            let targetURL = tempDir.appendingPathComponent(url.lastPathComponent)
+            guard (try? FileManager.default.copyItem(at: url, to: targetURL)) != nil else {
+                delegate?.onRichEditorError(NSLocalizedString("Unsupported format.", comment: ""))
+                continue
+            }
+            process(file: targetURL)
+            Task.detached {
+                // same grace period as the drop handler, so background transcoding can finish reading
+                try? await Task.sleep(for: .seconds(30))
+                try? FileManager.default.removeItem(at: tempDir)
+            }
         }
     }
 }
