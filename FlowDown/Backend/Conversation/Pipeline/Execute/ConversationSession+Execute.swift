@@ -252,12 +252,16 @@ extension ConversationSession {
 
         var shouldContinue = false
         repeat {
+            // A round returns true exactly when it executed tools, so the next
+            // one is their follow-up even if attachments now end the request.
+            let isFollowUpAfterToolCall = shouldContinue
             shouldContinue = try await doMainInferenceOnce(
                 currentMessageListView,
                 modelID,
                 &requestMessages,
                 toolsDefinitions,
                 modelWillExecuteTools,
+                isFollowUpAfterToolCall,
             )
             save()
         } while shouldContinue

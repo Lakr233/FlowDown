@@ -55,6 +55,7 @@ extension ConversationSession {
         _ requestMessages: inout [ChatRequestBody.Message],
         _ tools: [ChatRequestBody.Tool]?,
         _ modelWillExecuteTools: Bool,
+        _ isImmediateFollowUpAfterToolCall: Bool,
     ) async throws -> Bool {
         await requestUpdate()
         showActivity()
@@ -71,7 +72,6 @@ extension ConversationSession {
         )
         defer { self.stopThinking(for: message.objectId) }
 
-        let isImmediateFollowUpAfterToolCall: Bool = if case .tool = requestMessages.last { true } else { false }
         var pendingToolCalls: [ToolRequest] = []
         var generatedImages: [ImageContent] = []
         let collapseAfterReasoningComplete = ModelManager.shared.collapseReasoningSectionWhenComplete
@@ -152,6 +152,18 @@ extension ConversationSession {
 
         let trimmedReasoning = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDocument = message.document.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // A cancelled consumer ends the stream normally instead of throwing,
+        // so an empty round under cancellation is the user's cancellation.
+        if trimmedReasoning.isEmpty,
+           trimmedDocument.isEmpty,
+           generatedImages.isEmpty,
+           pendingToolCalls.isEmpty,
+           Task.isCancelled
+        {
+            throw InferenceUserCancellationError()
+        }
+
         let shouldSilentlyDropEmptyAssistantMessage = isImmediateFollowUpAfterToolCall
             && trimmedReasoning.isEmpty
             && trimmedDocument.isEmpty
@@ -167,6 +179,11 @@ extension ConversationSession {
         if !trimmedReasoning.isEmpty, trimmedDocument.isEmpty {
             let document = String(localized: "Thinking finished without output any content.")
             message.update(\.document, to: document)
+            if !pendingToolCalls.isEmpty {
+                // The placeholder only keeps the reasoning tile from spinning;
+                // replays must not send it as the assistant's own words.
+                markDocumentAsPlaceholder(message)
+            }
         }
 
         pendingToolCalls = pendingToolCalls.map {
@@ -176,7 +193,7 @@ extension ConversationSession {
         await requestUpdate()
         requestMessages.append(
             .assistant(
-                content: message.document.isEmpty ? nil : .text(message.document),
+                content: trimmedDocument.isEmpty ? nil : .text(message.document),
                 toolCalls: pendingToolCalls.map {
                     .init(id: $0.id, function: .init(name: $0.name, arguments: $0.args))
                 },
@@ -205,6 +222,9 @@ extension ConversationSession {
         await requestUpdate()
         showActivity(String(localized: "Utilizing tool call"))
 
+        // Tool results must directly follow the assistant turn that requested
+        // them, so attachment messages join the request after every result.
+        var deferredAttachmentMessages: [ChatRequestBody.Message] = []
         for request in pendingToolCalls {
             try checkCancellation()
             guard let tool = await ModelToolsManager.shared.findTool(for: request) else {
@@ -339,7 +359,9 @@ extension ConversationSession {
                             localized: "Collected \(finalAttachmentCount) attachments from tool \(tool.interfaceName).",
                         ))
 
-                        toolResponseText = collectorMessage.document
+                        toolResponseText = [result.text, collectorMessage.document]
+                            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                            .joined(separator: "\n")
 
                         addAttachments(editorObjects, to: collectorMessage)
                         updateAttachments(editorObjects, for: collectorMessage)
@@ -351,7 +373,7 @@ extension ConversationSession {
                             editorObjects,
                             modelCapabilities: modelCapabilities,
                         )
-                        requestMessages.append(contentsOf: messages)
+                        deferredAttachmentMessages.append(contentsOf: messages)
                     }
 
                     // 64k len is quite large already
@@ -388,6 +410,7 @@ extension ConversationSession {
                 }
             }
         }
+        requestMessages.append(contentsOf: deferredAttachmentMessages)
 
         await requestUpdate()
         return true

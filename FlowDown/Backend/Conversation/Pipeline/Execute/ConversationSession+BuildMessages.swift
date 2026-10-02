@@ -14,7 +14,8 @@ extension ConversationSession {
         _ requestMessages: inout [ChatRequestBody.Message],
         _ modelCapabilities: Set<ModelCapabilities>,
     ) async {
-        for message in messages {
+        let stored = messages
+        for (index, message) in stored.enumerated() {
             switch message.role {
             case .system:
                 guard !message.document.isEmpty else { continue }
@@ -51,6 +52,18 @@ extension ConversationSession {
                 // Reasoning rides along for preserved-thinking models; the
                 // encoder drops it unless the model opted in.
                 let reasoning = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
+                if documentIsPlaceholder(message),
+                   stored.indices.contains(index + 1),
+                   replaysStoredToolCall(stored[index + 1])
+                {
+                    // The tool call replayed next carries this turn; send the
+                    // reasoning without the UI placeholder text. Without that
+                    // row (deleted, or cancelled before it was made) the text
+                    // stays, so the turn never goes out empty.
+                    guard !reasoning.isEmpty else { continue }
+                    requestMessages.append(.assistant(content: nil, reasoning: reasoning))
+                    continue
+                }
                 requestMessages.append(.assistant(
                     content: .text(message.document),
                     reasoning: reasoning.isEmpty ? nil : reasoning,
@@ -138,6 +151,31 @@ extension ConversationSession {
         let predic = try? JSONSerialization.jsonObject(with: precoded ?? .init(), options: [.fragmentsAllowed]) as? [String: Any]
         encodeAdditionalInfoAndAttachToMessage(message, dic: ["tool_request": predic ?? [:]])
         logger.debugFile("[*] encoded tool request \(toolRequest.name) to message \(message.objectId) with value \(predic ?? [:])")
+    }
+
+    /// Marks the message's document as a UI placeholder rather than model
+    /// output. Storing the text itself lets a later edit clear the mark.
+    func markDocumentAsPlaceholder(_ message: Message) {
+        encodeAdditionalInfoAndAttachToMessage(message, dic: ["placeholder_document": message.document])
+    }
+
+    func documentIsPlaceholder(_ message: Message) -> Bool {
+        guard let read = message.metadata,
+              let orig = try? JSONSerialization.jsonObject(with: read, options: [.fragmentsAllowed]) as? [String: Any],
+              let placeholder = orig["placeholder_document"] as? String
+        else { return false }
+        return placeholder == message.document
+    }
+
+    /// Whether the row replays as an assistant tool-call turn, which then
+    /// merges with the assistant turn right before it.
+    private func replaysStoredToolCall(_ message: Message) -> Bool {
+        switch message.role {
+        case .toolHint, .webSearch:
+            decodeToolRequestFromToolMessage(message) != nil
+        default:
+            false
+        }
     }
 
     func decodeToolRequestFromToolMessage(_ message: Message) -> ToolRequest? {
