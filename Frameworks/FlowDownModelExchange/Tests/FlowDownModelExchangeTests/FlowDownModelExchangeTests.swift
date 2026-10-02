@@ -41,3 +41,20 @@ import Testing
     let recovered = try ModelExchangeCrypto.decrypt(payload, with: requester)
     #expect(recovered == plain)
 }
+
+@Test func resolve_duplicateQueryKeys_keepsFirstValue() throws {
+    let exchangeURL = try #require(URL(string: "flowdown://models/exchange?session=a&session=b&app_name=x&reason=y&multiple_selection=false&timestamp=1"))
+    guard case let .exchange(exchange) = ModelExchangeURL.resolve(exchangeURL) else {
+        Issue.record("Expected an exchange stage")
+        return
+    }
+    #expect(exchange.session == "a")
+
+    let handshakeURL = try #require(URL(string: "flowdown://models/exchange?pk=a&PK=b&callback=c"))
+    guard case let .handshake(handshake) = ModelExchangeURL.resolve(handshakeURL) else {
+        Issue.record("Expected a handshake stage")
+        return
+    }
+    #expect(handshake.publicKey == "a")
+    #expect(handshake.callbackScheme == "c")
+}
