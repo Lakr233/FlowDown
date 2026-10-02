@@ -19,6 +19,11 @@ fi
 
 PROJECT_ROOT=$(pwd)
 
+# Resolve into the default DerivedData the archive builds from and strip the
+# mlx-swift CUDA plugin, before anything is bumped or committed. Any resolve
+# drift then fails the clean check below.
+./Resources/DevKit/scripts/resolve-packages.sh
+
 if [[ -n $(git status --porcelain) ]]; then
     echo "[!] git is not clean"
     exit 1
