@@ -43,6 +43,9 @@ class LocalModelEditorController: StackScrollController {
 
     var cancellables: Set<AnyCancellable> = .init()
 
+    /// `UIContextMenuInteraction` holds its delegate weakly, so the controller keeps them alive.
+    private var contextMenuDelegates: [any UIContextMenuInteractionDelegate] = []
+
     deinit {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
@@ -133,13 +136,15 @@ class LocalModelEditorController: StackScrollController {
         stackView.addArrangedSubview(SeparatorView())
 
         let idView = ConfigurableInfoView()
-        let idInteraction = UIContextMenuInteraction(delegate: SimpleCopyMenuDelegate(
+        let idMenuDelegate = SimpleCopyMenuDelegate(
             view: idView,
             title: "Copy",
             actionTitle: "Identifier",
             actionIcon: "person.crop.square.filled.and.at.rectangle",
             copyText: { model?.model_identifier ?? "" },
-        ))
+        )
+        contextMenuDelegates.append(idMenuDelegate)
+        let idInteraction = UIContextMenuInteraction(delegate: idMenuDelegate)
         idView.valueLabel.addInteraction(idInteraction)
         idView.configure(icon: .init(systemName: "person.crop.square.filled.and.at.rectangle"))
         idView.configure(title: "Identifier")
@@ -149,10 +154,12 @@ class LocalModelEditorController: StackScrollController {
         stackView.addArrangedSubview(SeparatorView())
 
         let sizeView = ConfigurableInfoView()
-        let sizeInteraction = UIContextMenuInteraction(delegate: CalibrateSizeMenuDelegate(
+        let sizeMenuDelegate = CalibrateSizeMenuDelegate(
             view: sizeView,
             modelId: identifier,
-        ))
+        )
+        contextMenuDelegates.append(sizeMenuDelegate)
+        let sizeInteraction = UIContextMenuInteraction(delegate: sizeMenuDelegate)
         sizeView.valueLabel.addInteraction(sizeInteraction)
         sizeView.configure(icon: .init(systemName: "internaldrive"))
         sizeView.configure(title: "Size")
@@ -162,13 +169,15 @@ class LocalModelEditorController: StackScrollController {
         stackView.addArrangedSubview(SeparatorView())
 
         let dateView = ConfigurableInfoView()
-        let dateInteraction = UIContextMenuInteraction(delegate: SimpleCopyMenuDelegate(
+        let dateMenuDelegate = SimpleCopyMenuDelegate(
             view: dateView,
             title: "Copy",
             actionTitle: "Download Date",
             actionIcon: "timer",
             copyText: { dateFormatter.string(from: model?.downloaded ?? .distantPast) },
-        ))
+        )
+        contextMenuDelegates.append(dateMenuDelegate)
+        let dateInteraction = UIContextMenuInteraction(delegate: dateMenuDelegate)
         dateView.valueLabel.addInteraction(dateInteraction)
         dateView.configure(icon: .init(systemName: "timer"))
         dateView.configure(title: "Download Date")
