@@ -118,6 +118,7 @@ extension ConversationSession {
             save()
         } catch {
             logger.errorFile("\(error.localizedDescription)")
+            finalizeInterruptedReasoning()
             let sanitized = error.localizedDescription
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             if error is InferenceUserCancellationError {
@@ -140,6 +141,19 @@ extension ConversationSession {
         await requestUpdate()
         await MainActor.run { UIApplication.shared.isIdleTimerDisabled = false }
         endActivity()
+    }
+
+    /// Gives each assistant message cut off mid-reasoning the placeholder the
+    /// completed round writes. The reasoning tile reads an empty document as
+    /// still thinking, so a failed or cancelled stream would otherwise leave
+    /// it animating.
+    func finalizeInterruptedReasoning() {
+        for message in messages where message.role == .assistant {
+            let reasoning = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
+            let document = message.document.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !reasoning.isEmpty, document.isEmpty else { continue }
+            message.update(\.document, to: String(localized: "Thinking finished without output any content."))
+        }
     }
 
     func requestLinkContentIndex(_ url: URL) -> Int {
