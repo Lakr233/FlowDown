@@ -22,8 +22,8 @@ extension ConversationManager {
 
             let messages = message(within: conversation.id).filter { $0.role != .system }
             for message in messages {
-                if message.document.lowercased().contains(lowercasedQuery) {
-                    let preview = extractPreview(from: message.document, around: lowercasedQuery)
+                if message.document.range(of: query, options: [.caseInsensitive]) != nil {
+                    let preview = extractPreview(from: message.document, around: query)
                     messageResults.append(ConversationSearchResult(
                         conversation: conversation,
                         matchType: .message,
@@ -49,8 +49,9 @@ extension ConversationManager {
     }
 
     private func extractPreview(from text: String, around query: String, maxLength: Int = 100) -> String {
-        let lowercasedText = text.lowercased()
-        guard let range = lowercasedText.range(of: query.lowercased()) else {
+        // Match on `text` itself: lowercasing can change the length (such as
+        // "İ"), so indices from a lowercased copy may not fit `text`.
+        guard let range = text.range(of: query, options: [.caseInsensitive]) else {
             return String(text.prefix(maxLength))
         }
 
