@@ -10,6 +10,10 @@
 # The plugin only emits build commands when CUDA is enabled, so it is a no-op
 # on Apple platforms and safe to remove from the manifest.
 #
+# mlx-swift >= 0.32 declares the plugin, encuda and swift-argument-parser only
+# under `#if os(Linux)`, so on a Mac there is nothing to strip and the script
+# leaves the manifest untouched.
+#
 # Usage: strip_mlx_cuda_plugin.sh [--restore] [SourcePackages-dir ...]
 # Without directories, acts on every resolved mlx-swift checkout it can find.
 #
@@ -72,6 +76,11 @@ with open(path) as f:
 
 if "encuda" not in text:
     print(f"[strip-mlx-cuda] already patched: {path}")
+    sys.exit(0)
+
+outside_linux = re.sub(r'^#if os\(Linux\)\n.*?^#(?:else|endif)', "", text, flags=re.S | re.M)
+if "encuda" not in outside_linux and "CudaBuild" not in outside_linux:
+    print(f"[strip-mlx-cuda] plugin is declared for Linux only; nothing to strip: {path}")
     sys.exit(0)
 
 # Detach the plugin from the Cmlx target.

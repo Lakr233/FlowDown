@@ -1,12 +1,21 @@
 {
   "pins" : [
     {
+      "identity" : "displaylink",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Lakr233/DisplayLink.git",
+      "state" : {
+        "revision" : "41bea2661e04bebcb1c4f15fc0b6197850100fdd",
+        "version" : "3.0.1"
+      }
+    },
+    {
       "identity" : "litext",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/Litext",
       "state" : {
-        "revision" : "20a9e37a569fa952884abe45411050716edc5c87",
-        "version" : "3.3.2"
+        "revision" : "52f114f0110a699a3d22d81190fb9a5670f478a4",
+        "version" : "3.4.2"
       }
     },
     {
