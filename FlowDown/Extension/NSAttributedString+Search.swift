@@ -19,15 +19,14 @@ extension NSAttributedString {
         }
         let attributedString = NSMutableAttributedString(string: text, attributes: baseAttributes)
 
-        let lowercasedText = text.lowercased()
-        let lowercasedSearchTerm = searchTerm.lowercased()
-
-        var searchRange = lowercasedText.startIndex ..< lowercasedText.endIndex
-        while let range = lowercasedText.range(of: lowercasedSearchTerm, options: [], range: searchRange) {
+        // Search `text` itself: lowercasing can change the length (such as
+        // "İ"), so indices from a lowercased copy may not fit `text`.
+        var searchRange = text.startIndex ..< text.endIndex
+        while let range = text.range(of: searchTerm, options: [.caseInsensitive], range: searchRange) {
             let nsRange = NSRange(range, in: text)
             attributedString.addAttributes(highlightAttributes, range: nsRange)
 
-            searchRange = range.upperBound ..< lowercasedText.endIndex
+            searchRange = range.upperBound ..< text.endIndex
         }
 
         return attributedString
