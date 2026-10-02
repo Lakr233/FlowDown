@@ -155,6 +155,9 @@ final class EvaluationStatusController: UIViewController {
     }
 
     private func updateInteractivePopGestureState() {
+        // Swiping the sheet down would skip the exit confirmation and leave the run going.
+        navigationController?.isModalInPresentation = session.isRunning
+
         guard let gesture = navigationController?.interactivePopGestureRecognizer else { return }
 
         if interactivePopGesturePreviousEnabled == nil {
@@ -256,8 +259,10 @@ final class EvaluationStatusController: UIViewController {
 
         restoreInteractivePopGestureStateIfNeeded()
 
-        guard isMovingFromParent || isBeingDismissed else { return }
+        // A presented sheet marks the navigation controller as being dismissed, not its children.
+        guard isMovingFromParent || isBeingDismissed || navigationController?.isBeingDismissed == true else { return }
         session.stopAndDispose(save: true)
+        navigationController?.isModalInPresentation = false
     }
 
     private func updateTitle() {
