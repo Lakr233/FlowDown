@@ -349,26 +349,20 @@ extension ModelManager {
             toolChoice: toolChoice,
         )
         return AsyncThrowingStream(ChatResponseChunk.self, bufferingPolicy: .unbounded) { cont in
-            Task.detached {
-                let reasoningEmitter = BalancedEmitter(
-                    duration: 1.0,
-                    frequency: 30,
-                ) { chunk in
-                    cont.yield(.reasoning(chunk))
-                }
-                let textEmitter = BalancedEmitter(
-                    duration: 0.5,
-                    frequency: 20,
-                ) { chunk in
-                    cont.yield(.text(chunk))
-                }
-                cont.onTermination = { _ in
-                    Task.detached {
-                        await reasoningEmitter.cancel()
-                        await textEmitter.cancel()
-                    }
-                }
+            let reasoningEmitter = BalancedEmitter(
+                duration: 1.0,
+                frequency: 30,
+            ) { chunk in
+                cont.yield(.reasoning(chunk))
+            }
+            let textEmitter = BalancedEmitter(
+                duration: 0.5,
+                frequency: 20,
+            ) { chunk in
+                cont.yield(.text(chunk))
+            }
 
+            let producer = Task.detached {
                 // 这个逻辑是这样的 如果 UI 吃到了太多的数据 布局一次可能要 0.1 秒
                 // 布局完毕以后不会卡 但是一直在布局就会很卡
                 // 所以如果输出超过 n 字 就停止使用 emitter
@@ -418,6 +412,19 @@ extension ModelManager {
                 } catch {
                     cont.finish(throwing: error)
                     return
+                }
+            }
+
+            // Stopping the consumer must stop the model too: the inner stream
+            // only releases its work (such as the MLX queue permit or the
+            // Apple Intelligence session) when its own consumer, the producer,
+            // is cancelled. Cancelling the emitters resumes a producer parked
+            // in wait() so it can observe that cancellation.
+            cont.onTermination = { _ in
+                producer.cancel()
+                Task.detached {
+                    await reasoningEmitter.cancel()
+                    await textEmitter.cancel()
                 }
             }
         }
