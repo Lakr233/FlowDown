@@ -220,9 +220,10 @@ public extension Storage {
             oldMessageIdentifierSet.insert(oldMessageId)
 
             // new
+            // Copies keep their original creation, which orders the conversation
+            // and bounds deleteAfter to the rows that really come later.
             message.objectId = UUID().uuidString
             message.conversationId = newIdentifier
-            message.creation = nowDate
             message.modified = nowDate
 
             try handle.insert(message, intoTable: Message.tableName)
@@ -239,7 +240,6 @@ public extension Storage {
                 // new
                 attachment.objectId = UUID().uuidString
                 attachment.messageId = message.objectId
-                attachment.creation = nowDate
                 attachment.modified = nowDate
 
                 try handle.insert(attachment, intoTable: Attachment.tableName)
@@ -373,5 +373,30 @@ public extension Storage {
         try conversationMarkDelete(handle: handle)
         try messageMarkDelete(skipAttachment: true, handle: handle)
         try attachmentsMarkDelete(handle: handle)
+
+        // Summaries are injected into new chats, so they go with the conversations.
+        let summaries: [ConversationSummary] = try handle.getObjects(
+            fromTable: ConversationSummary.tableName,
+            where: ConversationSummary.Properties.removed == false,
+        )
+        guard !summaries.isEmpty else {
+            return
+        }
+
+        let modified = Date.now
+        for summary in summaries {
+            summary.removed = true
+            summary.markModified(modified)
+        }
+
+        let update = StatementUpdate().update(table: ConversationSummary.tableName)
+            .set(ConversationSummary.Properties.removed)
+            .to(true)
+            .set(ConversationSummary.Properties.modified)
+            .to(modified)
+            .where(ConversationSummary.Properties.objectId.in(summaries.map(\.objectId)))
+        try handle.exec(update)
+
+        try pendingUploadEnqueue(sources: summaries.map { ($0, .delete) }, handle: handle)
     }
 }

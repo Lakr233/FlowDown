@@ -139,7 +139,8 @@ public extension Storage {
         return identifier
     }
 
-    /// rollback forward to delete cell kind WebSearchState and AttachmentHint
+    /// Deletes the supplement rows (web search, hints) directly before the message,
+    /// stopping at the first other row so earlier turns keep theirs.
     func deleteSupplementMessage(nextTo messageIdentifier: Message.ID) {
         guard !messageIdentifier.isEmpty else {
             return
@@ -156,15 +157,18 @@ public extension Storage {
 
         guard let messages: [Message] = try? db.getObjects(
             fromTable: Message.tableName,
-            where: Message.Properties.objectId != messageIdentifier && Message.Properties.creation <= message.creation,
+            where: Message.Properties.conversationId == message.conversationId
+                && Message.Properties.removed == false
+                && Message.Properties.objectId != messageIdentifier
+                && Message.Properties.creation <= message.creation,
             orderBy: [
-                Message.Properties.creation.order(.ascending),
+                Message.Properties.creation.order(.descending),
             ],
         ), !messages.isEmpty else {
             return
         }
 
-        let deletetMessages = messages.filter { $0.conversationId == message.conversationId && $0.role.isSupplementKind }
+        let deletetMessages = messages.prefix(while: { $0.role.isSupplementKind })
         guard !deletetMessages.isEmpty else {
             return
         }
