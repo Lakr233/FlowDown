@@ -85,6 +85,7 @@ struct TranslationProviderView: View {
     }
 
     func translate() {
+        guard canTranslate else { return }
         let targetLanguage = selectedLanguageHint.isEmpty ? currentLocaleDescription : selectedLanguageHint
         translationModel.translate(
             inputText: inputText,
