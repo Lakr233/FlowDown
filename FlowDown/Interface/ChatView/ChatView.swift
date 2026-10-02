@@ -112,6 +112,7 @@ class ChatView: UIView {
         }
 
         sessionManager.executingSessionsPublisher
+            .ensureMainThread()
             .sink { [weak self] executingSessions in
                 guard let self, let conversationID = conversationIdentifier else { return }
                 let isExecuting = executingSessions.contains(conversationID)
@@ -209,8 +210,14 @@ class ChatView: UIView {
     }
 
     func prepareForReuse() {
-        // Removes the current message list view from the superview.
-        currentMessageListView?.removeFromSuperview()
+        if let conversationIdentifier, sessionManager.isSessionExecuting(conversationIdentifier) {
+            // A running stream anchors its tool confirmations to this list view,
+            // so it stays in the view hierarchy and is only hidden.
+            currentMessageListView?.isHidden = true
+        } else {
+            // Removes the current message list view from the superview.
+            currentMessageListView?.removeFromSuperview()
+        }
         conversationIdentifier = nil
         editor.prepareForReuse()
     }
@@ -235,9 +242,12 @@ class ChatView: UIView {
         // ConversationSessionManager.shared.resolvePendingRefresh(for: conversation)
 
         if let listView = currentMessageListView {
-            insertSubview(listView, belowSubview: editorBackgroundView)
-            listView.snp.makeConstraints { make in
-                make.edges.equalToSuperview()
+            // A list view kept attached while hidden already has its constraints.
+            if listView.superview !== self {
+                insertSubview(listView, belowSubview: editorBackgroundView)
+                listView.snp.makeConstraints { make in
+                    make.edges.equalToSuperview()
+                }
             }
             listView.isHidden = false
         }
