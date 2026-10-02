@@ -30,11 +30,11 @@ class MemoryStore: ObservableObject {
     func storeAsync(content: String, conversationId: String? = nil) async throws -> Memory {
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedContent.isEmpty else {
-            throw MemoryStoreError.invalidContent("Memory content cannot be empty")
+            throw MemoryStoreError.invalidContent(String(localized: "Memory content cannot be empty"))
         }
 
         guard trimmedContent.count <= maxMemoryLength else {
-            throw MemoryStoreError.invalidContent("Memory content exceeds maximum length of \(maxMemoryLength) characters")
+            throw MemoryStoreError.invalidContent(String(localized: "Memory content exceeds maximum length of \(maxMemoryLength) characters"))
         }
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -112,11 +112,11 @@ class MemoryStore: ObservableObject {
     func updateMemoryAsync(id: String, newContent: String) async throws {
         let trimmedContent = newContent.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedContent.isEmpty else {
-            throw MemoryStoreError.invalidContent("Memory content cannot be empty")
+            throw MemoryStoreError.invalidContent(String(localized: "Memory content cannot be empty"))
         }
 
         guard trimmedContent.count <= maxMemoryLength else {
-            throw MemoryStoreError.invalidContent("Memory content exceeds maximum length of \(maxMemoryLength) characters")
+            throw MemoryStoreError.invalidContent(String(localized: "Memory content exceeds maximum length of \(maxMemoryLength) characters"))
         }
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -359,14 +359,14 @@ enum MemoryStoreError: Error, LocalizedError {
     case memoryNotFound(String)
     case storageError(String)
 
-    var localizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case let .invalidContent(message):
-            "Invalid content: \(message)"
+            String(localized: "Invalid content: \(message)")
         case let .memoryNotFound(id):
-            "Memory not found: \(id)"
+            String(localized: "Memory not found: \(id)")
         case let .storageError(message):
-            "Storage error: \(message)"
+            String(localized: "Storage error: \(message)")
         }
     }
 }
