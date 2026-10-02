@@ -185,9 +185,8 @@ extension SettingController.SettingContent.MCPController: UIDocumentPickerDelega
                     _ = url.startAccessingSecurityScopedResource()
                     defer { url.stopAccessingSecurityScopedResource() }
                     let data = try Data(contentsOf: url)
-                    let server = try ModelContextServer.decodeCompatible(from: data)
-                    await MainActor.run {
-                        MCPService.shared.insert(server)
+                    try await MainActor.run {
+                        _ = try MCPService.shared.importServer(from: data)
                     }
                     success += 1
                 } catch {
@@ -268,45 +267,20 @@ extension SettingController.SettingContent.MCPController: UITableViewDragDelegat
         return [dragItem]
     }
 
-    func tableView(_: UITableView, canMoveRowAt _: IndexPath) -> Bool {
-        true
-    }
-
-    func tableView(_: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        if sourceIndexPath == destinationIndexPath { return }
-        guard let sourceItem = dataSource.itemIdentifier(for: sourceIndexPath) else { return }
-
-        var snapshot = dataSource.snapshot()
-        if sourceIndexPath.row < destinationIndexPath.row {
-            if let destinationItem = dataSource.itemIdentifier(
-                for: IndexPath(row: destinationIndexPath.row, section: 0),
-            ) {
-                guard sourceItem != destinationItem else { return }
-                snapshot.moveItem(sourceItem, afterItem: destinationItem)
-            }
-        } else {
-            if let destinationItem = dataSource.itemIdentifier(for: destinationIndexPath) {
-                guard sourceItem != destinationItem else { return }
-                snapshot.moveItem(sourceItem, beforeItem: destinationItem)
-            }
-        }
-
-        dataSource.apply(snapshot, animatingDifferences: false)
-
-        // Note: Unlike ChatTemplateManager, MCPService doesn't have a reorder method yet
-        // If needed, add a reorder method to MCPService to maintain custom ordering
-    }
-
     func tableView(_: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath _: IndexPath?) -> UITableViewDropProposal {
-        if session.localDragSession != nil {
-            return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
-        } else if session.hasItemsConforming(toTypeIdentifiers: [utType]) {
+        // MCPService keeps no order, and importing a row dragged from inside the
+        // app (this list or one in another window) would duplicate it.
+        guard session.localDragSession == nil else {
+            return UITableViewDropProposal(operation: .cancel)
+        }
+        if session.hasItemsConforming(toTypeIdentifiers: [utType]) {
             return UITableViewDropProposal(operation: .copy, intent: .insertAtDestinationIndexPath)
         }
         return UITableViewDropProposal(operation: .cancel)
     }
 
     func tableView(_: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {
+        guard coordinator.session.localDragSession == nil else { return }
         for item in coordinator.items {
             let itemProvider = item.dragItem.itemProvider
             if itemProvider.hasItemConformingToTypeIdentifier(utType) {
