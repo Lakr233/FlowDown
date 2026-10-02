@@ -356,22 +356,8 @@ private extension EvaluationAssistantController {
                     defer { if scoped { url.stopAccessingSecurityScopedResource() } }
 
                     let data = try Data(contentsOf: url)
-
-                    // Prefer JSON.
-                    let jsonDecoder: JSONDecoder = {
-                        let decoder = JSONDecoder()
-                        decoder.dateDecodingStrategy = .iso8601
-                        return decoder
-                    }()
-
-                    if let list = try? jsonDecoder.decode([EvaluationManifest].self, from: data) {
-                        imported.append(contentsOf: list)
-                        continue
-                    }
-                    if let one = try? jsonDecoder.decode(EvaluationManifest.self, from: data) {
-                        imported.append(one)
-                        continue
-                    }
+                    let manifests = try EvaluationAssistantController.decodeImportedManifests(from: data)
+                    imported.append(contentsOf: manifests)
                 } catch {
                     failure.append(error)
                 }
@@ -419,6 +405,25 @@ private extension EvaluationAssistantController {
             manifestCatalog.append(item)
             options.manifesets.append(item)
         }
+    }
+}
+
+extension EvaluationAssistantController {
+    /// Decodes a manifest file holding either a list of manifests or a single one,
+    /// and throws the single-manifest decoding error when neither shape fits.
+    nonisolated static func decodeImportedManifests(from data: Data) throws -> [EvaluationManifest] {
+        // Prefer JSON.
+        let jsonDecoder: JSONDecoder = {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            return decoder
+        }()
+
+        if let list = try? jsonDecoder.decode([EvaluationManifest].self, from: data) {
+            return list
+        }
+        let one = try jsonDecoder.decode(EvaluationManifest.self, from: data)
+        return [one]
     }
 }
 
