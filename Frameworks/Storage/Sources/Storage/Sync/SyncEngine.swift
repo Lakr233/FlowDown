@@ -332,7 +332,9 @@ public extension SyncEngine {
     func deleteLocalData() async throws {
         Logger.syncEngine.infoFile("Deleting local data")
 
-        try storage.clearLocalData()
+        // Only synced groups are cleared. Groups turned off in Sync Scope never reach iCloud,
+        // so they stay on this device with their pending uploads.
+        try storage.clearLocalData(tables: SyncPreferences.enabledTables())
 
         // 如果我们要删除所有内容，也需要清除我们的同步引擎状态。
         // 为了做到这一点，也需要重新初始化同步引擎。
@@ -703,16 +705,20 @@ private extension SyncEngine {
     func handleFetchedDatabaseChanges(
         modifications: [CKRecordZone.ID],
         deletions: [(zoneID: CKRecordZone.ID, reason: CKDatabase.DatabaseChange.Deletion.Reason)],
-        syncEngine _: any SyncEngineProtocol,
+        syncEngine: any SyncEngineProtocol,
     ) async {
         Logger.syncEngine.infoFile("Received DatabaseChanges modifications: \(modifications.count) deletions: \(deletions.count)")
 
         var resetLocalData = false
+        var needsFullReupload = false
         for deletion in deletions {
             switch deletion.zoneID.zoneName {
             case SyncEngine.zoneID.zoneName:
                 resetLocalData = true
                 Logger.syncEngine.infoFile("Received deletion zone \(deletion.zoneID)")
+                if deletion.reason == .encryptedDataReset {
+                    needsFullReupload = true
+                }
             default:
                 Logger.syncEngine.infoFile("Received deletion for unknown zone: \(deletion.zoneID)")
             }
@@ -721,6 +727,15 @@ private extension SyncEngine {
         if resetLocalData {
             // 收到其他设备发出的删除操作，当前设备应该同步清除本地所有数据
 //            try? await deleteLocalData()
+        }
+
+        if needsFullReupload {
+            // CloudKit removed the zone after the user reset encrypted data, so nothing uploaded earlier is left.
+            // Recreate the zone and queue every local row again; didFetchChanges schedules the upload.
+            Logger.syncEngine.infoFile("Zone deleted by encrypted data reset, re-uploading local data")
+            try? storage.syncMetadataRemoveAll()
+            try? storage.reinitializeUploadQueue()
+            syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: SyncEngine.zoneID))])
         }
     }
 
@@ -749,10 +764,50 @@ private extension SyncEngine {
             return SyncPreferences.isTableSyncEnabled(tableName: tableName)
         }
 
-        do {
-            try storage.handleRemoteDeleted(deletions: filteredDeletions)
-        } catch {
-            Logger.syncEngine.errorFile("HandleRemoteDeleted error \(error)")
+        // Deletions are collected before they are applied, because the message lookup reads the rows being deleted.
+        var deletedConversations: [Conversation.ID] = []
+        var deletedMessages: [Message.ID] = []
+        var deletedCloudModels: [CloudModel.ID] = []
+        var deletedMCPS: [ModelContextServer.ID] = []
+        var deletedMemorys: [Memory.ID] = []
+        var deletedTemplates: [ChatTemplateRecord.ID] = []
+        var deletedSummaries: [ConversationSummary.ID] = []
+        for deletion in filteredDeletions {
+            let recordID = deletion.recordID
+            guard let (objectId, tableName) = UploadQueue.parseCKRecordID(recordID.recordName) else { continue }
+            if tableName == Conversation.tableName {
+                deletedConversations.append(objectId)
+            } else if tableName == Message.tableName {
+                deletedMessages.append(objectId)
+            } else if tableName == CloudModel.tableName {
+                deletedCloudModels.append(objectId)
+            } else if tableName == ModelContextServer.tableName {
+                deletedMCPS.append(objectId)
+            } else if tableName == Memory.tableName {
+                deletedMemorys.append(objectId)
+            } else if tableName == ChatTemplateRecord.tableName {
+                deletedTemplates.append(objectId)
+            } else if tableName == ConversationSummary.tableName {
+                deletedSummaries.append(objectId)
+            }
+        }
+
+        var deletionMessageMap: [Conversation.ID: [Message.ID]] = [:]
+        if !deletedMessages.isEmpty {
+            deletionMessageMap = storage.conversationIds(by: deletedMessages)
+        }
+
+        // A pending upload for a remotely deleted object has no row left to send and would recreate the record empty.
+        let deletedQueueObjectIds = filteredDeletions.compactMap { UploadQueue.parseCKRecordID($0.recordID.recordName) }
+        if !filteredDeletions.isEmpty {
+            do {
+                try storage.runTransaction {
+                    try self.storage.handleRemoteDeleted(deletions: filteredDeletions, handle: $0)
+                    try self.storage.pendingUploadDequeueDeleted(by: deletedQueueObjectIds, handle: $0)
+                }
+            } catch {
+                Logger.syncEngine.errorFile("HandleRemoteDeleted error \(error)")
+            }
         }
 
         // 收集变化
@@ -784,41 +839,9 @@ private extension SyncEngine {
             }
         }
 
-        var deletedConversations: [Conversation.ID] = []
-        var deletedMessages: [Message.ID] = []
-        var deletedCloudModels: [CloudModel.ID] = []
-        var deletedMCPS: [ModelContextServer.ID] = []
-        var deletedMemorys: [Memory.ID] = []
-        var deletedTemplates: [ChatTemplateRecord.ID] = []
-        var deletedSummaries: [ConversationSummary.ID] = []
-        for deletion in filteredDeletions {
-            let recordID = deletion.recordID
-            guard let (objectId, tableName) = UploadQueue.parseCKRecordID(recordID.recordName) else { continue }
-            if tableName == Conversation.tableName {
-                deletedConversations.append(objectId)
-            } else if tableName == Message.tableName {
-                deletedMessages.append(objectId)
-            } else if tableName == CloudModel.tableName {
-                deletedCloudModels.append(objectId)
-            } else if tableName == ModelContextServer.tableName {
-                deletedMCPS.append(objectId)
-            } else if tableName == Memory.tableName {
-                deletedMemorys.append(objectId)
-            } else if tableName == ChatTemplateRecord.tableName {
-                deletedTemplates.append(objectId)
-            } else if tableName == ConversationSummary.tableName {
-                deletedSummaries.append(objectId)
-            }
-        }
-
         var modificationMessageMap: [Conversation.ID: [Message.ID]] = [:]
-        var deletionMessageMap: [Conversation.ID: [Message.ID]] = [:]
         if !modificationMessages.isEmpty {
             modificationMessageMap = storage.conversationIds(by: modificationMessages)
-        }
-
-        if !deletedMessages.isEmpty {
-            deletionMessageMap = storage.conversationIds(by: deletedMessages)
         }
 
         let conversationNotificationInfo = ConversationNotificationInfo(modifications: modificationConversations, deletions: deletedConversations)
@@ -985,6 +1008,7 @@ private extension SyncEngine {
         }
 
         var pendingUploadChangeStates: [(queueId: UploadQueue.ID, state: UploadQueue.State)] = []
+        var needsFullReupload = false
 
         //  发送失败
         for failedRecordSave in failedRecordSaves {
@@ -1018,8 +1042,10 @@ private extension SyncEngine {
                     // to encrypt and decrypt their encrypted fields stored via CloudKit.
                     // In this case, it is recommended to delete the associated zone and re-upload any
                     // locally cached data, which will be encrypted with the new key.
+                    // CloudKit has already deleted the zone, so recreate it and re-upload everything below.
 
-                    newPendingDatabaseChanges.append(.deleteZone(zone.zoneID))
+                    newPendingDatabaseChanges.append(.saveZone(zone))
+                    needsFullReupload = true
                 } else {
                     newPendingDatabaseChanges.append(.saveZone(zone))
                 }
@@ -1058,22 +1084,33 @@ private extension SyncEngine {
 
         try? storage.pendingUploadChangeState(by: pendingUploadChangeStates)
 
+        if needsFullReupload {
+            // Earlier uploads were dequeued and their change tags are stale, so rebuild both.
+            // didSendChanges schedules the upload of the rebuilt queue.
+            try? storage.syncMetadataRemoveAll()
+            try? storage.reinitializeUploadQueue()
+        }
+
         var finalDeletedRecordIDs = deletedRecordIDs
 
         for (recordID, error) in failedRecordDeletes {
             switch error.code {
-            case .networkFailure, .networkUnavailable, .zoneBusy, .serviceUnavailable, .notAuthenticated, .operationCancelled:
+            case .networkFailure, .networkUnavailable, .zoneBusy, .serviceUnavailable, .notAuthenticated, .operationCancelled,
+                 .batchRequestFailed, .limitExceeded, .requestRateLimited, .accountTemporarilyUnavailable:
                 // There are several errors that the sync engine will automatically retry, let's just log and move on.
+                // The delete stays queued, and scheduleUploadIfNeeded adds it again.
                 Logger.database.errorFile("Retryable error deleting \(recordID): \(error)")
 
             default:
+                // zoneNotFound, unknownItem and other terminal errors: the record is gone or will never delete, so stop resending it.
                 finalDeletedRecordIDs.append(recordID)
+                removePendingRecordZoneChanges.append(.deleteRecord(recordID))
                 Logger.syncEngine.fault("Unknown error deleting record \(recordID): \(error)")
             }
         }
 
         if !finalDeletedRecordIDs.isEmpty {
-            let deletedQueueObjectIds = deletedRecordIDs.compactMap { UploadQueue.parseCKRecordID($0.recordName) }
+            let deletedQueueObjectIds = finalDeletedRecordIDs.compactMap { UploadQueue.parseCKRecordID($0.recordName) }
             Logger.syncEngine.debugFile("Sent deleted success record zone: \(deletedQueueObjectIds)")
             try? storage.pendingUploadDequeueDeleted(by: deletedQueueObjectIds)
         }
