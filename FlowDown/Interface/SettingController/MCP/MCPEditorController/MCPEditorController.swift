@@ -176,11 +176,12 @@ class MCPEditorController: StackScrollController {
                 placeholder: "\("https://")",
                 text: server.endpoint.isEmpty ? "https://" : server.endpoint,
             ) { output in
+                let endpoint = output.trimmingCharacters(in: .whitespacesAndNewlines)
                 MCPService.shared.edit(identifier: self.serverId) {
-                    $0.update(\.endpoint, to: output)
+                    $0.update(\.endpoint, to: endpoint)
                 }
                 self.refreshUI()
-                view.configure(value: output.isEmpty ? "Not Configured" : output)
+                view.configure(value: endpoint.isEmpty ? "Not Configured" : endpoint)
             }
             view.parentViewController?.present(input, animated: true)
         }
