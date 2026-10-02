@@ -215,7 +215,10 @@ extension RichEditorView {
 
                         let successAlert = AlertViewController(
                             title: NSLocalizedString("Success", comment: ""),
-                            message: String(format: NSLocalizedString("Successfully imported %lld page(s) from PDF.", comment: ""), images.count),
+                            message: String(
+                                format: NSLocalizedString("Successfully imported %lld page(s) from PDF.", comment: ""),
+                                images.count
+                            ),
                         ) { context in
                             context.allowSimpleDispose()
                             context.addAction(title: NSLocalizedString("OK", comment: ""), attribute: .accent) {

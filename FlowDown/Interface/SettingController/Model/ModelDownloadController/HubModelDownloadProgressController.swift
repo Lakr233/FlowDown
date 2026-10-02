@@ -168,7 +168,11 @@ class HubModelDownloadProgressController: UIViewController {
 
         // Add underline
         let attributedString = NSMutableAttributedString(string: label.text ?? "")
-        attributedString.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 0, length: attributedString.length))
+        attributedString.addAttribute(
+            .underlineStyle,
+            value: NSUnderlineStyle.single.rawValue,
+            range: NSRange(location: 0, length: attributedString.length)
+        )
         label.attributedText = attributedString
 
         return label
@@ -253,7 +257,10 @@ class HubModelDownloadProgressController: UIViewController {
     private func setupUI() {
         // Setup progress bar
         progressBarContainer.addSubview(progressBarFill)
-        progressBarFillWidthConstraint = progressBarFill.widthAnchor.constraint(equalTo: progressBarContainer.widthAnchor, multiplier: 0)
+        progressBarFillWidthConstraint = progressBarFill.widthAnchor.constraint(
+            equalTo: progressBarContainer.widthAnchor,
+            multiplier: 0
+        )
 
         progressBarFill.snp.makeConstraints { make in
             make.leading.top.bottom.equalToSuperview()

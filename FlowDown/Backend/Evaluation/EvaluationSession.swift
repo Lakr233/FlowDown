@@ -247,13 +247,18 @@ extension EvaluationSession {
         }
     }
 
-    private func updateResult(for caseItem: EvaluationManifest.Suite.Case, outcome: EvaluationManifest.Suite.Case.Result.Outcome) async {
+    private func updateResult(
+        for caseItem: EvaluationManifest.Suite.Case,
+        outcome: EvaluationManifest.Suite.Case.Result.Outcome
+    ) async {
         guard let result = caseItem.results.last else { return }
         result.outcome = outcome
         scheduleSave()
     }
 
-    private func performSingleShot(_ caseItem: EvaluationManifest.Suite.Case) async -> EvaluationManifest.Suite.Case.Result.Outcome {
+    private func performSingleShot(
+        _ caseItem: EvaluationManifest.Suite.Case
+    ) async -> EvaluationManifest.Suite.Case.Result.Outcome {
         if let singleShotOverride {
             return await singleShotOverride(caseItem)
         }
@@ -316,7 +321,9 @@ extension EvaluationSession {
                     } else {
                         .init(name: toolMsg.name, description: "", parameters: [:])
                     }
-                    output.append(.init(type: .toolRequest, textRepresentation: toolMsg.args, toolRepresentation: toolRep))
+                    output.append(
+                        .init(type: .toolRequest, textRepresentation: toolMsg.args, toolRepresentation: toolRep)
+                    )
                 }
                 result.output = output
                 scheduleSave()
@@ -337,7 +344,10 @@ extension EvaluationSession {
         )
     }
 
-    func verify(response: ChatResponse, verifiers: [EvaluationManifest.Suite.Case.Verifier]) -> EvaluationManifest.Suite.Case.Result.Outcome {
+    func verify(
+        response: ChatResponse,
+        verifiers: [EvaluationManifest.Suite.Case.Verifier]
+    ) -> EvaluationManifest.Suite.Case.Result.Outcome {
         // Check for manual verification requirement
         let requiresManualJudgment = verifiers.contains(where: { if case .open = $0 { return true }; return false })
 
@@ -351,7 +361,9 @@ extension EvaluationSession {
             case let .match(pattern):
                 if response.text.trimmingCharacters(in: .whitespacesAndNewlines) != pattern { automaticPass = false }
             case let .matchCaseInsensitive(pattern):
-                if response.text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() != pattern.lowercased() { automaticPass = false }
+                if response.text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() != pattern.lowercased() {
+                    automaticPass = false
+                }
             case let .contains(pattern):
                 if !response.text.contains(pattern) { automaticPass = false }
             case let .containsCaseInsensitive(pattern):

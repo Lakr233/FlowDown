@@ -27,14 +27,20 @@ class MemoryStore {
         }
 
         guard trimmedContent.count <= maxMemoryLength else {
-            throw MemoryStoreError.invalidContent(String(localized: "Memory content exceeds maximum length of \(maxMemoryLength) characters"))
+            throw MemoryStoreError.invalidContent(
+                String(localized: "Memory content exceeds maximum length of \(maxMemoryLength) characters")
+            )
         }
 
         return try await withCheckedThrowingContinuation { continuation in
             queue.async {
                 do {
                     let storage = try Storage.db()
-                    let memory = Memory(deviceId: Storage.deviceId, content: trimmedContent, conversationId: conversationId)
+                    let memory = Memory(
+                        deviceId: Storage.deviceId,
+                        content: trimmedContent,
+                        conversationId: conversationId
+                    )
                     try storage.insertMemory(memory)
 
                     try storage.deleteOldMemories(keepCount: self.maxMemoryCount)
@@ -105,7 +111,9 @@ class MemoryStore {
         }
 
         guard trimmedContent.count <= maxMemoryLength else {
-            throw MemoryStoreError.invalidContent(String(localized: "Memory content exceeds maximum length of \(maxMemoryLength) characters"))
+            throw MemoryStoreError.invalidContent(
+                String(localized: "Memory content exceeds maximum length of \(maxMemoryLength) characters")
+            )
         }
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in

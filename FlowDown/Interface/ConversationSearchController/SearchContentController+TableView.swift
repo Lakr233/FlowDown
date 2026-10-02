@@ -14,7 +14,11 @@ extension SearchContentController: UITableViewDelegate {
         selectResultAndDismiss(at: indexPath)
     }
 
-    func tableView(_: UITableView, didUpdateFocusIn context: UITableViewFocusUpdateContext, with _: UIFocusAnimationCoordinator) {
+    func tableView(
+        _: UITableView,
+        didUpdateFocusIn context: UITableViewFocusUpdateContext,
+        with _: UIFocusAnimationCoordinator
+    ) {
         let currentFocus = context.nextFocusedIndexPath ?? context.previouslyFocusedIndexPath
         focusedIndexPath = currentFocus
     }

@@ -18,7 +18,11 @@ struct SearchConversationsIntent: AppIntent {
         .requiresAuthentication
     }
 
-    @Parameter(title: "Keyword", default: "", requestValueDialog: "Enter a keyword to search for in your conversations. Leave empty to return recent conversations.")
+    @Parameter(
+        title: "Keyword",
+        default: "",
+        requestValueDialog: "Enter a keyword to search for in your conversations. Leave empty to return recent conversations."
+    )
     var keyword: String
 
     @Parameter(title: "Result Limit", default: 5, requestValueDialog: "How many results should we return?")

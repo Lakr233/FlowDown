@@ -10,7 +10,11 @@ public nonisolated enum ModelExchangeAPI {
         return Data(signature).base64EncodedString()
     }
 
-    public nonisolated static func verify(path: String, signature: String, publicKey: Curve25519.Signing.PublicKey) -> Bool {
+    public nonisolated static func verify(
+        path: String,
+        signature: String,
+        publicKey: Curve25519.Signing.PublicKey
+    ) -> Bool {
         guard let data = Data(base64Encoded: signature) else { return false }
         return publicKey.isValidSignature(data, for: sha256(path))
     }
@@ -106,7 +110,11 @@ public nonisolated struct ModelExchangeRequestBuilder: Sendable {
     public nonisolated let callbackScheme: String
     public nonisolated let keyPair: ModelExchangeKeyPair
 
-    public nonisolated init(flowdownScheme: String = "flowdown", callbackScheme: String, keyPair: ModelExchangeKeyPair) {
+    public nonisolated init(
+        flowdownScheme: String = "flowdown",
+        callbackScheme: String,
+        keyPair: ModelExchangeKeyPair
+    ) {
         self.flowdownScheme = flowdownScheme
         self.callbackScheme = callbackScheme
         self.keyPair = keyPair

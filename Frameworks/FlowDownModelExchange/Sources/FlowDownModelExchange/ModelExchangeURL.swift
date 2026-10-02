@@ -30,10 +30,13 @@ public nonisolated enum ModelExchangeURL {
         guard url.path.lowercased() == routePath else { return nil }
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
         let items = components.queryItems ?? []
-        let dict = Dictionary(items.compactMap { item -> (String, String)? in
-            guard let value = item.value else { return nil }
-            return (item.name.lowercased(), value)
-        }, uniquingKeysWith: { first, _ in first })
+        let dict = Dictionary(
+            items.compactMap { item -> (String, String)? in
+                guard let value = item.value else { return nil }
+                return (item.name.lowercased(), value)
+            },
+            uniquingKeysWith: { first, _ in first }
+        )
 
         if let stage = dict["stage"], stage.lowercased() == "cancelled" {
             return .cancelled(session: dict["session"])

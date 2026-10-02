@@ -58,8 +58,11 @@ class MTUpdateMemoryTool: ModelTool, @unchecked Sendable {
               let newContent = json["new_content"] as? String
         else {
             throw NSError(
-                domain: "MTUpdateMemoryTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid parameters. Both memory_id and new_content are required."),
+                domain: "MTUpdateMemoryTool",
+                code: 400,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        String(localized: "Invalid parameters. Both memory_id and new_content are required."),
                 ],
             )
         }

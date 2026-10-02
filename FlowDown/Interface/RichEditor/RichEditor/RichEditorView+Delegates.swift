@@ -220,7 +220,10 @@ extension RichEditorView: QuickSettingBar.Delegate {
         } ?? []
     }
 
-    func quickSettingBarBuildAlternativeToolsMenu(isEnabled: Bool, requestReload: @escaping (Bool) -> Void) -> [UIMenuElement] {
+    func quickSettingBarBuildAlternativeToolsMenu(
+        isEnabled: Bool,
+        requestReload: @escaping (Bool) -> Void
+    ) -> [UIMenuElement] {
         delegate?.onRichEditorBuildAlternativeToolsMenu(isEnabled: isEnabled, requestReload: requestReload) ?? []
     }
 

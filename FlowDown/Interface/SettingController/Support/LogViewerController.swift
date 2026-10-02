@@ -150,7 +150,9 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
         let categoryMenu = UIMenu(
             title: String(localized: "Filter by Category"),
             image: UIImage(systemName: "tag"),
-            children: categoryActions.isEmpty ? [UIAction(title: String(localized: "No categories"), handler: { _ in })] : categoryActions,
+            children: categoryActions.isEmpty
+                ? [UIAction(title: String(localized: "No categories"), handler: { _ in })]
+                : categoryActions,
         )
 
         // Actions
@@ -321,7 +323,8 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let id = "LogCell"
-        let cell = tableView.dequeueReusableCell(withIdentifier: id) ?? UITableViewCell(style: .subtitle, reuseIdentifier: id)
+        let cell = tableView.dequeueReusableCell(withIdentifier: id)
+            ?? UITableViewCell(style: .subtitle, reuseIdentifier: id)
 
         let logLine = displayLines[indexPath.row]
 
@@ -359,7 +362,11 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
         return cell
     }
 
-    func tableView(_: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
+    func tableView(
+        _: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
+        point _: CGPoint
+    ) -> UIContextMenuConfiguration? {
         let logLine = displayLines[indexPath.row]
 
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in

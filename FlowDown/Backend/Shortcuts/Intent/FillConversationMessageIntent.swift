@@ -95,7 +95,8 @@ struct FillConversationMessageIntent: AppIntent {
             attachmentsToAppend.append(attachment)
         }
 
-        var editorObject = ConversationManager.shared.getRichEditorObject(identifier: identifier) ?? RichEditorView.Object()
+        var editorObject = ConversationManager.shared.getRichEditorObject(identifier: identifier)
+            ?? RichEditorView.Object()
 
         if !trimmedText.isEmpty {
             if editorObject.text.isEmpty {

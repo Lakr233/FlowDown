@@ -231,7 +231,10 @@ class ChatTemplateManager {
         }
 
         session.appendNewMessage(role: .hint) {
-            $0.update(\.document, to: String(localized: "This conversation is based on the template: \(template.name)."))
+            $0.update(
+                \.document,
+                to: String(localized: "This conversation is based on the template: \(template.name).")
+            )
         }
 
         return conversation.id
@@ -317,7 +320,10 @@ class ChatTemplateManager {
         }
     }
 
-    private func generateChatTemplate(from conversation: Conversation, using model: ModelManager.ModelIdentifier) async throws -> ChatTemplate {
+    private func generateChatTemplate(
+        from conversation: Conversation,
+        using model: ModelManager.ModelIdentifier
+    ) async throws -> ChatTemplate {
         try Self.ensureToolCallCapability(of: model)
 
         let session = ConversationSessionManager.shared.session(for: conversation.id)
@@ -331,7 +337,8 @@ class ChatTemplateManager {
                 domain: "ChatTemplate",
                 code: 1,
                 userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Conversation does not have enough messages to create a template."),
+                    NSLocalizedDescriptionKey:
+                        String(localized: "Conversation does not have enough messages to create a template."),
                 ],
             )
         }
@@ -380,7 +387,8 @@ class ChatTemplateManager {
     private static func ensureToolCallCapability(of model: ModelManager.ModelIdentifier) throws {
         guard modelSupportsToolCalls(model) else {
             throw NSError(domain: "ChatTemplate", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "This model does not support tool call or no model is selected."),
+                NSLocalizedDescriptionKey:
+                    String(localized: "This model does not support tool call or no model is selected."),
             ])
         }
     }
@@ -441,7 +449,8 @@ private enum ChatTemplateToolCall {
               !arguments.trimmedPrompt.isEmpty
         else {
             throw NSError(domain: "ChatTemplate", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Failed to extract required information from model response."),
+                NSLocalizedDescriptionKey:
+                    String(localized: "Failed to extract required information from model response."),
             ])
         }
         return arguments

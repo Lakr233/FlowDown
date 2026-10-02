@@ -240,7 +240,10 @@ private final class SessionConnectionSpy: MCPConnectionControlling, @unchecked S
         [MCPToolInfo(name: "lookup", serverID: serverID, serverName: serverName)]
     }
 
-    func callTool(name _: String, arguments _: [String: Value]?) async throws -> (content: [Tool.Content], isError: Bool?) {
+    func callTool(
+        name _: String,
+        arguments _: [String: Value]?
+    ) async throws -> (content: [Tool.Content], isError: Bool?) {
         if let callToolError { throw callToolError }
         return ([], nil)
     }

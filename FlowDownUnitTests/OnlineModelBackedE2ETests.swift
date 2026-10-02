@@ -204,7 +204,10 @@ struct OnlineModelBackedE2ETests {
 
             var compressedConversationID: Conversation.ID?
             do {
-                compressedConversationID = try await compressConversation(identifier: sourceConversationID, modelID: modelID)
+                compressedConversationID = try await compressConversation(
+                    identifier: sourceConversationID,
+                    modelID: modelID
+                )
 
                 let resolvedCompressedID = compressedConversationID!
                 let summary = await MainActor.run {

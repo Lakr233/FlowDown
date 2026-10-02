@@ -479,7 +479,11 @@ extension MessageListView {
     }
 
     @discardableResult
-    func presentAndReturnDetailCodeController(code: NSAttributedString, language: String?, title: String) -> UIViewController {
+    func presentAndReturnDetailCodeController(
+        code: NSAttributedString,
+        language: String?,
+        title: String
+    ) -> UIViewController {
         let controller: UIViewController
 
         if language?.lowercased() == "html" {

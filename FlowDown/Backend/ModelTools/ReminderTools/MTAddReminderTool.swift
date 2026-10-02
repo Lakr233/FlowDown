@@ -71,7 +71,9 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
               let title = json["title"] as? String, !title.isEmpty
         else {
             throw NSError(
-                domain: "MTAddReminderTool", code: 400, userInfo: [
+                domain: "MTAddReminderTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "A non-empty title is required."),
                 ],
             )
@@ -87,7 +89,9 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
             : ReminderToolsShared.dueDateComponents(from: dueDateString)
         if !dueDateString.isEmpty, dueDateComponents == nil {
             throw NSError(
-                domain: "MTAddReminderTool", code: 400, userInfo: [
+                domain: "MTAddReminderTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "Invalid due_date format. Use ISO 8601 UTC."),
                 ],
             )
@@ -186,7 +190,11 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
                     } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
                         continuation.resume(throwing: error)
                     } catch {
-                        continuation.resume(throwing: ModelToolError.failure(String(localized: "Failed to add reminder: \(error.localizedDescription)")))
+                        continuation.resume(
+                            throwing: ModelToolError.failure(
+                                String(localized: "Failed to add reminder: \(error.localizedDescription)")
+                            )
+                        )
                     }
                 }
             }

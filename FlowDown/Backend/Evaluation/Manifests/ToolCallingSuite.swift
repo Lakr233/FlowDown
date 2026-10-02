@@ -71,10 +71,16 @@ extension EvaluationManifest.Suite {
                             toolRepresentation: .init(
                                 name: "send_email",
                                 description: "Send an email to a recipient.",
-                                parameters: ["to": .init(stringLiteral: "string"), "subject": .init(stringLiteral: "string")],
+                                parameters: [
+                                    "to": .init(stringLiteral: "string"),
+                                    "subject": .init(stringLiteral: "string")
+                                ],
                             ),
                         ),
-                        .init(type: .request, textRepresentation: "Send an email to alice@example.com with subject 'Hi'"),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Send an email to alice@example.com with subject 'Hi'"
+                        ),
                     ],
                     verifier: [
                         .tool(parameter: "to", value: .init(stringLiteral: "alice@example.com")),
@@ -138,7 +144,10 @@ extension EvaluationManifest.Suite {
                             toolRepresentation: .init(
                                 name: "translate",
                                 description: "Translate text to a target language.",
-                                parameters: ["text": .init(stringLiteral: "string"), "target_language": .init(stringLiteral: "string")],
+                                parameters: [
+                                    "text": .init(stringLiteral: "string"),
+                                    "target_language": .init(stringLiteral: "string")
+                                ],
                             ),
                         ),
                         .init(type: .request, textRepresentation: "Translate 'Hello' to Spanish"),
@@ -157,7 +166,11 @@ extension EvaluationManifest.Suite {
                             toolRepresentation: .init(
                                 name: "convert_currency",
                                 description: "Convert amount from one currency to another.",
-                                parameters: ["amount": .init(stringLiteral: "number"), "from": .init(stringLiteral: "string"), "to": .init(stringLiteral: "string")],
+                                parameters: [
+                                    "amount": .init(stringLiteral: "number"),
+                                    "from": .init(stringLiteral: "string"),
+                                    "to": .init(stringLiteral: "string")
+                                ],
                             ),
                         ),
                         .init(type: .request, textRepresentation: "Convert 100 USD to EUR"),
@@ -209,7 +222,10 @@ extension EvaluationManifest.Suite {
                             toolRepresentation: .init(
                                 name: "create_event",
                                 description: "Create a calendar event.",
-                                parameters: ["title": .init(stringLiteral: "string"), "date": .init(stringLiteral: "string")],
+                                parameters: [
+                                    "title": .init(stringLiteral: "string"),
+                                    "date": .init(stringLiteral: "string")
+                                ],
                             ),
                         ),
                         .init(type: .request, textRepresentation: "Schedule a 'Meeting' on 2025-01-01"),

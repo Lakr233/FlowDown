@@ -105,7 +105,10 @@ public extension Storage {
 
     func getMemoryCount() throws -> Int {
         do {
-            let objects: [Memory] = try db.getObjects(fromTable: Memory.tableName, where: Memory.Properties.removed == false)
+            let objects: [Memory] = try db.getObjects(
+                fromTable: Memory.tableName,
+                where: Memory.Properties.removed == false
+            )
             return objects.count
         } catch {
             throw MemoryError.retrieveFailed(error.localizedDescription)
@@ -196,7 +199,10 @@ public extension Storage {
 
     func deleteOldMemories(keepCount: Int) throws {
         do {
-            let allMemories: [Memory] = try db.getObjects(fromTable: Memory.tableName, where: Memory.Properties.removed == false)
+            let allMemories: [Memory] = try db.getObjects(
+                fromTable: Memory.tableName,
+                where: Memory.Properties.removed == false
+            )
 
             let totalCount = allMemories.count
             guard totalCount > keepCount else { return }

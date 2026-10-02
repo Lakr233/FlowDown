@@ -118,7 +118,9 @@ extension ModelManager {
                         ),
                     )
                 } else {
-                    Logger.model.debugFile("model \(model.model_identifier) generates output for test case: \(trimmedContent)")
+                    Logger.model.debugFile(
+                        "model \(model.model_identifier) generates output for test case: \(trimmedContent)"
+                    )
                     completion(.success(()))
                 }
             } catch {
@@ -148,7 +150,10 @@ extension ModelManager {
                             NSError(
                                 domain: "Model",
                                 code: -1,
-                                userInfo: [NSLocalizedDescriptionKey: String(localized: "Model did not produce any textual output.")],
+                                userInfo: [
+                                    NSLocalizedDescriptionKey:
+                                        String(localized: "Model did not produce any textual output.")
+                                ],
                             ),
                         ),
                     )

@@ -171,7 +171,12 @@ public final actor SyncEngine: Sendable {
                 let mockContainer = resolvedContainer as! MockCloudContainer
                 let privateDatabase = mockContainer.privateCloudDatabase
                 createSyncEngine = { syncEngine in
-                    let mockSyncEngine = MockSyncEngine(database: privateDatabase, parentSyncEngine: syncEngine, state: MockSyncEngineState(), delegate: syncEngine)
+                    let mockSyncEngine = MockSyncEngine(
+                        database: privateDatabase,
+                        parentSyncEngine: syncEngine,
+                        state: MockSyncEngineState(),
+                        delegate: syncEngine
+                    )
                     mockSyncEngine.automaticallySync = syncEngine.automaticallySync
                     return mockSyncEngine
                 }
@@ -192,7 +197,10 @@ public final actor SyncEngine: Sendable {
         }
 
         if !FileManager.default.fileExists(atPath: SyncEngine.temporaryAssetStorage.path()) {
-            try? FileManager.default.createDirectory(at: SyncEngine.temporaryAssetStorage, withIntermediateDirectories: true)
+            try? FileManager.default.createDirectory(
+                at: SyncEngine.temporaryAssetStorage,
+                withIntermediateDirectories: true
+            )
         }
 
         storage.uploadQueueEnqueueHandler = { [weak self] in
@@ -208,7 +216,12 @@ public final actor SyncEngine: Sendable {
     }
 
     @available(iOS 17, macCatalyst 17, *)
-    package init(storage: Storage, container: any CloudContainer, automaticallySync: Bool, createSyncEngine: @escaping (SyncEngine) -> any SyncEngineProtocol) {
+    package init(
+        storage: Storage,
+        container: any CloudContainer,
+        automaticallySync: Bool,
+        createSyncEngine: @escaping (SyncEngine) -> any SyncEngineProtocol
+    ) {
         self.storage = storage
         self.container = container
         self.automaticallySync = automaticallySync
@@ -217,7 +230,10 @@ public final actor SyncEngine: Sendable {
         }
 
         if !FileManager.default.fileExists(atPath: SyncEngine.temporaryAssetStorage.path()) {
-            try? FileManager.default.createDirectory(at: SyncEngine.temporaryAssetStorage, withIntermediateDirectories: true)
+            try? FileManager.default.createDirectory(
+                at: SyncEngine.temporaryAssetStorage,
+                withIntermediateDirectories: true
+            )
         }
 
         storage.uploadQueueEnqueueHandler = { [weak self] in
@@ -426,7 +442,10 @@ extension SyncEngine {
 
         Logger.syncEngine.infoFile("Applying \(deferred.count) deferred deletions")
         let deletions: [(recordID: CKRecord.ID, recordType: CKRecord.RecordType)] = deferred.map {
-            (recordID: CKRecord.ID(recordName: $0.recordName, zoneID: SyncEngine.zoneID), recordType: SyncEngine.recordType)
+            (
+                recordID: CKRecord.ID(recordName: $0.recordName, zoneID: SyncEngine.zoneID),
+                recordType: SyncEngine.recordType
+            )
         }
         // The remote-deletion path removes each applied entry, and keeps any whose group was turned off again meanwhile.
         await handleFetchedRecordZoneChanges(deletions: deletions, syncEngine: syncEngine)
@@ -570,10 +589,18 @@ private extension SyncEngine {
         // 所以这里对于recordName 额外处理
         for object in objects {
             if case .delete = object.changes {
-                pendingRecordZoneChanges.append(.deleteRecord(CKRecord.ID(recordName: object.ckRecordID, zoneID: SyncEngine.zoneID)))
+                pendingRecordZoneChanges.append(
+                    .deleteRecord(CKRecord.ID(recordName: object.ckRecordID, zoneID: SyncEngine.zoneID))
+                )
             } else {
-                let sentQueueId = SyncEngine.makeCKRecordSentQueueId(queueId: object.id, objectId: object.objectId, deviceId: deviceId)
-                pendingRecordZoneChanges.append(.saveRecord(CKRecord.ID(recordName: sentQueueId, zoneID: SyncEngine.zoneID)))
+                let sentQueueId = SyncEngine.makeCKRecordSentQueueId(
+                    queueId: object.id,
+                    objectId: object.objectId,
+                    deviceId: deviceId
+                )
+                pendingRecordZoneChanges.append(
+                    .saveRecord(CKRecord.ID(recordName: sentQueueId, zoneID: SyncEngine.zoneID))
+                )
             }
         }
 
@@ -834,7 +861,10 @@ private extension SyncEngine {
             modifications: modificationsByTable[Conversation.tableName] ?? [],
             deletions: deletionsByTable[Conversation.tableName] ?? [],
         )
-        let messageNotificationInfo = MessageNotificationInfo(modifications: modificationMessageMap, deletions: deletionMessageMap)
+        let messageNotificationInfo = MessageNotificationInfo(
+            modifications: modificationMessageMap,
+            deletions: deletionMessageMap
+        )
         let cloudModelNotificationInfo = CloudModelNotificationInfo(
             modifications: modificationsByTable[CloudModel.tableName] ?? [],
             deletions: deletionsByTable[CloudModel.tableName] ?? [],
@@ -1059,7 +1089,11 @@ private extension SyncEngine {
                 // 删除本地记录的云端记录
                 let recordID = failedRecord.recordID
                 let zoneID = recordID.zoneID
-                try? storage.syncMetadataRemove(zoneName: zoneID.zoneName, ownerName: zoneID.ownerName, recordName: recordID.recordName)
+                try? storage.syncMetadataRemove(
+                    zoneName: zoneID.zoneName,
+                    ownerName: zoneID.ownerName,
+                    recordName: recordID.recordName
+                )
 
                 removePendingRecordZoneChanges.append(.saveRecord(recordID))
 
@@ -1134,7 +1168,9 @@ private extension SyncEngine {
         "\(queueId)\(SyncEngine.CKRecordSentQueueIdSeparator)\(objectId)\(SyncEngine.CKRecordSentQueueIdSeparator)\(deviceId)"
     }
 
-    static func parseCKRecordSentQueueId(_ value: String) -> (queueId: UploadQueue.ID, objectId: String, deviceId: String)? {
+    static func parseCKRecordSentQueueId(
+        _ value: String
+    ) -> (queueId: UploadQueue.ID, objectId: String, deviceId: String)? {
         let splits = value.split(separator: SyncEngine.CKRecordSentQueueIdSeparator)
         guard splits.count == 3, let queueId = UploadQueue.ID(splits[0]) else {
             return nil
@@ -1180,7 +1216,10 @@ private extension UploadQueue {
         record.encryptedValues[.payload] = nil
 
         if !FileManager.default.fileExists(atPath: SyncEngine.temporaryAssetStorage.path()) {
-            try FileManager.default.createDirectory(atPath: SyncEngine.temporaryAssetStorage.path(), withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(
+                atPath: SyncEngine.temporaryAssetStorage.path(),
+                withIntermediateDirectories: true
+            )
         }
         let tempURL = SyncEngine.temporaryAssetStorage.appending(component: "\(UUID().uuidString).asset")
         try payload.write(to: tempURL, options: .atomic)
@@ -1348,11 +1387,14 @@ extension SyncEngine: SyncEngineDelegate {
             let stale = group.filter { $0.id != latest.id }
             for old in stale {
                 let staleChange = CKSyncEngine.PendingRecordZoneChange.saveRecord(
-                    CKRecord.ID(recordName: SyncEngine.makeCKRecordSentQueueId(
-                        queueId: old.id,
-                        objectId: old.objectId,
-                        deviceId: deviceId,
-                    ), zoneID: SyncEngine.zoneID),
+                    CKRecord.ID(
+                        recordName: SyncEngine.makeCKRecordSentQueueId(
+                            queueId: old.id,
+                            objectId: old.objectId,
+                            deviceId: deviceId,
+                        ),
+                        zoneID: SyncEngine.zoneID
+                    ),
                 )
                 staleRecordChanges.append(staleChange)
             }
@@ -1373,11 +1415,19 @@ extension SyncEngine: SyncEngineDelegate {
                 continue
             }
 
-            let metadata: SyncMetadata? = try? storage.findSyncMetadata(zoneName: SyncEngine.zoneID.zoneName, ownerName: SyncEngine.zoneID.ownerName, recordName: object.ckRecordID)
+            let metadata: SyncMetadata? = try? storage.findSyncMetadata(
+                zoneName: SyncEngine.zoneID.zoneName,
+                ownerName: SyncEngine.zoneID.ownerName,
+                recordName: object.ckRecordID
+            )
 
             let record = metadata?.lastKnownRecord ?? CKRecord(recordType: SyncEngine.recordType, recordID: recordID)
 
-            let sentQueueId = SyncEngine.makeCKRecordSentQueueId(queueId: object.id, objectId: object.objectId, deviceId: deviceId)
+            let sentQueueId = SyncEngine.makeCKRecordSentQueueId(
+                queueId: object.id,
+                objectId: object.objectId,
+                deviceId: deviceId
+            )
             record.sentQueueId = sentQueueId
             record.lastModifiedByDeviceId = deviceId
             do {
@@ -1398,7 +1448,11 @@ extension SyncEngine: SyncEngineDelegate {
         }
 
         Logger.syncEngine.infoFile("Push batch modifications \(recordsToSave.count) deletions \(realRecordIDsToDelete.count)")
-        return CKSyncEngine.RecordZoneChangeBatch(recordsToSave: recordsToSave, recordIDsToDelete: realRecordIDsToDelete, atomicByZone: true)
+        return CKSyncEngine.RecordZoneChangeBatch(
+            recordsToSave: recordsToSave,
+            recordIDsToDelete: realRecordIDsToDelete,
+            atomicByZone: true
+        )
     }
 
     package func nextFetchChangesOptions(

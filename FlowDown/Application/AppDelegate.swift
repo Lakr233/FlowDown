@@ -100,7 +100,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         logger.errorFile("ERROR: Failed to register for notifications: \(error.localizedDescription)")
     }
 
-    func application(_: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    func application(
+        _: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
         guard let notification = CKNotification(fromRemoteNotificationDictionary: userInfo) else {
             completionHandler(.noData)
             return

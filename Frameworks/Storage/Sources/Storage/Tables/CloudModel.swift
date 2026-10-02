@@ -66,7 +66,11 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
             BindColumnConstraint(context, isNotNull: true, defaultTo: ModelContextLength.short_8k)
             BindColumnConstraint(comment, isNotNull: true, defaultTo: "")
             BindColumnConstraint(name, isNotNull: true, defaultTo: "")
-            BindColumnConstraint(temperature_preference, isNotNull: false, defaultTo: ModelTemperaturePreference.inherit)
+            BindColumnConstraint(
+                temperature_preference,
+                isNotNull: false,
+                defaultTo: ModelTemperaturePreference.inherit
+            )
             BindColumnConstraint(response_format, isNotNull: true, defaultTo: CloudModel.ResponseFormat.default)
 
             BindIndex(creation, namedWith: "_creationIndex")
@@ -146,9 +150,15 @@ public final class CloudModel: Identifiable, Codable, Equatable, Hashable, Table
         comment = try container.decodeIfPresent(String.self, forKey: .comment) ?? ""
         name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
 
-        temperature_preference = try container.decodeIfPresent(ModelTemperaturePreference.self, forKey: .temperature_preference) ?? .inherit
+        temperature_preference = try container.decodeIfPresent(
+            ModelTemperaturePreference.self,
+            forKey: .temperature_preference
+        ) ?? .inherit
 
-        response_format = try container.decodeIfPresent(CloudModel.ResponseFormat.self, forKey: .response_format) ?? .default
+        response_format = try container.decodeIfPresent(
+            CloudModel.ResponseFormat.self,
+            forKey: .response_format
+        ) ?? .default
         removed = try container.decodeIfPresent(Bool.self, forKey: .removed) ?? false
     }
 
@@ -191,7 +201,10 @@ public extension CloudModel {
 
 extension CloudModel: Updatable {
     @discardableResult
-    public func update<Value: Equatable>(_ keyPath: ReferenceWritableKeyPath<CloudModel, Value>, to newValue: Value) -> Bool {
+    public func update<Value: Equatable>(
+        _ keyPath: ReferenceWritableKeyPath<CloudModel, Value>,
+        to newValue: Value
+    ) -> Bool {
         let oldValue = self[keyPath: keyPath]
         guard oldValue != newValue else { return false }
         assign(keyPath, to: newValue)

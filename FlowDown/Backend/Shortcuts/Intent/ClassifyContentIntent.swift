@@ -98,7 +98,11 @@ struct ClassifyContentWithImageIntent: AppIntent {
     @Parameter(title: "Model", default: nil)
     var model: ShortcutsEntities.ModelEntity?
 
-    @Parameter(title: "Image", supportedContentTypes: [.image], requestValueDialog: "Select an image to accompany the request.")
+    @Parameter(
+        title: "Image",
+        supportedContentTypes: [.image],
+        requestValueDialog: "Select an image to accompany the request."
+    )
     var image: IntentFile
 
     @Parameter(title: "Candidate A", default: "")

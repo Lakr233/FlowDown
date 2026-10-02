@@ -122,7 +122,10 @@ extension SettingController.SettingContent.MCPController: UITableViewDelegate {
         navigationController?.pushViewController(controller, animated: true)
     }
 
-    func tableView(_: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(
+        _: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
         guard let clientId = dataSource.itemIdentifier(for: indexPath) else { return nil }
         let delete = UIContextualAction(
             style: .destructive,
@@ -135,7 +138,11 @@ extension SettingController.SettingContent.MCPController: UITableViewDelegate {
         return UISwipeActionsConfiguration(actions: [delete])
     }
 
-    func tableView(_: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
+    func tableView(
+        _: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
+        point _: CGPoint
+    ) -> UIContextMenuConfiguration? {
         guard let clientId = dataSource.itemIdentifier(for: indexPath),
               let server = MCPService.shared.server(with: clientId) else { return nil }
 
@@ -267,7 +274,11 @@ extension SettingController.SettingContent.MCPController: UITableViewDragDelegat
         return [dragItem]
     }
 
-    func tableView(_: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath _: IndexPath?) -> UITableViewDropProposal {
+    func tableView(
+        _: UITableView,
+        dropSessionDidUpdate session: UIDropSession,
+        withDestinationIndexPath _: IndexPath?
+    ) -> UITableViewDropProposal {
         // MCPService keeps no order, and importing a row dragged from inside the
         // app (this list or one in another window) would duplicate it.
         guard session.localDragSession == nil else {

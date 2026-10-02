@@ -290,7 +290,9 @@ enum AudioTranscoder {
                             format: output.fileExtension,
                         ))
                     } catch {
-                        continuation.resume(throwing: AudioTranscoderError.readerWriterFailed(error.localizedDescription))
+                        continuation.resume(
+                            throwing: AudioTranscoderError.readerWriterFailed(error.localizedDescription)
+                        )
                     }
                 }
             }
@@ -310,7 +312,10 @@ enum AudioTranscoder {
                 while writerInputBox.value.isReadyForMoreMediaData {
                     if let buffer = readerOutputBox.value.copyNextSampleBuffer() {
                         if !writerInputBox.value.append(buffer) {
-                            finish(with: writerBox.value.error ?? AudioTranscoderError.readerWriterFailed("Failed to append audio sample"))
+                            finish(
+                                with: writerBox.value.error
+                                    ?? AudioTranscoderError.readerWriterFailed("Failed to append audio sample")
+                            )
                             return
                         }
                     } else {
@@ -319,7 +324,10 @@ enum AudioTranscoder {
                             if writerBox.value.status == .completed {
                                 finish(with: nil)
                             } else {
-                                finish(with: writerBox.value.error ?? AudioTranscoderError.readerWriterFailed("Writer failed"))
+                                finish(
+                                    with: writerBox.value.error
+                                        ?? AudioTranscoderError.readerWriterFailed("Writer failed")
+                                )
                             }
                         }
                         break

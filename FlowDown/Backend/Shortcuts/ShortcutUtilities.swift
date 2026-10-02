@@ -79,7 +79,8 @@ enum ShortcutUtilities {
             " "
         }
 
-        guard let encodedMessage = messageForEncoding.addingPercentEncoding(withAllowedCharacters: allowedCharacters) else {
+        guard let encodedMessage = messageForEncoding.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
+        else {
             throw ShortcutUtilitiesError.invalidMessageEncoding
         }
 

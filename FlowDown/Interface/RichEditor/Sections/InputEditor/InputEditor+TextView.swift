@@ -95,7 +95,11 @@ extension InputEditor: UITextViewDelegate {
         switchToRequiredStatus()
     }
 
-    public func textView(_ textView: UITextView, editMenuForTextIn _: NSRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
+    public func textView(
+        _ textView: UITextView,
+        editMenuForTextIn _: NSRange,
+        suggestedActions: [UIMenuElement]
+    ) -> UIMenu? {
         let pasteboard = UIPasteboard.general
         let canPasteAttachment = pasteboard.hasStrings
 

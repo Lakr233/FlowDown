@@ -30,7 +30,10 @@ extension ConversationManager {
         return createNewConversation()
     }
 
-    func createNewConversation(_ block: Storage.ConversationMakeInitDataBlock? = nil, autoSelect: Bool = false) -> Conversation {
+    func createNewConversation(
+        _ block: Storage.ConversationMakeInitDataBlock? = nil,
+        autoSelect: Bool = false
+    ) -> Conversation {
         let tempObject = sdb.conversationMake {
             $0.update(\.title, to: String(localized: "Conversation"))
             if $0.modelId?.isEmpty ?? true {

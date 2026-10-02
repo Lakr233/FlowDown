@@ -209,14 +209,18 @@ class MCPEditorController: StackScrollController {
                     $0.update(\.header, to: header)
                 }
                 self.refreshUI()
-                view.configure(value: object.isEmpty ? String(localized: "No Headers") : String(localized: "Configured"))
+                view.configure(
+                    value: object.isEmpty ? String(localized: "No Headers") : String(localized: "Configured")
+                )
             }
             view.parentViewController?.navigationController?.pushViewController(textEditor, animated: true)
         }
         headerView.configure(icon: .init(systemName: "list.bullet"))
         headerView.configure(title: "Headers")
         headerView.configure(description: "This value will be added to the request as additional header.")
-        headerView.configure(value: server.header.isEmpty ? String(localized: "No Headers") : String(localized: "Configured"))
+        headerView.configure(
+            value: server.header.isEmpty ? String(localized: "No Headers") : String(localized: "Configured")
+        )
         stackView.addArrangedSubviewWithMargin(headerView)
         stackView.addArrangedSubview(SeparatorView())
 

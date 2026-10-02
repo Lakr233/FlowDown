@@ -21,7 +21,10 @@ extension EvaluationStatusCollectionView {
                 - sectionInsets.leading
                 - sectionInsets.trailing
 
-            var columns = max(1, Int(((availableWidth + interItemSpacing) / (minItemWidth + interItemSpacing)).rounded(.down)))
+            var columns = max(
+                1,
+                Int(((availableWidth + interItemSpacing) / (minItemWidth + interItemSpacing)).rounded(.down))
+            )
             if columns < 1 { columns = 1 }
 
             func itemWidth(for columns: Int) -> CGFloat {
@@ -47,7 +50,11 @@ extension EvaluationStatusCollectionView {
                 widthDimension: .fractionalWidth(1.0),
                 heightDimension: .estimated(80),
             )
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, repeatingSubitem: item, count: columns)
+            let group = NSCollectionLayoutGroup.horizontal(
+                layoutSize: groupSize,
+                repeatingSubitem: item,
+                count: columns
+            )
             group.interItemSpacing = .fixed(interItemSpacing)
 
             let section = NSCollectionLayoutSection(group: group)

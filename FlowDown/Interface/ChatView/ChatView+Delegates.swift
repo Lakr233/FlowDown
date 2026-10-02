@@ -214,7 +214,8 @@ extension ChatView: RichEditorView.Delegate {
   }
 
   func onRichEditorBuildAlternativeToolsMenu(
-    isEnabled: Bool, requestReload: @escaping (Bool) -> Void
+    isEnabled: Bool,
+    requestReload: @escaping (Bool) -> Void
   ) -> [UIMenuElement] {
     let mcpServers = MCPService.shared.servers.value
     var toolMenuItems: [UIMenuElement] = [

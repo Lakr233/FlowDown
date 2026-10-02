@@ -19,7 +19,9 @@ class EvaluationSessionTests: XCTestCase {
         return try decoder.decode(EvaluationManifest.Suite.Case.Verifier.self, from: data)
     }
 
-    private func roundTrip(_ verifier: EvaluationManifest.Suite.Case.Verifier) throws -> EvaluationManifest.Suite.Case.Verifier {
+    private func roundTrip(
+        _ verifier: EvaluationManifest.Suite.Case.Verifier
+    ) throws -> EvaluationManifest.Suite.Case.Verifier {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.sortedKeys]
@@ -191,7 +193,10 @@ class EvaluationSessionTests: XCTestCase {
     }
 
     func testVerifierDecode_LegacyToolInlineFields() throws {
-        XCTAssertEqual(try decodeVerifier(#"{"type":"tool","parameter":"a","value":1}"#), .tool(parameter: "a", value: 1))
+        XCTAssertEqual(
+            try decodeVerifier(#"{"type":"tool","parameter":"a","value":1}"#),
+            .tool(parameter: "a", value: 1)
+        )
     }
 
     func testVerifierDecode_LegacyStringOpen() throws {

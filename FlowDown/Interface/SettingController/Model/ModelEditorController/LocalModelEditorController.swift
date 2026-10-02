@@ -414,7 +414,13 @@ private class SimpleCopyMenuDelegate: NSObject, UIContextMenuInteractionDelegate
     let actionIcon: String
     let copyText: () -> String
 
-    init(view: ConfigurableInfoView, title: String, actionTitle: String, actionIcon: String, copyText: @escaping () -> String) {
+    init(
+        view: ConfigurableInfoView,
+        title: String,
+        actionTitle: String,
+        actionIcon: String,
+        copyText: @escaping () -> String
+    ) {
         self.view = view
         self.title = title
         self.actionTitle = actionTitle

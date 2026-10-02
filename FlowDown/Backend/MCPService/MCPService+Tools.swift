@@ -17,7 +17,11 @@ import UIKit
 // MARK: - MCPService Tools Extension
 
 extension MCPService {
-    func callTool(name: String, arguments: [String: Value]? = nil, from clientName: String) async throws -> (content: [Tool.Content], isError: Bool?) {
+    func callTool(
+        name: String,
+        arguments: [String: Value]? = nil,
+        from clientName: String
+    ) async throws -> (content: [Tool.Content], isError: Bool?) {
         let connection = await MainActor.run { connections[clientName] }
         guard let connection, connection.isConnected else {
             throw MCPError.connectionFailed

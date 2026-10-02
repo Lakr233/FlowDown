@@ -40,7 +40,10 @@ extension EvaluationManifest.Suite.Case {
             self.audioRepresentation = audioRepresentation
         }
 
-        static func == (lhs: EvaluationManifest.Suite.Case.Content, rhs: EvaluationManifest.Suite.Case.Content) -> Bool {
+        static func == (
+            lhs: EvaluationManifest.Suite.Case.Content,
+            rhs: EvaluationManifest.Suite.Case.Content
+        ) -> Bool {
             lhs.type == rhs.type
                 && lhs.textRepresentation == rhs.textRepresentation
                 && lhs.toolRepresentation == rhs.toolRepresentation
@@ -84,7 +87,10 @@ extension EvaluationManifest.Suite.Case {
             self.parameters = parameters
         }
 
-        static func == (lhs: EvaluationManifest.Suite.Case.ToolRepresentation, rhs: EvaluationManifest.Suite.Case.ToolRepresentation) -> Bool {
+        static func == (
+            lhs: EvaluationManifest.Suite.Case.ToolRepresentation,
+            rhs: EvaluationManifest.Suite.Case.ToolRepresentation
+        ) -> Bool {
             lhs.name == rhs.name
                 && lhs.description == rhs.description
                 && lhs.parameters == rhs.parameters

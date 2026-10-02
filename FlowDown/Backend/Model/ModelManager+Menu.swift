@@ -192,7 +192,8 @@ extension ModelManager {
                 allowSelectionWithNone: !Self.ModelIdentifier.defaultModelForAuxiliaryTask.isEmpty,
                 onCompletion: { identifier in
                     Self.ModelIdentifier.defaultModelForAuxiliaryTask = identifier
-                }, includeQuickActions: false,
+                },
+                includeQuickActions: false,
             )
             let taskModelSelect = UIMenu(
                 title: String(localized: "Task Model"),
@@ -206,7 +207,8 @@ extension ModelManager {
                 allowSelectionWithNone: !Self.ModelIdentifier.defaultModelForAuxiliaryVisualTask.isEmpty,
                 onCompletion: { identifier in
                     Self.ModelIdentifier.defaultModelForAuxiliaryVisualTask = identifier
-                }, includeQuickActions: false,
+                },
+                includeQuickActions: false,
             )
             let auxVisionModelSelect = UIMenu(
                 title: String(localized: "Auxiliary Visual Model"),

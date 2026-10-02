@@ -69,7 +69,8 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
         let viewController = try await anchorController(for: view)
 
         return try await requestLocationWithUserInteraction(
-            controller: viewController, locale: locale,
+            controller: viewController,
+            locale: locale,
         )
     }
 
@@ -82,7 +83,8 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
                     continuation.resume(returning: result)
                 } else {
                     continuation.resume(throwing: NSError(
-                        domain: "Tool", code: -1,
+                        domain: "Tool",
+                        code: -1,
                         userInfo: [
                             NSLocalizedDescriptionKey: result,
                         ],
@@ -93,7 +95,9 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
     }
 
     private func getLocationAndAddress(
-        controller: UIViewController, locale: Locale, completion: @escaping (String, Bool) -> Void,
+        controller: UIViewController,
+        locale: Locale,
+        completion: @escaping (String, Bool) -> Void,
     ) {
         var isCompletionCalled = false
         let wrappedCompletion: (String, Bool) -> Void = { text, success in
@@ -139,7 +143,8 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
                                 String(
                                     localized:
                                     "Location access is not available. Please check your device settings.",
-                                ), false,
+                                ),
+                                false,
                             )
                         }
                         return
@@ -150,7 +155,8 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
                     @unknown default:
                         indicator.dismiss(animated: true) {
                             wrappedCompletion(
-                                String(localized: "Unknown authorization status for location services."), false,
+                                String(localized: "Unknown authorization status for location services."),
+                                false,
                             )
                         }
                         return
@@ -190,7 +196,8 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
                             String(
                                 localized:
                                 "Error getting location details: \(error.localizedDescription)",
-                            ), false,
+                            ),
+                            false,
                         )
                         return
                     }
@@ -291,7 +298,8 @@ extension MTLocationTool: CLLocationManagerDelegate {
         @unknown default:
             loadingIndicator?.dismiss(animated: true) {
                 self.locationCompletion?(
-                    String(localized: "Unknown authorization status for location services."), false,
+                    String(localized: "Unknown authorization status for location services."),
+                    false,
                 )
             }
         }

@@ -89,7 +89,9 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         guard let json = decodeArguments(input)
         else {
             throw NSError(
-                domain: "MTQueryReminderTool", code: 400, userInfo: [
+                domain: "MTQueryReminderTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "Invalid input parameters"),
                 ],
             )
@@ -167,19 +169,22 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
 
         if !startString.isEmpty, start == nil {
             throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
+                NSLocalizedDescriptionKey:
+                    "\(prefix): " + String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
             ])
         }
         if !endString.isEmpty, end == nil {
             throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
+                NSLocalizedDescriptionKey:
+                    "\(prefix): " + String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
             ])
         }
 
         if let start, let end {
             if end < start {
                 throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "start_date must be on or before end_date."),
+                    NSLocalizedDescriptionKey:
+                        "\(prefix): " + String(localized: "start_date must be on or before end_date."),
                 ])
             }
             let days = calendar.dateComponents([.day], from: start, to: end).day ?? 0
@@ -322,7 +327,9 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {
-                    continuation.resume(throwing: ModelToolError.failure(String(localized: "User cancelled sharing reminders.")))
+                    continuation.resume(
+                        throwing: ModelToolError.failure(String(localized: "User cancelled sharing reminders."))
+                    )
                 }
             }
             context.addAction(title: "Share", attribute: .accent) {

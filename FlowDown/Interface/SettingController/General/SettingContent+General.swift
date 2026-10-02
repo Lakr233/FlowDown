@@ -68,7 +68,9 @@ extension SettingController.SettingContent {
                     .ensureMainThread()
                     .sink { [weak self] rawValue in
                         guard let self else { return }
-                        let mode = StreamAudioEffectSetting(rawValue: rawValue ?? StreamAudioEffectSetting.off.rawValue) ?? .off
+                        let mode = StreamAudioEffectSetting(
+                            rawValue: rawValue ?? StreamAudioEffectSetting.off.rawValue
+                        ) ?? .off
                         if mode == .off {
                             isProgrammaticallyUpdatingLiveActivityToggle = true
                             LiveActivitySetting.setEnabled(false)

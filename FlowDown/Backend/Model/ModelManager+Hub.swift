@@ -341,8 +341,14 @@ extension ModelManager {
         Logger.model.infoFile("moving model \(identifier) to final dest \(modelDir)")
         try? FileManager.default.removeItem(at: modelDir)
         try? FileManager.default.createDirectory(at: modelDir, withIntermediateDirectories: true, attributes: nil)
-        try FileManager.default.moveItem(at: contentDir, to: modelDir.appendingPathComponent(contentDir.lastPathComponent))
-        try FileManager.default.moveItem(at: manifestDir, to: modelDir.appendingPathComponent(manifestDir.lastPathComponent))
+        try FileManager.default.moveItem(
+            at: contentDir,
+            to: modelDir.appendingPathComponent(contentDir.lastPathComponent)
+        )
+        try FileManager.default.moveItem(
+            at: manifestDir,
+            to: modelDir.appendingPathComponent(manifestDir.lastPathComponent)
+        )
 
         let models = scanLocalModels()
         localModels.send(models)

@@ -97,7 +97,9 @@ private extension SettingsBackup {
         return storage
     }
 
-    static func collectConfigurableItems(from storage: UserDefaultKeyValueStorage) throws -> [SettingsBackupPayload.Item] {
+    static func collectConfigurableItems(
+        from storage: UserDefaultKeyValueStorage
+    ) throws -> [SettingsBackupPayload.Item] {
         let suite = storage.exposedSuite
         let prefix = storage.exposedPrefix
         let dictionary = suite.dictionaryRepresentation()

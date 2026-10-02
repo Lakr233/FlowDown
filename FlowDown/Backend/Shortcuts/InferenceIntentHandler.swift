@@ -70,7 +70,12 @@ enum InferenceIntentHandler {
             ModelToolsManager.shared.enabledMemoryWritingTools
         }
 
-        var streamingInfer: (ModelManager.ModelIdentifier, [ChatRequestBody.Message], [ChatRequestBody.Tool]?, ChatRequestBody.ToolChoice?) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> = { modelID, input, tools, toolChoice in
+        var streamingInfer: (
+            ModelManager.ModelIdentifier,
+            [ChatRequestBody.Message],
+            [ChatRequestBody.Tool]?,
+            ChatRequestBody.ToolChoice?
+        ) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> = { modelID, input, tools, toolChoice in
             try await ModelManager.shared.streamingInfer(
                 with: modelID,
                 input: input,
@@ -219,7 +224,12 @@ enum InferenceIntentHandler {
                 toolChoice = .function(name: name)
             }
         }
-        let inference = try await dependencies.streamingInfer(modelIdentifier, requestMessages, toolDefinitions, toolChoice)
+        let inference = try await dependencies.streamingInfer(
+            modelIdentifier,
+            requestMessages,
+            toolDefinitions,
+            toolChoice
+        )
 
         var content = ""
         var reasoningContent = ""

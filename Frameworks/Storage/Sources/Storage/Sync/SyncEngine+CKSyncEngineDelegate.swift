@@ -17,11 +17,17 @@ extension SyncEngine: CKSyncEngineDelegate {
         await handleEvent(event, syncEngine: syncEngine)
     }
 
-    public func nextRecordZoneChangeBatch(_ context: CKSyncEngine.SendChangesContext, syncEngine: CKSyncEngine) async -> CKSyncEngine.RecordZoneChangeBatch? {
+    public func nextRecordZoneChangeBatch(
+        _ context: CKSyncEngine.SendChangesContext,
+        syncEngine: CKSyncEngine
+    ) async -> CKSyncEngine.RecordZoneChangeBatch? {
         await nextRecordZoneChangeBatch(reason: context.reason, options: context.options, syncEngine: syncEngine)
     }
 
-    public func nextFetchChangesOptions(_ context: CKSyncEngine.FetchChangesContext, syncEngine _: CKSyncEngine) async -> CKSyncEngine.FetchChangesOptions {
+    public func nextFetchChangesOptions(
+        _ context: CKSyncEngine.FetchChangesContext,
+        syncEngine _: CKSyncEngine
+    ) async -> CKSyncEngine.FetchChangesOptions {
         let options = context.options
         Logger.syncEngine.infoFile("Next fetch by reason: \(context.reason)")
         return options

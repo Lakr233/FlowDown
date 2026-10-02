@@ -25,7 +25,8 @@ public extension Storage {
     func template(with identifier: ChatTemplateRecord.ID) -> ChatTemplateRecord? {
         try? db.getObject(
             fromTable: ChatTemplateRecord.tableName,
-            where: ChatTemplateRecord.Properties.objectId == identifier && ChatTemplateRecord.Properties.removed == false,
+            where: ChatTemplateRecord.Properties.objectId == identifier
+                && ChatTemplateRecord.Properties.removed == false,
         )
     }
 

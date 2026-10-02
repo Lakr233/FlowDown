@@ -68,7 +68,9 @@ final class MemoryExtractor {
             for fact in newFacts {
                 MemoryStore.shared.store(content: fact, conversationId: conversationId)
             }
-            Logger.model.infoFile("MemoryExtractor: stored \(newFacts.count) new fact(s) for conversation \(conversationId)")
+            Logger.model.infoFile(
+                "MemoryExtractor: stored \(newFacts.count) new fact(s) for conversation \(conversationId)"
+            )
         } catch {
             Logger.model.errorFile("MemoryExtractor: extraction failed: \(error.localizedDescription)")
         }
@@ -87,7 +89,10 @@ final class MemoryExtractor {
         }.joined(separator: "\n")
     }
 
-    private func extractFacts(from snippet: String, using modelId: ModelManager.ModelIdentifier) async throws -> [String] {
+    private func extractFacts(
+        from snippet: String,
+        using modelId: ModelManager.ModelIdentifier
+    ) async throws -> [String] {
         let systemPrompt = """
         You are a memory extraction assistant. Analyze the following conversation snippet and extract up to 5 persistent, personally relevant facts about the user.
 
@@ -143,7 +148,9 @@ final class MemoryExtractor {
         do {
             existingMemories = try await MemoryStore.shared.getAllMemoriesAsync()
         } catch {
-            Logger.model.errorFile("MemoryExtractor: failed to load existing memories for deduplication: \(error.localizedDescription)")
+            Logger.model.errorFile(
+                "MemoryExtractor: failed to load existing memories for deduplication: \(error.localizedDescription)"
+            )
             return candidates
         }
 

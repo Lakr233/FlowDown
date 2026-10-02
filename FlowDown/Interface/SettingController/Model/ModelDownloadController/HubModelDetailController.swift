@@ -219,7 +219,10 @@ class HubModelDetailController: StackScrollController {
             return
         }
 
-        let sizeText = ByteCountFormatter.string(fromByteCount: Int64(downloadSize ?? 128 * 1024 * 1024 * 1024), countStyle: .file)
+        let sizeText = ByteCountFormatter.string(
+            fromByteCount: Int64(downloadSize ?? 128 * 1024 * 1024 * 1024),
+            countStyle: .file
+        )
 
         if disableWarnings {
             present(downloadController, animated: true)

@@ -135,7 +135,11 @@ package extension Storage {
         }
     }
 
-    func pendingUploadEnqueue(sources: [(source: any Syncable, changes: UploadQueue.Changes)], skipEnqueueHandler: Bool = false, handle: Handle? = nil) throws {
+    func pendingUploadEnqueue(
+        sources: [(source: any Syncable, changes: UploadQueue.Changes)],
+        skipEnqueueHandler: Bool = false,
+        handle: Handle? = nil
+    ) throws {
         guard !sources.isEmpty else {
             return
         }
@@ -176,7 +180,10 @@ package extension Storage {
     /// - Parameters:
     ///   - deleting: 待删除集合
     ///   - handle: The handle of the enclosing transaction.
-    func pendingUploadDequeue(by deleting: [(queueId: UploadQueue.ID, objectId: String, tableName: String)], handle: Handle) throws {
+    func pendingUploadDequeue(
+        by deleting: [(queueId: UploadQueue.ID, objectId: String, tableName: String)],
+        handle: Handle
+    ) throws {
         guard !deleting.isEmpty else {
             return
         }
@@ -197,7 +204,10 @@ package extension Storage {
     /// - Parameters:
     ///   - deleting: 待删除集合
     ///   - handle: 数据库句柄，传入 nil 时使用主句柄
-    func pendingUploadDequeueDeleted(by deleting: [(objectId: String, tableName: String)], handle: Handle? = nil) throws {
+    func pendingUploadDequeueDeleted(
+        by deleting: [(objectId: String, tableName: String)],
+        handle: Handle? = nil
+    ) throws {
         guard !deleting.isEmpty else {
             return
         }
@@ -423,7 +433,11 @@ package extension Storage {
         Logger.database.infoFile("[*] reinitializeUploadQueue end elapsed \(Int(elapsed))ms")
     }
 
-    private func initializeMigrationUploadQueue<T: Syncable & SyncQueryable>(table _: T.Type, handle: Handle, startId: Int64) throws -> Int64 {
+    private func initializeMigrationUploadQueue<T: Syncable & SyncQueryable>(
+        table _: T.Type,
+        handle: Handle,
+        startId: Int64
+    ) throws -> Int64 {
         let batchSize = 500
         var lastObjectId: String?
         var lastCreation: Date?

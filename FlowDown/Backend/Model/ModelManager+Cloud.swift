@@ -113,7 +113,9 @@ extension ModelManager {
             }
             if let http = response as? HTTPURLResponse {
                 if http.statusCode != 200 {
-                    Logger.network.errorFile("[fetchModelList] non-200 status: \(http.statusCode) for URL: \(url.absoluteString)")
+                    Logger.network.errorFile(
+                        "[fetchModelList] non-200 status: \(http.statusCode) for URL: \(url.absoluteString)"
+                    )
                 }
             }
             guard let data else { return deliver([]) }

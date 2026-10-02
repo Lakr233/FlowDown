@@ -42,7 +42,11 @@ extension UIView {
 // MARK: - Animation
 
 extension UIView {
-    func doWithAnimation(duration: TimeInterval = 0.5, _ execute: @escaping () -> Void, completion: @escaping () -> Void = {}) {
+    func doWithAnimation(
+        duration: TimeInterval = 0.5,
+        _ execute: @escaping () -> Void,
+        completion: @escaping () -> Void = {}
+    ) {
         layoutIfNeeded()
         UIView.animate(
             withDuration: duration,

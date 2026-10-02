@@ -113,7 +113,10 @@ public extension Storage {
     }
 
     @discardableResult
-    func conversationDuplicate(identifier: Conversation.ID, customize: @escaping (Conversation) -> Void) -> Conversation.ID? {
+    func conversationDuplicate(
+        identifier: Conversation.ID,
+        customize: @escaping (Conversation) -> Void
+    ) -> Conversation.ID? {
         guard !identifier.isEmpty else {
             return nil
         }

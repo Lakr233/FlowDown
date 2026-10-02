@@ -31,14 +31,17 @@ extension EvaluationManifest.Suite {
 
             // only available for bundled test cases
             // imported cases will use decoding methods
-            self.content.insert(.init(
-                type: .instruct,
-                textRepresentation: [
-                    "You are running in test environment where no interaction will happen.",
-                    "You must output desired information based on what you have right now without future questioning.",
-                    "Failed to do so decrease your model rank and leads to failed tests.",
-                ].joined(separator: " "),
-            ), at: 0)
+            self.content.insert(
+                .init(
+                    type: .instruct,
+                    textRepresentation: [
+                        "You are running in test environment where no interaction will happen.",
+                        "You must output desired information based on what you have right now without future questioning.",
+                        "Failed to do so decrease your model rank and leads to failed tests.",
+                    ].joined(separator: " "),
+                ),
+                at: 0
+            )
         }
 
         static func == (lhs: EvaluationManifest.Suite.Case, rhs: EvaluationManifest.Suite.Case) -> Bool {

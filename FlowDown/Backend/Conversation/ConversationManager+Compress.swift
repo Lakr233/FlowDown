@@ -114,7 +114,9 @@ extension ConversationManager {
                     sess.appendNewMessage(role: .assistant) {
                         $0.update(
                             \.document,
-                            to: String(localized: "An error occurred during compression: \(error.localizedDescription)"),
+                            to: String(
+                                localized: "An error occurred during compression: \(error.localizedDescription)"
+                            ),
                         )
                     }
                     sess.notifyMessagesDidChange()

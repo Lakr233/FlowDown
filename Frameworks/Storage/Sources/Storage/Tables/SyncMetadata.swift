@@ -56,7 +56,13 @@ package final class SyncMetadata: Identifiable, Codable, TableNamed, TableCodabl
             BindColumnConstraint(recordName, isNotNull: true)
             BindColumnConstraint(lastKnownRecordData, isNotNull: false)
 
-            BindIndex(recordName, zoneName, ownerName, namedWith: "_recordNameAndZoneNameAndOwnerNameIndex", isUnique: true)
+            BindIndex(
+                recordName,
+                zoneName,
+                ownerName,
+                namedWith: "_recordNameAndZoneNameAndOwnerNameIndex",
+                isUnique: true
+            )
         }
 
         case zoneName

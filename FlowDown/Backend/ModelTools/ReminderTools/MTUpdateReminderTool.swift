@@ -94,7 +94,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
       let reminderId = json["reminder_id"] as? String, !reminderId.isEmpty
     else {
       throw NSError(
-        domain: "MTUpdateReminderTool", code: 400,
+        domain: "MTUpdateReminderTool",
+        code: 400,
         userInfo: [
           NSLocalizedDescriptionKey: String(localized: "reminder_id is required.")
         ],
@@ -148,7 +149,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
 
     if clearNotes, notesChange != nil {
       throw NSError(
-        domain: "MTUpdateReminderTool", code: 400,
+        domain: "MTUpdateReminderTool",
+        code: 400,
         userInfo: [
           NSLocalizedDescriptionKey: "clear_notes cannot be combined with a non-empty notes value."
         ],
@@ -156,7 +158,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
     }
     if clearDueDate, dueDateChange != nil {
       throw NSError(
-        domain: "MTUpdateReminderTool", code: 400,
+        domain: "MTUpdateReminderTool",
+        code: 400,
         userInfo: [
           NSLocalizedDescriptionKey:
             "clear_due_date cannot be combined with a non-empty due_date value."
@@ -165,7 +168,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
     }
     if clearPriority, priorityRaw != nil {
       throw NSError(
-        domain: "MTUpdateReminderTool", code: 400,
+        domain: "MTUpdateReminderTool",
+        code: 400,
         userInfo: [
           NSLocalizedDescriptionKey: "clear_priority cannot be combined with a priority >= 0."
         ],
@@ -174,7 +178,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
 
     if let dueDateChange, ReminderToolsShared.parseISODate(dueDateChange) == nil {
       throw NSError(
-        domain: "MTUpdateReminderTool", code: 400,
+        domain: "MTUpdateReminderTool",
+        code: 400,
         userInfo: [
           NSLocalizedDescriptionKey: "Invalid due_date format. Use ISO 8601 UTC."
         ],
@@ -205,7 +210,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
         let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore)
       else {
         cont.resume(
-          throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found.")))
+          throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found."))
+        )
         return
       }
 
@@ -238,7 +244,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
       lines.append(String(localized: "Priority → \(String(localized: "(cleared)"))"))
     } else if let newPriority = changes.newPriority {
       lines.append(
-        String(localized: "Priority → \(ReminderToolsShared.priorityLabel(newPriority))"))
+        String(localized: "Priority → \(ReminderToolsShared.priorityLabel(newPriority))")
+      )
     }
     if let newListName = changes.newListName {
       lines.append(String(localized: "List → \(newListName)"))
@@ -258,7 +265,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
 
     if summary.isEmpty {
       continuation.resume(
-        returning: String(localized: "No changes specified; reminder left untouched."))
+        returning: String(localized: "No changes specified; reminder left untouched.")
+      )
       return
     }
 
@@ -271,7 +279,8 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
       context.addAction(title: "Cancel") {
         context.dispose {
           continuation.resume(
-            throwing: ModelToolError.userCancelled())
+            throwing: ModelToolError.userCancelled()
+          )
         }
       }
       context.addAction(title: "Update", attribute: .accent) {
@@ -303,12 +312,16 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
             }
             try eventStore.save(reminder, commit: true)
             continuation.resume(
-              returning: String(localized: "Reminder updated: \(reminder.title ?? "-")"))
+              returning: String(localized: "Reminder updated: \(reminder.title ?? "-")")
+            )
           } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
             continuation.resume(throwing: error)
           } catch {
             continuation.resume(
-              throwing: ModelToolError.failure(String(localized: "Failed to update reminder: \(error.localizedDescription)")))
+              throwing: ModelToolError.failure(
+                String(localized: "Failed to update reminder: \(error.localizedDescription)")
+              )
+            )
           }
         }
       }

@@ -132,7 +132,10 @@ final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
         }
     }
 
-    func callTool(name: String, arguments: [String: Value]? = nil) async throws -> (content: [Tool.Content], isError: Bool?) {
+    func callTool(
+        name: String,
+        arguments: [String: Value]? = nil
+    ) async throws -> (content: [Tool.Content], isError: Bool?) {
         guard let client else {
             throw MCPError.connectionFailed
         }

@@ -56,7 +56,11 @@ extension MessageListView {
             }
         }
 
-        private func updateCache(for message: MessageRepresentation, theme: MarkdownTheme, contentHash: Int) -> MarkdownContent {
+        private func updateCache(
+            for message: MessageRepresentation,
+            theme: MarkdownTheme,
+            contentHash: Int
+        ) -> MarkdownContent {
             let content = message.content
             let result = MarkdownParser().parse(content)
             let package = makeContent(result: result, theme: theme)

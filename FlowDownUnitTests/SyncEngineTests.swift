@@ -99,7 +99,10 @@ struct SyncEngineTests {
             zoneID: Self.zoneID,
         )
         await environment.engine.handleEvent(
-            .fetchedRecordZoneChanges(modifications: [], deletions: [(recordID: recordID, recordType: Self.recordType)]),
+            .fetchedRecordZoneChanges(
+                modifications: [],
+                deletions: [(recordID: recordID, recordType: Self.recordType)]
+            ),
             syncEngine: environment.mock,
         )
 
@@ -132,7 +135,10 @@ struct SyncEngineTests {
             zoneID: Self.zoneID,
         )
         await environment.engine.handleEvent(
-            .fetchedRecordZoneChanges(modifications: [], deletions: [(recordID: recordID, recordType: Self.recordType)]),
+            .fetchedRecordZoneChanges(
+                modifications: [],
+                deletions: [(recordID: recordID, recordType: Self.recordType)]
+            ),
             syncEngine: environment.mock,
         )
 
@@ -194,7 +200,10 @@ struct SyncEngineTests {
 
         let (conversation, recordName) = try Self.makeUploadedConversation(in: environment.storage)
 
-        let failedRecord = CKRecord(recordType: Self.recordType, recordID: CKRecord.ID(recordName: recordName, zoneID: Self.zoneID))
+        let failedRecord = CKRecord(
+            recordType: Self.recordType,
+            recordID: CKRecord.ID(recordName: recordName, zoneID: Self.zoneID)
+        )
         let error = CKError(.zoneNotFound, userInfo: [CKErrorUserDidResetEncryptedDataKey: true])
 
         await environment.engine.handleEvent(
@@ -336,7 +345,12 @@ private extension SyncEngineTests {
     }
 
     static func makeMetadata(recordName: String) -> SyncMetadata {
-        SyncMetadata(record: CKRecord(recordType: recordType, recordID: CKRecord.ID(recordName: recordName, zoneID: zoneID)))
+        SyncMetadata(
+            record: CKRecord(
+                recordType: recordType,
+                recordID: CKRecord.ID(recordName: recordName, zoneID: zoneID)
+            )
+        )
     }
 
     static func findMetadata(recordName: String, in storage: Storage) throws -> SyncMetadata? {
@@ -344,9 +358,13 @@ private extension SyncEngineTests {
     }
 
     /// A conversation whose upload already finished: no queued upload, one `SyncMetadata` row.
-    static func makeUploadedConversation(in storage: Storage) throws -> (conversation: Conversation, recordName: String) {
+    static func makeUploadedConversation(
+        in storage: Storage
+    ) throws -> (conversation: Conversation, recordName: String) {
         let conversation = storage.conversationMake { _ in }
-        try storage.pendingUploadDequeueDeleted(by: [(objectId: conversation.objectId, tableName: Conversation.tableName)])
+        try storage.pendingUploadDequeueDeleted(by: [
+            (objectId: conversation.objectId, tableName: Conversation.tableName)
+        ])
 
         let recordName = makeRecordName(objectId: conversation.objectId, tableName: Conversation.tableName)
         try storage.syncMetadataUpdate([makeMetadata(recordName: recordName)])

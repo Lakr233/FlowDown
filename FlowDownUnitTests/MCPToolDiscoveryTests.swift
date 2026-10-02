@@ -36,7 +36,10 @@ struct MCPToolDiscoveryTests {
 
         let hostConnection = DiscoveryConnectionSpy(toolNames: ["search"])
         let fallbackConnection = DiscoveryConnectionSpy(toolNames: ["echo"])
-        let failingConnection = DiscoveryConnectionSpy(toolNames: ["broken"], listToolError: FlowDown.MCPError.connectionFailed)
+        let failingConnection = DiscoveryConnectionSpy(
+            toolNames: ["broken"],
+            listToolError: FlowDown.MCPError.connectionFailed
+        )
         let disabledConnection = DiscoveryConnectionSpy(toolNames: ["hidden"])
         let connections: [ModelContextServer.ID: DiscoveryConnectionSpy] = [
             hostServer.id: hostConnection,
@@ -192,7 +195,10 @@ private final class DiscoveryConnectionSpy: MCPConnectionControlling, @unchecked
         }
     }
 
-    func callTool(name _: String, arguments _: [String: Value]?) async throws -> (content: [Tool.Content], isError: Bool?) {
+    func callTool(
+        name _: String,
+        arguments _: [String: Value]?
+    ) async throws -> (content: [Tool.Content], isError: Bool?) {
         ([], nil)
     }
 }

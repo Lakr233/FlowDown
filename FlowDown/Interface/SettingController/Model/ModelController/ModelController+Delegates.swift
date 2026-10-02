@@ -26,7 +26,10 @@ extension SettingController.SettingContent.ModelController: UITableViewDelegate 
         }
     }
 
-    func tableView(_: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(
+        _: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
         guard let itemIdentifier = dataSource.itemIdentifier(for: indexPath) else {
             return nil
         }
@@ -46,7 +49,11 @@ extension SettingController.SettingContent.ModelController: UITableViewDelegate 
         return UISwipeActionsConfiguration(actions: [delete])
     }
 
-    func tableView(_: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
+    func tableView(
+        _: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
+        point _: CGPoint
+    ) -> UIContextMenuConfiguration? {
         guard let itemIdentifier = dataSource.itemIdentifier(for: indexPath) else {
             return nil
         }

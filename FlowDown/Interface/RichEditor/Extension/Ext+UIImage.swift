@@ -63,10 +63,14 @@ extension UIImage {
             return resize(withSize: size)
         case .contentAspectFit:
             let aspectRatio = min(aspectWidth, aspectHeight)
-            return resize(withSize: CGSize(width: self.size.width * aspectRatio, height: self.size.height * aspectRatio))
+            return resize(
+                withSize: CGSize(width: self.size.width * aspectRatio, height: self.size.height * aspectRatio)
+            )
         case .contentAspectFill:
             let aspectRatio = max(aspectWidth, aspectHeight)
-            return resize(withSize: CGSize(width: self.size.width * aspectRatio, height: self.size.height * aspectRatio))
+            return resize(
+                withSize: CGSize(width: self.size.width * aspectRatio, height: self.size.height * aspectRatio)
+            )
         }
     }
 

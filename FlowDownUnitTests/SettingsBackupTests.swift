@@ -64,8 +64,14 @@ struct SettingsBackupTests {
 
             try SettingsBackup.importBackup(from: importURL, storage: storage)
 
-            let restoredLiveActivity: Bool? = ConfigurableKit.value(forKey: LiveActivitySetting.storageKey, storage: storage)
-            let stalePasteAsFile: Bool? = ConfigurableKit.value(forKey: EditorBehavior.pasteAsFileStorageKey, storage: storage)
+            let restoredLiveActivity: Bool? = ConfigurableKit.value(
+                forKey: LiveActivitySetting.storageKey,
+                storage: storage
+            )
+            let stalePasteAsFile: Bool? = ConfigurableKit.value(
+                forKey: EditorBehavior.pasteAsFileStorageKey,
+                storage: storage
+            )
 
             #expect(restoredLiveActivity == true)
             #expect(stalePasteAsFile == nil)

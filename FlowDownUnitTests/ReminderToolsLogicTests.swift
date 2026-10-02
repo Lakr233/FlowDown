@@ -9,7 +9,8 @@ struct ReminderToolsLogicTests {
     func `parseISODate accepts canonical UTC timestamp`() throws {
         let date = try #require(ReminderToolsShared.parseISODate("2026-05-11T12:34:56Z"))
         let components = Calendar(identifier: .gregorian).dateComponents(
-            in: TimeZone(identifier: "UTC")!, from: date,
+            in: TimeZone(identifier: "UTC")!,
+            from: date,
         )
         #expect(components.year == 2026)
         #expect(components.month == 5)
@@ -30,7 +31,8 @@ struct ReminderToolsLogicTests {
     func `parseISODate accepts a date-only string`() throws {
         let date = try #require(ReminderToolsShared.parseISODate("2026-05-11"))
         let components = Calendar(identifier: .gregorian).dateComponents(
-            in: TimeZone(identifier: "UTC")!, from: date,
+            in: TimeZone(identifier: "UTC")!,
+            from: date,
         )
         #expect(components.year == 2026)
         #expect(components.month == 5)
@@ -121,14 +123,18 @@ struct ReminderToolsLogicTests {
     @Test
     func `parseRange accepts a single-sided range`() throws {
         let lowerOnly = try MTQueryReminderTool.parseRange(
-            prefix: "due", startString: "2026-05-01T00:00:00Z", endString: "",
+            prefix: "due",
+            startString: "2026-05-01T00:00:00Z",
+            endString: "",
         )
         #expect(lowerOnly.isActive)
         #expect(lowerOnly.start != nil)
         #expect(lowerOnly.end == nil)
 
         let upperOnly = try MTQueryReminderTool.parseRange(
-            prefix: "due", startString: "", endString: "2026-05-30T00:00:00Z",
+            prefix: "due",
+            startString: "",
+            endString: "2026-05-30T00:00:00Z",
         )
         #expect(upperOnly.isActive)
         #expect(upperOnly.start == nil)
@@ -139,7 +145,9 @@ struct ReminderToolsLogicTests {
     func `parseRange rejects malformed start string`() {
         #expect(throws: NSError.self) {
             try MTQueryReminderTool.parseRange(
-                prefix: "due", startString: "yesterday", endString: "",
+                prefix: "due",
+                startString: "yesterday",
+                endString: "",
             )
         }
     }
@@ -148,7 +156,9 @@ struct ReminderToolsLogicTests {
     func `parseRange rejects malformed end string`() {
         #expect(throws: NSError.self) {
             try MTQueryReminderTool.parseRange(
-                prefix: "alert", startString: "", endString: "tomorrow-ish",
+                prefix: "alert",
+                startString: "",
+                endString: "tomorrow-ish",
             )
         }
     }
@@ -334,9 +344,12 @@ struct ReminderToolsLogicTests {
     func `summarizeChanges renders cleared sentinels for clear flags`() {
         let parsed = MTUpdateReminderTool.ParsedChanges(
             newTitle: nil,
-            newNotes: nil, clearNotes: true,
-            newDueDate: nil, clearDueDate: true,
-            newPriority: nil, clearPriority: true,
+            newNotes: nil,
+            clearNotes: true,
+            newDueDate: nil,
+            clearDueDate: true,
+            newPriority: nil,
+            clearPriority: true,
             newListName: nil,
         )
         let lines = MTUpdateReminderTool.summarizeChanges(parsed, currentTitle: "Existing")
@@ -364,9 +377,12 @@ struct ReminderToolsLogicTests {
     func `summarizeChanges shows new values for non-cleared fields`() {
         let parsed = MTUpdateReminderTool.ParsedChanges(
             newTitle: "Buy oat milk",
-            newNotes: "2L whole", clearNotes: false,
-            newDueDate: "2026-05-12T09:00:00Z", clearDueDate: false,
-            newPriority: 1, clearPriority: false,
+            newNotes: "2L whole",
+            clearNotes: false,
+            newDueDate: "2026-05-12T09:00:00Z",
+            clearDueDate: false,
+            newPriority: 1,
+            clearPriority: false,
             newListName: "Groceries",
         )
         let lines = MTUpdateReminderTool.summarizeChanges(parsed, currentTitle: "Buy milk")
@@ -384,9 +400,12 @@ struct ReminderToolsLogicTests {
     func `summarizeChanges returns empty for a no-op update`() {
         let parsed = MTUpdateReminderTool.ParsedChanges(
             newTitle: nil,
-            newNotes: nil, clearNotes: false,
-            newDueDate: nil, clearDueDate: false,
-            newPriority: nil, clearPriority: false,
+            newNotes: nil,
+            clearNotes: false,
+            newDueDate: nil,
+            clearDueDate: false,
+            newPriority: nil,
+            clearPriority: false,
             newListName: nil,
         )
         #expect(parsed.isEmpty)

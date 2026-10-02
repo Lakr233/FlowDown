@@ -378,7 +378,11 @@ extension AttachmentsBar: UICollectionViewDelegate, UICollectionViewDelegateFlow
         }
     }
 
-    func collectionView(_: UICollectionView, layout _: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    func collectionView(
+        _: UICollectionView,
+        layout _: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
         guard let itemIdentifier = dataSoruce.itemIdentifier(for: indexPath) else { return .zero }
         guard let item = item(for: itemIdentifier) else { return .zero }
         return itemSize(for: item.type)

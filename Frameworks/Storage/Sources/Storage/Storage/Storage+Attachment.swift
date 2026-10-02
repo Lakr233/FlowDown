@@ -21,7 +21,11 @@ public extension Storage {
     }
 
     typealias AttachmentMakeInitDataBlock = (Attachment) -> Void
-    func attachmentMake(with messageID: String, skipSave: Bool = false, block: AttachmentMakeInitDataBlock? = nil) -> Attachment {
+    func attachmentMake(
+        with messageID: String,
+        skipSave: Bool = false,
+        block: AttachmentMakeInitDataBlock? = nil
+    ) -> Attachment {
         let attachment = Attachment(deviceId: Self.deviceId)
         attachment.messageId = messageID
 

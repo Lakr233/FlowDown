@@ -52,7 +52,9 @@ class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
               let reminderId = json["reminder_id"] as? String, !reminderId.isEmpty
         else {
             throw NSError(
-                domain: "MTDeleteReminderTool", code: 400, userInfo: [
+                domain: "MTDeleteReminderTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "reminder_id is required."),
                 ],
             )
@@ -71,7 +73,9 @@ class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
         try await ReminderToolsShared.withAuthorization { cont in
             let eventStore = EKEventStore()
             guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
-                cont.resume(throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found.")))
+                cont.resume(
+                    throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found."))
+                )
                 return
             }
 
@@ -112,7 +116,11 @@ class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
                         try eventStore.remove(reminder, commit: true)
                         continuation.resume(returning: String(localized: "Reminder deleted: \(title)"))
                     } catch {
-                        continuation.resume(throwing: ModelToolError.failure(String(localized: "Failed to delete reminder: \(error.localizedDescription)")))
+                        continuation.resume(
+                            throwing: ModelToolError.failure(
+                                String(localized: "Failed to delete reminder: \(error.localizedDescription)")
+                            )
+                        )
                     }
                 }
             }

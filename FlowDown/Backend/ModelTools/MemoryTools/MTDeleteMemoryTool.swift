@@ -54,7 +54,9 @@ class MTDeleteMemoryTool: ModelTool, @unchecked Sendable {
               let memoryId = json["memory_id"] as? String
         else {
             throw NSError(
-                domain: "MTDeleteMemoryTool", code: 400, userInfo: [
+                domain: "MTDeleteMemoryTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "Invalid parameters. memory_id is required."),
                 ],
             )

@@ -18,7 +18,11 @@ extension InputEditor {
     func switchToRequiredStatus() {
         assert(Thread.isMainThread)
         // avoid flickering animation if set twice
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(switchToRequiredStatusEx), object: nil)
+        NSObject.cancelPreviousPerformRequests(
+            withTarget: self,
+            selector: #selector(switchToRequiredStatusEx),
+            object: nil
+        )
         perform(#selector(switchToRequiredStatusEx), with: nil, afterDelay: 0.1)
     }
 

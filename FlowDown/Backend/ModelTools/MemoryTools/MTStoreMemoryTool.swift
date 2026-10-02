@@ -53,7 +53,9 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
               let content = json["content"] as? String
         else {
             throw NSError(
-                domain: "MTStoreMemoryTool", code: 400, userInfo: [
+                domain: "MTStoreMemoryTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "Invalid memory content"),
                 ],
             )
@@ -65,7 +67,9 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
             _ = try await MemoryStore.shared.storeAsync(content: content)
         } catch MemoryStoreError.invalidContent(_) {
             throw NSError(
-                domain: "MTStoreMemoryTool", code: 400, userInfo: [
+                domain: "MTStoreMemoryTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "Invalid memory content"),
                 ],
             )

@@ -144,7 +144,11 @@ extension SearchContentController {
                 return String(localized: "Yesterday")
             } else if let dayDifference = calendar.dateComponents([.day], from: date, to: now).day, dayDifference < 7 {
                 let formatter = DateFormatter()
-                formatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "EEEE", options: 0, locale: Locale.current)
+                formatter.dateFormat = DateFormatter.dateFormat(
+                    fromTemplate: "EEEE",
+                    options: 0,
+                    locale: Locale.current
+                )
                 return formatter.string(from: date)
             } else {
                 let formatter = DateFormatter()

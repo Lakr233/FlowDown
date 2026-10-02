@@ -146,9 +146,14 @@ extension ConversationSession {
 
     func encodeToolRequestAndAttachToToolMessage(_ toolRequest: ToolRequest, message: Message) {
         let precoded = try? JSONEncoder().encode(toolRequest)
-        let predic = try? JSONSerialization.jsonObject(with: precoded ?? .init(), options: [.fragmentsAllowed]) as? [String: Any]
+        let predic = try? JSONSerialization.jsonObject(
+            with: precoded ?? .init(),
+            options: [.fragmentsAllowed]
+        ) as? [String: Any]
         encodeAdditionalInfoAndAttachToMessage(message, dic: ["tool_request": predic ?? [:]])
-        logger.debugFile("[*] encoded tool request \(toolRequest.name) to message \(message.objectId) with value \(predic ?? [:])")
+        logger.debugFile(
+            "[*] encoded tool request \(toolRequest.name) to message \(message.objectId) with value \(predic ?? [:])"
+        )
     }
 
     /// Marks the message's document as a UI placeholder rather than model
@@ -225,7 +230,9 @@ extension ConversationSession {
     ) async -> ChatRequestBody.Message? {
         switch attachment.type {
         case .text:
-            return .user(content: .text(["[\(attachment.name)]", attachment.textRepresentation].joined(separator: "\n")))
+            return .user(
+                content: .text(["[\(attachment.name)]", attachment.textRepresentation].joined(separator: "\n"))
+            )
         case .image:
             if supportsVision {
                 guard let image = UIImage(data: attachment.imageRepresentation),
@@ -250,14 +257,20 @@ extension ConversationSession {
                     logger.infoFile("[-] image attachment ignored because not processed")
                     return nil
                 }
-                return .user(content: .text(["[\(attachment.name)]", attachment.textRepresentation].joined(separator: "\n")))
+                return .user(
+                    content: .text(["[\(attachment.name)]", attachment.textRepresentation].joined(separator: "\n"))
+                )
             }
         case .audio:
             if supportsAudio {
                 let data = attachment.imageRepresentation
                 // treat this data as m4a, process to transcoding what's so ever
                 do {
-                    let content = try await AudioTranscoder.transcode(data: data, fileExtension: "m4a", output: .compressedQualityWAV)
+                    let content = try await AudioTranscoder.transcode(
+                        data: data,
+                        fileExtension: "m4a",
+                        output: .compressedQualityWAV
+                    )
                     let base64 = content.data.base64EncodedString()
                     var parts: [ChatRequestBody.Message.ContentPart] = [
                         .audioBase64(base64, format: "wav"),
@@ -271,7 +284,11 @@ extension ConversationSession {
                     return .user(content: .parts(parts))
                 } catch {
                     logger.errorFile("[-] audio attachment transcoding failed: \(error.localizedDescription)")
-                    return .user(content: .text("Audio attachment \"\(attachment.name)\" was skipped because transcoding failed."))
+                    return .user(
+                        content: .text(
+                            "Audio attachment \"\(attachment.name)\" was skipped because transcoding failed."
+                        )
+                    )
                 }
             } else {
                 let description = attachment.textRepresentation.trimmingCharacters(in: .whitespacesAndNewlines)

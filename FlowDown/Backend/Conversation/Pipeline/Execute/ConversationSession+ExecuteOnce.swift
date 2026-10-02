@@ -91,7 +91,9 @@ extension ConversationSession {
             case let .image(imageContent):
                 // Skip invalid image payloads
                 guard UIImage(data: imageContent.data) != nil else {
-                    Logger.model.warning("skip invalid generated image payload (size: \(imageContent.data.count) bytes)")
+                    Logger.model.warning(
+                        "skip invalid generated image payload (size: \(imageContent.data.count) bytes)"
+                    )
                     break
                 }
                 recordVisibleProgress()
@@ -139,7 +141,10 @@ extension ConversationSession {
 
         if !message.document.isEmpty {
             logger.infoFile("\(message.document)")
-            let document = fixWebReferenceIfPossible(in: message.document, with: linkedContents.mapValues(\.absoluteString))
+            let document = fixWebReferenceIfPossible(
+                in: message.document,
+                with: linkedContents.mapValues(\.absoluteString)
+            )
             message.update(\.document, to: document)
         }
 
@@ -223,12 +228,15 @@ extension ConversationSession {
             try checkCancellation()
             guard let tool = await ModelToolsManager.shared.findTool(for: request) else {
                 Logger.chatService.errorFile("unable to find tool for request: \(request)")
-                await Logger.chatService.infoFile("available tools: \(ModelToolsManager.shared.getEnabledToolsIncludeMCP())")
+                await Logger.chatService.infoFile(
+                    "available tools: \(ModelToolsManager.shared.getEnabledToolsIncludeMCP())"
+                )
                 throw NSError(
                     domain: "Tool Error",
                     code: -1,
                     userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "Unable to process tool request with name: \(request.name)"),
+                        NSLocalizedDescriptionKey:
+                            String(localized: "Unable to process tool request with name: \(request.name)"),
                     ],
                 )
             }
@@ -377,7 +385,11 @@ extension ConversationSession {
                     await requestUpdate()
                     let finalToolContent = toolResponseText.trimmingCharacters(in: .whitespacesAndNewlines)
                     requestMessages.append(.tool(
-                        content: .text(finalToolContent.isEmpty ? String(localized: "Tool executed successfully with no output") : toolResponseText),
+                        content: .text(
+                            finalToolContent.isEmpty
+                                ? String(localized: "Tool executed successfully with no output")
+                                : toolResponseText
+                        ),
                         toolCallID: request.id,
                     ))
                 } catch {
@@ -392,7 +404,10 @@ extension ConversationSession {
                     // The row is settled; only then may cancellation abort the
                     // round, otherwise it would stay "running" forever.
                     if cancelled { throw InferenceUserCancellationError() }
-                    requestMessages.append(.tool(content: .text("Tool execution failed. Reason: \(error.localizedDescription)"), toolCallID: request.id))
+                    requestMessages.append(.tool(
+                        content: .text("Tool execution failed. Reason: \(error.localizedDescription)"),
+                        toolCallID: request.id
+                    ))
                 }
             }
         }

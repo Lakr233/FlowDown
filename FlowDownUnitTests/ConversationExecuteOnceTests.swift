@@ -109,7 +109,10 @@ struct ConversationExecuteOnceTests {
                 ])
 
                 let toolRow = session.appendNewMessage(role: .toolHint) {
-                    $0.update(\.toolStatus, to: Message.ToolStatus(name: "unit_test_missing_tool", state: 1, message: "Sunny"))
+                    $0.update(
+                        \.toolStatus,
+                        to: Message.ToolStatus(name: "unit_test_missing_tool", state: 1, message: "Sunny")
+                    )
                 }
                 session.encodeToolRequestAndAttachToToolMessage(
                     ToolRequest(name: "unit_test_missing_tool", args: "{}"),

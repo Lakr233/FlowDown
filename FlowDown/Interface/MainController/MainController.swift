@@ -313,7 +313,9 @@ class MainController: UIViewController {
         lastTouchBegin = .init()
 
         NSObject.cancelPreviousPerformRequests(
-            withTarget: self, selector: #selector(resetGestures), object: nil,
+            withTarget: self,
+            selector: #selector(resetGestures),
+            object: nil,
         )
         perform(#selector(resetGestures), with: nil, afterDelay: 0.25)
     }
@@ -361,7 +363,9 @@ class MainController: UIViewController {
         super.touchesMoved(touches, with: event)
 
         NSObject.cancelPreviousPerformRequests(
-            withTarget: self, selector: #selector(resetGestures), object: nil,
+            withTarget: self,
+            selector: #selector(resetGestures),
+            object: nil,
         )
         perform(#selector(resetGestures), with: nil, afterDelay: 0.25)
         guard presentedViewController == nil else { return }
@@ -459,7 +463,8 @@ class MainController: UIViewController {
         let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedMessage.isEmpty else {
             showErrorAlert(
-                title: "Error", message: "Empty message.",
+                title: "Error",
+                message: "Empty message.",
             )
             return
         }
@@ -505,7 +510,10 @@ class MainController: UIViewController {
 }
 
 extension MainController: UIGestureRecognizerDelegate {
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer) -> Bool {
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer
+    ) -> Bool {
         gestureRecognizer is UIScreenEdgePanGestureRecognizer
     }
 

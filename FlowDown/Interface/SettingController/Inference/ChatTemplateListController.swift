@@ -131,7 +131,10 @@ class ChatTemplateListController: UIViewController {
 }
 
 extension ChatTemplateListController: UITableViewDelegate {
-    func tableView(_: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(
+        _: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
         guard let itemIdentifier = dataSource.itemIdentifier(for: indexPath) else {
             return nil
         }
@@ -336,7 +339,11 @@ extension ChatTemplateListController: UITableViewDragDelegate, UITableViewDropDe
         ChatTemplateManager.shared.reorderTemplates(newOrder)
     }
 
-    func tableView(_: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath _: IndexPath?) -> UITableViewDropProposal {
+    func tableView(
+        _: UITableView,
+        dropSessionDidUpdate session: UIDropSession,
+        withDestinationIndexPath _: IndexPath?
+    ) -> UITableViewDropProposal {
         if session.localDragSession != nil {
             return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
         } else if session.hasItemsConforming(toTypeIdentifiers: [fdTemplateTypeIdentifier]) {

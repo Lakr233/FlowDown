@@ -15,7 +15,10 @@ extension ConversationSelectionView: UITableViewDelegate {
         ChatSelection.shared.select(identifier, options: [.collapseSidebar])
     }
 
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(
+        _ tableView: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
         guard let identifier = dataSource.itemIdentifier(for: indexPath) else { return nil }
 
         let duplicateAction = UIContextualAction(style: .normal, title: nil) { _, _, completion in
@@ -59,7 +62,10 @@ extension ConversationSelectionView: UITableViewDelegate {
         return configuration
     }
 
-    func tableView(_: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(
+        _: UITableView,
+        leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
         guard let identifier = dataSource.itemIdentifier(for: indexPath),
               let conversation = ConversationManager.shared.conversation(identifier: identifier)
         else { return nil }

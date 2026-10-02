@@ -238,7 +238,9 @@ extension DistributionChannel {
         let downloadURL: URL
     }
 
-    func getRemoteVersion(releaseFeedClient: ReleaseFeedClient = GitHubReleaseFeedClient()) async throws -> [RemotePackage] {
+    func getRemoteVersion(
+        releaseFeedClient: ReleaseFeedClient = GitHubReleaseFeedClient()
+    ) async throws -> [RemotePackage] {
         switch self {
         case .fromApple:
             return []

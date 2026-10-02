@@ -10,7 +10,11 @@ import WCDBSwift
 
 public extension Storage {
     typealias MessageMakeInitDataBlock = (Message) -> Void
-    func makeMessage(with conversationID: Conversation.ID, skipSave: Bool = false, _ block: MessageMakeInitDataBlock?) -> Message {
+    func makeMessage(
+        with conversationID: Conversation.ID,
+        skipSave: Bool = false,
+        _ block: MessageMakeInitDataBlock?
+    ) -> Message {
         let message = Message(deviceId: Self.deviceId)
         message.conversationId = conversationID
 

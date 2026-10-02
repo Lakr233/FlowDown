@@ -25,14 +25,20 @@ extension EvaluationManifest.Suite {
                     title: "Go Add Function",
                     content: [
                         // 强制显式声明每个参数的类型，防止 'a, b int' 语法导致失败
-                        .init(type: .request, textRepresentation: "Define a function 'add' in Go that takes two ints 'a' and 'b' and returns an int. Declare types explicitly for each parameter."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Define a function 'add' in Go that takes two ints 'a' and 'b' and returns an int. Declare types explicitly for each parameter."
+                        ),
                     ],
                     verifier: [.contains(pattern: "func add(a int, b int) int")],
                 ),
                 .init(
                     title: "Go Goroutine",
                     content: [
-                        .init(type: .request, textRepresentation: "Start a goroutine that calls function 'doWork()' in Go."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Start a goroutine that calls function 'doWork()' in Go."
+                        ),
                     ],
                     verifier: [.contains(pattern: "go doWork()")],
                 ),
@@ -46,7 +52,10 @@ extension EvaluationManifest.Suite {
                 .init(
                     title: "Go Map",
                     content: [
-                        .init(type: .request, textRepresentation: "Create a map with string keys and int values in Go."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Create a map with string keys and int values in Go."
+                        ),
                     ],
                     verifier: [.contains(pattern: "map[string]int")],
                 ),
@@ -60,14 +69,20 @@ extension EvaluationManifest.Suite {
                 .init(
                     title: "Go Person Struct",
                     content: [
-                        .init(type: .request, textRepresentation: "Define a struct 'Person' with 'Name' (string) and 'Age' (int) in Go."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Define a struct 'Person' with 'Name' (string) and 'Age' (int) in Go."
+                        ),
                     ],
                     verifier: [.contains(pattern: "type Person struct"), .contains(pattern: "Name string")],
                 ),
                 .init(
                     title: "Go Speaker Interface",
                     content: [
-                        .init(type: .request, textRepresentation: "Define an interface 'Speaker' with method 'Speak' in Go."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Define an interface 'Speaker' with method 'Speak' in Go."
+                        ),
                     ],
                     verifier: [.contains(pattern: "type Speaker interface"), .contains(pattern: "Speak()")],
                 ),
@@ -88,14 +103,20 @@ extension EvaluationManifest.Suite {
                 .init(
                     title: "Go Range",
                     content: [
-                        .init(type: .request, textRepresentation: "Iterate over a slice 'items' using range in Go. Ignore index, name value 'item'."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Iterate over a slice 'items' using range in Go. Ignore index, name value 'item'."
+                        ),
                     ],
                     verifier: [.contains(pattern: "for _, item := range items")],
                 ),
                 .init(
                     title: "Go Select",
                     content: [
-                        .init(type: .request, textRepresentation: "Use select statement to wait on channel 'ch' in Go."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Use select statement to wait on channel 'ch' in Go."
+                        ),
                     ],
                     verifier: [.contains(pattern: "select {"), .contains(pattern: "case <-ch:")],
                 ),
@@ -116,7 +137,10 @@ extension EvaluationManifest.Suite {
                 .init(
                     title: "Go Person Method",
                     content: [
-                        .init(type: .request, textRepresentation: "Define a method 'Greet' on struct 'Person' in Go. Use pointer receiver 'p'."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Define a method 'Greet' on struct 'Person' in Go. Use pointer receiver 'p'."
+                        ),
                     ],
                     verifier: [.contains(pattern: "func (p *Person) Greet()")],
                 ),
@@ -130,7 +154,10 @@ extension EvaluationManifest.Suite {
                 .init(
                     title: "Go WaitGroup",
                     content: [
-                        .init(type: .request, textRepresentation: "Use sync.WaitGroup to wait for goroutines in Go. Use variable named 'wg'."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Use sync.WaitGroup to wait for goroutines in Go. Use variable named 'wg'."
+                        ),
                     ],
                     verifier: [.contains(pattern: "sync.WaitGroup"), .contains(pattern: "wg.Wait()")],
                 ),
@@ -144,14 +171,20 @@ extension EvaluationManifest.Suite {
                 .init(
                     title: "Go Test Add",
                     content: [
-                        .init(type: .request, textRepresentation: "Write a test function 'TestAdd' in Go. Use 't' as *testing.T."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Write a test function 'TestAdd' in Go. Use 't' as *testing.T."
+                        ),
                     ],
                     verifier: [.contains(pattern: "func TestAdd(t *testing.T)")],
                 ),
                 .init(
                     title: "Go Person Literal",
                     content: [
-                        .init(type: .request, textRepresentation: "Initialize a struct 'Person' literal with name 'Bob' in Go."),
+                        .init(
+                            type: .request,
+                            textRepresentation: "Initialize a struct 'Person' literal with name 'Bob' in Go."
+                        ),
                     ],
                     verifier: [.contains(pattern: "Person{Name: \"Bob\"}")],
                 ),

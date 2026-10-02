@@ -117,7 +117,10 @@ extension EmojiPickerView: UICollectionViewDataSource, UICollectionViewDelegate,
         dataSource[safe: section]?.emojis.count ?? 0
     }
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
+    ) -> UICollectionViewCell {
         let cell = collectionView
             .dequeueReusableCell(
                 withReuseIdentifier: EmojiPickerCell.cellId,
@@ -143,11 +146,19 @@ extension EmojiPickerView: UICollectionViewDataSource, UICollectionViewDelegate,
         }
     }
 
-    func collectionView(_: UICollectionView, layout _: UICollectionViewLayout, referenceSizeForHeaderInSection _: Int) -> CGSize {
+    func collectionView(
+        _: UICollectionView,
+        layout _: UICollectionViewLayout,
+        referenceSizeForHeaderInSection _: Int
+    ) -> CGSize {
         CGSize(width: 200, height: 20)
     }
 
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        viewForSupplementaryElementOfKind kind: String,
+        at indexPath: IndexPath
+    ) -> UICollectionReusableView {
         let cell = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: EmojiPickerSectionHeader.headerId,

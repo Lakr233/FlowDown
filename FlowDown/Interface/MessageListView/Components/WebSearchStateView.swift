@@ -211,7 +211,11 @@ extension WebSearchStateView {
         override var intrinsicContentSize: CGSize {
             let imageSize = magnifyImageView.intrinsicContentSize
             let textSize = textLabel.intrinsicContentSize
-            let width = Self.horizontalPadding + imageSize.width + Self.spacing + textSize.width + Self.horizontalPadding
+            let width = Self.horizontalPadding
+                + imageSize.width
+                + Self.spacing
+                + textSize.width
+                + Self.horizontalPadding
             let height = 2 * Self.verticalPadding + (textLabel.font?.pointSize ?? 0)
             return CGSize(width: width, height: height)
         }

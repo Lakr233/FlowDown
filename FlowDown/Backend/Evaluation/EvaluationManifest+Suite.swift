@@ -16,7 +16,12 @@ extension EvaluationManifest {
 
         var cases: [Case]
 
-        init(id: UUID = .init(), title: String.LocalizationValue, description: String.LocalizationValue, cases: [Case]) {
+        init(
+            id: UUID = .init(),
+            title: String.LocalizationValue,
+            description: String.LocalizationValue,
+            cases: [Case]
+        ) {
             self.id = id
             self.title = title
             self.description = description

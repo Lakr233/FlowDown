@@ -60,22 +60,38 @@ struct FlowDownPayloadHeader {
     /// 从 Data 解析 header
     static func decode(from data: Data) throws -> (header: FlowDownPayloadHeader, payloadOffset: Int) {
         guard data.count >= 10 else {
-            throw NSError(domain: "CompressionHeader", code: -1, userInfo: [NSLocalizedDescriptionKey: "Data too short"])
+            throw NSError(
+                domain: "CompressionHeader",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Data too short"]
+            )
         }
 
         let magic = Array(data[0 ..< 8])
         guard magic == FlowDownPayloadHeader.magic else {
-            throw NSError(domain: "CompressionHeader", code: -2, userInfo: [NSLocalizedDescriptionKey: "Invalid magic number"])
+            throw NSError(
+                domain: "CompressionHeader",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid magic number"]
+            )
         }
 
         let version = data[8]
         guard version == FlowDownPayloadHeader.version else {
-            throw NSError(domain: "CompressionHeader", code: -3, userInfo: [NSLocalizedDescriptionKey: "Unsupported version"])
+            throw NSError(
+                domain: "CompressionHeader",
+                code: -3,
+                userInfo: [NSLocalizedDescriptionKey: "Unsupported version"]
+            )
         }
 
         let algorithmByte = data[9]
         guard let alg = Algorithm(rawValue: algorithmByte) else {
-            throw NSError(domain: "CompressionHeader", code: -4, userInfo: [NSLocalizedDescriptionKey: "Unknown algorithm"])
+            throw NSError(
+                domain: "CompressionHeader",
+                code: -4,
+                userInfo: [NSLocalizedDescriptionKey: "Unknown algorithm"]
+            )
         }
 
         return (FlowDownPayloadHeader(compressionAlgorithm: alg), 10)
@@ -103,7 +119,11 @@ extension Storage {
 
     static func decodePayloadSyncable<T: Codable>(_: T.Type, _ data: Data) throws -> T {
         guard !data.isEmpty else {
-            throw NSError(domain: "Storage.decodePayloadSyncable", code: -100, userInfo: [NSLocalizedDescriptionKey: "Empty data"])
+            throw NSError(
+                domain: "Storage.decodePayloadSyncable",
+                code: -100,
+                userInfo: [NSLocalizedDescriptionKey: "Empty data"]
+            )
         }
 
         let (header, offset) = try FlowDownPayloadHeader.decode(from: data)
@@ -112,7 +132,11 @@ extension Storage {
         let plistData: Data
         if let alg = header.compressionAlgorithm.compressionAlgorithm {
             guard let decompressed = payload.decompressed(using: alg) else {
-                throw NSError(domain: "Storage.decodePayloadSyncable", code: -2, userInfo: [NSLocalizedDescriptionKey: "Decompression failed"])
+                throw NSError(
+                    domain: "Storage.decodePayloadSyncable",
+                    code: -2,
+                    userInfo: [NSLocalizedDescriptionKey: "Decompression failed"]
+                )
             }
             plistData = decompressed
         } else {

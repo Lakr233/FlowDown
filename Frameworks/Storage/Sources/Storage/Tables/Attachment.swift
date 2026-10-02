@@ -82,7 +82,10 @@ public final class Attachment: Identifiable, Codable, TableNamed, DeviceOwned, T
 
 extension Attachment: Updatable {
     @discardableResult
-    public func update<Value: Equatable>(_ keyPath: ReferenceWritableKeyPath<Attachment, Value>, to newValue: Value) -> Bool {
+    public func update<Value: Equatable>(
+        _ keyPath: ReferenceWritableKeyPath<Attachment, Value>,
+        to newValue: Value
+    ) -> Bool {
         let oldValue = self[keyPath: keyPath]
         guard oldValue != newValue else { return false }
         assign(keyPath, to: newValue)

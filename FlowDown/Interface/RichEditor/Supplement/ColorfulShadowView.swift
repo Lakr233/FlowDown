@@ -179,7 +179,11 @@ private extension ColorfulShadowView {
 
             // Draw the shadow/glow area
             cgContext.saveGState()
-            cgContext.setShadow(offset: geometry.offset, blur: geometry.blur * shadowRadius, color: UIColor.white.cgColor)
+            cgContext.setShadow(
+                offset: geometry.offset,
+                blur: geometry.blur * shadowRadius,
+                color: UIColor.white.cgColor
+            )
             cgContext.setFillColor(UIColor.white.cgColor)
             cgContext.addPath(shadowPath.cgPath)
             cgContext.fillPath()

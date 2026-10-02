@@ -98,9 +98,12 @@ struct ReminderToolsIntegrationTests {
         // saver block in MTUpdateReminderTool so we exercise the real branches.
         let changes = MTUpdateReminderTool.ParsedChanges(
             newTitle: "Integration renamed",
-            newNotes: nil, clearNotes: true,
-            newDueDate: nil, clearDueDate: true,
-            newPriority: nil, clearPriority: true,
+            newNotes: nil,
+            clearNotes: true,
+            newDueDate: nil,
+            clearDueDate: true,
+            newPriority: nil,
+            clearPriority: true,
             newListName: nil,
         )
         try applyChanges(changes, to: reminder, eventStore: store)
@@ -115,7 +118,9 @@ struct ReminderToolsIntegrationTests {
         reloaded.isCompleted = true
         try store.save(reloaded, commit: true)
         let completedPredicate = store.predicateForCompletedReminders(
-            withCompletionDateStarting: nil, ending: nil, calendars: [calendar],
+            withCompletionDateStarting: nil,
+            ending: nil,
+            calendars: [calendar],
         )
         let completed = try await fetchReminders(store: store, predicate: completedPredicate)
         #expect(completed.contains { $0.calendarItemIdentifier == id })
@@ -139,9 +144,12 @@ struct ReminderToolsIntegrationTests {
 
         let badChanges = MTUpdateReminderTool.ParsedChanges(
             newTitle: nil,
-            newNotes: nil, clearNotes: false,
-            newDueDate: nil, clearDueDate: false,
-            newPriority: nil, clearPriority: false,
+            newNotes: nil,
+            clearNotes: false,
+            newDueDate: nil,
+            clearDueDate: false,
+            newPriority: nil,
+            clearPriority: false,
             newListName: "FlowDown-NonExistent-\(UUID().uuidString)",
         )
         #expect(throws: NSError.self) {

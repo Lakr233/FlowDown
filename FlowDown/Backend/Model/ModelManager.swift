@@ -23,7 +23,10 @@ class ModelManager: NSObject {
     typealias ModelIdentifier = String
     typealias LocalModelIdentifier = LocalModel.ID
     typealias CloudModelIdentifier = CloudModel.ID
-    typealias ChatServiceFactory = (_ identifier: ModelIdentifier, _ additionalBodyField: [String: Any]) throws -> any ChatService
+    typealias ChatServiceFactory = (
+        _ identifier: ModelIdentifier,
+        _ additionalBodyField: [String: Any]
+    ) throws -> any ChatService
 
     let localModelDir: URL
     let localModelDownloadTempDir: URL
@@ -213,8 +216,12 @@ class ModelManager: NSObject {
         }
 
         if !defaultModelForAuxiliaryVisualTask.isEmpty {
-            let localModelSatisfied = localModel(identifier: defaultModelForAuxiliaryVisualTask)?.capabilities.contains(.visual) ?? false
-            let cloudModelSatisfied = cloudModel(identifier: defaultModelForAuxiliaryVisualTask)?.capabilities.contains(.visual) ?? false
+            let localModelSatisfied = localModel(
+                identifier: defaultModelForAuxiliaryVisualTask
+            )?.capabilities.contains(.visual) ?? false
+            let cloudModelSatisfied = cloudModel(
+                identifier: defaultModelForAuxiliaryVisualTask
+            )?.capabilities.contains(.visual) ?? false
             // Apple Intelligence does not support visual capabilities
             if !localModelSatisfied, !cloudModelSatisfied {
                 Logger.model.debugFile("reset defaultModelForAuxiliaryVisualTask due to not found")
@@ -358,7 +365,9 @@ class ModelManager: NSObject {
         do {
             try Self.writeSharedAdditionalPrompt(additionalPrompt, to: url)
         } catch {
-            Logger.model.errorFile("unable to write additional prompt on \(url.path) with error \(error.localizedDescription)")
+            Logger.model.errorFile(
+                "unable to write additional prompt on \(url.path) with error \(error.localizedDescription)"
+            )
         }
     }
 

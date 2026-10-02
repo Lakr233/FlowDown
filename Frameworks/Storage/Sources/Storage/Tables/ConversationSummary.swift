@@ -73,7 +73,10 @@ public final class ConversationSummary: Identifiable, Codable, TableNamed, Devic
 
 extension ConversationSummary: Updatable {
     @discardableResult
-    public func update<Value: Equatable>(_ keyPath: ReferenceWritableKeyPath<ConversationSummary, Value>, to newValue: Value) -> Bool {
+    public func update<Value: Equatable>(
+        _ keyPath: ReferenceWritableKeyPath<ConversationSummary, Value>,
+        to newValue: Value
+    ) -> Bool {
         let oldValue = self[keyPath: keyPath]
         guard oldValue != newValue else { return false }
         assign(keyPath, to: newValue)

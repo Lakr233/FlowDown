@@ -55,7 +55,9 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
               url.host != nil
         else {
             throw NSError(
-                domain: "MTWebScraperTool", code: 400, userInfo: [
+                domain: "MTWebScraperTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "Invalid URL provided"),
                 ],
             )
@@ -69,13 +71,16 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
         try await withCheckedThrowingContinuation { continuation in
             Scrubber.document(for: url) { doc in
                 guard let doc else {
-                    continuation.resume(throwing: ModelToolError.failure(String(localized: "Failed to fetch the web content.")))
+                    continuation.resume(
+                        throwing: ModelToolError.failure(String(localized: "Failed to fetch the web content."))
+                    )
                     return
                 }
 
                 let maxSize = 32768
                 let truncatedContent = doc.textDocument.count > maxSize
-                    ? String(doc.textDocument.prefix(maxSize)) + "..." + "\n" + String(localized: "Content truncated due to excessive length.")
+                    ? String(doc.textDocument.prefix(maxSize)) + "..." + "\n"
+                        + String(localized: "Content truncated due to excessive length.")
                     : doc.textDocument
 
                 let result = String(localized: """

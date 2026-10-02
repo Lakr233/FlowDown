@@ -508,7 +508,11 @@ class MCPService: NSObject {
         sdb.modelContextServerRemove(identifier: identifier)
     }
 
-    func edit(identifier: ModelContextServer.ID, skipSync: Bool = false, block: @escaping (inout ModelContextServer) -> Void) {
+    func edit(
+        identifier: ModelContextServer.ID,
+        skipSync: Bool = false,
+        block: @escaping (inout ModelContextServer) -> Void
+    ) {
         defer { updateFromDatabase() }
         let before = sdb.modelContextServerWith(identifier).map(Self.configFingerprint)
         sdb.modelContextServerEdit(identifier: identifier, skipSync: skipSync, block)

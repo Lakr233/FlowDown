@@ -28,7 +28,8 @@ class EmojiPickerView: UIView, UISearchBarDelegate {
 
     init() {
         let alignedFlowLayout = AlignedCollectionViewFlowLayout(
-            horizontalAlignment: .justified, verticalAlignment: .center,
+            horizontalAlignment: .justified,
+            verticalAlignment: .center,
         )
         alignedFlowLayout.scrollDirection = .vertical
         alignedFlowLayout.sectionInset = UIEdgeInsets()
@@ -96,7 +97,12 @@ class EmojiPickerView: UIView, UISearchBarDelegate {
         contentView.frame = bounds
         let searchBarHeight = searchBar.intrinsicContentSize.height
         searchBar.frame = CGRect(x: 0, y: 0, width: bounds.width, height: searchBarHeight)
-        collectionView.frame = CGRect(x: 0, y: searchBar.frame.maxY, width: bounds.width, height: bounds.height - searchBarHeight)
+        collectionView.frame = CGRect(
+            x: 0,
+            y: searchBar.frame.maxY,
+            width: bounds.width,
+            height: bounds.height - searchBarHeight
+        )
     }
 
     func searchBar(_: UISearchBar, textDidChange searchText: String) {

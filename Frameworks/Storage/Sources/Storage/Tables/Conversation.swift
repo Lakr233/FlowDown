@@ -66,7 +66,10 @@ public final class Conversation: Identifiable, Codable, TableNamed, DeviceOwned,
 
 extension Conversation: Updatable {
     @discardableResult
-    public func update<Value: Equatable>(_ keyPath: ReferenceWritableKeyPath<Conversation, Value>, to newValue: Value) -> Bool {
+    public func update<Value: Equatable>(
+        _ keyPath: ReferenceWritableKeyPath<Conversation, Value>,
+        to newValue: Value
+    ) -> Bool {
         let oldValue = self[keyPath: keyPath]
         guard oldValue != newValue else { return false }
         assign(keyPath, to: newValue)

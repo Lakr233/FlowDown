@@ -334,7 +334,11 @@ struct MigrationV1ToV2: DBMigration {
         // 迁移消息
         if let oldTableName = tableExists[MessageV1.tableName] {
             try db.run(transaction: { handle in
-                messagesMap = try migrateMessages(handle: handle, conversationsMap: conversationsMap, oldTableName: oldTableName)
+                messagesMap = try migrateMessages(
+                    handle: handle,
+                    conversationsMap: conversationsMap,
+                    oldTableName: oldTableName
+                )
                 guard !messagesMap.isEmpty else {
                     return
                 }
@@ -345,7 +349,11 @@ struct MigrationV1ToV2: DBMigration {
         // 迁移附件
         if let oldTableName = tableExists[AttachmentV1.tableName] {
             try db.run(transaction: { handle in
-                let attachments = try migrateAttachments(handle: handle, messagesMap: messagesMap, oldTableName: oldTableName)
+                let attachments = try migrateAttachments(
+                    handle: handle,
+                    messagesMap: messagesMap,
+                    oldTableName: oldTableName
+                )
                 guard !attachments.isEmpty else {
                     return
                 }
@@ -451,7 +459,10 @@ struct MigrationV1ToV2: DBMigration {
         return migrateMemorys.count
     }
 
-    private func migrateConversations(handle: Handle, oldTableName: String) throws -> [ConversationV1.ID: Conversation] {
+    private func migrateConversations(
+        handle: Handle,
+        oldTableName: String
+    ) throws -> [ConversationV1.ID: Conversation] {
         let conversations: [ConversationV1] = try handle.getObjects(fromTable: oldTableName)
         guard !conversations.isEmpty else {
             return [:]
@@ -476,7 +487,11 @@ struct MigrationV1ToV2: DBMigration {
         return migrateConversationsMap
     }
 
-    private func migrateMessages(handle: Handle, conversationsMap: [ConversationV1.ID: Conversation], oldTableName: String) throws -> [MessageV1.ID: Message] {
+    private func migrateMessages(
+        handle: Handle,
+        conversationsMap: [ConversationV1.ID: Conversation],
+        oldTableName: String
+    ) throws -> [MessageV1.ID: Message] {
         let messages: [MessageV1] = try handle.getObjects(fromTable: oldTableName)
 
         guard !messages.isEmpty else {
@@ -510,7 +525,11 @@ struct MigrationV1ToV2: DBMigration {
         return migrateMessagessMap
     }
 
-    private func migrateAttachments(handle: Handle, messagesMap: [MessageV1.ID: Message], oldTableName: String) throws -> [Attachment] {
+    private func migrateAttachments(
+        handle: Handle,
+        messagesMap: [MessageV1.ID: Message],
+        oldTableName: String
+    ) throws -> [Attachment] {
         let attachments: [AttachmentV1] = try handle.getObjects(fromTable: oldTableName)
         guard !attachments.isEmpty else {
             return []
@@ -579,7 +598,11 @@ struct MigrationV1ToV2: DBMigration {
         Logger.database.infoFile("[*] migrate version \(fromVersion.rawValue) -> \(toVersion.rawValue) initializeUploadQueue end elapsed \(Int(elapsed))ms")
     }
 
-    private func initializeMigrationUploadQueue<T: Syncable & SyncQueryable>(table _: T.Type, db: Database, startId: Int64) throws -> Int64 {
+    private func initializeMigrationUploadQueue<T: Syncable & SyncQueryable>(
+        table _: T.Type,
+        db: Database,
+        startId: Int64
+    ) throws -> Int64 {
         let batchSize = 500
         var lastObjectId: String?
         var lastCreation: Date?

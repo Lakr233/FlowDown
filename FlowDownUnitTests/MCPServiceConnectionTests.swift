@@ -188,7 +188,10 @@ private final class MCPConnectionSpy: MCPConnectionControlling, @unchecked Senda
         }
     }
 
-    func callTool(name _: String, arguments _: [String: Value]?) async throws -> (content: [Tool.Content], isError: Bool?) {
+    func callTool(
+        name _: String,
+        arguments _: [String: Value]?
+    ) async throws -> (content: [Tool.Content], isError: Bool?) {
         ([], nil)
     }
 }
@@ -225,7 +228,10 @@ private final class GatedConnectionSpy: MCPConnectionControlling, @unchecked Sen
         []
     }
 
-    func callTool(name _: String, arguments _: [String: Value]?) async throws -> (content: [Tool.Content], isError: Bool?) {
+    func callTool(
+        name _: String,
+        arguments _: [String: Value]?
+    ) async throws -> (content: [Tool.Content], isError: Bool?) {
         ([], nil)
     }
 }

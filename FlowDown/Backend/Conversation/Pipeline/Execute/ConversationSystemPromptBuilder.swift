@@ -68,9 +68,10 @@ enum ConversationSystemPromptBuilder {
             enabledTools: dependencies.enabledTools,
         )
 
-        let shouldInjectCrossConversationContext = MemoryProactiveProvisionSetting.shouldInjectRecentConversationContext(
-            for: dependencies.proactiveMemoryScope,
-        )
+        let shouldInjectCrossConversationContext =
+            MemoryProactiveProvisionSetting.shouldInjectRecentConversationContext(
+                for: dependencies.proactiveMemoryScope,
+            )
 
         if shouldExposeMemory,
            shouldInjectCrossConversationContext,

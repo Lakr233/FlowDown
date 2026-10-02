@@ -60,7 +60,11 @@ public nonisolated enum ModelExchangeCrypto {
         return try ChaChaPoly.open(sealedBox, using: symmetric)
     }
 
-    private nonisolated static func deriveKey(secret: SharedSecret, session: String, peerSigning: Data) -> SymmetricKey {
+    private nonisolated static func deriveKey(
+        secret: SharedSecret,
+        session: String,
+        peerSigning: Data
+    ) -> SymmetricKey {
         var salt = hkdfSalt
         salt.append(Data(session.utf8))
         return secret.hkdfDerivedSymmetricKey(

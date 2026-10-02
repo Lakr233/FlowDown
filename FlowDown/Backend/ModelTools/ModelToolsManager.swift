@@ -257,7 +257,8 @@ class ModelToolsManager {
           code: 500,
           userInfo: [
             NSLocalizedDescriptionKey: String(
-              localized: "Tool execution failed: parent view controller not found.")
+              localized: "Tool execution failed: parent view controller not found."
+            )
           ],
         )
         waiter.complete(with: .failure(error))
@@ -270,7 +271,8 @@ class ModelToolsManager {
           code: 500,
           userInfo: [
             NSLocalizedDescriptionKey: String(
-              localized: "Tool execution failed: authorization dialog is already presented.")
+              localized: "Tool execution failed: authorization dialog is already presented."
+            )
           ],
         )
         waiter.complete(with: .failure(error))
@@ -315,7 +317,8 @@ class ModelToolsManager {
                 name: name,
                 data: data,
                 mimeType: mimeType.nilIfEmpty,
-              ))
+              )
+            )
           } else {
             Logger.model.errorFile("failed to parse image data from string")
           }
@@ -336,7 +339,8 @@ class ModelToolsManager {
                 name: name,
                 data: data,
                 mimeType: mimeType.nilIfEmpty,
-              ))
+              )
+            )
           } else {
             Logger.model.errorFile("failed to parse audio data from string")
           }

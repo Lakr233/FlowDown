@@ -77,7 +77,10 @@ extension ConversationManager {
                     title: String(localized: "Export Plain Text"),
                     image: UIImage(systemName: "doc.plaintext"),
                 ) { _ in
-                    ConversationManager.shared.exportConversation(identifier: conv.id, exportFormat: .plainText) { result in
+                    ConversationManager.shared.exportConversation(
+                        identifier: conv.id,
+                        exportFormat: .plainText
+                    ) { result in
                         switch result {
                         case let .success(content):
                             DisposableExporter(
@@ -99,7 +102,10 @@ extension ConversationManager {
                     title: String(localized: "Export Markdown"),
                     image: UIImage(systemName: "doc.richtext"),
                 ) { _ in
-                    ConversationManager.shared.exportConversation(identifier: conv.id, exportFormat: .markdown) { result in
+                    ConversationManager.shared.exportConversation(
+                        identifier: conv.id,
+                        exportFormat: .markdown
+                    ) { result in
                         switch result {
                         case let .success(content):
                             DisposableExporter(
@@ -144,7 +150,8 @@ extension ConversationManager {
                         guard let image, let png = image.pngData() else { throw NSError() }
                         let exporter = DisposableExporter(
                             data: png,
-                            name: "Exported-\(Int(Date().timeIntervalSince1970))-\(Int(preset.rawValue))".sanitizedFileName,
+                            name: "Exported-\(Int(Date().timeIntervalSince1970))-\(Int(preset.rawValue))"
+                                .sanitizedFileName,
                             pathExtension: "png",
                             title: "Export Image",
                         )
@@ -290,7 +297,9 @@ extension ConversationManager {
                         UIAction(
                             title: String(localized: "Generate Chat Template"),
                             image: UIImage(systemName: "wind"),
-                            attributes: ChatTemplateManager.modelSupportsToolCalls(session.models.chat) ? [] : [.disabled],
+                            attributes: ChatTemplateManager.modelSupportsToolCalls(session.models.chat)
+                                ? []
+                                : [.disabled],
                         ) { _ in
                             let model = session.models.chat
                             let name = ModelManager.shared.modelName(identifier: model)
@@ -322,7 +331,10 @@ extension ConversationManager {
                                             controller: controller,
                                         ) { completion in
                                             let result = await withCheckedContinuation { continuation in
-                                                ChatTemplateManager.shared.createTemplateFromConversation(conv, model: model) { result in
+                                                ChatTemplateManager.shared.createTemplateFromConversation(
+                                                    conv,
+                                                    model: model
+                                                ) { result in
                                                     continuation.resume(returning: result)
                                                 }
                                             }
@@ -341,7 +353,9 @@ extension ConversationManager {
                                                     context.addAction(title: "Edit", attribute: .accent) {
                                                         context.dispose {
                                                             let setting = SettingController()
-                                                            SettingController.setNextEntryPage(.chatTemplateEditor(templateIdentifier: template.id))
+                                                            SettingController.setNextEntryPage(
+                                                                .chatTemplateEditor(templateIdentifier: template.id)
+                                                            )
                                                             controller.present(setting, animated: true)
                                                         }
                                                     }

@@ -57,7 +57,8 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
       let icsContent = json["ics_file"] as? String
     else {
       throw NSError(
-        domain: "MTAddCalendarTool", code: 400,
+        domain: "MTAddCalendarTool",
+        code: 400,
         userInfo: [
           NSLocalizedDescriptionKey: String(localized: "Invalid ICS file content")
         ],
@@ -78,11 +79,16 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
           guard let self, granted else {
             cont.resume(
               returning: String(
-                localized: "Calendar access denied. Please enable calendar access in Settings."))
+                localized: "Calendar access denied. Please enable calendar access in Settings."
+              )
+            )
             return
           }
           showAddEventConfirmation(
-            icsFile: icsFile, controller: controller, continuation: cont)
+            icsFile: icsFile,
+            controller: controller,
+            continuation: cont
+          )
         }
       }
     }
@@ -98,7 +104,8 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
     let eventStore = EKEventStore()
     guard let event = parseICSContent(icsFile, eventStore: eventStore) else {
       continuation.resume(
-        throwing: ModelToolError.failure(String(localized: "Failed to parse calendar event details.")))
+        throwing: ModelToolError.failure(String(localized: "Failed to parse calendar event details."))
+      )
       return
     }
 
@@ -131,7 +138,8 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
       context.addAction(title: "Cancel") {
         context.dispose {
           continuation.resume(
-            throwing: ModelToolError.userCancelled())
+            throwing: ModelToolError.userCancelled()
+          )
         }
       }
       context.addAction(title: "Add", attribute: .accent) {
@@ -141,7 +149,10 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
               continuation.resume(returning: String(localized: "Event added to calendar."))
             } else {
               continuation.resume(
-                throwing: ModelToolError.failure(String(localized: "Failed to add event: \(error?.localizedDescription ?? "Unknown error")")))
+                throwing: ModelToolError.failure(
+                  String(localized: "Failed to add event: \(error?.localizedDescription ?? "Unknown error")")
+                )
+              )
             }
           }
         }
@@ -157,7 +168,8 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
   }
 
   private func importICSToCalendar(
-    icsContent: String, completion: @escaping (Bool, (any Swift.Error)?) -> Void
+    icsContent: String,
+    completion: @escaping (Bool, (any Swift.Error)?) -> Void
   ) {
     let eventStore = EKEventStore()
 
@@ -165,11 +177,13 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
       completion(
         false,
         NSError(
-          domain: "MTAddCalendarTool", code: 2,
+          domain: "MTAddCalendarTool",
+          code: 2,
           userInfo: [
             NSLocalizedDescriptionKey: String(localized: "Failed to parse ICS content")
           ],
-        ))
+        )
+      )
       return
     }
 

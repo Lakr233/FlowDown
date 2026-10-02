@@ -30,12 +30,15 @@ class WelcomePageViewController: UIViewController {
     }()
 
     let ourColorView = AnimatedMulticolorGradientView().with { view in
-        view.setColors([
-            .accent,
-            .accent,
-            .clear, .clear, .clear,
-            .clear, .clear, .clear,
-        ], animated: false)
+        view.setColors(
+            [
+                .accent,
+                .accent,
+                .clear, .clear, .clear,
+                .clear, .clear, .clear,
+            ],
+            animated: false
+        )
         view.renderScale = 0.1
         view.noise = 0
         view.speed /= 2

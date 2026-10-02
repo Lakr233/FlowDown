@@ -77,7 +77,11 @@ extension RichEditorView.Object.Attachment {
         return base + ".\(fileExtension)"
     }
 
-    private static func writeAudioData(_ data: Data, to storage: TemporaryStorage, fileExtension: String) throws -> String {
+    private static func writeAudioData(
+        _ data: Data,
+        to storage: TemporaryStorage,
+        fileExtension: String
+    ) throws -> String {
         var suffix = storage.random()
         if !fileExtension.isEmpty {
             suffix += ".\(fileExtension)"

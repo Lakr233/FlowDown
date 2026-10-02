@@ -130,7 +130,12 @@ final class SyncScopePage: StackScrollController {
 }
 
 extension SyncScopePage {
-    func addGroupToggle(icon: String, title: String.LocalizationValue, desc: String.LocalizationValue, group: SyncPreferences.Group) {
+    func addGroupToggle(
+        icon: String,
+        title: String.LocalizationValue,
+        desc: String.LocalizationValue,
+        group: SyncPreferences.Group
+    ) {
         let toggle = ConfigurableToggleActionView()
         toggle.configure(icon: UIImage(systemName: icon))
         toggle.configure(title: title)

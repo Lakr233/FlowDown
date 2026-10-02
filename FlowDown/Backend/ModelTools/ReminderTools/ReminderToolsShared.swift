@@ -130,7 +130,9 @@ enum ReminderToolsShared {
         case .useDefault:
             guard let calendar = eventStore.defaultCalendarForNewReminders() else {
                 throw NSError(
-                    domain: errorDomain, code: 500, userInfo: [
+                    domain: errorDomain,
+                    code: 500,
+                    userInfo: [
                         NSLocalizedDescriptionKey:  "No default Reminders list is available.",
                     ],
                 )
@@ -145,15 +147,20 @@ enum ReminderToolsShared {
 
     static func authorizationDeniedError() -> NSError {
         NSError(
-            domain: errorDomain, code: 403, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Reminders access denied. Please enable Reminders access in Settings."),
+            domain: errorDomain,
+            code: 403,
+            userInfo: [
+                NSLocalizedDescriptionKey:
+                    String(localized: "Reminders access denied. Please enable Reminders access in Settings."),
             ],
         )
     }
 
     static func listNotFoundError(_ name: String) -> NSError {
         NSError(
-            domain: errorDomain, code: 404, userInfo: [
+            domain: errorDomain,
+            code: 404,
+            userInfo: [
                 NSLocalizedDescriptionKey: String(localized: "No Reminders list named \"\(name)\" found."),
             ],
         )

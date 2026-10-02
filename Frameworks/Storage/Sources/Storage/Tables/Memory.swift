@@ -65,7 +65,10 @@ public final class Memory: Identifiable, Codable, TableNamed, DeviceOwned, Table
 
 extension Memory: Updatable {
     @discardableResult
-    public func update<Value: Equatable>(_ keyPath: ReferenceWritableKeyPath<Memory, Value>, to newValue: Value) -> Bool {
+    public func update<Value: Equatable>(
+        _ keyPath: ReferenceWritableKeyPath<Memory, Value>,
+        to newValue: Value
+    ) -> Bool {
         let oldValue = self[keyPath: keyPath]
         guard oldValue != newValue else { return false }
         assign(keyPath, to: newValue)

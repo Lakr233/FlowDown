@@ -57,14 +57,22 @@ package final class MockSyncEngine: SyncEngineProtocol {
         _delegate.withValue(\.self)
     }
 
-    package init(database: MockCloudDatabase, parentSyncEngine: SyncEngine, state: MockSyncEngineState, delegate: any SyncEngineDelegate) {
+    package init(
+        database: MockCloudDatabase,
+        parentSyncEngine: SyncEngine,
+        state: MockSyncEngineState,
+        delegate: any SyncEngineDelegate
+    ) {
         self.database = database
         self.parentSyncEngine = parentSyncEngine
         _state = LockIsolated(state)
         _delegate = LockIsolated(delegate)
     }
 
-    private func processPendingDatabaseChanges(reason: CKSyncEngine.SyncReason, options _: CKSyncEngine.SendChangesOptions) async throws {
+    private func processPendingDatabaseChanges(
+        reason: CKSyncEngine.SyncReason,
+        options _: CKSyncEngine.SendChangesOptions
+    ) async throws {
         Logger.syncEngine.infoFile("Will Processing database changes by reason: \(reason)")
         let pendingDatabaseChanges = state.pendingDatabaseChanges
         guard !pendingDatabaseChanges.isEmpty else {
@@ -93,7 +101,10 @@ package final class MockSyncEngine: SyncEngineProtocol {
 
         Logger.syncEngine.infoFile("will sent saveZone: \(recordZonesToSave) deleteZone: \(recordZoneIDsToDelete)")
 
-        let (saveResults, deleteResults) = try await database.modifyRecordZones(saving: recordZonesToSave, deleting: recordZoneIDsToDelete)
+        let (saveResults, deleteResults) = try await database.modifyRecordZones(
+            saving: recordZonesToSave,
+            deleting: recordZoneIDsToDelete
+        )
 
         if saveResults.isEmpty, deleteResults.isEmpty {
             return
@@ -141,7 +152,10 @@ package final class MockSyncEngine: SyncEngineProtocol {
         await parentSyncEngine.handleEvent(event, syncEngine: self)
     }
 
-    private func processPendingRecordZoneChanges(reason: CKSyncEngine.SyncReason, options: CKSyncEngine.SendChangesOptions) async throws {
+    private func processPendingRecordZoneChanges(
+        reason: CKSyncEngine.SyncReason,
+        options: CKSyncEngine.SendChangesOptions
+    ) async throws {
         Logger.syncEngine.infoFile("Will Processing record zone changes by reason: \(reason)")
         let pendingRecordZoneChanges = state.pendingRecordZoneChanges
         guard !pendingRecordZoneChanges.isEmpty else {

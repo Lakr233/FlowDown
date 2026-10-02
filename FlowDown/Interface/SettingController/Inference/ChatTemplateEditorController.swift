@@ -231,7 +231,9 @@ class ChatTemplateEditorController: StackScrollController, UITextViewDelegate {
         promptBehaviorView.configure(icon: .init(systemName: "gear"))
         promptBehaviorView.configure(title: "Application Prompt Behavior")
         promptBehaviorView.configure(description: "Regarding whether the prompt from the application should be inherited or ignored when creating a new conversation from this template.")
-        let behaviorTitle = template.inheritApplicationPrompt ? String(localized: "Inherit") : String(localized: "Ignore")
+        let behaviorTitle = template.inheritApplicationPrompt
+            ? String(localized: "Inherit")
+            : String(localized: "Ignore")
         promptBehaviorView.configure(value: behaviorTitle)
         promptBehaviorView.use {
             [

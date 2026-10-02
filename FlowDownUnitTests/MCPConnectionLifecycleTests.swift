@@ -118,7 +118,10 @@ private final class ListingFailureConnectionSpy: MCPConnectionControlling, @unch
         throw FlowDown.MCPError.connectionFailed
     }
 
-    func callTool(name _: String, arguments _: [String: Value]?) async throws -> (content: [Tool.Content], isError: Bool?) {
+    func callTool(
+        name _: String,
+        arguments _: [String: Value]?
+    ) async throws -> (content: [Tool.Content], isError: Bool?) {
         ([], nil)
     }
 }

@@ -52,7 +52,10 @@ public struct LocalModel: Codable, Equatable, Hashable, Identifiable {
         size = try container.decode(UInt64.self, forKey: .size)
         capabilities = try container.decodeIfPresent(Set<ModelCapabilities>.self, forKey: .capabilities) ?? []
         context = try container.decodeIfPresent(ModelContextLength.self, forKey: .context) ?? .short_8k
-        temperature_preference = try container.decodeIfPresent(ModelTemperaturePreference.self, forKey: .temperature_preference) ?? .inherit
+        temperature_preference = try container.decodeIfPresent(
+            ModelTemperaturePreference.self,
+            forKey: .temperature_preference
+        ) ?? .inherit
     }
 
     public func encode(to encoder: Encoder) throws {

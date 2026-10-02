@@ -41,7 +41,11 @@ package final class ModelContextServerV1: Identifiable, Codable, TableNamed, Tab
             BindColumnConstraint(resourcesEnabled, isNotNull: true, defaultTo: ModelContextServer.EnableCodable())
             BindColumnConstraint(templateEnabled, isNotNull: true, defaultTo: ModelContextServer.EnableCodable())
             BindColumnConstraint(lastConnected, isNotNull: false)
-            BindColumnConstraint(connectionStatus, isNotNull: true, defaultTo: ModelContextServer.ConnectionStatus.disconnected.rawValue)
+            BindColumnConstraint(
+                connectionStatus,
+                isNotNull: true,
+                defaultTo: ModelContextServer.ConnectionStatus.disconnected.rawValue
+            )
             BindColumnConstraint(capabilities, isNotNull: true, defaultTo: StringArrayCodable([]))
         }
 

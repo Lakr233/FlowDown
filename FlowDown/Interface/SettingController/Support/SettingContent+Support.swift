@@ -121,7 +121,10 @@ extension SettingController.SettingContent.SupportController {
                     title: "Open Source Licenses",
                     explain: "These are the open-source licenses for the frameworks used in this app.",
                     ephemeralAnnotation: .action { controller in
-                        controller.navigationController?.pushViewController(OpenSourceLicenseController(), animated: true)
+                        controller.navigationController?.pushViewController(
+                            OpenSourceLicenseController(),
+                            animated: true
+                        )
                     },
                 ),
             ],

@@ -217,10 +217,16 @@ private extension SyncDeferredDeletionTests {
         /// Delivers one fetched batch of record changes, as CKSyncEngine does.
         func fetch(modifications: [String] = [], deletions: [String] = []) async {
             let records = modifications.map { recordName in
-                CKRecord(recordType: SyncDeferredDeletionTests.recordType, recordID: SyncDeferredDeletionTests.makeRecordID(recordName))
+                CKRecord(
+                    recordType: SyncDeferredDeletionTests.recordType,
+                    recordID: SyncDeferredDeletionTests.makeRecordID(recordName)
+                )
             }
             let deletedRecords = deletions.map { recordName in
-                (recordID: SyncDeferredDeletionTests.makeRecordID(recordName), recordType: SyncDeferredDeletionTests.recordType)
+                (
+                    recordID: SyncDeferredDeletionTests.makeRecordID(recordName),
+                    recordType: SyncDeferredDeletionTests.recordType
+                )
             }
             await engine.handleEvent(
                 .fetchedRecordZoneChanges(modifications: records, deletions: deletedRecords),

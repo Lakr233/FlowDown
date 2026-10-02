@@ -255,7 +255,10 @@ extension ConversationSession {
             preservesReasoning: modelCapabilities.contains(.preservedThinking),
         ) {
             let hintMessage = appendNewMessage(role: .hint)
-            hintMessage.update(\.document, to: String(localized: "Some messages have been removed to fit the model context length."))
+            hintMessage.update(
+                \.document,
+                to: String(localized: "Some messages have been removed to fit the model context length.")
+            )
             await requestUpdate()
         }
 

@@ -31,18 +31,24 @@ extension ConversationManager {
         let messages: [String] = session.messages.map { message in
             switch exportFormat {
             case .plainText:
-                Self.joined([
-                    message.role.rawValue.capitalized,
-                    message.creation.formatted(date: .abbreviated, time: .omitted),
-                    message.reasoningContent,
-                    message.document,
-                ], separator: "\n")
+                Self.joined(
+                    [
+                        message.role.rawValue.capitalized,
+                        message.creation.formatted(date: .abbreviated, time: .omitted),
+                        message.reasoningContent,
+                        message.document,
+                    ],
+                    separator: "\n"
+                )
             case .markdown:
-                Self.joined([
-                    "## \(message.role.rawValue.capitalized) - \(message.creation.formatted(date: .abbreviated, time: .omitted))",
-                    message.reasoningContent.isEmpty ? "" : " > \(message.reasoningContent)",
-                    message.document,
-                ], separator: "\n\n")
+                Self.joined(
+                    [
+                        "## \(message.role.rawValue.capitalized) - \(message.creation.formatted(date: .abbreviated, time: .omitted))",
+                        message.reasoningContent.isEmpty ? "" : " > \(message.reasoningContent)",
+                        message.document,
+                    ],
+                    separator: "\n\n"
+                )
             }
         }
 

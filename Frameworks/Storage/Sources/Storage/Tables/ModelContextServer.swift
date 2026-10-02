@@ -154,7 +154,10 @@ public final class ModelContextServer: Identifiable, Codable, TableNamed, Device
         resourcesEnabled = try container.decodeIfPresent(EnableCodable.self, forKey: .resourcesEnabled) ?? .init()
         templateEnabled = try container.decodeIfPresent(EnableCodable.self, forKey: .templateEnabled) ?? .init()
         lastConnected = try container.decodeIfPresent(Date.self, forKey: .lastConnected)
-        connectionStatus = try container.decodeIfPresent(ConnectionStatus.self, forKey: .connectionStatus) ?? .disconnected
+        connectionStatus = try container.decodeIfPresent(
+            ConnectionStatus.self,
+            forKey: .connectionStatus
+        ) ?? .disconnected
         capabilities = try container.decodeIfPresent(StringArrayCodable.self, forKey: .capabilities) ?? .init([])
 
         removed = try container.decodeIfPresent(Bool.self, forKey: .removed) ?? false
@@ -173,7 +176,10 @@ public final class ModelContextServer: Identifiable, Codable, TableNamed, Device
 
 extension ModelContextServer: Updatable {
     @discardableResult
-    public func update<Value: Equatable>(_ keyPath: ReferenceWritableKeyPath<ModelContextServer, Value>, to newValue: Value) -> Bool {
+    public func update<Value: Equatable>(
+        _ keyPath: ReferenceWritableKeyPath<ModelContextServer, Value>,
+        to newValue: Value
+    ) -> Bool {
         let oldValue = self[keyPath: keyPath]
         guard oldValue != newValue else { return false }
         assign(keyPath, to: newValue)

@@ -56,7 +56,9 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
               let reminderId = json["reminder_id"] as? String, !reminderId.isEmpty
         else {
             throw NSError(
-                domain: "MTCompleteReminderTool", code: 400, userInfo: [
+                domain: "MTCompleteReminderTool",
+                code: 400,
+                userInfo: [
                     NSLocalizedDescriptionKey: String(localized: "reminder_id is required."),
                 ],
             )
@@ -82,7 +84,9 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
         try await ReminderToolsShared.withAuthorization { cont in
             let eventStore = EKEventStore()
             guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
-                cont.resume(throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found.")))
+                cont.resume(
+                    throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found."))
+                )
                 return
             }
 
@@ -133,7 +137,11 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
                         }
                         continuation.resume(returning: message)
                     } catch {
-                        continuation.resume(throwing: ModelToolError.failure(String(localized: "Failed to update reminder: \(error.localizedDescription)")))
+                        continuation.resume(
+                            throwing: ModelToolError.failure(
+                                String(localized: "Failed to update reminder: \(error.localizedDescription)")
+                            )
+                        )
                     }
                 }
             }
