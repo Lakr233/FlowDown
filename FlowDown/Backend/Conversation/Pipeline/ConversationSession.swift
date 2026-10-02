@@ -129,7 +129,12 @@ final class ConversationSession: Identifiable {
         currentTask?.cancel()
         currentTask = nil
         thinkingDurationTimer.values.forEach { $0.invalidate() }
-        ConversationSessionManager.shared.markSessionCompleted(id)
+        // The last reference can drop on any thread (a cancel poller ends on a
+        // cooperative one), and the manager's execution state is main-confined.
+        let id = id
+        DispatchQueue.main.async {
+            ConversationSessionManager.shared.markSessionCompleted(id)
+        }
     }
 
     init(id: Conversation.ID) {
