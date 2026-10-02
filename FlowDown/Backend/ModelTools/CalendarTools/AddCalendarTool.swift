@@ -181,10 +181,14 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
     }
   }
 
-  private func parseICSContent(_ content: String, eventStore: EKEventStore) -> EKEvent? {
+  func parseICSContent(_ content: String, eventStore: EKEventStore) -> EKEvent? {
     let normalized = normalizeICSToCRLF(content)
     let parser = ICParser()
-    guard let calendar = parser.calendar(from: normalized),
+    // ICParser rejects input without a valid PRODID, which the tool schema never
+    // asks for; retry with one so a bare VEVENT still parses.
+    guard
+      let calendar = parser.calendar(from: normalized)
+        ?? parser.calendar(from: "PRODID:-//FlowDown//EN\r\n" + normalized),
       let icEvent = calendar.events.first
     else { return nil }
 
@@ -202,7 +206,12 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
   /// Normalizes line endings to CRLF and strips folded continuation lines
   /// so that ICParser can handle both strict and loose ICS input.
   private func normalizeICSToCRLF(_ content: String) -> String {
-    let lines = content.components(separatedBy: .newlines)
+    // Splitting CRLF on `.newlines` leaves an empty line between CR and LF, and a
+    // folded continuation would join that instead of its property.
+    let lines = content
+      .replacingOccurrences(of: "\r\n", with: "\n")
+      .replacingOccurrences(of: "\r", with: "\n")
+      .components(separatedBy: "\n")
     var result: [String] = []
     for line in lines {
       if line.first == " " || line.first == "\t", !result.isEmpty {
