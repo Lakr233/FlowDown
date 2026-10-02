@@ -591,14 +591,17 @@ struct MigrationV1ToV2: DBMigration {
         while true {
             var finish = false
             try db.run(transaction: { handle in
+                // Page by (creation, objectId) so rows sharing a creation time are
+                // each read exactly once, however many of them there are.
                 let objects: [T] = if let lastObjectId, let lastCreation {
                     try handle.getObjects(
                         fromTable: T.tableName,
                         where:
-                        T.SyncQuery.creation >= lastCreation
-                            && T.SyncQuery.objectId != lastObjectId,
+                        T.SyncQuery.creation > lastCreation
+                            || (T.SyncQuery.creation == lastCreation && T.SyncQuery.objectId > lastObjectId),
                         orderBy: [
                             T.SyncQuery.creation.order(.ascending),
+                            T.SyncQuery.objectId.order(.ascending),
                         ],
                         limit: batchSize,
                     )
@@ -607,6 +610,7 @@ struct MigrationV1ToV2: DBMigration {
                         fromTable: T.tableName,
                         orderBy: [
                             T.SyncQuery.creation.order(.ascending),
+                            T.SyncQuery.objectId.order(.ascending),
                         ],
                         limit: batchSize,
                     )

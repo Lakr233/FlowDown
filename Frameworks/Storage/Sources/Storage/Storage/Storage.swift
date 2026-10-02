@@ -319,6 +319,8 @@ public extension Storage {
                 do {
                     let mods: [CloudModel] = try db.getObjects(fromTable: CloudModel.tableName)
                     try expdb.insert(mods, intoTable: CloudModel.tableName)
+                    let servers: [ModelContextServer] = try db.getObjects(fromTable: ModelContextServer.tableName)
+                    try expdb.insert(servers, intoTable: ModelContextServer.tableName)
                     let cons: [Conversation] = try db.getObjects(fromTable: Conversation.tableName)
                     try expdb.insert(cons, intoTable: Conversation.tableName)
                     let msgs: [Message] = try db.getObjects(fromTable: Message.tableName)
