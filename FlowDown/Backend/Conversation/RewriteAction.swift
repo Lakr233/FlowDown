@@ -93,22 +93,40 @@ extension RewriteAction {
             title: "Rewriting Message",
             controller: controller,
         ) { completionHandler in
+            // Only the preview changes while streaming; the database keeps the
+            // original until the rewrite completes, so a failure restores it.
+            let original = message.document
             let stream = try await ModelManager.shared.streamingInfer(
                 with: model,
                 input: messageBody,
             )
 
             var rewritten = ""
-            for try await resp in stream {
-                switch resp {
-                case let .text(value):
-                    rewritten += value
-                    message.update(\.document, to: rewritten)
-                default:
-                    break
+            do {
+                for try await resp in stream {
+                    switch resp {
+                    case let .text(value):
+                        rewritten += value
+                        message.update(\.document, to: rewritten)
+                    default:
+                        break
+                    }
+                    session.notifyMessagesDidChange(scrolling: false)
                 }
+                guard !rewritten.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    throw NSError(
+                        domain: "Inference Service",
+                        code: -1,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: String(localized: "No response from model."),
+                        ],
+                    )
+                }
+            } catch {
+                message.update(\.document, to: original)
                 session.notifyMessagesDidChange(scrolling: false)
                 session.save()
+                throw error
             }
             session.save()
             await completionHandler {
