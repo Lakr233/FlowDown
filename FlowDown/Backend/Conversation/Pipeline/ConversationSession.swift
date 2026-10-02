@@ -287,8 +287,9 @@ final class ConversationSession: Identifiable {
         }
     }
 
+    /// Drops a message created moments ago. It owns no supplement rows, so the
+    /// rows before it (such as this turn's web search) stay.
     func discard(messageIdentifier: Message.ID) {
-        sdb.deleteSupplementMessage(nextTo: messageIdentifier)
         sdb.delete(messageIdentifier: messageIdentifier)
         messages.removeAll { $0.objectId == messageIdentifier }
         attachments[messageIdentifier] = nil
