@@ -1,27 +1,36 @@
 #!/usr/bin/env python3
 """
-Fix localization entries where the key doesn't match the English translation.
-Updates the key to match the English value.
+Fix localization entries where the English translation doesn't match the key.
+
+Swift looks strings up by key, so keys are never renamed. Xcode writes
+positional specifiers into the English value of multi-argument keys
+(`%@ • %@` -> `%1$@ • %2$@`); those entries are consistent and left alone.
+Other mismatches are reported, and only with --apply is the English value
+reset to the key. Review the list first: some entries, such as
+"Duck Duck Go Search", override the English text on purpose.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
+from i18n_tools import save_strings
+
+POSITIONAL_SPECIFIER = re.compile(r'%(\d+)\$')
+
 
 def fix_inconsistent_keys(xcstrings_path, dry_run=False):
-    """Fix entries where key != English value by updating the key."""
+    """Fix entries where key != English value by resetting the English value to the key."""
     with open(xcstrings_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     strings = data.get('strings', {})
     fixed = []
-    new_strings = {}
     
     for key, entry in strings.items():
         # Skip special entries
         if 'shouldTranslate' in entry and not entry['shouldTranslate']:
-            new_strings[key] = entry
             continue
         
         localizations = entry.get('localizations', {})
@@ -32,33 +41,25 @@ def fix_inconsistent_keys(xcstrings_path, dry_run=False):
             en_unit = localizations['en'].get('stringUnit', {})
             en_value = en_unit.get('value')
         
-        # If there's no explicit English localization, keep original key
+        # If there's no explicit English localization, the key is the English value
         if en_value is None:
-            new_strings[key] = entry
             continue
         
-        # Check if key matches English value
-        if key != en_value:
-            # Use English value as the new key
-            new_strings[en_value] = entry
+        # Check if key matches English value, ignoring Xcode's positional specifiers
+        if key != en_value and key != POSITIONAL_SPECIFIER.sub('%', en_value):
             fixed.append({
-                'old_key': key,
-                'new_key': en_value
+                'key': key,
+                'old_value': en_value
             })
-        else:
-            new_strings[key] = entry
+            if not dry_run:
+                en_unit['value'] = key
     
     if not fixed:
         print("✅ All keys already match their English translations!")
         return []
     
     if not dry_run:
-        # Update the data
-        data['strings'] = new_strings
-        
-        # Write back to file
-        with open(xcstrings_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        save_strings(xcstrings_path, data)
         
         print(f"✅ Fixed {len(fixed)} entries in {xcstrings_path}")
     else:
@@ -69,11 +70,11 @@ def fix_inconsistent_keys(xcstrings_path, dry_run=False):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 fix_inconsistent_keys.py <path_to_Localizable.xcstrings> [--dry-run]")
+        print("Usage: python3 fix_inconsistent_keys.py <path_to_Localizable.xcstrings> [--apply]")
         sys.exit(1)
     
     xcstrings_path = Path(sys.argv[1])
-    dry_run = '--dry-run' in sys.argv
+    dry_run = '--apply' not in sys.argv or '--dry-run' in sys.argv
     
     if not xcstrings_path.exists():
         print(f"Error: File not found: {xcstrings_path}")
@@ -89,16 +90,12 @@ def main():
         
         for i, item in enumerate(fixed, 1):
             print(f"\n{i}.")
-            print(f"   Old key: {item['old_key'][:70]}{'...' if len(item['old_key']) > 70 else ''}")
-            print(f"   New key: {item['new_key'][:70]}{'...' if len(item['new_key']) > 70 else ''}")
+            print(f"   Key:       {item['key'][:70]}{'...' if len(item['key']) > 70 else ''}")
+            print(f"   Old value: {item['old_value'][:70]}{'...' if len(item['old_value']) > 70 else ''}")
             print("-" * 100)
         
-        if not dry_run:
-            # Save mapping for reference
-            mapping_file = xcstrings_path.parent / "key_mapping.json"
-            with open(mapping_file, 'w', encoding='utf-8') as f:
-                json.dump(fixed, f, ensure_ascii=False, indent=2)
-            print(f"\n\nKey mapping saved to: {mapping_file}")
+        if dry_run:
+            print("\nRe-run with --apply to reset these English values to their keys.")
 
 
 if __name__ == '__main__':

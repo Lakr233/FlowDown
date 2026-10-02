@@ -4,6 +4,7 @@ Find localization entries where the key doesn't match the English translation.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -32,8 +33,9 @@ def find_inconsistent_keys(xcstrings_path):
         if en_value is None:
             continue
         
-        # Check if key matches English value
-        if key != en_value:
+        # Check if key matches English value, ignoring the positional
+        # specifiers Xcode writes for multi-argument keys (%1$@ for %@)
+        if key != en_value and key != re.sub(r'%(\d+)\$', '%', en_value):
             inconsistent.append({
                 'key': key,
                 'en_value': en_value,
@@ -74,8 +76,9 @@ def main():
     
     print(f"\n\nTotal: {len(inconsistent)} entries need to be updated")
     
-    # Save to file for later use
-    output_file = xcstrings_path.parent / "inconsistent_keys.json"
+    # Save to file for later use, outside the synchronized groups the app bundles
+    output_file = Path(__file__).resolve().parents[3] / ".build" / "inconsistent_keys.json"
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(inconsistent, f, ensure_ascii=False, indent=2)
     print(f"\nDetails saved to: {output_file}")
