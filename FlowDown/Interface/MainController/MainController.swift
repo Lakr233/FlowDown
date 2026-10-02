@@ -42,8 +42,23 @@ class MainController: UIViewController {
     static let catalystTitleBarHeight: CGFloat = 32
 
     var allowSidebarPersistence: Bool {
-        guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
-        return UIDevice.current.orientation.isLandscape || view.bounds.width > 800
+        Self.allowsSidebarPersistence(
+            idiom: UIDevice.current.userInterfaceIdiom,
+            size: view.bounds.size,
+        )
+    }
+
+    /// Whether the open sidebar can stay on screen next to the chat.
+    ///
+    /// This reads the window rather than the device, because a narrow window
+    /// in Slide Over or Split View still reports a landscape device, and a
+    /// device laid flat reports no orientation at all. It is never true below
+    /// the width where `updateViewConstraints` switches to the drawer layout,
+    /// since a drawer that persists can no longer be dismissed by selecting a
+    /// conversation or tapping the chat.
+    static func allowsSidebarPersistence(idiom: UIUserInterfaceIdiom, size: CGSize) -> Bool {
+        guard idiom == .pad, size.width >= 500 else { return false }
+        return size.width > size.height || size.width > 800
     }
 
     var sidebarWidth: CGFloat = 256 {
