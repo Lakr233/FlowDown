@@ -246,14 +246,23 @@ extension ModelManager {
                     NSLocalizedDescriptionKey: String(localized: "Invalid model file."),
                 ])
             }
-            if model.id.isEmpty {
+            // The id comes from a shared package and names the directory that
+            // is replaced below, so it must be one plain path component inside
+            // localModelDir: "../Objects.db" would delete the database and
+            // "." every installed model.
+            let target = dirForLocalModel(identifier: model.id)
+            guard !model.id.isEmpty,
+                  !model.id.contains("/"),
+                  model.id != ".",
+                  model.id != "..",
+                  target.deletingLastPathComponent().standardizedFileURL.path == localModelDir.standardizedFileURL.path
+            else {
                 throw NSError(
                     domain: "Model",
                     code: -1,
                     userInfo: [NSLocalizedDescriptionKey: String(localized: "Invalid model identifier.")],
                 )
             }
-            let target = dirForLocalModel(identifier: model.id)
             try? FileManager.default.removeItem(at: target)
             try FileManager.default.moveItem(at: tempDir, to: target)
             localModels.send(scanLocalModels())
