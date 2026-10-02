@@ -143,9 +143,27 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         prefix: String,
         startString: String,
         endString: String,
+        calendar: Calendar = .current,
     ) throws -> DateRange {
-        let start = startString.isEmpty ? nil : ReminderToolsShared.parseISODate(startString)
-        let end = endString.isEmpty ? nil : ReminderToolsShared.parseISODate(endString)
+        // A bare date bound covers that whole local day: the start is its local
+        // midnight and the end the last instant before the next local midnight.
+        let start: Date?
+        if startString.isEmpty {
+            start = nil
+        } else {
+            start = ReminderToolsShared.parseLocalDay(startString, calendar: calendar)
+                ?? ReminderToolsShared.parseISODate(startString)
+        }
+        let end: Date?
+        if endString.isEmpty {
+            end = nil
+        } else if let day = ReminderToolsShared.parseLocalDay(endString, calendar: calendar),
+                  let nextDay = calendar.date(byAdding: .day, value: 1, to: day)
+        {
+            end = Date(timeIntervalSinceReferenceDate: nextDay.timeIntervalSinceReferenceDate.nextDown)
+        } else {
+            end = ReminderToolsShared.parseISODate(endString)
+        }
 
         if !startString.isEmpty, start == nil {
             throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
@@ -164,7 +182,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
                     NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "start_date must be on or before end_date."),
                 ])
             }
-            let days = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
+            let days = calendar.dateComponents([.day], from: start, to: end).day ?? 0
             if days > 365 {
                 throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
                     NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Date range cannot exceed 365 days"),

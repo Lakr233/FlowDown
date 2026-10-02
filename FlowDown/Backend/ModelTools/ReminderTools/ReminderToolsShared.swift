@@ -60,9 +60,39 @@ enum ReminderToolsShared {
 
         let dateOnly = ISO8601DateFormatter()
         dateOnly.formatOptions = [.withFullDate]
-        if let date = dateOnly.date(from: trimmed) { return date }
+        if isBareDate(trimmed), let date = dateOnly.date(from: trimmed) { return date }
 
         return nil
+    }
+
+    /// A bare date such as `2026-10-05` names a day on the user's calendar,
+    /// not an instant. Returns the start of that day in `calendar`'s time
+    /// zone, or nil when the string carries a time or does not parse.
+    static func parseLocalDay(_ string: String, calendar: Calendar = .current) -> Date? {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isBareDate(trimmed) else { return nil }
+
+        let dateOnly = ISO8601DateFormatter()
+        dateOnly.formatOptions = [.withFullDate]
+        dateOnly.timeZone = calendar.timeZone
+        return dateOnly.date(from: trimmed)
+    }
+
+    /// Due date components for a reminder. A bare date becomes an all-day
+    /// due date on that local day; a timestamp keeps its local hour and minute.
+    static func dueDateComponents(from string: String, calendar: Calendar = .current) -> DateComponents? {
+        if let day = parseLocalDay(string, calendar: calendar) {
+            return calendar.dateComponents([.year, .month, .day], from: day)
+        }
+        guard let date = parseISODate(string) else { return nil }
+        return calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+    }
+
+    /// The `.withFullDate` formatter reads the leading date and ignores any
+    /// trailing time, so a timestamp without an offset would silently lose its
+    /// time. Only an exact `yyyy-MM-dd` counts as a bare date.
+    private static func isBareDate(_ trimmed: String) -> Bool {
+        trimmed.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil
     }
 
     static func priorityLabel(_ value: Int) -> String {

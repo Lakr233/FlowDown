@@ -285,12 +285,9 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
           if changes.clearDueDate {
             reminder.dueDateComponents = nil
           } else if let newDueDate = changes.newDueDate,
-            let date = ReminderToolsShared.parseISODate(newDueDate)
+            let components = ReminderToolsShared.dueDateComponents(from: newDueDate)
           {
-            reminder.dueDateComponents = Calendar.current.dateComponents(
-              [.year, .month, .day, .hour, .minute],
-              from: date,
-            )
+            reminder.dueDateComponents = components
           }
           if changes.clearPriority {
             reminder.priority = 0
