@@ -59,7 +59,17 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
             )
         }
 
-        await MemoryStore.shared.store(content: content)
+        // Await the insert so a rejected or failed store reaches the model as a
+        // tool failure instead of a false success.
+        do {
+            _ = try await MemoryStore.shared.storeAsync(content: content)
+        } catch MemoryStoreError.invalidContent(_) {
+            throw NSError(
+                domain: "MTStoreMemoryTool", code: 400, userInfo: [
+                    NSLocalizedDescriptionKey: String(localized: "Invalid memory content"),
+                ],
+            )
+        }
 
         return String(localized: "Memory stored successfully: \(content)")
     }
