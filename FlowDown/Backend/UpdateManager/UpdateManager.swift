@@ -178,21 +178,27 @@ class UpdateManager: NSObject {
             title: "Checking for Updates",
             controller: controller,
         ) { completionHandler in
-            var package: DistributionChannel.RemotePackage?
+            let package: DistributionChannel.RemotePackage?
             do {
-                let packages = try await self.currentChannel.getRemoteVersion(
-                    releaseFeedClient: self.releaseFeedClient,
-                )
-                package = self.newestPackage(from: packages)
-                package = self.updatePackage(from: package)
-                Logger.app.infoFile("remote packages: \(packages)")
+                package = try await self.fetchAvailableUpdate()
             } catch {
                 Logger.app.errorFile("failed to check for updates: \(error.localizedDescription)")
+                // Rethrow so Indicator.progress reports the failure instead of "No Update Available".
+                throw error
             }
             await completionHandler {
                 completion(package: package)
             }
         }
+    }
+
+    func fetchAvailableUpdate() async throws -> DistributionChannel.RemotePackage? {
+        let packages = try await currentChannel.getRemoteVersion(
+            releaseFeedClient: releaseFeedClient,
+        )
+        let package = updatePackage(from: newestPackage(from: packages))
+        Logger.app.infoFile("remote packages: \(packages)")
+        return package
     }
 
     func updatePackage(from remotePackage: DistributionChannel.RemotePackage?) -> DistributionChannel.RemotePackage? {
