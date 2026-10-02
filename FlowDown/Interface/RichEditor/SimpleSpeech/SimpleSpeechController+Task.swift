@@ -22,9 +22,9 @@ extension SimpleSpeechController {
         dismiss(animated: true)
     }
 
-    func startTranscript() {
+    func startTranscript() async {
         do {
-            try startTranscriptEx()
+            guard try await startTranscriptEx() else { return }
             doneButton.doWithAnimation { [self] in
                 doneButton.isEnabled = true
             }
@@ -41,28 +41,42 @@ extension SimpleSpeechController {
             if let task = item as? SFSpeechRecognitionTask {
                 task.cancel()
             }
+            if let engine = item as? AVAudioEngine {
+                // the session cannot be deactivated while the engine is still running
+                engine.stop()
+                engine.inputNode.removeTap(onBus: 0)
+            }
         }
         sessionItems.removeAll()
+        // Give the shared session back: stop ducking other apps and restore the
+        // playback category that stream audio feedback relies on.
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        SoundEffectPlayer.shared.updateMode()
     }
 
-    private func startTranscriptEx() throws {
-        SFSpeechRecognizer.requestAuthorization { _ in }
-        if #available(iOS 17, macCatalyst 17, *) {
-            AVAudioApplication.requestRecordPermission(completionHandler: { _ in })
-        } else {
-            AVAudioSession.sharedInstance().requestRecordPermission { _ in }
+    /// Returns false when the sheet was closed while a permission prompt was up.
+    private func startTranscriptEx() async throws -> Bool {
+        let speechStatus: SFSpeechRecognizerAuthorizationStatus = await withCheckedContinuation { continuation in
+            SFSpeechRecognizer.requestAuthorization { @Sendable status in
+                continuation.resume(returning: status)
+            }
         }
 
-        guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
+        guard speechStatus == .authorized else {
             throw NSError(domain: "SpeechRecognizer", code: 0, userInfo: [
                 NSLocalizedDescriptionKey: NSLocalizedString("Speech recognizer is not authorized.", comment: ""),
             ])
         }
 
-        let micPermissionGranted: Bool = if #available(iOS 17, macCatalyst 17, *) {
-            AVAudioApplication.shared.recordPermission == .granted
+        let micPermissionGranted: Bool
+        if #available(iOS 17, macCatalyst 17, *) {
+            micPermissionGranted = await AVAudioApplication.requestRecordPermission()
         } else {
-            AVAudioSession.sharedInstance().recordPermission == .granted
+            micPermissionGranted = await withCheckedContinuation { continuation in
+                AVAudioSession.sharedInstance().requestRecordPermission { @Sendable granted in
+                    continuation.resume(returning: granted)
+                }
+            }
         }
 
         guard micPermissionGranted else {
@@ -70,6 +84,8 @@ extension SimpleSpeechController {
                 NSLocalizedDescriptionKey: NSLocalizedString("Microphone is not authorized.", comment: ""),
             ])
         }
+
+        guard presentingViewController != nil, !isBeingDismissed else { return false }
 
         // appLang if non‐English, otherwise Locale.preferredLanguages.first
         let appLang = Bundle.main.preferredLocalizations.first ?? "en"
@@ -116,5 +132,6 @@ extension SimpleSpeechController {
         sessionItems.append(audioEngine)
         sessionItems.append(inputNode)
         sessionItems.append(recognitionTask)
+        return true
     }
 }

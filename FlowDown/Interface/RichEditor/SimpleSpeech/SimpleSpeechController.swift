@@ -66,7 +66,7 @@ class SimpleSpeechController: AlertBaseController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        startTranscript()
+        Task { @MainActor in await startTranscript() }
     }
 
     override func contentViewLayout(in bounds: CGRect) {
