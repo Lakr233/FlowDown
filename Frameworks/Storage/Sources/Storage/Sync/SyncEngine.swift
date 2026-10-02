@@ -396,6 +396,9 @@ public extension SyncEngine {
             var needDelay = false
             let syncEngine = try await syncEngineOrThrow(initializingIfNeeded: true, needDelay: &needDelay)
 
+            // A fetch from a nil change token returns live records only, never deletions.
+            await applyDeferredRemoteDeletions(syncEngine: syncEngine)
+
             // 确保首次开启或重置后自定义 Zone 已创建，避免后续发送报 zoneNotFound
             await createCustomZoneIfNeeded(true)
             try await Task.sleep(nanoseconds: 1_000_000_000)
@@ -404,6 +407,31 @@ public extension SyncEngine {
         }
 
         throw NSError(domain: "Storage.SyncEngine", code: 3)
+    }
+}
+
+extension SyncEngine {
+    /// Applies the remote deletions kept while their Sync Scope group was turned off, for the groups that sync now.
+    ///
+    /// Call it only right before a fetch from a nil change token. The deletions run first,
+    /// so a record re-created after its deletion comes back with that fetch instead of being deleted.
+    @available(iOS 17, macCatalyst 17, *)
+    package func applyDeferredRemoteDeletions(syncEngine: any SyncEngineProtocol) async {
+        let deferred: [SyncDeferredDeletion]
+        do {
+            deferred = try storage.syncDeferredDeletionList(tables: SyncPreferences.enabledTables())
+        } catch {
+            Logger.syncEngine.errorFile("ListDeferredDeletions error \(error)")
+            return
+        }
+        guard !deferred.isEmpty else { return }
+
+        Logger.syncEngine.infoFile("Applying \(deferred.count) deferred deletions")
+        let deletions: [(recordID: CKRecord.ID, recordType: CKRecord.RecordType)] = deferred.map {
+            (recordID: CKRecord.ID(recordName: $0.recordName, zoneID: SyncEngine.zoneID), recordType: SyncEngine.recordType)
+        }
+        // The remote-deletion path removes each applied entry, and keeps any whose group was turned off again meanwhile.
+        await handleFetchedRecordZoneChanges(deletions: deletions, syncEngine: syncEngine)
     }
 }
 
@@ -759,9 +787,35 @@ private extension SyncEngine {
             Logger.syncEngine.errorFile("HandleRemoteUpsert error \(error)")
         }
 
+        // A fetched record is live, so a deletion of it kept earlier no longer applies,
+        // whether or not the record was dropped above because its group is still off.
+        do {
+            try storage.syncDeferredDeletionRemove(recordNames: modifications.map(\.recordID.recordName))
+        } catch {
+            Logger.syncEngine.errorFile("RemoveDeferredDeletions error \(error)")
+        }
+
         let filteredDeletions = deletions.filter { deletion in
             guard let (_, tableName) = UploadQueue.parseCKRecordID(deletion.recordID.recordName) else { return true }
             return SyncPreferences.isTableSyncEnabled(tableName: tableName)
+        }
+
+        // The change token moves past the deletions dropped above and CloudKit never delivers them again,
+        // so they are kept until their group is turned back on. See applyDeferredRemoteDeletions.
+        let appliedRecordNames = Set(filteredDeletions.map { $0.recordID.recordName })
+        let deferredDeletions = deletions.compactMap { deletion -> SyncDeferredDeletion? in
+            let recordName = deletion.recordID.recordName
+            guard !appliedRecordNames.contains(recordName),
+                  let (_, tableName) = UploadQueue.parseCKRecordID(recordName)
+            else { return nil }
+            return SyncDeferredDeletion(tableName: tableName, recordName: recordName)
+        }
+        if !deferredDeletions.isEmpty {
+            do {
+                try storage.syncDeferredDeletionSave(deferredDeletions)
+            } catch {
+                Logger.syncEngine.errorFile("SaveDeferredDeletions error \(error)")
+            }
         }
 
         // Deletions are collected before they are applied, because the message lookup reads the rows being deleted.
@@ -804,6 +858,7 @@ private extension SyncEngine {
                 try storage.runTransaction {
                     try self.storage.handleRemoteDeleted(deletions: filteredDeletions, handle: $0)
                     try self.storage.pendingUploadDequeueDeleted(by: deletedQueueObjectIds, handle: $0)
+                    try self.storage.syncDeferredDeletionRemove(recordNames: Array(appliedRecordNames), handle: $0)
                 }
             } catch {
                 Logger.syncEngine.errorFile("HandleRemoteDeleted error \(error)")

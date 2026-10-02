@@ -99,6 +99,7 @@ public class Storage {
                 MigrationV3ToV4(),
                 MigrationV4ToV5(),
                 MigrationV5ToV6(),
+                MigrationV6ToV7(),
             ]
         } else {
             initVersion = .Version1
@@ -108,6 +109,7 @@ public class Storage {
                 MigrationV3ToV4(),
                 MigrationV4ToV5(),
                 MigrationV5ToV6(),
+                MigrationV6ToV7(),
             ]
         }
 
@@ -179,6 +181,7 @@ public class Storage {
             try $0.delete(fromTable: ModelContextServer.tableName)
             try $0.delete(fromTable: Memory.tableName)
             try $0.delete(fromTable: SyncMetadata.tableName)
+            try $0.delete(fromTable: SyncDeferredDeletion.tableName)
             try $0.delete(fromTable: UploadQueue.tableName)
             try $0.delete(fromTable: ChatTemplateRecord.tableName)
             try $0.delete(fromTable: ConversationSummary.tableName)

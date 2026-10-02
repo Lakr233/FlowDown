@@ -10,7 +10,7 @@ extension Storage {
     /// Clears the synced tables after the iCloud account signs out or switches.
     ///
     /// Tables that are not listed, and their pending uploads, stay on this device.
-    /// All `SyncMetadata` is removed because the stored record system fields belong to the previous account.
+    /// All `SyncMetadata` and `SyncDeferredDeletion` rows are removed because they belong to the previous account.
     /// - Parameter tables: Data tables to clear, usually `SyncPreferences.enabledTables()`.
     func clearLocalData(tables: [String]) throws {
         try db.run(transaction: {
@@ -26,6 +26,7 @@ extension Storage {
             }
 
             try $0.delete(fromTable: SyncMetadata.tableName)
+            try $0.delete(fromTable: SyncDeferredDeletion.tableName)
 
             let row = try $0.getRow(on: UploadQueue.Properties.id.count(), fromTable: UploadQueue.tableName)
             guard row.first?.int64Value == 0 else { return }
