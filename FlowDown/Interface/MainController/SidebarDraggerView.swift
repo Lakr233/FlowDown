@@ -1,5 +1,5 @@
 //
-//  MainController+SidbarDragger.swift
+//  SidebarDraggerView.swift
 //  FlowDown
 //
 //  Created by 秋星桥 on 7/2/25.

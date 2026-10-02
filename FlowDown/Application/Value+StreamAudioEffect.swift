@@ -1,5 +1,5 @@
 //
-//  Value+DialTuneMode.swift
+//  Value+StreamAudioEffect.swift
 //  FlowDown
 //
 //  Created by AI on 1/6/26.

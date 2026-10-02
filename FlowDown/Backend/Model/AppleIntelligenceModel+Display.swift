@@ -1,5 +1,5 @@
 //
-//  ModelManager+AAPL.swift
+//  AppleIntelligenceModel+Display.swift
 //  FlowDown
 //
 //  Created by Alan Ye on 6/30/25.

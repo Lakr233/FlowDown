@@ -1,5 +1,5 @@
 //
-//  ChatView+HeaderVisualEffect.swift
+//  ChatHeaderGlassBackgroundContainerView.swift
 //  FlowDown
 //
 //  Created by GitHub Copilot on 2026/3/15.
