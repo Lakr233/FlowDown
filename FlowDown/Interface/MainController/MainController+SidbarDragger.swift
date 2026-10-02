@@ -178,7 +178,10 @@ class SidebarDraggerView: UIView {
         let location = gesture.location(in: dragReferenceSpace).x
         switch gesture.state {
         case .began:
-            gestureBeginValue = currentValue
+            // Start from the width on screen. A window too narrow for the
+            // stored width shows it clamped, and starting from the stored one
+            // would leave the separator behind the pointer for the whole drag.
+            gestureBeginValue = min(currentValue, upperBound)
             gestureBeginLocation = location
             isDragging = true
             fallthrough
