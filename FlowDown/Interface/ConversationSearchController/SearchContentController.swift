@@ -11,7 +11,7 @@ import UIKit
 class SearchContentController: UIViewController {
     var callback: ConversationSearchController.SearchCallback
 
-    let searchController = UISearchController(searchResultsController: nil)
+    let searchController = KeyboardNavigationSearchController(searchResultsController: nil)
     let tableView = UITableView(frame: .zero, style: .plain)
     let noResultsView = UIView()
     let emptyStateView = UIView()
