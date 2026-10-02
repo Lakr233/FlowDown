@@ -23,7 +23,20 @@ extension MCPService {
             throw MCPError.connectionFailed
         }
 
-        return try await connection.callTool(name: name, arguments: arguments)
+        do {
+            return try await connection.callTool(name: name, arguments: arguments)
+        } catch {
+            // This call still fails. A short wait for the replacement lets
+            // the next call in the same turn reach the new session; a slow
+            // or failed reconnect leaves the dead one registered, so that
+            // call fails as an ordinary tool error instead.
+            if let reconnect = await replaceConnectionIfSessionLost(connection, for: clientName, after: error) {
+                _ = try? await awaitCancellable(timeout: Self.conversationWaitTimeout) {
+                    await reconnect.value
+                }
+            }
+            throw error
+        }
     }
 
     func getAllTools() async -> [MCPToolInfo] {
@@ -57,6 +70,7 @@ extension MCPService {
                 allTools.append(contentsOf: toolInfos)
             } catch {
                 Logger.network.errorFile("failed to acquire tools from \(serverID): \(error.localizedDescription)")
+                await replaceConnectionIfSessionLost(connection, for: serverID, after: error)
             }
         }
 

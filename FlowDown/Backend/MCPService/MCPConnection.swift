@@ -18,14 +18,26 @@ protocol MCPConnectionControlling: AnyObject, Sendable {
 
     func connect() async throws
     func disconnect()
+    /// Round-trips a request on the current session; throws when the server
+    /// no longer answers on it.
+    func ping() async throws
     func listToolInfos(serverID: ModelContextServer.ID, serverName: String) async throws -> [MCPToolInfo]
     func callTool(name: String, arguments: [String: Value]?) async throws -> (content: [Tool.Content], isError: Bool?)
+}
+
+extension MCPConnectionControlling {
+    /// Conformers that cannot probe their session report it as alive, which
+    /// keeps their connection after a failed request.
+    func ping() async throws {}
 }
 
 final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
     // MARK: - Properties
 
+    typealias TransportFactory = @Sendable (ModelContextServer) throws -> any MCP.Transport
+
     private let config: ModelContextServer
+    private let transportFactory: TransportFactory
     // Guards the only mutable state; an MCP.Client taken out of the lock is an
     // actor, so calls on it are safe from any concurrency domain.
     private let clientLock = OSAllocatedUnfairLock<MCP.Client?>(initialState: nil)
@@ -36,8 +48,12 @@ final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
 
     // MARK: - Initialization
 
-    init(config: ModelContextServer) {
+    init(
+        config: ModelContextServer,
+        transportFactory: @escaping TransportFactory = { try $0.createTransport() },
+    ) {
         self.config = config
+        self.transportFactory = transportFactory
     }
 
     // MARK: - Connection Management
@@ -49,10 +65,18 @@ final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
         }
 
         let client = createClient()
-        let transport = try config.createTransport()
+        let transport = try transportFactory(config)
 
         Logger.network.infoFile("connecting client for server: \(config.id)")
-        try await client.connect(transport: transport)
+        do {
+            try await client.connect(transport: transport)
+        } catch {
+            // The client starts the transport, and with it the HTTP event
+            // stream that retries forever, before it sends initialize. A
+            // failed initialize has to stop both, or they outlive this call.
+            await client.disconnect()
+            throw error
+        }
 
         let raced: MCP.Client? = clientLock.withLock { current in
             if current == nil {
@@ -83,6 +107,14 @@ final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
 
     var isConnected: Bool {
         client != nil
+    }
+
+    func ping() async throws {
+        guard let client else {
+            throw MCPError.connectionFailed
+        }
+
+        try await client.ping()
     }
 
     func listToolInfos(serverID: ModelContextServer.ID, serverName: String) async throws -> [MCPToolInfo] {

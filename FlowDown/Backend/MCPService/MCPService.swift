@@ -209,10 +209,18 @@ class MCPService: NSObject {
                 }
                 let connection = self.connectionFactory(server)
                 try await connection.connect()
-                let toolInfos = try await connection.listToolInfos(
-                    serverID: serverID,
-                    serverName: server.displayName,
-                )
+                let toolInfos: [MCPToolInfo]
+                do {
+                    toolInfos = try await connection.listToolInfos(
+                        serverID: serverID,
+                        serverName: server.displayName,
+                    )
+                } catch {
+                    // Nothing keeps this throwaway connection once the test
+                    // fails, so close it rather than leak a live session.
+                    connection.disconnect()
+                    throw error
+                }
                 let fingerprint = Self.configFingerprint(server)
                 await MainActor.run {
                     guard let current = self.server(with: serverID),
@@ -349,6 +357,73 @@ class MCPService: NSObject {
             connection.disconnect()
         }
         toolInfoCache[serverID] = nil
+    }
+
+    /// Starts a fresh session for `connection` when a failed request left it
+    /// dead. The SDK reports an expired session (HTTP 404, then 400 once it
+    /// forgets the session id) the same way as a JSON-RPC error from a
+    /// healthy one, so a ping tells them apart: only a connection that
+    /// rejects the ping is replaced. A timeout or cancellation says nothing
+    /// about the session and keeps it. The dead connection and its tools
+    /// stay registered until the replacement commits, so the model's tools
+    /// keep resolving: if the reconnect fails, later calls fail as ordinary
+    /// tool errors and the next failure tries again. Returns the reconnect
+    /// attempt, if one was started, for callers that want the new session
+    /// right away.
+    @discardableResult
+    func replaceConnectionIfSessionLost(
+        _ connection: any MCPConnectionControlling,
+        for serverID: ModelContextServer.ID,
+        after error: Swift.Error,
+    ) async -> Task<(any MCPConnectionControlling)?, Never>? {
+        guard !(error is CancellationError),
+              !(error is AwaitCancellableError),
+              !Task.isCancelled
+        else { return nil }
+        guard await Self.sessionRejectsPing(connection) else { return nil }
+        let flight: Task<(any MCPConnectionControlling)?, Never>? = await MainActor.run {
+            guard let current = self.connections[serverID], current === connection,
+                  let server = self.server(with: serverID), server.isEnabled
+            else { return nil }
+            Logger.network.errorFile("session for server \(serverID) stopped answering, reconnecting")
+            return self.connectionTask(for: server)
+        }
+        guard let flight else { return nil }
+        return Task<(any MCPConnectionControlling)?, Never> { [self] in
+            let replacement = await flight.value
+            if replacement == nil {
+                await MainActor.run {
+                    // A failed flight leaves the status alone while a
+                    // connection is registered, and the dead one still is.
+                    guard let current = self.connections[serverID], current === connection else { return }
+                    self.updateServerStatus(serverID, status: .disconnected)
+                }
+            }
+            return replacement
+        }
+    }
+
+    /// True only when the server answered the ping with a failure. A ping
+    /// that times out is inconclusive: a server that drops every packet
+    /// would not take a reconnect either, so waiting for one only adds delay.
+    private static func sessionRejectsPing(_ connection: any MCPConnectionControlling) async -> Bool {
+        do {
+            try await awaitCancellable(timeout: conversationWaitTimeout) {
+                try await connection.ping()
+            }
+            return false
+        } catch is AwaitCancellableError {
+            return false
+        } catch is CancellationError {
+            return false
+        } catch let error as MCP.MCPError {
+            // A server that does not implement ping still answered on this
+            // session.
+            if case .methodNotFound = error { return false }
+            return true
+        } catch {
+            return true
+        }
     }
 
     @MainActor
