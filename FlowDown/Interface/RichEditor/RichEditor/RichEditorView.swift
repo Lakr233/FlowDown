@@ -308,7 +308,12 @@ class RichEditorView: EditorSectionView {
 
     func use(identifier: String) {
         storage = .init(id: identifier)
+        // Refreshing the model can flip the tools toggle, which publishes the
+        // editor contents. They still belong to the previous conversation here,
+        // so hold publishing until this conversation's draft has been restored.
+        objectTransactionInProgress = true
         updateModelinfoFile(postUpdate: false)
+        objectTransactionInProgress = false
         restoreEditorStatusIfPossible()
     }
 
@@ -319,11 +324,8 @@ class RichEditorView: EditorSectionView {
 
     /// used when requesting retry, inherit current option toggles
     func collectObject() -> Object {
-        var text = (inputEditor.textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = (inputEditor.textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let attachments = attachmentsBar.attachmetns.values
-        if text.isEmpty, !attachments.isEmpty {
-            text = String(localized: "Attached \(attachments.count) Documents")
-        }
         return Object(
             text: text,
             attachments: .init(attachments),

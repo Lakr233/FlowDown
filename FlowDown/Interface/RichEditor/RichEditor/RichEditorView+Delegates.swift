@@ -92,6 +92,8 @@ extension RichEditorView {
             return
         }
         if attachment.textRepresentation.count > 1_000_000 {
+            // nothing references the rejected attachment, so drop its stored copy
+            try? FileManager.default.removeItem(at: storage.absoluteURL(attachment.storageSuffix))
             delegate?.onRichEditorError(NSLocalizedString("Text too long.", comment: ""))
             return
         }
@@ -617,6 +619,8 @@ extension RichEditorView.Object.Attachment {
                 storageSuffix: url.lastPathComponent,
             )
         } catch {
+            // the file could not be read as text, so the copy made above is never used
+            if url != file { try? FileManager.default.removeItem(at: url) }
             return nil
         }
     }

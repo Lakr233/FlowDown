@@ -95,7 +95,12 @@ extension RichEditorView {
     }
 
     func submitValues() {
-        let object = collectObject()
+        var object = collectObject()
+        // Only the submitted message gets the fallback text. Drafts keep the
+        // raw text so it never comes back as something the user typed.
+        if object.text.isEmpty, !object.attachments.isEmpty {
+            object.text = String(localized: "Attached \(object.attachments.count) Documents")
+        }
         guard !object.hasEmptyContent else { return }
         endEditing(true)
         isUserInteractionEnabled = false
