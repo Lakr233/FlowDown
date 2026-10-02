@@ -41,6 +41,15 @@ final class TranslationProviderModel: ObservableObject {
             }
         }
 
+        /// The Additional Prompt the app shares through the app group, or an empty string when none is set.
+        var additionalPrompt: () -> String = {
+            guard let url = AppGroup.sharedAdditionalPromptURL,
+                  let data = try? Data(contentsOf: url)
+            else { return "" }
+            return String(decoding: data, as: UTF8.self)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
         static var live: Self {
             .init()
         }
@@ -127,6 +136,13 @@ final class TranslationProviderModel: ObservableObject {
         // Keep every instruction in one leading message: the request skips the system-message
         // merging sanitizer, and some chat templates accept a system message only at the start.
         var instruction = translationPrompt
+
+        // Read on every request so an edit made in the app applies without relaunching the extension.
+        // It goes before the tool instruction so the tool protocol stays the last instruction.
+        let additional = dependencies.additionalPrompt()
+        if !additional.isEmpty {
+            instruction += "\n\n" + additional
+        }
 
         var tools: [ChatRequestBody.Tool] = []
         if model.capabilities.contains(.tool) {

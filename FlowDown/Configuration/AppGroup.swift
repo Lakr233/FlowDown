@@ -22,4 +22,12 @@ enum AppGroup {
             .appendingPathComponent("Models")
             .appendingPathComponent("Cloud")
     }
+
+    /// The app writes this file and FlowDownTranslationProvider, which links this source file, reads it.
+    static var sharedAdditionalPromptURL: URL? {
+        containerURL?
+            .appendingPathComponent("FlowDown")
+            .appendingPathComponent("Prompts")
+            .appendingPathComponent("Additional.txt")
+    }
 }

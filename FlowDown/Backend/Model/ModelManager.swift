@@ -43,7 +43,9 @@ class ModelManager: NSObject {
     @TypedStorage(key: "Model.Inference.Prompt.Default", defaultValue: PromptType.complete)
     var defaultPrompt: PromptType
     @TypedStorage(key: "Model.Inference.Prompt.Additional", defaultValue: "")
-    var additionalPrompt: String
+    var additionalPrompt: String {
+        didSet { dumpAdditionalPromptToAppGroup() }
+    }
     @TypedStorage(key: "Model.Inference.Prompt.Temperature", defaultValue: 0.75)
     var temperature: Float
     @TypedStorage(key: "Model.Inference.SearchSensitivity", defaultValue: SearchSensitivity.balanced)
@@ -154,6 +156,8 @@ class ModelManager: NSObject {
                 self?.dumpEligibleModelsToAppGroup()
             }
             .store(in: &cancellables)
+        // Mirror the stored value at launch; this covers a settings backup restore, which relaunches the app.
+        dumpAdditionalPromptToAppGroup()
 
         NotificationCenter.default.publisher(for: SyncEngine.CloudModelChanged)
             .debounce(for: .seconds(2), scheduler: RunLoop.main)
@@ -343,6 +347,35 @@ class ModelManager: NSObject {
                 Logger.model.errorFile("unable to write on \(url.path) with error \(error.localizedDescription)")
             }
         }
+    }
+
+    /// Shares the Additional Prompt with the translation extension, which cannot read the app's settings.
+    func dumpAdditionalPromptToAppGroup() {
+        guard let url = AppGroup.sharedAdditionalPromptURL else {
+            Logger.model.errorFile("unable to determine app group location, skipping additional prompt sync")
+            return
+        }
+        do {
+            try Self.writeSharedAdditionalPrompt(additionalPrompt, to: url)
+        } catch {
+            Logger.model.errorFile("unable to write additional prompt on \(url.path) with error \(error.localizedDescription)")
+        }
+    }
+
+    /// Writes the trimmed prompt to `url`, or removes the file when the prompt is blank.
+    static func writeSharedAdditionalPrompt(_ prompt: String, to url: URL) throws {
+        let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+            return
+        }
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true,
+        )
+        try Data(trimmed.utf8).write(to: url, options: .atomic)
     }
 }
 
