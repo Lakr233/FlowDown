@@ -29,11 +29,11 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
                 "properties": [
                     "start_date": [
                         "type": "string",
-                        "description": "Start date in UTC, ISO 8601 (YYYY-MM-DD).",
+                        "description": "Start date as the user's local calendar date, ISO 8601 (YYYY-MM-DD).",
                     ],
                     "end_date": [
                         "type": "string",
-                        "description": "End date in UTC, ISO 8601 (YYYY-MM-DD). Pass an empty string to query only the start date. Max 7 days.",
+                        "description": "End date as the user's local calendar date, ISO 8601 (YYYY-MM-DD). Pass an empty string to query only the start date. Max 7 days.",
                     ],
                     "include_all_day_events": [
                         "type": "boolean",
@@ -72,9 +72,34 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         let endDateString = json["end_date"] as? String
         let includeAllDayEvents = json["include_all_day_events"] as? Bool ?? true
 
-        // Parse dates
+        let (startDate, endDate) = try Self.queryWindow(
+            start: startDateString,
+            end: endDateString,
+        )
+
+        let viewController = try await anchorController(for: view)
+
+        return try await queryWithUserInteraction(
+            startDate: startDate,
+            endDate: endDate,
+            includeAllDayEvents: includeAllDayEvents,
+            controller: viewController,
+        )
+    }
+
+    /// Turns the model's `YYYY-MM-DD` bounds into a search window of whole
+    /// local days on `calendar`, ending at the midnight after the end date.
+    /// An empty or unparsable end date queries the start date alone.
+    static func queryWindow(
+        start startDateString: String,
+        end endDateString: String?,
+        calendar: Calendar = .current,
+    ) throws -> (start: Date, end: Date) {
+        // The dates name the user's calendar days, so read them in the user's
+        // time zone; ISO8601DateFormatter would otherwise parse them as GMT.
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withFullDate]
+        dateFormatter.timeZone = calendar.timeZone
 
         guard let startDate = dateFormatter.date(from: startDateString) else {
             throw NSError(
@@ -89,7 +114,6 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             endDate = date
 
             // Add one day to end date to include the entire end day (until midnight)
-            let calendar = Calendar.current
             endDate = calendar.date(byAdding: .day, value: 1, to: endDate) ?? endDate
 
             // Verify date range doesn't exceed 7 days
@@ -103,18 +127,10 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             }
         } else {
             // If no end date, set to end of start date
-            let calendar = Calendar.current
             endDate = calendar.date(byAdding: .day, value: 1, to: startDate) ?? startDate
         }
 
-        let viewController = try await anchorController(for: view)
-
-        return try await queryWithUserInteraction(
-            startDate: startDate,
-            endDate: endDate,
-            includeAllDayEvents: includeAllDayEvents,
-            controller: viewController,
-        )
+        return (startDate, endDate)
     }
 
     @MainActor
