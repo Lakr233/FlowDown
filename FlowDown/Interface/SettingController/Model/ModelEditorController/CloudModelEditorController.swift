@@ -16,6 +16,7 @@ class CloudModelEditorController: StackScrollController {
 
     var cancellables: Set<AnyCancellable> = .init()
     weak var responseFormatInfoView: ConfigurableInfoView?
+    let serverModelListLoader = ServerModelListLoader()
 
     init(identifier: CloudModel.ID) {
         self.identifier = identifier
@@ -50,6 +51,11 @@ class CloudModelEditorController: StackScrollController {
                 }
             }
             .store(in: &cancellables)
+
+        // Prefetch so the Model Identifier menu usually has the server list on first open.
+        if let model = ModelManager.shared.cloudModel(identifier: identifier) {
+            _ = serverModelListLoader.load(.init(model: model))
+        }
     }
 
     override func setupContentViews() {

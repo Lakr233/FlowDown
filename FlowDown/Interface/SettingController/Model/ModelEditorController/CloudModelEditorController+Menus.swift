@@ -243,39 +243,33 @@ extension CloudModelEditorController {
             menuElements.append(copyAction)
         }
 
-        let deferredElement = UIDeferredMenuElement.uncached { [weak self, weak view] completion in
-            guard let model = ModelManager.shared.cloudModel(identifier: modelId) else {
-                completion([])
-                return
-            }
-
-            ModelManager.shared.fetchModelList(identifier: model.id) { [weak self, weak view] list in
-                guard let self else {
-                    completion([])
-                    return
+        // Built from the loader's cached list: completing a deferred element after the
+        // network returns crashes Catalyst once the menu has closed (#221, #243).
+        let serverChildren: [UIMenuElement]
+        switch serverModelListLoader.load(.init(model: model)) {
+        case .loading:
+            serverChildren = [UIAction(
+                title: String(localized: "Loading..."),
+                attributes: .disabled,
+            ) { _ in }]
+        case let .loaded(list) where list.isEmpty:
+            serverChildren = [UIAction(
+                title: String(localized: "(None)"),
+                attributes: .disabled,
+            ) { _ in }]
+        case let .loaded(list):
+            serverChildren = buildModelSelectionMenu(from: list) { [weak view] selection in
+                ModelManager.shared.editCloudModel(identifier: modelId) {
+                    $0.update(\.model_identifier, to: selection)
                 }
-                guard !list.isEmpty else {
-                    completion([UIAction(
-                        title: String(localized: "(None)"),
-                        attributes: .disabled,
-                    ) { _ in }])
-                    return
-                }
-
-                let menuElements = buildModelSelectionMenu(from: list) { selection in
-                    ModelManager.shared.editCloudModel(identifier: model.id) {
-                        $0.update(\.model_identifier, to: selection)
-                    }
-                    view?.configure(value: selection)
-                }
-                completion(menuElements)
+                view?.configure(value: selection)
             }
         }
 
         menuElements.append(UIMenu(
             title: String(localized: "Select from Server"),
             image: UIImage(systemName: "icloud.and.arrow.down"),
-            children: [deferredElement],
+            children: serverChildren,
         ))
 
         return menuElements
