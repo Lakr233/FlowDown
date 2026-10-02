@@ -95,10 +95,13 @@ extension RewriteAction {
         ) { completionHandler in
             // Only the preview changes while streaming; the database keeps the
             // original until the rewrite completes, so a failure restores it.
+            // A stream that drops after partial text must fail too, or the
+            // truncated rewrite would replace the original.
             let original = message.document
             let stream = try await ModelManager.shared.streamingInfer(
                 with: model,
                 input: messageBody,
+                failsOnCollectedErrors: true,
             )
 
             var rewritten = ""

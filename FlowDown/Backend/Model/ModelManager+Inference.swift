@@ -334,12 +334,19 @@ extension ModelManager {
         return (client, body)
     }
 
+    /// - Parameter failsOnCollectedErrors: Remote clients record a dropped
+    ///   connection in `collectedErrors` and still end their stream normally.
+    ///   By default such an error is surfaced only when no text arrived, so
+    ///   callers keep partial output. Pass `true` when a truncated result must
+    ///   not be accepted; the stream then throws whenever an error was
+    ///   collected, even after text.
     func streamingInfer(
         with modelID: ModelIdentifier,
         maxCompletionTokens: Int? = nil,
         input: [ChatRequestBody.Message],
         tools: [ChatRequestBody.Tool]? = nil,
         toolChoice: ChatRequestBody.ToolChoice? = nil,
+        failsOnCollectedErrors: Bool = false,
     ) async throws -> AsyncThrowingStream<ChatResponseChunk, Error> {
         let (client, body) = try makeRequest(
             modelID: modelID,
@@ -398,14 +405,16 @@ extension ModelManager {
                     await textEmitter.wait()
                     if emotionalDamage == 0 {
                         Logger.model.debugFile("model \(modelID) generated no text output in streaming inference")
-                        if let error = client.collectedErrors {
-                            cont.finish(throwing: NSError(
-                                domain: "Model",
-                                code: -1,
-                                userInfo: [NSLocalizedDescriptionKey: error],
-                            ))
-                            return
-                        }
+                    }
+                    if emotionalDamage == 0 || failsOnCollectedErrors,
+                       let error = client.collectedErrors
+                    {
+                        cont.finish(throwing: NSError(
+                            domain: "Model",
+                            code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: error],
+                        ))
+                        return
                     }
                     cont.finish()
                     return
