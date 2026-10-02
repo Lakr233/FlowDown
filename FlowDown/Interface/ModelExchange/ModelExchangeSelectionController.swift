@@ -136,6 +136,7 @@ final class ModelExchangeSelectionController: UIViewController {
     }
 
     @objc private func confirmTapped() {
+        guard !hasCompleted else { return }
         let selected = filteredModels().filter { selectedIds.contains($0.id) }
         guard !selected.isEmpty else {
             presentAlert(
@@ -146,14 +147,14 @@ final class ModelExchangeSelectionController: UIViewController {
         }
         let alert = AlertViewController(
             title: "Confirm Sharing",
-            message: "Models may contain credentials or secrets. Share with \(appName)?",
+            message: String(localized: "Models may contain credentials or secrets. Share with \(appName)?"),
         ) { [weak self] context in
             context.addAction(title: String(localized: "Cancel")) {
                 context.dispose {}
             }
             context.addAction(title: String(localized: "Share"), attribute: .accent) { [weak self] in
                 context.dispose { [weak self] in
-                    guard let self else { return }
+                    guard let self, !hasCompleted else { return }
                     hasCompleted = true
                     dismiss(animated: true) {
                         self.onConfirm(selected)
@@ -347,7 +348,12 @@ extension ModelExchangeSelectionController: UITableViewDataSource, UITableViewDe
     private func handleAppInactive() {
         guard !hasCompleted else { return }
         hasCompleted = true
-        dismiss(animated: true) { [onCancel] in
+        // Dismiss from the presenter so an alert shown above this sheet goes with it.
+        guard let presenter = presentingViewController else {
+            onCancel()
+            return
+        }
+        presenter.dismiss(animated: true) { [onCancel] in
             onCancel()
         }
     }
