@@ -21,7 +21,7 @@ extension Sidebar: SearchControllerOpenButton.Delegate {
             Logger.ui.debugFile("Search callback called with conversationId: \(conversationId ?? "nil")")
             guard let conversationId else { return }
             Logger.ui.debugFile("Setting chat selection to: \(conversationId)")
-            ChatSelection.shared.select(conversationId)
+            ChatSelection.shared.select(conversationId, options: [.collapseSidebar])
         }
         parentViewController?.present(controller, animated: true)
     }
