@@ -24,6 +24,14 @@ extension CloudModelEditorController {
               ) else { return nil }
         return String(data: formattedData, encoding: .utf8)
     }
+
+    /// Provider routing reads `provider.order`, so the list goes inside `provider`.
+    /// An existing order is kept as is.
+    static func addProviderOrder(to dictionary: inout [String: Any]) {
+        var provider = dictionary["provider"] as? [String: Any] ?? [:]
+        if provider["order"] == nil { provider["order"] = [String]() }
+        dictionary["provider"] = provider
+    }
 }
 
 extension CloudModelEditorController {
@@ -364,7 +372,7 @@ extension CloudModelEditorController {
                 systemImage: "list.number",
                 controller: controller,
             ) { dictionary in
-                dictionary["order"] = []
+                Self.addProviderOrder(to: &dictionary)
             },
         ]
 
