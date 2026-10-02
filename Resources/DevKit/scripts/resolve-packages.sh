@@ -32,8 +32,13 @@ done
 
 # Xcode 27's resolver prunes pins that no built target links, but Xcode Cloud's
 # older toolchain rejects a Package.resolved that is missing them. Put them back
-# before anyone commits the file.
-"$SCRIPT_DIR/required_package_pins.py" fix
+# before anyone commits the file. Read them from the default DerivedData this
+# resolve just wrote, not from an older build's state elsewhere.
+typeset -a resolved_states
+for state in "$HOME"/Library/Developer/Xcode/DerivedData/FlowDown-*/SourcePackages/workspace-state.json(N.om); do
+  resolved_states+=(--source-packages "$state")
+done
+"$SCRIPT_DIR/required_package_pins.py" fix "${resolved_states[@]}"
 
 "$SCRIPT_DIR/strip_mlx_cuda_plugin.sh"
 
