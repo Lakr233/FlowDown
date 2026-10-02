@@ -85,7 +85,10 @@ extension TranslationProviderView {
         }
         .buttonStyle(.plain)
         Button {
-            UIPasteboard.general.string = translationModel.translationPlainResult
+            let text = translationModel.copyableResult
+            if !text.isEmpty {
+                UIPasteboard.general.string = text
+            }
             context.finish(translation: nil)
         } label: {
             IconButtonContainer(icon: "doc.on.doc.fill", foregroundColor: .accent)

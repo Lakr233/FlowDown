@@ -52,6 +52,12 @@ final class TranslationProviderModel: ObservableObject {
     @Published private(set) var translationError: Error?
     @Published private(set) var isTranslating: Bool = false
 
+    /// The translation to copy, falling back to the segments when the model replied only through the tool call.
+    var copyableResult: String {
+        if !translationPlainResult.isEmpty { return translationPlainResult }
+        return translationSegmentedResult.map(\.translated).joined(separator: "\n")
+    }
+
     private let dependencies: Dependencies
     private var translationTask: Task<Void, Never>?
 
@@ -87,10 +93,11 @@ final class TranslationProviderModel: ObservableObject {
                 }
             }
 
+            // A cancelled task has already been replaced, so it must not touch the successor's handle.
             if !Task.isCancelled {
                 isTranslating = false
+                translationTask = nil
             }
-            translationTask = nil
         }
     }
 
@@ -117,13 +124,9 @@ final class TranslationProviderModel: ObservableObject {
 
             The text to translate will be provided as the user message.
             """
-        if model.capabilities.contains(.developerRole) {
-            messages.append(.developer(content: .text(translationPrompt)))
-        } else {
-            messages.append(.system(content: .text(translationPrompt)))
-        }
-
-        messages.append(.user(content: .parts([.text(inputText)])))
+        // Keep every instruction in one leading message: the request skips the system-message
+        // merging sanitizer, and some chat templates accept a system message only at the start.
+        var instruction = translationPrompt
 
         var tools: [ChatRequestBody.Tool] = []
         if model.capabilities.contains(.tool) {
@@ -143,12 +146,16 @@ final class TranslationProviderModel: ObservableObject {
                 - The number of segments MUST equal the number of input lines.
                 - Do not add any extra assistant text after the tool call.
                 """
-            if model.capabilities.contains(.developerRole) {
-                messages.append(.developer(content: .text(toolInstruction)))
-            } else {
-                messages.append(.system(content: .text(toolInstruction)))
-            }
+            instruction += "\n\n" + toolInstruction
         }
+
+        if model.capabilities.contains(.developerRole) {
+            messages.append(.developer(content: .text(instruction)))
+        } else {
+            messages.append(.system(content: .text(instruction)))
+        }
+
+        messages.append(.user(content: .parts([.text(inputText)])))
 
         let request = ChatRequestBody(
             model: model.model_identifier,
@@ -199,6 +206,7 @@ final class TranslationProviderModel: ObservableObject {
                 break
             }
         }
+        if Task.isCancelled { return }
 
         let trimmedPlain = translationPlainResult
             .trimmingCharacters(in: .whitespacesAndNewlines)
