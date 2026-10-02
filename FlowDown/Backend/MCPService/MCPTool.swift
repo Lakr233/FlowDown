@@ -152,10 +152,20 @@ extension MCPTool {
     private func normalizeStrictJSONSchema(_ schema: [String: AnyCodingValue]) -> [String: AnyCodingValue] {
         var schema = schema
 
-        if let additionalProps = schema["additionalProperties"],
-           case let .object(obj) = additionalProps, obj.isEmpty
-        {
+        // Strict mode requires `additionalProperties: false` on every object,
+        // nested ones included. A missing key or `true` allows the same as
+        // `{}`, and strict mode cannot honor undeclared keys anyway because
+        // every property becomes required below. A non-empty schema (a map
+        // type) is left alone.
+        switch schema["additionalProperties"] {
+        case .none, .some(.bool(true)):
+            if isObjectSchema(schema) {
+                schema["additionalProperties"] = .bool(false)
+            }
+        case let .some(.object(obj)) where obj.isEmpty:
             schema["additionalProperties"] = .bool(false)
+        default:
+            break
         }
 
         if case let .object(properties) = schema["properties"] {
@@ -201,7 +211,26 @@ extension MCPTool {
             schema["allOf"] = .array(allOfArray.map { normalizeStrictJSONSchemaValue($0) })
         }
 
+        // `$ref` targets have to be strict as well.
+        for definitionsKey in ["$defs", "definitions"] {
+            if case let .object(definitions) = schema[definitionsKey] {
+                schema[definitionsKey] = .object(definitions.mapValues { normalizeStrictJSONSchemaValue($0) })
+            }
+        }
+
         return schema
+    }
+
+    private func isObjectSchema(_ schema: [String: AnyCodingValue]) -> Bool {
+        if schema["properties"] != nil { return true }
+        switch schema["type"] {
+        case .some(.string("object")):
+            return true
+        case let .some(.array(types)):
+            return types.contains { $0 == .string("object") }
+        default:
+            return false
+        }
     }
 
     private func normalizeStrictJSONSchemaValue(_ value: AnyCodingValue) -> AnyCodingValue {
