@@ -158,8 +158,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/MarkdownView",
       "state" : {
-        "revision" : "0467d0f3c454008a65d02e5976265a86f091fc44",
-        "version" : "4.6.6"
+        "revision" : "ae7ac388911be7089cd95d3bec7427440c533d8c",
+        "version" : "4.6.7"
       }
     },
     {
@@ -223,15 +223,6 @@
       "state" : {
         "revision" : "cdb556516daa9b43c16aae9436dd39e19ff930fd",
         "version" : "1.4.0"
-      }
-    },
-    {
-      "identity" : "swift-argument-parser",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser",
-      "state" : {
-        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
-        "version" : "1.8.2"
       }
     },
     {
