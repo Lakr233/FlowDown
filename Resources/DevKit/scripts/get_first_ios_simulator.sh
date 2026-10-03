@@ -29,6 +29,8 @@ if not available_ios_runtimes:
 # prefer the newest runtime (highest identifier) so we match current Xcode
 for runtime_id in sorted(available_ios_runtimes, reverse=True):
     devices = data.get('devices', {}).get(runtime_id, [])
+    # a booted device is known to work; prefer it over listing order
+    devices = sorted(devices, key=lambda device: device.get('state') != 'Booted')
     for device in devices:
         if device.get('isAvailable', False) and 'iphone' in device.get('name', '').lower():
             print(device['udid'])
