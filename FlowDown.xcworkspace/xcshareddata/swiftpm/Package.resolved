@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/ColorfulX",
       "state" : {
-        "revision" : "2f933d3c6be349c5c36084fb644f46988ba1f401",
-        "version" : "6.1.1"
+        "revision" : "025be056e59a62d06c6867ad65a7cb03fc63baf1",
+        "version" : "6.2.1"
       }
     },
     {
@@ -50,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/ColorVector.git",
       "state" : {
-        "revision" : "0cd0169f1487d7371ee3fd7fe93f1e918fd93d00",
-        "version" : "1.0.5"
+        "revision" : "6dc3839b6060b835aed8dc82d2d620cc3b4ebe33",
+        "version" : "2.0.0"
       }
     },
     {
@@ -221,8 +221,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/SpringInterpolation.git",
       "state" : {
-        "revision" : "cdb556516daa9b43c16aae9436dd39e19ff930fd",
-        "version" : "1.4.0"
+        "revision" : "c98d56c895abc41b3f78097dae7ab6dfb015e147",
+        "version" : "3.0.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+        "version" : "1.8.2"
       }
     },
     {
