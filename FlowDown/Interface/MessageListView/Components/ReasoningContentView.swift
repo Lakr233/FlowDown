@@ -60,7 +60,9 @@ final class ReasoningContentView: MessageListRowView {
             } else {
                 textView.attributedText = .init()
             }
-            let singleLineContent = text?.replacingOccurrences(of: "\n", with: " ")
+            let singleLineContent = text?
+                .components(separatedBy: .newlines)
+                .joined(separator: " ")
             thinkingTile.thinkingContent = singleLineContent?.suffix(50)
                 .map { String($0) }
                 .joined()
@@ -172,7 +174,7 @@ extension ReasoningContentView {
                         .foregroundColor: UIColor.secondaryLabel,
                     ])
                 } else {
-                    textView.attributedText = .init()
+                    textView.attributedText = nil
                 }
                 if textView.bounds.width > 0 {
                     doWithAnimation { self.layoutTextView() }
@@ -187,7 +189,11 @@ extension ReasoningContentView {
         }
 
         private lazy var loadingSymbol: LoadingSymbol = .init()
-        private lazy var textView: TextLabelView = .init()
+        private lazy var textView: UILabel = .init().with {
+            $0.numberOfLines = 1
+            $0.lineBreakMode = .byClipping
+        }
+
         private lazy var textContainerView: UIView = .init()
         private lazy var arrowView: UIImageView = .init(
             image: UIImage(
@@ -215,8 +221,6 @@ extension ReasoningContentView {
             loadingSymbol.animationInterval = 0.1
             addSubview(loadingSymbol)
 
-            textView.backgroundColor = .clear
-            addSubview(textView)
             addSubview(textContainerView)
             textContainerView.addSubview(textView)
 
@@ -291,8 +295,10 @@ extension ReasoningContentView {
         }
 
         private func layoutTextView() {
-            textView.preferredMaxLayoutWidth = .infinity
-            let textSize = textView.intrinsicContentSize
+            let textSize = textView.sizeThatFits(.init(
+                width: CGFloat.greatestFiniteMagnitude,
+                height: CGFloat.greatestFiniteMagnitude,
+            ))
             let textWidth = ceil(textSize.width)
             let textHeight = ceil(textSize.height)
             let rightPadding: CGFloat = 26
