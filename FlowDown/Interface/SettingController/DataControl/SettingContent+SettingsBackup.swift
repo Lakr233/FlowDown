@@ -84,7 +84,7 @@ extension SettingController.SettingContent.DataControlController {
                     message: "FlowDown will close now to apply imported settings.",
                 ) { context in
                     context.allowSimpleDispose()
-                    context.addAction(title: String(localized: "OK"), attribute: .accent) {
+                    context.addAction(title: "OK", attribute: .accent) {
                         context.dispose { terminateApplication() }
                     }
                 }

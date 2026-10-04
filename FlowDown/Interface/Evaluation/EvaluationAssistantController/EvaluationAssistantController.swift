@@ -96,8 +96,8 @@ class EvaluationAssistantController: StackScrollController {
             navigationController?.pushViewController(statusController, animated: true)
         } catch {
             let alert = AlertViewController(
-                title: String(localized: "Failed to Start Session"),
-                message: error.localizedDescription,
+                title: "Failed to Start Session",
+                message: .init(error.localizedDescription),
             ) { context in
                 context.allowSimpleDispose()
             }

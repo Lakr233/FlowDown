@@ -162,7 +162,7 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
 
         let alert = AlertViewController(
             title: "Add to Reminders",
-            message: lines.joined(separator: "\n"),
+            message: .init(lines.joined(separator: "\n")),
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {

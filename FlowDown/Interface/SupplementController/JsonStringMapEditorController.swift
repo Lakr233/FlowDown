@@ -44,7 +44,7 @@ class JsonStringMapEditorController: CodeEditorController {
         } catch {
             let alert = AlertViewController(
                 title: "Error",
-                message: String(localized: "Unable to decode string key value map from text: \(error.localizedDescription)"),
+                message: "Unable to decode string key value map from text: \(error.localizedDescription)",
             ) { context in
                 context.allowSimpleDispose()
                 context.addAction(title: "OK", attribute: .accent) {

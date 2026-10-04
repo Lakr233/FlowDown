@@ -129,6 +129,7 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 ### Getting the key right
 
 - `String(localized:)` accepts only a `String.LocalizationValue`, so interpolating inline is safe: `String(localized: "\(value) chances")` looks up `%lld chances`.
-- The trap is any parameter that also accepts a plain `String`. `AlertViewController` declares both a `String.LocalizationValue` init and an `@_disfavoredOverload` `String` one, and a literal argument picks the `String` overload, which turns the *finished* text into the key—so an interpolated `title:`/`message:` looks up "…browser?\n\nhttps://example.com", finds nothing, and ships English. Wrap those in `String(localized:)` yourself.
+- The trap is any parameter that also accepts a plain `String`: a literal argument picks the `String` overload, which turns the *finished* text into the key, so an interpolated literal looks up "…browser?\n\nhttps://example.com", finds nothing, and ships English. Wrap those in `String(localized:)` yourself.
+- AlertController 3 takes `String.LocalizationValue` only (`title:`, `message:`, `placeholder:`, `addAction(title:)`). Pass literals directly, interpolation included; wrap a run-time `String` (an error description, user content) with `.init(_:)`.
 - `ConfigurableKit` and `Indicator.present` take `String.LocalizationValue` directly; pass localization values to them without wrapping.
 - Prefer `String.LocalizationValue`/`LocalizedStringResource` formatting over `String(format:)`; use `String(format:)` only for compatibility.

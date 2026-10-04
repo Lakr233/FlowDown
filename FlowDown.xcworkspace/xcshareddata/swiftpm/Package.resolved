@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/AlertController",
       "state" : {
-        "revision" : "181eb46caf4ec799043148f0ea45d7b1ac2f0836",
-        "version" : "2.2.3"
+        "revision" : "02806b7fb8424a609ddad9b5a60bb235c63e92cd",
+        "version" : "3.0.0"
       }
     },
     {
@@ -223,6 +223,15 @@
       "state" : {
         "revision" : "c98d56c895abc41b3f78097dae7ab6dfb015e147",
         "version" : "3.0.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+        "version" : "1.8.2"
       }
     },
     {

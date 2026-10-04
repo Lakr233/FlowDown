@@ -183,14 +183,14 @@ final class EvaluationStatusController: UIViewController {
 
     private func presentExitWhileRunningAlert() {
         let alert = AlertViewController(
-            title: String(localized: "Exit Evaluation"),
-            message: String(localized: "Exiting now will interrupt the running evaluation."),
+            title: "Exit Evaluation",
+            message: "Exiting now will interrupt the running evaluation.",
         ) { [weak self] context in
             context.allowSimpleDispose()
-            context.addAction(title: String(localized: "Cancel")) {
+            context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: String(localized: "Exit"), attribute: .accent) {
+            context.addAction(title: "Exit", attribute: .accent) {
                 context.dispose { self?.exitScreen() }
             }
         }

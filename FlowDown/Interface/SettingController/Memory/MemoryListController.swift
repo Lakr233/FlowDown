@@ -396,11 +396,11 @@ private extension MemoryListController {
 
     func presentMemoryCreationError(_ error: Error) {
         let alert = AlertViewController(
-            title: String(localized: "Error"),
-            message: error.localizedDescription,
+            title: "Error",
+            message: .init(error.localizedDescription),
         ) { context in
             context.allowSimpleDispose()
-            context.addAction(title: String(localized: "OK"), attribute: .accent) {
+            context.addAction(title: "OK", attribute: .accent) {
                 context.dispose()
             }
         }

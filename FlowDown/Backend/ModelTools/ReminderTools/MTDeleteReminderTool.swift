@@ -103,7 +103,7 @@ class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
             + String(localized: "This cannot be undone.")
         let alert = AlertViewController(
             title: "Delete Reminder",
-            message: body,
+            message: .init(body),
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {

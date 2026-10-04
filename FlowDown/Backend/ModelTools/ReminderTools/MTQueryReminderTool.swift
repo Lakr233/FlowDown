@@ -323,7 +323,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
 
         let alert = AlertViewController(
             title: "Reminders",
-            message: preview,
+            message: .init(preview),
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose {

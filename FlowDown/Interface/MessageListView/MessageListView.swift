@@ -247,7 +247,7 @@ final class MessageListView: UIView {
         // matches the catalog, so it must be localized here first.
         let alert = AlertViewController(
             title: "Open Link",
-            message: String(localized: "Do you want to open this link in your default browser?\n\n\(link.absoluteString)"),
+            message: "Do you want to open this link in your default browser?\n\n\(link.absoluteString)",
         ) { context in
             context.allowSimpleDispose()
             context.addAction(title: "Cancel") {

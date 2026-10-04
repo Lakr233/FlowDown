@@ -253,11 +253,11 @@ extension RichEditorView: QuickSettingBar.Delegate {
             { /* pass */ } else {
                 quickSettingBar.toolsToggle.isOn = false
                 let alert = AlertViewController(
-                    title: NSLocalizedString("Error", comment: ""),
-                    message: NSLocalizedString("This model does not support tool call or no model is selected.", comment: ""),
+                    title: "Error",
+                    message: "This model does not support tool call or no model is selected.",
                 ) { context in
                     context.allowSimpleDispose()
-                    context.addAction(title: NSLocalizedString("OK", comment: ""), attribute: .accent) {
+                    context.addAction(title: "OK", attribute: .accent) {
                         context.dispose()
                     }
                 }
@@ -282,12 +282,12 @@ extension RichEditorView: ControlPanel.Delegate {
 
     func onControlPanelRequestWebScrubber() {
         let alert = AlertInputViewController(
-            title: NSLocalizedString("Capture Web Content", comment: ""),
-            message: NSLocalizedString("Please paste or enter the URL here, the web content will be fetched later.", comment: ""),
+            title: "Capture Web Content",
+            message: "Please paste or enter the URL here, the web content will be fetched later.",
             placeholder: "https://",
             text: "",
-            cancelButtonText: NSLocalizedString("Cancel", comment: ""),
-            doneButtonText: NSLocalizedString("Capture", comment: ""),
+            cancelButtonText: "Cancel",
+            doneButtonText: "Capture",
         ) { [weak self] text in
             guard let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
                   let scheme = url.scheme,
@@ -295,11 +295,11 @@ extension RichEditorView: ControlPanel.Delegate {
                   url.host != nil
             else {
                 let alert = AlertViewController(
-                    title: NSLocalizedString("Error", comment: ""),
-                    message: NSLocalizedString("Please enter a valid URL.", comment: ""),
+                    title: "Error",
+                    message: "Please enter a valid URL.",
                 ) { context in
                     context.allowSimpleDispose()
-                    context.addAction(title: NSLocalizedString("OK", comment: ""), attribute: .accent) {
+                    context.addAction(title: "OK", attribute: .accent) {
                         context.dispose()
                     }
                 }
@@ -307,18 +307,18 @@ extension RichEditorView: ControlPanel.Delegate {
                 return
             }
             let indicator = AlertProgressIndicatorViewController(
-                title: NSLocalizedString("Fetching Content", comment: ""),
+                title: "Fetching Content",
             )
             self?.parentViewController?.present(indicator, animated: true)
             Scrubber.document(for: url) { [weak self] doc in
                 Task { @MainActor in indicator.dismiss(animated: true) {
                     guard let doc else {
                         let alert = AlertViewController(
-                            title: NSLocalizedString("Error", comment: ""),
-                            message: NSLocalizedString("Failed to fetch the web content.", comment: ""),
+                            title: "Error",
+                            message: "Failed to fetch the web content.",
                         ) { context in
                             context.allowSimpleDispose()
-                            context.addAction(title: NSLocalizedString("OK", comment: ""), attribute: .accent) {
+                            context.addAction(title: "OK", attribute: .accent) {
                                 context.dispose()
                             }
                         }

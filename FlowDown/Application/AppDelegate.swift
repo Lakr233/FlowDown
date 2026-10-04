@@ -153,14 +153,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             isPresentingExitConfirmation = true
 
             let alert = AlertViewController(
-                title: String(localized: "Exit"),
-                message: String(localized: "Exiting now will interrupt the running conversation."),
+                title: "Exit",
+                message: "Exiting now will interrupt the running conversation.",
             ) { [weak self] context in
-                context.addAction(title: String(localized: "Cancel")) {
+                context.addAction(title: "Cancel") {
                     self?.isPresentingExitConfirmation = false
                     context.dispose()
                 }
-                context.addAction(title: String(localized: "Exit"), attribute: .accent) {
+                context.addAction(title: "Exit", attribute: .accent) {
                     self?.isPresentingExitConfirmation = false
                     context.dispose {
                         terminateApplication()

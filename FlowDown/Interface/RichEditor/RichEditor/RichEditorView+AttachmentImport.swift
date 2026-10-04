@@ -125,13 +125,13 @@ extension RichEditorView {
         }
 
         let alert = AlertViewController(
-            title: NSLocalizedString("Import PDF", comment: ""),
-            message: String(format: NSLocalizedString("This PDF has %lld page(s). You can select whether to import it as text or convert it to images.", comment: ""), pageCount),
+            title: "Import PDF",
+            message: "This PDF has \(pageCount) page(s). You can select whether to import it as text or convert it to images.",
         ) { [weak self] context in
-            context.addAction(title: NSLocalizedString("Cancel", comment: "")) {
+            context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: NSLocalizedString("Import Text", comment: ""), attribute: .accent) {
+            context.addAction(title: "Import Text", attribute: .accent) {
                 context.dispose {
                     guard let self else { return }
                     let attachment = Object.Attachment(
@@ -149,7 +149,7 @@ extension RichEditorView {
                     self.attachmentsBar.insert(item: attachment)
                 }
             }
-            context.addAction(title: NSLocalizedString("Convert to Image", comment: ""), attribute: .accent) {
+            context.addAction(title: "Convert to Image", attribute: .accent) {
                 context.dispose {
                     self?.convertPDFToImages(pdfDocument: pdfDocument)
                 }
@@ -162,7 +162,7 @@ extension RichEditorView {
         let pageCount = pdfDocument.pageCount
 
         let indicator = AlertProgressIndicatorViewController(
-            title: NSLocalizedString("Converting PDF", comment: ""),
+            title: "Converting PDF",
         )
         parentViewController?.present(indicator, animated: true) { [weak self] in
             Task.detached(priority: .userInitiated) { [weak self] in
@@ -197,11 +197,11 @@ extension RichEditorView {
                         guard let self else { return }
                         guard !images.isEmpty else {
                             let alert = AlertViewController(
-                                title: NSLocalizedString("Error", comment: ""),
-                                message: NSLocalizedString("Failed to convert PDF pages to images.", comment: ""),
+                                title: "Error",
+                                message: "Failed to convert PDF pages to images.",
                             ) { context in
                                 context.allowSimpleDispose()
-                                context.addAction(title: NSLocalizedString("OK", comment: ""), attribute: .accent) {
+                                context.addAction(title: "OK", attribute: .accent) {
                                     context.dispose()
                                 }
                             }
@@ -214,14 +214,11 @@ extension RichEditorView {
                         }
 
                         let successAlert = AlertViewController(
-                            title: NSLocalizedString("Success", comment: ""),
-                            message: String(
-                                format: NSLocalizedString("Successfully imported %lld page(s) from PDF.", comment: ""),
-                                images.count
-                            ),
+                            title: "Success",
+                            message: "Successfully imported \(images.count) page(s) from PDF.",
                         ) { context in
                             context.allowSimpleDispose()
-                            context.addAction(title: NSLocalizedString("OK", comment: ""), attribute: .accent) {
+                            context.addAction(title: "OK", attribute: .accent) {
                                 context.dispose()
                             }
                         }

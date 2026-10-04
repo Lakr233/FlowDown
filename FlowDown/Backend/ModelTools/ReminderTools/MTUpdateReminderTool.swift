@@ -274,7 +274,7 @@ class MTUpdateReminderTool: ModelTool, @unchecked Sendable {
     let body = title + "\n\n" + summary.joined(separator: "\n")
     let alert = AlertViewController(
       title: "Update Reminder",
-      message: body,
+      message: .init(body),
     ) { context in
       context.addAction(title: "Cancel") {
         context.dispose {

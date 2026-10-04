@@ -112,7 +112,7 @@ class JsonEditorController: CodeEditorController {
     private func presentErrorAlert(message: String) {
         let alert = AlertViewController(
             title: "Error",
-            message: message,
+            message: .init(message),
         ) { context in
             context.allowSimpleDispose()
             context.addAction(title: "OK", attribute: .accent) {

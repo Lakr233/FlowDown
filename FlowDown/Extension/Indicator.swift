@@ -65,11 +65,9 @@ enum Indicator {
         completionExecutor: @escaping ExecutionWithProgressCompletion,
     ) {
         Task { @MainActor in
-            let titleString = String(localized: title)
-            let messageString = if let message { String(localized: message) } else { String("") }
             let alert = AlertProgressIndicatorViewController(
-                title: titleString,
-                message: messageString,
+                title: title,
+                message: message ?? "",
             )
             controller.present(alert, animated: true) {
                 Task.detached(priority: .userInitiated) {
@@ -106,7 +104,7 @@ enum Indicator {
             if let error = capturedError {
                 let errorAlert = AlertViewController(
                     title: "Error",
-                    message: String(localized: "An error occurred: \(error.localizedDescription)"),
+                    message: "An error occurred: \(error.localizedDescription)",
                 ) { context in
                     context.allowSimpleDispose()
                     context.addAction(title: "OK", attribute: .accent) {
