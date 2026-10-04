@@ -13,7 +13,7 @@ import Storage
 import UIKit
 
 final class MessageListView: UIView {
-    let listView: ListViewKit.ListView<Entry> = .init()
+    let listView = RetainingListView()
 
     var contentSize: CGSize {
         listView.contentSize
@@ -35,14 +35,18 @@ final class MessageListView: UIView {
             alpha = 0
             sessionScopedCancellables.forEach { $0.cancel() }
             sessionScopedCancellables.removeAll()
-            Publishers.CombineLatest(
+            let sessionID = session.id
+            Publishers.CombineLatest3(
                 session.messagesDidChange,
                 session.activityText.removeDuplicates(),
+                ConversationSessionManager.shared.executingSessionsPublisher
+                    .map { $0.contains(sessionID) }
+                    .removeDuplicates(),
             )
             .receive(on: updateQueue)
-            .sink { [weak self] v1, v2 in
+            .sink { [weak self] v1, v2, isExecuting in
                 guard let self else { return }
-                updateFromUpstreamPublisher(v1.0, v1.1, isLoading: v2)
+                updateFromUpstreamPublisher(v1.0, v1.1, isLoading: v2, isExecuting: isExecuting)
             }
             .store(in: &sessionScopedCancellables)
             session.userDidSendMessage.sink { [unowned self] _ in
@@ -116,6 +120,12 @@ final class MessageListView: UIView {
 
         listView.delegate = self
         registerRows()
+        // Only AI rows are worth laying out ahead of a scroll: typesetting a
+        // Markdown document at a new width is what stalls one.
+        listView.preparedRowHeight = { [weak self] entry, listWidth in
+            guard let self, case let .aiContent(_, message) = entry else { return nil }
+            return aiRowHeight(for: message, inListWidth: listWidth)
+        }
         listView.alwaysBounceVertical = true
         listView.alwaysBounceHorizontal = false
         listView.contentInsetAdjustmentBehavior = .never
@@ -253,16 +263,22 @@ final class MessageListView: UIView {
     }
 
     func updateList(animated: Bool = false) {
-        listView.apply(entries(from: session.messages), animated: animated)
+        let isExecuting = ConversationSessionManager.shared.isSessionExecuting(session.id)
+        listView.apply(entries(from: session.messages, isExecuting: isExecuting), animated: animated)
     }
 
-    func updateFromUpstreamPublisher(_ messages: [Message], _ scrolling: Bool, isLoading: String?) {
+    func updateFromUpstreamPublisher(
+        _ messages: [Message],
+        _ scrolling: Bool,
+        isLoading: String?,
+        isExecuting: Bool,
+    ) {
         assert(!Thread.isMainThread)
         #if DEBUG
             // TEMP scroll-diag: remove after #2.
             Logger.ui.infoFile("[scroll-diag] upstream scrolling=\(scrolling) auto=\(isAutoScrollingToBottom) loading=\(isLoading ?? "nil")")
         #endif
-        var entries = entries(from: messages)
+        var entries = entries(from: messages, isExecuting: isExecuting)
 
         for entry in entries {
             switch entry {

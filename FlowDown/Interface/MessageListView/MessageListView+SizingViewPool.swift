@@ -23,8 +23,9 @@ extension MessageListView {
     /// the theme actually changes.
     final class MarkdownSizingViewPool {
         private struct Entry {
-            let view: MarkdownTextView
+            let view: MarkdownStreamView
             let contentHash: Int
+            let isStreaming: Bool
             let theme: MarkdownTheme
         }
 
@@ -41,22 +42,30 @@ extension MessageListView {
             for message: MessageRepresentation,
             theme: MarkdownTheme,
             content: () -> MarkdownContent,
-        ) -> MarkdownTextView {
+        ) -> MarkdownStreamView {
             let contentHash = message.content.hashValue
             if let entry = entries[message.id],
                entry.contentHash == contentHash,
+               entry.isStreaming == message.isStreaming,
                entry.theme == theme
             {
                 touch(message.id)
                 return entry.view
             }
 
-            let view = entries[message.id]?.view ?? MarkdownTextView()
+            // The same view class the row draws with, so the two lay out alike.
+            // Out of a window it never animates.
+            let view = entries[message.id]?.view ?? MarkdownStreamView()
             // Assigning the theme reinstalls the current content, so it goes
             // first while the view is still empty or already stale.
             view.theme = theme
             view.setContentImmediately(content())
-            entries[message.id] = .init(view: view, contentHash: contentHash, theme: theme)
+            entries[message.id] = .init(
+                view: view,
+                contentHash: contentHash,
+                isStreaming: message.isStreaming,
+                theme: theme,
+            )
             touch(message.id)
             evictIfNeeded()
             return view

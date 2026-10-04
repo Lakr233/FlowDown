@@ -16,6 +16,7 @@ extension MessageListView {
         /// built, so an entry only stays valid for the theme it was built with.
         private struct Entry {
             let contentHash: Int
+            let isStreaming: Bool
             let theme: MarkdownTheme
             let content: MarkdownContent
         }
@@ -30,6 +31,7 @@ extension MessageListView {
             lock.lock()
             if let entry = cache[id],
                entry.contentHash == contentHash,
+               entry.isStreaming == message.isStreaming,
                entry.theme == theme
             {
                 lock.unlock()
@@ -61,12 +63,19 @@ extension MessageListView {
             theme: MarkdownTheme,
             contentHash: Int
         ) -> MarkdownContent {
-            let content = message.content
-            let result = MarkdownParser().parse(content)
+            // A reply still being written has its unfinished end closed before
+            // parsing, so half-typed markers do not flicker; the finished reply
+            // is parsed again without it and lands on exactly what it says.
+            let result = MarkdownParser().parse(message.content, isStreaming: message.isStreaming)
             let package = makeContent(result: result, theme: theme)
 
             lock.lock()
-            cache[message.id] = .init(contentHash: contentHash, theme: theme, content: package)
+            cache[message.id] = .init(
+                contentHash: contentHash,
+                isStreaming: message.isStreaming,
+                theme: theme,
+                content: package,
+            )
             lock.unlock()
 
             return package

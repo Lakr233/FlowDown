@@ -85,18 +85,13 @@ extension MessageListView {
                 .when { if case .aiContent = $0 { true } else { false } }
                 .height { [weak self] entry, context in
                     guard let self, case let .aiContent(_, message) = entry else { return 0 }
-                    return rowHeight(inListWidth: context.width) { containerWidth in
-                        let sizingView = self.markdownSizingViewPool.view(for: message, theme: self.theme) {
-                            self.markdownPackageCache.package(for: message, theme: self.theme)
-                        }
-                        return ceil(sizingView.boundingSize(for: containerWidth).height)
-                    }
+                    return aiRowHeight(for: message, inListWidth: context.width)
                 }
                 .configure { [weak self] row, entry, _ in
                     guard let self, case let .aiContent(messageID, message) = entry else { return }
                     prepare(row, for: entry)
                     let package = markdownPackageCache.package(for: message, theme: theme)
-                    row.setMarkdownPackage(package, for: messageID)
+                    row.setMarkdownPackage(package, for: messageID, isStreaming: message.isStreaming)
                     row.linkTapHandler = { [weak self, weak row] link, range, touchLocation in
                         guard let self, let row else { return }
                         handleLinkTapped(link, in: range, at: row.convert(touchLocation, to: self))
@@ -177,6 +172,18 @@ extension MessageListView {
                         self?.presentToolCallDetails(for: messageID, status: status)
                     }
                 }
+        }
+    }
+
+    /// The height of an AI message row, measured on a pooled sizing view. The
+    /// row registration and the off-screen preparation both read it, so a row
+    /// prepared ahead of time is mounted at exactly the height it was laid out at.
+    func aiRowHeight(for message: MessageRepresentation, inListWidth listWidth: CGFloat) -> CGFloat {
+        rowHeight(inListWidth: listWidth) { containerWidth in
+            let sizingView = markdownSizingViewPool.view(for: message, theme: theme) {
+                markdownPackageCache.package(for: message, theme: theme)
+            }
+            return ceil(sizingView.boundingSize(for: containerWidth).height)
         }
     }
 

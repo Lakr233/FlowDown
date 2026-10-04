@@ -46,4 +46,22 @@ struct MarkdownPackageCacheTests {
         #expect(cache.package(for: message, theme: scaledTheme) === scaled)
         #expect(cache.package(for: message, theme: theme) !== scaled)
     }
+
+    @Test
+    @MainActor
+    func package_streamingEnds_rebuildsContent() {
+        // A streamed reply is parsed with its unfinished end closed; once it
+        // finishes, the same text is parsed again without that repair.
+        var message = representation("Some **bo")
+        message.isStreaming = true
+        let cache = MessageListView.MarkdownPackageCache()
+        let theme = MarkdownTheme.default
+
+        let streamed = cache.package(for: message, theme: theme)
+        message.isStreaming = false
+        let finished = cache.package(for: message, theme: theme)
+
+        #expect(streamed !== finished)
+        #expect(cache.package(for: message, theme: theme) === finished)
+    }
 }

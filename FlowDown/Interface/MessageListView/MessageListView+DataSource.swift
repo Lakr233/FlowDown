@@ -51,6 +51,8 @@ extension MessageListView {
         var isRevealed: Bool
         var isThinking: Bool
         var thinkingDuration: TimeInterval
+        /// Whether this is the reply still being written.
+        var isStreaming: Bool
 
         init(from message: Message) {
             id = message.objectId
@@ -60,6 +62,7 @@ extension MessageListView {
             isRevealed = true
             isThinking = false
             thinkingDuration = 0
+            isStreaming = false
         }
     }
 
@@ -76,7 +79,12 @@ extension MessageListView {
 
     // MARK: - Convert Messages to Entries
 
-    func entries(from messages: [Message]) -> [Entry] {
+    /// Converts messages to entries. While the session is executing, its last
+    /// assistant reply is the one still being written and is marked streaming.
+    func entries(from messages: [Message], isExecuting: Bool) -> [Entry] {
+        let streamingMessageID = isExecuting
+            ? messages.last(where: { $0.role == .assistant })?.objectId
+            : nil
         var entries: [Entry] = []
         var latestDay: Date?
 
@@ -150,7 +158,9 @@ extension MessageListView {
                 }
                 if !messageContent.isEmpty {
                     checkAddDateHint(message.creation)
-                    entries.append(.aiContent(message.objectId, .init(from: message)))
+                    var representation = MessageRepresentation(from: message)
+                    representation.isStreaming = message.objectId == streamingMessageID
+                    entries.append(.aiContent(message.objectId, representation))
                 }
 
             // MARK: - Web Search

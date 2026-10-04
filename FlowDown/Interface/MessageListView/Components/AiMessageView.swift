@@ -9,11 +9,12 @@ import Storage
 import UIKit
 
 final class AiMessageView: MessageListRowView {
-    private(set) lazy var markdownView: MarkdownTextView = .init().with {
+    private(set) lazy var markdownView: MarkdownStreamView = .init().with {
         $0.throttleInterval = 1 / 60
     }
 
     private var representedMessageID: Message.ID?
+    private var representedPackage: MarkdownContent?
 
     var linkTapHandler: ((LinkPayload, NSRange, CGPoint) -> Void)? {
         get { markdownView.linkHandler }
@@ -40,24 +41,23 @@ final class AiMessageView: MessageListRowView {
     }
 
     /// Puts the message content on screen. The first fill for a message is
-    /// applied synchronously so a freshly (re)used row never renders blank;
-    /// subsequent updates to the same message stream through the throttled
-    /// path and update the visible content in place.
-    func setMarkdownPackage(_ package: MarkdownContent, for messageID: Message.ID) {
+    /// applied synchronously so a new row never renders blank; subsequent
+    /// updates to the same message go through the stream view, which fades
+    /// new text in while `isStreaming` and throttles otherwise.
+    ///
+    /// The list keeps this row for its message, so mounting it again hands
+    /// back the content it already shows; that is skipped rather than rebuilt.
+    func setMarkdownPackage(_ package: MarkdownContent, for messageID: Message.ID, isStreaming: Bool) {
+        markdownView.streamIdentity = messageID
+        markdownView.isStreaming = isStreaming
+        guard package !== representedPackage else { return }
+        representedPackage = package
         if representedMessageID == messageID {
             markdownView.setContent(package)
         } else {
             representedMessageID = messageID
             markdownView.setContentImmediately(package)
         }
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        representedMessageID = nil
-        // Parked cells still receive CodeHighlighter notifications which trigger
-        // a full document rebuild; empty their content so that rebuild is free.
-        markdownView.reset()
     }
 
     override func layoutSubviews() {
