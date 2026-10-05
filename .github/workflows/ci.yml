@@ -15,20 +15,6 @@ on:
       - "Package.resolved"
 
 jobs:
-  # Deliberately not skipped for housekeeping/ branches: those PRs regenerate
-  # Package.resolved and are exactly where pin drift gets introduced. Xcode
-  # Cloud is the only other place that catches it, and there it fails a release
-  # archive instead of a pull request.
-  verify-packages:
-    name: Verify Package Pins
-    runs-on: macos-26
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check Required Pins
-        run: make package-verify
-
   build:
     if: ${{ !startsWith(github.head_ref, 'housekeeping/') }}
     name: Build (${{ matrix.target }})
@@ -68,11 +54,6 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             | xcbeautify --is-ci --disable-colored-output --disable-logging
-
-      - name: Strip mlx-swift CUDA Plugin (${{ matrix.target }})
-        run: |
-          chmod +x Resources/DevKit/scripts/strip_mlx_cuda_plugin.sh
-          ./Resources/DevKit/scripts/strip_mlx_cuda_plugin.sh
 
       - name: Archive (${{ matrix.target }})
         run: |

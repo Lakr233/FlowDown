@@ -17,10 +17,6 @@ PACKAGE_RESOLVED_FILES=(
     Frameworks/*/Package.resolved
 )
 
-# Resolve against the pristine mlx-swift manifest; the CUDA-plugin strip hides
-# part of the dependency graph. See strip_mlx_cuda_plugin.sh.
-"$SCRIPT_DIR/strip_mlx_cuda_plugin.sh" --restore
-
 # Xcode re-resolves from the SourcePackages workspace state, not from scratch,
 # so dropping Package.resolved alone keeps every cached pin. Drop the state too.
 typeset -a source_packages
@@ -49,11 +45,5 @@ for file in "${PACKAGE_RESOLVED_FILES[@]}"; do
     echo "[+] upgrading $package_path packages..."
     swift package --package-path "$package_path" update
 done
-
-# Rebuilding the resolved file from scratch always drops the pins that Xcode 27
-# prunes and Xcode Cloud requires. See required-package-pins.json.
-"$SCRIPT_DIR/required_package_pins.py" fix
-
-"$SCRIPT_DIR/strip_mlx_cuda_plugin.sh"
 
 echo "[+] completed successfully"

@@ -38,12 +38,11 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - Run `make help` for the current command surface. The common targets:
   - Build: `make build`, `build-ios`, `build-catalyst`, `build-extension`
   - Test: `make test`, `test-unit`, `test-chat-client-kit` (set `CHAT_CLIENT_KIT_TEST_ARGUMENTS` to focus a suite), `test-online-e2e`
-  - Packages and licenses: `make package-resolve`, `package-verify`, `scan-license`
+  - Packages and licenses: `make package-resolve`, `package-update`, `scan-license`
   - Localization: `make localization-check`, `localization-stale-check`
   - Archive: `make archive`, `archive-ios`, `archive-macos`
   - Cleanup: `make clean-build`, `make clean`
 - The shared FlowDown scheme runs `git submodule update` before builds and tests; stage or commit intended gitlink changes first so the selected submodule revisions are not restored from the index.
-- Xcode 27's resolver prunes pins no built target links (currently `swift-argument-parser`, pulled in by `mlx-swift`), but Xcode Cloud's older toolchain rejects a `Package.resolved` that omits them. `Resources/DevKit/required-package-pins.json` declares them and `required_package_pins.py fix` re-adds them after every resolve. Never hand-delete those pins to shrink a diff; run `make package-verify` before committing `Package.resolved`.
 - Xcode Cloud invokes `xcodebuild` outside the Makefile; keep package plug-in validation configuration in `ci_scripts/ci_post_clone.sh` so cloud archives receive it.
 - The archive script requires a clean working tree, then bumps the build number and commits before building.
 
