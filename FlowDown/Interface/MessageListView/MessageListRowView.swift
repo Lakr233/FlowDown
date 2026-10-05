@@ -46,6 +46,29 @@ class MessageListRowView: ListRowView, UIContextMenuInteractionDelegate {
         )
     }
 
+    /// A right click belongs to the row's context menu unless it lands on a text
+    /// selection. Selectable labels otherwise take it: they select the word under
+    /// the pointer and open the system text menu, which hides Retry, Copy and the
+    /// rest of the row's actions.
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        guard event?.buttonMask == .secondary,
+              let view,
+              let label = enclosingTextLabel(of: view),
+              !label.selectionContains(point, from: self)
+        else { return view }
+        return contentView
+    }
+
+    private func enclosingTextLabel(of view: UIView) -> TextLabelView? {
+        var current: UIView? = view
+        while let candidate = current, candidate !== self {
+            if let label = candidate as? TextLabelView { return label }
+            current = candidate.superview
+        }
+        return nil
+    }
+
     func themeDidUpdate() {}
 
     override func prepareForReuse() {
