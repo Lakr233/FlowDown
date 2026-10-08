@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/Litext",
       "state" : {
-        "revision" : "e9689ef9e6baeadb24865642f754a1107b86864f",
-        "version" : "3.6.1"
+        "revision" : "af980f47592ee9649cc766ad4460ab5710f150d9",
+        "version" : "3.6.3"
       }
     },
     {
