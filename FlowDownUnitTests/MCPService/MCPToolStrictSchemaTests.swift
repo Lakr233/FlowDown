@@ -73,6 +73,33 @@ struct MCPToolStrictSchemaTests {
         #expect(item["additionalProperties"] == strictFalse)
         #expect(item["required"] == ["name", "note"])
     }
+
+    @Test
+    func skippedOptionalArguments_areOmittedFromTheCall() async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+
+        let tool = MCPTool(
+            toolInfo: MCPToolInfo(
+                name: "search",
+                inputSchema: [
+                    "type": "object",
+                    "properties": [
+                        "query": ["type": "string"],
+                        "limit": ["type": "integer"],
+                        "cursor": ["type": ["string", "null"]],
+                    ],
+                    "required": ["query", "cursor"],
+                ],
+                serverID: "strict-schema-server",
+                serverName: "strict.example.com",
+            ),
+            mcpService: .shared,
+        )
+
+        let arguments = tool.callArguments(from: #"{"query":"swift","limit":null,"cursor":null}"#)
+
+        #expect(arguments == ["query": .string("swift"), "cursor": .null])
+    }
 }
 
 private extension MCPToolStrictSchemaTests {
