@@ -5,9 +5,7 @@
 //  Created by qaq on 13/12/2025.
 //
 
-import ExtensionKit
 import SwiftUI
-import TranslationUIProvider
 
 extension TranslationProviderView {
     @ViewBuilder

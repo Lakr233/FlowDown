@@ -10,18 +10,6 @@ import UIKit
 class KeyboardNavigationSearchBar: UISearchBar {
     weak var keyboardNavigationDelegate: KeyboardNavigationDelegate?
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupKeyboardHandling()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupKeyboardHandling()
-    }
-
-    private func setupKeyboardHandling() {}
-
     /// The arrows have to win over the search field, which is the first
     /// responder and would otherwise spend them on moving the caret before
     /// they ever reach the bar. Return is left to the field, where

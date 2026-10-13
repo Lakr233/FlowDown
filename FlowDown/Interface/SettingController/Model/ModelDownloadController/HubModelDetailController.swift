@@ -30,8 +30,6 @@ class HubModelDetailController: StackScrollController {
     let indicator = UIActivityIndicatorView(style: .medium)
     var task: Task<Void, Error>?
 
-    let disableWarnings = false
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -224,9 +222,7 @@ class HubModelDetailController: StackScrollController {
             countStyle: .file
         )
 
-        if disableWarnings {
-            present(downloadController, animated: true)
-        } else if model.id.lowercased().hasPrefix("mlx-community/") {
+        if model.id.lowercased().hasPrefix("mlx-community/") {
             presentDownloadWarning(
                 title: "Download Model",
                 message: """

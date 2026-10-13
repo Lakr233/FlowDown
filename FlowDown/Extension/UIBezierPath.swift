@@ -16,7 +16,7 @@ extension UIBezierPath {
         continuousRoundedRect(rect, cornerRadius: (cornerRadius, cornerRadius, cornerRadius, cornerRadius))
     }
 
-    static func continuousRoundedRect(
+    private static func continuousRoundedRect(
         _ rect: CGRect,
         cornerRadius: (topLeft: CGFloat, topRight: CGFloat, bottomLeft: CGFloat, bottomRight: CGFloat)
     ) -> UIBezierPath {

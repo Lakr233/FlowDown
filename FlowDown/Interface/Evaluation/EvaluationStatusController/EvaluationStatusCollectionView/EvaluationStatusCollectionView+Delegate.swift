@@ -29,7 +29,7 @@ extension EvaluationStatusCollectionView: UICollectionViewDelegate {
                 session: session,
                 caseItem: caseItem,
                 onUpdate: { [weak self] in
-                    self?.applySessionUpdate(animated: false)
+                    self?.applySessionUpdate()
                 },
             )
         }

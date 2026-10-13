@@ -14,7 +14,6 @@ import SwiftUI
 final class TranslationProviderModel: ObservableObject {
     private static let outputTranslationToolName = "output_translation"
 
-    @Published private(set) var translationReasoning: String = ""
     @Published private(set) var translationPlainResult: String = ""
     @Published private(set) var translationSegmentedResult: [TranslationSegment] = []
     @Published private(set) var translationError: Error?
@@ -133,7 +132,6 @@ final class TranslationProviderModel: ObservableObject {
             tools: tools.isEmpty ? nil : tools,
         )
 
-        translationReasoning = ""
         translationPlainResult = ""
         translationSegmentedResult = []
 
@@ -147,13 +145,16 @@ final class TranslationProviderModel: ObservableObject {
         }
 
         let stream = try await service.streamingChat(body: request)
+        var receivedReasoning = false
 
         for try await chunk in stream {
             if Task.isCancelled { return }
 
             switch chunk {
             case let .reasoning(value):
-                translationReasoning += value
+                if !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    receivedReasoning = true
+                }
             case let .text(value):
                 translationPlainResult += value
             case let .tool(call):
@@ -185,7 +186,7 @@ final class TranslationProviderModel: ObservableObject {
         translationPlainResult = normalizedPlain
 
         if normalizedPlain.isEmpty,
-           translationReasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           !receivedReasoning,
            translationSegmentedResult.isEmpty
         {
             let collected = service.collectedErrors?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""

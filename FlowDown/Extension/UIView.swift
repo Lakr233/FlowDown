@@ -73,7 +73,6 @@ extension UIView {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         transform = CGAffineTransform(scaleX: 0.975, y: 0.975)
-        layoutIfNeeded()
         doWithAnimation { self.transform = .identity }
     }
 }

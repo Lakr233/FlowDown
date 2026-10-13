@@ -36,30 +36,22 @@ public enum SyncPreferences {
         case templates // ChatTemplateRecord
     }
 
-    public static func isGroupEnabled(_ group: Group) -> Bool {
+    private static func key(for group: Group) -> String {
         switch group {
-        case .conversations:
-            UserDefaults.standard.object(forKey: groupConversationsKey) as? Bool ?? true
-        case .memory:
-            UserDefaults.standard.object(forKey: groupMemoryKey) as? Bool ?? true
-        case .mcp:
-            UserDefaults.standard.object(forKey: groupMCPKey) as? Bool ?? true
-        case .models:
-            UserDefaults.standard.object(forKey: groupModelsKey) as? Bool ?? true
-        case .templates:
-            UserDefaults.standard.object(forKey: groupTemplatesKey) as? Bool ?? true
-        }
-    }
-
-    public static func setGroup(_ group: Group, enabled: Bool) {
-        let key: String = switch group {
         case .conversations: groupConversationsKey
         case .memory: groupMemoryKey
         case .mcp: groupMCPKey
         case .models: groupModelsKey
         case .templates: groupTemplatesKey
         }
-        UserDefaults.standard.set(enabled, forKey: key)
+    }
+
+    public static func isGroupEnabled(_ group: Group) -> Bool {
+        UserDefaults.standard.object(forKey: key(for: group)) as? Bool ?? true
+    }
+
+    public static func setGroup(_ group: Group, enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: key(for: group))
     }
 
     /// Map a table name to the preference group.
@@ -89,31 +81,15 @@ public enum SyncPreferences {
     /// 获取当前启用同步的表
     /// - Returns: 表名集合
     package static func enabledTables() -> [String] {
-        var tables: [String] = []
-
-        if SyncPreferences.isGroupEnabled(.conversations) {
-            tables.append(Conversation.tableName)
-            tables.append(Message.tableName)
-            tables.append(Attachment.tableName)
-            tables.append(ConversationSummary.tableName)
-        }
-
-        if SyncPreferences.isGroupEnabled(.models) {
-            tables.append(CloudModel.tableName)
-        }
-
-        if SyncPreferences.isGroupEnabled(.memory) {
-            tables.append(Memory.tableName)
-        }
-
-        if SyncPreferences.isGroupEnabled(.mcp) {
-            tables.append(ModelContextServer.tableName)
-        }
-
-        if SyncPreferences.isGroupEnabled(.templates) {
-            tables.append(ChatTemplateRecord.tableName)
-        }
-
-        return tables
+        [
+            Conversation.tableName,
+            Message.tableName,
+            Attachment.tableName,
+            ConversationSummary.tableName,
+            CloudModel.tableName,
+            Memory.tableName,
+            ModelContextServer.tableName,
+            ChatTemplateRecord.tableName,
+        ].filter { isTableSyncEnabled(tableName: $0) }
     }
 }

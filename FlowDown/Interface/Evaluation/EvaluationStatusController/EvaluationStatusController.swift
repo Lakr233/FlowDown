@@ -290,7 +290,7 @@ final class EvaluationStatusController: UIViewController {
 
     @objc func sessionDidUpdate() {
         if Thread.isMainThread {
-            statusView.applySessionUpdate(animated: false)
+            statusView.applySessionUpdate()
             updateTitle()
             updateInteractivePopGestureState()
         } else {
@@ -313,6 +313,6 @@ final class EvaluationStatusController: UIViewController {
             navigationController?.pushViewController(detailVC, animated: true)
         }
 
-        statusView.applySessionUpdate(animated: false)
+        statusView.applySessionUpdate()
     }
 }

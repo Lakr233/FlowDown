@@ -10,6 +10,8 @@ import WCDBSwift
 
 package final class UploadQueue: Identifiable, Codable, TableNamed, TableCodable {
     package static let tableName: String = "UploadQueue"
+    /// Upload attempts after which a queue entry is no longer retried.
+    static let maxFailCount = 100
     /// 队列ID
     package var id: Int64 = .init()
     /// 源数据表名

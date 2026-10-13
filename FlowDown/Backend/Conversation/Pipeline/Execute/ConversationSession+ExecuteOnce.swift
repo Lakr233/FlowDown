@@ -211,7 +211,6 @@ extension ConversationSession {
             )
         }
 
-        // 请求结束 如果没有启用工具调用就结束
         guard modelWillExecuteTools else {
             assert(pendingToolCalls.isEmpty)
             return false
@@ -242,7 +241,6 @@ extension ConversationSession {
             }
             showActivity(String(localized: "Utilizing tool: \(tool.interfaceName)"))
 
-            // 检查是否是网络搜索工具，如果是则直接执行
             if let tool = tool as? MTWebSearchTool {
                 let webSearchMessage = appendNewMessage(role: .webSearch)
                 encodeToolRequestAndAttachToToolMessage(request, message: webSearchMessage)
@@ -298,7 +296,6 @@ extension ConversationSession {
                 // is the visible progress now.
                 hideActivity()
 
-                // 标准工具
                 do {
                     let result = try await ModelToolsManager.shared.perform(
                         withTool: tool,
@@ -361,7 +358,8 @@ extension ConversationSession {
                         updateAttachments(editorObjects, for: collectorMessage)
                         await requestUpdate()
 
-                        // 如果模型支持图片则添加到请求消息中 如果不支持 tool 一般已经返回了需要的 text 信息
+                        // Visual models get the images in the request; for other models the tool
+                        // has usually returned the text they need already.
                         let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
                         let messages = await makeMessageFromAttachments(
                             editorObjects,

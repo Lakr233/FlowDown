@@ -58,7 +58,6 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
     override func execute(with input: String, anchorTo view: UIView) async throws -> String {
         var locale: Locale = .current
 
-        // 解析输入参数
         if !input.isEmpty,
            let json = decodeArguments(input),
            let localeIdentifier = json["locale"] as? String
@@ -112,10 +111,9 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
 
         controller.present(indicator, animated: true)
 
-        // 创建位置管理器
         locationManager = CLLocationManager()
-        locationManager?.delegate = self // 设置代理
-        locationManager?.desiredAccuracy = kCLLocationAccuracyHundredMeters // 设置精度
+        locationManager?.delegate = self
+        locationManager?.desiredAccuracy = kCLLocationAccuracyHundredMeters
 
         locationCompletion = wrappedCompletion
         loadingIndicator = indicator
@@ -185,9 +183,7 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
             return
         }
 
-        // 获取当前位置
         if let location = locationManager?.location {
-            // 地理编码
             geocoder.reverseGeocodeLocation(location, preferredLocale: locale) {
                 placemarks, error in
                 indicator.dismiss(animated: true) {
@@ -207,10 +203,8 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
                         return
                     }
 
-                    // 格式化位置信息
                     var addressComponents = [String]()
 
-                    // 坐标
                     let latitude = location.coordinate.latitude
                     let longitude = location.coordinate.longitude
                     addressComponents.append(

@@ -5,7 +5,6 @@
 //  Created by 秋星桥 on 2/2/25.
 //
 
-import Foundation
 import UIKit
 
 extension String {
@@ -15,7 +14,7 @@ extension String {
 }
 
 extension String {
-    func textToImage(size: CGFloat = 64) -> UIImage? {
+    func textToImage(size: CGFloat) -> UIImage? {
         let nsString = (self as NSString)
         let font = UIFont.systemFont(ofSize: size)
         let stringAttributes = [NSAttributedString.Key.font: font]

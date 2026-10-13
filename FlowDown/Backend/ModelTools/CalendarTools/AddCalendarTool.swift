@@ -100,7 +100,6 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
     controller: UIViewController,
     continuation: CheckedContinuation<String, any Swift.Error>,
   ) {
-    // 首先解析ICS内容获取更多信息
     let eventStore = EKEventStore()
     guard let event = parseICSContent(icsFile, eventStore: eventStore) else {
       continuation.resume(
@@ -109,7 +108,6 @@ class MTAddCalendarTool: ModelTool, @unchecked Sendable {
       return
     }
 
-    // 格式化开始和结束时间
     let dateFormatter = DateFormatter()
     dateFormatter.dateStyle = .medium
     dateFormatter.timeStyle = .short

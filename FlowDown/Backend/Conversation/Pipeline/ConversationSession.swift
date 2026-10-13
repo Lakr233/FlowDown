@@ -197,7 +197,7 @@ final class ConversationSession: Identifiable {
     func addAttachments(_ attachments: [RichEditorView.Object.Attachment], to message: Message) {
         let messageID = message.objectId
         let mapped = attachments.map { attachment in
-            // 跳过插入，由后面的attachmentsUpdate 统一批量插入
+            // Skip the insert here; attachmentsUpdate below writes them in one batch.
             sdb.attachmentMake(with: messageID, skipSave: true) {
                 self.updateAttachment($0, using: attachment)
             }
@@ -281,7 +281,6 @@ final class ConversationSession: Identifiable {
         attachments[messageID] ?? []
     }
 
-    /// 删除这条消息
     func delete(messageIdentifier: Message.ID) {
         cancelCurrentTask { [self] in
             sdb.deleteSupplementMessage(nextTo: messageIdentifier)
@@ -300,7 +299,6 @@ final class ConversationSession: Identifiable {
         thinkingDurationTimer[messageIdentifier] = nil
     }
 
-    /// 删除自这条消息以后的全部数据
     func deleteCurrentAndAfter(messageIdentifier: Message.ID, completion: @escaping () -> Void = {}) {
         cancelCurrentTask { [self] in
             sdb.deleteAfter(messageIdentifier: messageIdentifier)
@@ -315,10 +313,9 @@ final class ConversationSession: Identifiable {
         }
     }
 
-    /// 更新单独的一条消息
     func update(messageIdentifier: Message.ID, content: String) {
         cancelCurrentTask { [self] in
-            guard let message = messages.first(where: { $0.objectId == messageIdentifier }) else {
+            guard let message = self.message(for: messageIdentifier) else {
                 return
             }
             message.update(\.document, to: content)
@@ -332,7 +329,7 @@ final class ConversationSession: Identifiable {
     }
 
     func update(messageIdentifier: Message.ID, reasoningContent: String) {
-        guard let message = messages.first(where: { $0.objectId == messageIdentifier }) else {
+        guard let message = self.message(for: messageIdentifier) else {
             return
         }
         message.update(\.reasoningContent, to: reasoningContent)
@@ -397,7 +394,7 @@ final class ConversationSession: Identifiable {
     }
 
     func nearestUserMessage(beforeOrEqual messageIdentifier: Message.ID) -> Message? {
-        guard let message = messages.first(where: { $0.objectId == messageIdentifier }) else {
+        guard let message = self.message(for: messageIdentifier) else {
             return nil
         }
 

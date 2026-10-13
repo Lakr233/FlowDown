@@ -7,9 +7,11 @@ import { AnimatePresence, motion } from "framer-motion";
 const navLinks = [
   { href: "/docs", label: "Documentation" },
   { href: "/compare", label: "Compare" },
-  { href: "https://github.com/Lakr233/FlowDown", label: "Get Source Code", external: true },
+  { href: "https://github.com/Lakr233/FlowDown", label: "Get Source Code" },
   { href: "/docs/documents/models/cloud_models_setup", label: "Add Models" },
 ];
+
+const appStoreURL = "https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +20,6 @@ export default function Navigation() {
     <>
       <nav className="fixed top-0 left-0 right-0 bg-[#f6f6f6]/80 backdrop-blur-md z-50 border-b border-[#e5e5e5]/50 h-[72px]">
         <div className="max-w-[1280px] mx-auto flex items-center justify-between px-6 h-full">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 z-50">
             <img
               src="/icon-primary.png"
@@ -30,20 +31,19 @@ export default function Navigation() {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                target={link.external ? "_blank" : undefined}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
                 className="text-base font-medium text-[#242424] hover:opacity-70 transition-opacity"
               >
                 {link.label}
               </Link>
             ))}
             <Link
-              href="https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198"
+              href={appStoreURL}
               target="_blank"
               className="btn-primary text-white text-sm font-medium px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-opacity"
             >
@@ -51,7 +51,6 @@ export default function Navigation() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             className="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 z-50"
             onClick={() => setIsOpen(!isOpen)}
@@ -73,7 +72,6 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -87,7 +85,7 @@ export default function Navigation() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  target={link.external ? "_blank" : undefined}
+                  target={link.href.startsWith("http") ? "_blank" : undefined}
                   className="text-xl font-medium text-[#242424]"
                   onClick={() => setIsOpen(false)}
                 >
@@ -95,7 +93,7 @@ export default function Navigation() {
                 </Link>
               ))}
               <Link
-                href="https://apps.apple.com/us/app/flowdown-open-fast-ai/id6740553198"
+                href={appStoreURL}
                 target="_blank"
                 className="btn-primary text-white text-lg font-medium px-5 py-3 rounded-xl shadow-sm hover:opacity-90 transition-opacity w-full max-w-[200px] mx-auto"
                 onClick={() => setIsOpen(false)}

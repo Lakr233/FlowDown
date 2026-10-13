@@ -8,7 +8,7 @@
 import Foundation
 import WCDBSwift
 
-public final class Attachment: Identifiable, Codable, TableNamed, DeviceOwned, TableCodable {
+public final class Attachment: Identifiable, Codable, TableNamed, TableCodable {
     public static let tableName: String = "Attachment"
 
     public var id: String {

@@ -162,7 +162,7 @@ extension ChatView: RichEditorView.Delegate {
         $0.update(\.modelId, to: identifier)
       }
     }
-    editor.updateModelName()
+    editor.updateModelinfoFile()
     offloadModelsToSession(modelIdentifier: identifier)
   }
 
@@ -173,20 +173,20 @@ extension ChatView: RichEditorView.Delegate {
     {
       return AppleIntelligenceModel.shared.modelDisplayName
     }
+    let full: String
+    let trimmed: String
     if let localModel = ModelManager.shared.localModel(identifier: modelIdentifier) {
-      switch editorModelNameStyle {
-      case .full: return localModel.model_identifier
-      case .trimmed: return localModel.modelDisplayName
-      case .none: return "👌"
-      }
+      (full, trimmed) = (localModel.model_identifier, localModel.modelDisplayName)
     } else if let cloudModel = ModelManager.shared.cloudModel(identifier: modelIdentifier) {
-      switch editorModelNameStyle {
-      case .full: return cloudModel.modelFullName
-      case .trimmed: return cloudModel.modelDisplayName
-      case .none: return "👌"
-      }
+      (full, trimmed) = (cloudModel.modelFullName, cloudModel.modelDisplayName)
+    } else {
+      return nil
     }
-    return nil
+    switch editorModelNameStyle {
+    case .full: return full
+    case .trimmed: return trimmed
+    case .none: return "👌"
+    }
   }
 
   func onRichEditorRequestCurrentModelIdentifier() -> String? {

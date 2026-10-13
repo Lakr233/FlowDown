@@ -23,13 +23,11 @@ let disposableResourcesDir = FileManager.default
 
 private func boot() throws -> Never {
     #if !targetEnvironment(simulator)
-        do {
-            // make sure sandbox is enabled otherwise panic the app
-            let sandboxTestDir = URL(fileURLWithPath: "/tmp/sandbox.test.\(UUID().uuidString)")
-            FileManager.default.createFile(atPath: sandboxTestDir.path, contents: nil, attributes: nil)
-            if FileManager.default.fileExists(atPath: sandboxTestDir.path) {
-                fatalError("this app should not run outside of sandbox which may cause trouble.")
-            }
+        // refuse to run unsandboxed
+        let sandboxTestDir = URL(fileURLWithPath: "/tmp/sandbox.test.\(UUID().uuidString)")
+        FileManager.default.createFile(atPath: sandboxTestDir.path, contents: nil, attributes: nil)
+        if FileManager.default.fileExists(atPath: sandboxTestDir.path) {
+            fatalError("this app should not run outside of sandbox which may cause trouble.")
         }
     #endif
 

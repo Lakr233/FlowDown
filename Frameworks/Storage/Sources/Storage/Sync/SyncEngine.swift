@@ -10,34 +10,6 @@ import Foundation
 import OrderedCollections
 
 public final actor SyncEngine: Sendable {
-    /// 会话列表变化通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let ConversationChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.ConversationChanged")
-    /// 消息列表变化通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let MessageChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.MessageChanged")
-    /// 模型列表变化通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let CloudModelChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.CloudModelChanged")
-    /// MCP列表变化通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let ModelContextServerChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.ModelContextServerChanged")
-    /// 记忆列表变化通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let MemoryChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.MemoryChanged")
-    /// 模板列表变化通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let ChatTemplateChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.ChatTemplateChanged")
-    /// 会话摘要变化通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let ConversationSummaryChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.ConversationSummaryChanged")
-    /// 本地数据删除通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let LocalDataDeleted: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.LocalDataDeleted")
-    /// 云端数据删除通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let ServerDataDeleted: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.ServerDataDeleted")
-    /// 同步状态通知, 在 MainActor 中发布。可安全的在UI线程中访问
-    public static let SyncStatusChanged: Notification.Name = .init("wiki.qaq.flowdown.SyncEngine.SyncStatusChanged")
-    public static let ConversationNotificationKey: String = "Conversation"
-    public static let MessageNotificationKey: String = "Message"
-    public static let CloudModelNotificationKey: String = "CloudModel"
-    public static let ModelContextServerNotificationKey: String = "ModelContextServer"
-    public static let MemoryNotificationKey: String = "Memory"
-    public static let ChatTemplateNotificationKey: String = "ChatTemplate"
-    public static let ConversationSummaryNotificationKey: String = "ConversationSummary"
-
     public nonisolated static let syncEnabledDefaultsKey = "com.flowdown.storage.sync.manually.enabled"
 
     public nonisolated static var isSyncEnabled: Bool {
@@ -149,6 +121,15 @@ public final actor SyncEngine: Sendable {
         }
     }
 
+    private static func createTemporaryAssetStorageIfNeeded() {
+        if !FileManager.default.fileExists(atPath: SyncEngine.temporaryAssetStorage.path()) {
+            try? FileManager.default.createDirectory(
+                at: SyncEngine.temporaryAssetStorage,
+                withIntermediateDirectories: true
+            )
+        }
+    }
+
     public init(storage: Storage, containerIdentifier: String, mode: Mode, automaticallySync: Bool = true) {
         let liveContainer: CKContainer?
         let resolvedContainer: any CloudContainer
@@ -196,12 +177,7 @@ public final actor SyncEngine: Sendable {
             createSyncEngine = nil
         }
 
-        if !FileManager.default.fileExists(atPath: SyncEngine.temporaryAssetStorage.path()) {
-            try? FileManager.default.createDirectory(
-                at: SyncEngine.temporaryAssetStorage,
-                withIntermediateDirectories: true
-            )
-        }
+        SyncEngine.createTemporaryAssetStorageIfNeeded()
 
         storage.uploadQueueEnqueueHandler = { [weak self] in
             guard let self else { return }
@@ -229,12 +205,7 @@ public final actor SyncEngine: Sendable {
             createSyncEngine(syncEngine)
         }
 
-        if !FileManager.default.fileExists(atPath: SyncEngine.temporaryAssetStorage.path()) {
-            try? FileManager.default.createDirectory(
-                at: SyncEngine.temporaryAssetStorage,
-                withIntermediateDirectories: true
-            )
-        }
+        SyncEngine.createTemporaryAssetStorageIfNeeded()
 
         storage.uploadQueueEnqueueHandler = { [weak self] in
             guard SyncEngine.isSyncEnabled else { return }
@@ -448,7 +419,7 @@ extension SyncEngine {
             )
         }
         // The remote-deletion path removes each applied entry, and keeps any whose group was turned off again meanwhile.
-        await handleFetchedRecordZoneChanges(deletions: deletions, syncEngine: syncEngine)
+        await handleFetchedRecordZoneChanges(deletions: deletions)
     }
 }
 
@@ -689,46 +660,28 @@ private extension SyncEngine {
     @available(iOS 17, macCatalyst 17, *)
     func handleAccountChange(
         changeType: CKSyncEngine.Event.AccountChange.ChangeType,
-        syncEngine _: any SyncEngineProtocol,
     ) async {
-        let shouldDeleteLocalData: Bool
-        let shouldReUploadLocalData: Bool
-
         switch changeType {
         case .signIn:
             Logger.syncEngine.infoFile("HandleAccountChange signIn")
-            shouldDeleteLocalData = false
-            shouldReUploadLocalData = true
+            await createCustomZoneIfNeeded()
 
         case .switchAccounts:
             Logger.syncEngine.infoFile("HandleAccountChange switchAccounts")
-            shouldDeleteLocalData = true
-            shouldReUploadLocalData = false
+            try? await deleteLocalData()
 
         case .signOut:
             Logger.syncEngine.infoFile("HandleAccountChange signOut")
-            shouldDeleteLocalData = true
-            shouldReUploadLocalData = false
+            try? await deleteLocalData()
 
         @unknown default:
             Logger.syncEngine.infoFile("Unknown account change")
-            shouldDeleteLocalData = false
-            shouldReUploadLocalData = false
-        }
-
-        if shouldDeleteLocalData {
-            try? await deleteLocalData()
-        }
-
-        if shouldReUploadLocalData {
-            await createCustomZoneIfNeeded()
         }
     }
 
     @available(iOS 17, macCatalyst 17, *)
     func handleStateUpdate(
         stateSerialization: CKSyncEngine.State.Serialization,
-        syncEngine _: any SyncEngineProtocol,
     ) async {
         SyncEngine.stateSerializationData = try? JSONEncoder().encode(stateSerialization)
     }
@@ -768,7 +721,6 @@ private extension SyncEngine {
     func handleFetchedRecordZoneChanges(
         modifications: [CKRecord] = [],
         deletions: [(recordID: CKRecord.ID, recordType: CKRecord.RecordType)] = [],
-        syncEngine _: any SyncEngineProtocol,
     ) async {
         Logger.syncEngine.infoFile("Received RecordZoneChanges modifications: \(modifications.count) deletions: \(deletions.count)")
 
@@ -965,7 +917,6 @@ private extension SyncEngine {
         failedRecordZoneSaves: [(zone: CKRecordZone, error: CKError)] = [],
         deletedRecordZoneIDs: [CKRecordZone.ID] = [],
         failedRecordZoneDeletes: [CKRecordZone.ID: CKError] = [:],
-        syncEngine _: any SyncEngineProtocol,
     ) async {
         for savedRecordZone in savedRecordZones {
             Logger.syncEngine.infoFile("SavedRecordZone: \(savedRecordZone.zoneID)")
@@ -1046,12 +997,13 @@ private extension SyncEngine {
             let failedRecord = failedRecordSave.record
             // 清理临时文件
             failedRecord.clearTemporaryAssets(prefix: SyncEngine.temporaryAssetStorage)
+            let localQueueId = failedRecord.sentQueueId.flatMap(SyncEngine.parseCKRecordSentQueueId)?.queueId
 
             switch failedRecordSave.error.code {
             case .serverRecordChanged:
                 removePendingRecordZoneChanges.append(.saveRecord(failedRecord.recordID))
 
-                guard let sentQueueId = failedRecord.sentQueueId, let (localQueueId, _, _) = SyncEngine.parseCKRecordSentQueueId(sentQueueId) else { continue }
+                guard let localQueueId else { continue }
 
                 guard let serverRecord = failedRecordSave.error.serverRecord else {
                     Logger.syncEngine.errorFile("No server record for conflict \(failedRecordSave.error)")
@@ -1067,6 +1019,7 @@ private extension SyncEngine {
             case .zoneNotFound:
                 Logger.syncEngine.errorFile("zoneNotFound error saving \(failedRecord.recordID): \(failedRecordSave.error)")
                 let zone = CKRecordZone(zoneID: failedRecord.recordID.zoneID)
+                newPendingDatabaseChanges.append(.saveZone(zone))
                 if failedRecordSave.error.userInfo[CKErrorUserDidResetEncryptedDataKey] != nil {
                     // CloudKit is unable to decrypt previously encrypted data. This occurs when a user
                     // resets their iCloud Keychain and thus deletes the key material previously used
@@ -1074,15 +1027,12 @@ private extension SyncEngine {
                     // In this case, it is recommended to delete the associated zone and re-upload any
                     // locally cached data, which will be encrypted with the new key.
                     // CloudKit has already deleted the zone, so recreate it and re-upload everything below.
-
-                    newPendingDatabaseChanges.append(.saveZone(zone))
                     needsFullReupload = true
-                } else {
-                    newPendingDatabaseChanges.append(.saveZone(zone))
                 }
 
-                guard let sentQueueId = failedRecord.sentQueueId, let (localQueueId, _, _) = SyncEngine.parseCKRecordSentQueueId(sentQueueId) else { continue }
-                pendingUploadChangeStates.append((localQueueId, .pending))
+                if let localQueueId {
+                    pendingUploadChangeStates.append((localQueueId, .pending))
+                }
 
             case .unknownItem:
                 Logger.syncEngine.errorFile("unknownItem error saving \(failedRecord.recordID): \(failedRecordSave.error)")
@@ -1097,23 +1047,26 @@ private extension SyncEngine {
 
                 removePendingRecordZoneChanges.append(.saveRecord(recordID))
 
-                guard let sentQueueId = failedRecord.sentQueueId, let (localQueueId, _, _) = SyncEngine.parseCKRecordSentQueueId(sentQueueId) else { continue }
-                pendingUploadChangeStates.append((localQueueId, .failed))
+                if let localQueueId {
+                    pendingUploadChangeStates.append((localQueueId, .failed))
+                }
 
             case .networkFailure, .networkUnavailable, .zoneBusy, .serviceUnavailable, .notAuthenticated, .operationCancelled:
                 // 可重试错误也直接从state中删除，由后续的调度策略再次自动加入
                 removePendingRecordZoneChanges.append(.saveRecord(failedRecord.recordID))
                 Logger.syncEngine.errorFile("Retryable error saving \(failedRecord.recordID): \(failedRecordSave.error)")
 
-                guard let sentQueueId = failedRecord.sentQueueId, let (localQueueId, _, _) = SyncEngine.parseCKRecordSentQueueId(sentQueueId) else { continue }
-                pendingUploadChangeStates.append((localQueueId, .pending))
+                if let localQueueId {
+                    pendingUploadChangeStates.append((localQueueId, .pending))
+                }
 
             default:
                 removePendingRecordZoneChanges.append(.saveRecord(failedRecord.recordID))
                 Logger.syncEngine.fault("Unknown error saving record \(failedRecord.recordID): \(failedRecordSave.error)")
 
-                guard let sentQueueId = failedRecord.sentQueueId, let (localQueueId, _, _) = SyncEngine.parseCKRecordSentQueueId(sentQueueId) else { continue }
-                pendingUploadChangeStates.append((localQueueId, .failed))
+                if let localQueueId {
+                    pendingUploadChangeStates.append((localQueueId, .failed))
+                }
             }
         }
 
@@ -1237,10 +1190,10 @@ extension SyncEngine: SyncEngineDelegate {
 
         switch event {
         case let .accountChange(changeType):
-            await handleAccountChange(changeType: changeType, syncEngine: syncEngine)
+            await handleAccountChange(changeType: changeType)
 
         case let .stateUpdate(stateSerialization):
-            await handleStateUpdate(stateSerialization: stateSerialization, syncEngine: syncEngine)
+            await handleStateUpdate(stateSerialization: stateSerialization)
 
         case let .fetchedDatabaseChanges(modifications, deletions):
             await handleFetchedDatabaseChanges(
@@ -1253,7 +1206,6 @@ extension SyncEngine: SyncEngineDelegate {
             await handleFetchedRecordZoneChanges(
                 modifications: modifications,
                 deletions: deletions,
-                syncEngine: syncEngine,
             )
 
         case let .sentDatabaseChanges(
@@ -1267,7 +1219,6 @@ extension SyncEngine: SyncEngineDelegate {
                 failedRecordZoneSaves: failedRecordZoneSaves,
                 deletedRecordZoneIDs: deletedRecordZoneIDs,
                 failedRecordZoneDeletes: failedRecordZoneDeletes,
-                syncEngine: syncEngine,
             )
 
         case let .sentRecordZoneChanges(

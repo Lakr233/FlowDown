@@ -8,7 +8,7 @@
 import Foundation
 import WCDBSwift
 
-public final class CloudModel: Identifiable, Codable, Equatable, Hashable, TableNamed, DeviceOwned, TableCodable {
+public final class CloudModel: Identifiable, Codable, Equatable, Hashable, TableNamed, TableCodable {
     public static let tableName: String = "CloudModel"
 
     public var id: String {

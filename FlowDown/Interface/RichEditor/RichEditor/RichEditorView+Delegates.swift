@@ -232,25 +232,22 @@ extension RichEditorView: QuickSettingBar.Delegate {
         doWithAnimation { self.quickSettingBar.setModelName(newModel) }
         let newModelIdentifier = delegate?.onRichEditorRequestCurrentModelIdentifier()
         quickSettingBar.setModelIdentifier(newModelIdentifier)
-        var supportsToolCall = false
-        if let newModelIdentifier {
-            supportsToolCall = delegate?.onRichEditorCheckIfModelSupportsToolCall(newModelIdentifier) ?? false
-        }
-        quickSettingBar.updateToolCallAvailability(supportsToolCall)
+        quickSettingBar.updateToolCallAvailability(currentModelSupportsToolCall)
         if postUpdate {
             delegate?.onRichEditorUpdateObject(object: collectObject())
         }
+    }
+
+    private var currentModelSupportsToolCall: Bool {
+        guard let identifier = delegate?.onRichEditorRequestCurrentModelIdentifier() else { return false }
+        return delegate?.onRichEditorCheckIfModelSupportsToolCall(identifier) ?? false
     }
 
     func quickSettingBarOnValueChagned() {
         publishNewEditorStatus()
 
         if quickSettingBar.toolsToggle.isOn {
-            let newModelIdentifier = delegate?.onRichEditorRequestCurrentModelIdentifier()
-            if let newModelIdentifier,
-               let value = delegate?.onRichEditorCheckIfModelSupportsToolCall(newModelIdentifier),
-               value
-            { /* pass */ } else {
+            guard currentModelSupportsToolCall else {
                 quickSettingBar.toolsToggle.isOn = false
                 let alert = AlertViewController(
                     title: "Error",
@@ -262,6 +259,7 @@ extension RichEditorView: QuickSettingBar.Delegate {
                     }
                 }
                 parentViewController?.present(alert, animated: true)
+                return
             }
         }
     }

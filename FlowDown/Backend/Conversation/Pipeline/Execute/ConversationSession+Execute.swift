@@ -82,8 +82,6 @@ extension ConversationSession {
     ) async {
         var object = inputObject
 
-        // MARK: - 推理前准备
-
         let modelName = ModelManager.shared.modelName(identifier: modelID)
         let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
         let modelContextLength = ModelManager.shared.modelContextLength(identifier: modelID)
@@ -99,8 +97,7 @@ extension ConversationSession {
         await MainActor.run { UIApplication.shared.isIdleTimerDisabled = true }
         save()
 
-        // MARK: - 上下文转译到请求体 不包含当前编辑框中的附件
-
+        // Build the request from history; attachments still in the editor are added later.
         var requestMessages: [ChatRequestBody.Message] = []
         await buildInitialRequestMessages(&requestMessages, modelCapabilities)
 
@@ -177,8 +174,6 @@ extension ConversationSession {
         try checkCancellation()
         showActivity()
 
-        // MARK: - 添加用户的消息到储存框架
-
         let document = object.text
         let userMessage = appendNewMessage(role: .user)
         userMessage.update(\.document, to: document)
@@ -186,12 +181,8 @@ extension ConversationSession {
         addAttachments(object.attachments, to: userMessage)
         await requestUpdate()
 
-        // MARK: - 添加 Attachment 数据到持久化内容
-
         updateAttachments(object.attachments, for: userMessage)
         save()
-
-        // MARK: - 预处理图片信息提取
 
         try checkCancellation()
         try await preprocessAttachments(
@@ -202,8 +193,6 @@ extension ConversationSession {
         )
         save()
 
-        // MARK: - 添加这次的附件
-
         if !object.attachments.isEmpty {
             showActivity(String(localized: "Processing Attachments"))
             let attachmentMessages = await makeMessageFromAttachments(
@@ -213,8 +202,6 @@ extension ConversationSession {
             requestMessages.append(contentsOf: attachmentMessages)
             save()
         }
-
-        // MARK: - 构建工具调用列表
 
         let servers = MCPService.shared.servers.value
         let shouldPrepareMCP = servers.filter(\.isEnabled).count > 0
@@ -235,8 +222,6 @@ extension ConversationSession {
         let toolsDefinitions = tools.isEmpty ? nil : tools.map(\.definition)
         let webSearchEnabled = tools.contains { $0 is MTWebSearchTool }
 
-        // MARK: - 添加最新的系统提示
-
         await injectNewSystemCommand(
             &requestMessages,
             modelName,
@@ -244,8 +229,6 @@ extension ConversationSession {
             webSearchEnabled,
             object,
         )
-
-        // MARK: - 删除超出上下文长度限制的消息
 
         try checkCancellation()
         if try removeOutOfContextContents(
@@ -261,8 +244,6 @@ extension ConversationSession {
             )
             await requestUpdate()
         }
-
-        // MARK: - 开始循环调用接口
 
         try checkCancellation()
         save()
@@ -287,8 +268,6 @@ extension ConversationSession {
 
         Logger.app.infoFile("inference done")
 
-        // MARK: - 自动记忆提取和对话摘要
-
         let shouldExtractMemory = modelWillExecuteTools && ModelToolsManager.shared.canStoreMemory
         let recentMessages = Array(messages.suffix(6))
         let auxModel = models.auxiliary ?? models.chat
@@ -310,8 +289,6 @@ extension ConversationSession {
                 )
             }
         }
-
-        // MARK: - 生成标题和图标
 
         try checkCancellation()
         if shouldAutoRename {

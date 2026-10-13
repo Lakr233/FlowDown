@@ -14,7 +14,6 @@ public extension Storage {
         case retrieveFailed(String)
         case deleteFailed(String)
         case memoryNotFound(String)
-        case databaseError(String)
 
         var localizedDescription: String {
             switch self {
@@ -26,8 +25,6 @@ public extension Storage {
                 "Failed to delete memory: \(message)"
             case let .memoryNotFound(id):
                 "Memory with ID \(id) not found"
-            case let .databaseError(message):
-                "Database error: \(message)"
             }
         }
     }

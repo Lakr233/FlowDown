@@ -33,7 +33,7 @@ public struct StringArrayCodable: ColumnCodable {
     }
 }
 
-public final class ModelContextServer: Identifiable, Codable, TableNamed, DeviceOwned, TableCodable {
+public final class ModelContextServer: Identifiable, Codable, TableNamed, TableCodable {
     public static let tableName: String = "ModelContextServer"
 
     public var id: String {

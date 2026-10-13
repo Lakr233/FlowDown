@@ -1,4 +1,4 @@
-import { getAllDocs } from "@/lib/docs";
+import { getAllDocs, type DocEntry } from "@/lib/docs";
 
 export interface NavLink {
   title: string;
@@ -23,18 +23,7 @@ const sectionTitles: Record<string, string> = {
   legal: "Legal",
 };
 
-const sectionOrder = [
-  "root",
-  "quickstart",
-  "guides",
-  "capabilities",
-  "configuration",
-  "models",
-  "settings",
-  "troubleshooting",
-  "architecture",
-  "legal",
-];
+const sectionOrder = Object.keys(sectionTitles);
 
 const docOrderOverrides: Record<string, string[]> = {
   root: ["welcome", "app_store", "pricing_timeline", "changelog"],
@@ -50,10 +39,7 @@ const getDocOrderIndex = (section: string, slug: string[]) => {
   return index === -1 ? null : index;
 };
 
-const sortDocs = (
-  section: string,
-  docs: { slug: string[]; title: string }[],
-) => {
+const sortDocs = (section: string, docs: DocEntry[]) => {
   return docs.sort((a, b) => {
     const orderA = getDocOrderIndex(section, a.slug);
     const orderB = getDocOrderIndex(section, b.slug);
@@ -74,14 +60,11 @@ const sortDocs = (
 
 export const getDocsConfig = () => {
   const docs = getAllDocs();
-  const sections = new Map<string, { slug: string[]; title: string }[]>();
+  const sections = new Map<string, DocEntry[]>();
 
   for (const doc of docs) {
     const items = sections.get(doc.section) || [];
-    items.push({
-      slug: doc.slug,
-      title: doc.title,
-    });
+    items.push(doc);
     sections.set(doc.section, items);
   }
 
@@ -109,5 +92,5 @@ export const getDocsConfig = () => {
     });
   }
 
-  return { sidebarNav };
+  return sidebarNav;
 };

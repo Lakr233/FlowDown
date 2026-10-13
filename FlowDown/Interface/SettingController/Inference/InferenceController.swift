@@ -237,16 +237,18 @@ extension SettingController.SettingContent {
                 return String(localized: "Not Configured")
             }
 
-            let defConvId = ModelManager.ModelIdentifier.defaultModelForConversation
-            if #available(iOS 26.0, macCatalyst 26.0, *), defConvId == AppleIntelligenceModel.shared.modelIdentifier {
-                defaultConversationModel.configure(value: AppleIntelligenceModel.shared.modelDisplayName)
-                // Add availability status as subtitle when Apple Intelligence is selected
-                if !AppleIntelligenceModel.shared.isAvailable {
-                    defaultConversationModel.configure(description: "Status: \(AppleIntelligenceModel.shared.availabilityStatus)")
+            func configureModelRow(_ row: ConfigurableInfoView, id: ModelManager.ModelIdentifier) {
+                if #available(iOS 26.0, macCatalyst 26.0, *), id == AppleIntelligenceModel.shared.modelIdentifier {
+                    row.configure(value: AppleIntelligenceModel.shared.modelDisplayName)
+                    if !AppleIntelligenceModel.shared.isAvailable {
+                        row.configure(description: "Status: \(AppleIntelligenceModel.shared.availabilityStatus)")
+                    }
+                } else {
+                    row.configure(value: displayName(for: id))
                 }
-            } else {
-                defaultConversationModel.configure(value: displayName(for: defConvId))
             }
+
+            configureModelRow(defaultConversationModel, id: ModelManager.ModelIdentifier.defaultModelForConversation)
             defaultConversationModel.use { [weak self] in
                 guard let self else { return [] }
                 return ModelManager.shared.buildModelSelectionMenu(
@@ -269,15 +271,7 @@ extension SettingController.SettingContent {
                 ModelManager.ModelIdentifier.storedAuxiliaryTaskModel
             }
 
-            if #available(iOS 26.0, macCatalyst 26.0, *), devAuxId == AppleIntelligenceModel.shared.modelIdentifier {
-                defaultAuxiliaryModel.configure(value: AppleIntelligenceModel.shared.modelDisplayName)
-                // Add availability status as subtitle when Apple Intelligence is selected
-                if !AppleIntelligenceModel.shared.isAvailable {
-                    defaultAuxiliaryModel.configure(description: "Status: \(AppleIntelligenceModel.shared.availabilityStatus)")
-                }
-            } else {
-                defaultAuxiliaryModel.configure(value: displayName(for: devAuxId))
-            }
+            configureModelRow(defaultAuxiliaryModel, id: devAuxId)
 
             defaultAuxiliaryModel.use { [weak self] in
                 guard let self else { return [] }

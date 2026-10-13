@@ -5,8 +5,6 @@
 //  Created by qaq on 13/12/2025.
 //
 
-import ChatClientKit
-import ExtensionKit
 import Storage
 import SwiftUI
 import TranslationUIProvider
@@ -53,7 +51,6 @@ struct TranslationProviderView: View {
         }
         .padding(.horizontal)
         .animation(.spring, value: translationModel.translationError?.localizedDescription)
-        .animation(.spring, value: translationModel.translationReasoning)
         .animation(.spring, value: translationModel.translationPlainResult)
         .animation(.spring, value: translationModel.translationSegmentedResult)
         .animation(.spring, value: translationModel.isTranslating)
@@ -82,7 +79,7 @@ struct TranslationProviderView: View {
     }
 
     func translate() {
-        guard let model = selectedModel, !inputText.isEmpty else { return }
+        guard canTranslate, let model = selectedModel else { return }
         translationModel.translate(
             inputText: inputText,
             model: model,

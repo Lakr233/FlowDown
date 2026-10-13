@@ -12,7 +12,6 @@ class TextEditorContentController: UIViewController {
     var callback: ((String) -> Void) = { _ in }
 
     let textView = UITextView()
-    var bottomOffset: CGFloat = 0
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -82,19 +81,14 @@ class TextEditorContentController: UIViewController {
 
     open func done() {
         callback(textView.text)
-        if let nav = navigationController {
-            if nav.viewControllers.first == self {
-                dismiss(animated: true)
-            } else {
-                nav.popViewController(animated: true)
-            }
-        } else {
-            dismiss(animated: true) {}
-        }
+        close()
     }
 
     open func cancelDone() {
-        textView.text = text // just in case
+        close()
+    }
+
+    private func close() {
         if let nav = navigationController {
             if nav.viewControllers.first == self {
                 dismiss(animated: true)

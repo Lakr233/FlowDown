@@ -174,7 +174,7 @@ extension AppDelegate {
         }
         var items: [UIMenuElement] = []
         for (idx, template) in templates.enumerated() {
-            let title = "\(template.name)"
+            let title = template.name
             let action = #selector(AppDelegate.requestNewChatWithTemplateFromMenu(_:))
             let propertyList = template.id.uuidString
             if idx < 9 {
@@ -216,7 +216,6 @@ extension AppDelegate {
         UpdateManager.shared.performUpdateCheckFromUI()
     }
 
-    /// Wire from MainController
     @objc func requestNewChatFromMenu(_: Any?) {
         (mainWindow?.rootViewController as? MainController)?.requestNewChat()
     }
@@ -234,8 +233,6 @@ extension AppDelegate {
             requestApplicationExit()
         }
     #endif
-
-    // new chat with template
 
     @objc func requestNewChatWithTemplateFromMenu(_ sender: UICommand) {
         guard let templateID = sender.propertyList as? String else { return }
@@ -255,7 +252,6 @@ extension AppDelegate {
         }
     }
 
-    /// conversation related
     private func withCurrentConversation(
         _ block: (MainController, Conversation.ID) -> Void,
     ) {
@@ -291,7 +287,6 @@ extension AppDelegate {
         }
     }
 
-    /// conversation navigation
     @objc func selectPreviousConversationFromMenu(_: Any?) {
         selectAdjacentConversation(offset: -1)
     }

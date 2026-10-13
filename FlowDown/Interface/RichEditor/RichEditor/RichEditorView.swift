@@ -106,9 +106,6 @@ class RichEditorView: EditorSectionView {
     ]
 
     let spacing: CGFloat = 10
-    var keyboardAdditionalHeight: CGFloat = 0 {
-        didSet { setNeedsLayout() }
-    }
 
     static var didRequestAutomaticModelSelection = false
 
@@ -242,7 +239,7 @@ class RichEditorView: EditorSectionView {
         dropContainer.frame = shadowContainer.frame
         dropColorView.frame = dropContainer.bounds
 
-        heightPublisher.send(finalHeight + keyboardAdditionalHeight + spacing)
+        heightPublisher.send(finalHeight + spacing)
     }
 
     func updateHeightConstraint(_ height: CGFloat) {
@@ -275,10 +272,6 @@ class RichEditorView: EditorSectionView {
         inputEditor.textView.becomeFirstResponder()
     }
 
-    func updateModelName() {
-        updateModelinfoFile()
-    }
-
     private var shadowStyle: RichEditorShadowStyle {
         .resolve(handlerColor: handlerColor)
     }
@@ -303,7 +296,7 @@ class RichEditorView: EditorSectionView {
     func prepareForReuse() {
         storage = .init(id: "-1")
         resetValues()
-        updateModelName()
+        updateModelinfoFile()
     }
 
     func use(identifier: String) {

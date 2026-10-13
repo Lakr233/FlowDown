@@ -372,11 +372,9 @@ extension ModelManager {
             }
 
             let producer = Task.detached {
-                // 这个逻辑是这样的 如果 UI 吃到了太多的数据 布局一次可能要 0.1 秒
-                // 布局完毕以后不会卡 但是一直在布局就会很卡
-                // 所以如果输出超过 n 字 就停止使用 emitter
-                // 由于 layout 只发生在 markdown 渲染的位置 因此只管 text 就行了
-                var emotionalDamage = 0
+                // Large outputs make each Markdown layout pass slow (~0.1s), so throttle the text emitter
+                // as the emitted text grows. Only text is throttled because only text drives Markdown layout.
+                var emittedTextCount = 0
 
                 do {
                     let sequence = try await client.streamingChat(body: body)
@@ -388,15 +386,15 @@ extension ModelManager {
                             await reasoningEmitter.add(string)
                         case let .text(string):
                             await reasoningEmitter.wait()
-                            if emotionalDamage >= 5000 {
+                            if emittedTextCount >= 5000 {
                                 await textEmitter.update(duration: 1.0, frequency: 3)
-                            } else if emotionalDamage >= 2000 {
+                            } else if emittedTextCount >= 2000 {
                                 await textEmitter.update(duration: 1.0, frequency: 9)
-                            } else if emotionalDamage >= 1000 {
+                            } else if emittedTextCount >= 1000 {
                                 await textEmitter.update(duration: 0.5, frequency: 15)
                             }
                             await textEmitter.add(string)
-                            emotionalDamage += string.count
+                            emittedTextCount += string.count
                         default:
                             await reasoningEmitter.wait()
                             await textEmitter.wait()
@@ -405,10 +403,10 @@ extension ModelManager {
                     }
                     await reasoningEmitter.wait()
                     await textEmitter.wait()
-                    if emotionalDamage == 0 {
+                    if emittedTextCount == 0 {
                         Logger.model.debugFile("model \(modelID) generated no text output in streaming inference")
                     }
-                    if emotionalDamage == 0 || failsOnCollectedErrors,
+                    if emittedTextCount == 0 || failsOnCollectedErrors,
                        let error = client.collectedErrors
                     {
                         cont.finish(throwing: NSError(

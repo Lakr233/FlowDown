@@ -9,8 +9,10 @@ export const metadata: Metadata = {
   },
 };
 
+const previewCount = 4;
+
 export default function DocsHomePage() {
-  const config = getDocsConfig();
+  const sections = getDocsConfig();
 
   return (
     <div>
@@ -22,7 +24,7 @@ export default function DocsHomePage() {
       </p>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {config.sidebarNav.map((section, idx) => (
+        {sections.map((section, idx) => (
           <div
             key={idx}
             className="bg-[#ebebeb] rounded-xl p-5 border border-[#e6e6e6] hover:border-[#d0d0d0] transition-colors"
@@ -31,7 +33,7 @@ export default function DocsHomePage() {
               {section.title}
             </h2>
             <ul className="space-y-1.5">
-              {section.items.slice(0, 4).map((item, itemIdx) => (
+              {section.items.slice(0, previewCount).map((item, itemIdx) => (
                 <li key={itemIdx}>
                   <Link
                     href={item.href}
@@ -41,9 +43,9 @@ export default function DocsHomePage() {
                   </Link>
                 </li>
               ))}
-              {section.items.length > 4 && (
+              {section.items.length > previewCount && (
                 <li className="text-[#9d9d9d] text-sm">
-                  +{section.items.length - 4} more...
+                  +{section.items.length - previewCount} more...
                 </li>
               )}
             </ul>

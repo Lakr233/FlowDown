@@ -13,7 +13,7 @@ import UIKit
 
 extension MLX.GPU {
     static let storageKey = "wiki.qaq.MLX.GPU.cacheSize"
-    static var cancellables = Set<AnyCancellable>()
+    private static var cancellables = Set<AnyCancellable>()
     static let isSupportedKey = "Device.isMlxSupported"
     static var isSupported: Bool {
         ConfigurableKit.value(forKey: isSupportedKey) ?? false

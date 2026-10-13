@@ -51,7 +51,7 @@ class MTListMemoriesTool: ModelTool, @unchecked Sendable {
         if let json = decodeArguments(input),
            let limitValue = json["limit"] as? Int
         {
-            limit = min(max(limitValue, 1), 100) // Ensure between 1 and 100
+            limit = limitValue
         }
 
         return await MemoryStore.shared.listMemoriesWithIds(limit: limit)

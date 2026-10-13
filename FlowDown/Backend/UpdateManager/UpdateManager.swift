@@ -23,6 +23,12 @@ protocol ReceiptStateProviding {
 
 extension FileManager: ReceiptStateProviding {}
 
+private func releaseParseError() -> NSError {
+    NSError(domain: "UpdateManagerError", code: 1, userInfo: [
+        NSLocalizedDescriptionKey: String(localized: "Failed to parse release information."),
+    ])
+}
+
 protocol ReleaseFeedClient {
     func latestGitHubRelease() async throws -> GitHubRelease
 }
@@ -58,9 +64,7 @@ struct GitHubReleaseFeedClient: ReleaseFeedClient {
     func latestGitHubRelease() async throws -> GitHubRelease {
         let (data, _) = try await session.data(from: latestReleaseURL)
         guard let release = try? JSONDecoder().decode(GitHubRelease.self, from: data) else {
-            throw NSError(domain: "UpdateManagerError", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "Failed to parse release information."),
-            ])
+            throw releaseParseError()
         }
         return release
     }
@@ -81,7 +85,6 @@ class UpdateManager: NSObject {
     private let releaseFeedClient: ReleaseFeedClient
 
     var canCheckForUpdates: Bool {
-        // Check if the current channel supports update checking
         [.fromGitHub].contains(currentChannel)
     }
 
@@ -155,7 +158,7 @@ class UpdateManager: NSObject {
             return
         }
         Logger.app.infoFile("checking for updates from \(bundleVersion)...")
-        guard [.fromGitHub].contains(currentChannel) else {
+        guard canCheckForUpdates else {
             Logger.app.errorFile("Update check is not supported for the current distribution channel.")
             return
         }
@@ -251,9 +254,7 @@ extension DistributionChannel {
                   !release.prerelease,
                   let downloadPageURL = URL(string: release.htmlURL)
             else {
-                throw NSError(domain: "UpdateManagerError", code: 1, userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Failed to parse release information."),
-                ])
+                throw releaseParseError()
             }
             Logger.app.infoFile("latest release version: \(release.tagName), url: \(release.htmlURL)")
             return [.init(tag: release.tagName, downloadURL: downloadPageURL)]

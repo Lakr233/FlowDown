@@ -17,6 +17,7 @@ nonisolated(unsafe) extension ScrubberConfiguration {
     static let bingEnabledKey = "app.scrubber.engine.bing.enabled"
 
     static let limitKey = "app.scrubber.engine.limit"
+    private static let defaultLimit = 20
 
     private static var cancellables: Set<AnyCancellable> = []
 
@@ -58,7 +59,7 @@ nonisolated(unsafe) extension ScrubberConfiguration {
         title: "Search Limit",
         explain: "The maximum number of search results to fetch.",
         key: limitKey,
-        defaultValue: 20,
+        defaultValue: defaultLimit,
         annotation: .menu { [
             .init(title: "5 Pages", rawValue: 5),
             .init(title: "10 Pages", rawValue: 10),
@@ -69,7 +70,7 @@ nonisolated(unsafe) extension ScrubberConfiguration {
     )
 
     static var limitConfigurableObjectValue: Int {
-        ConfigurableKit.value(forKey: limitKey) ?? 20
+        ConfigurableKit.value(forKey: limitKey) ?? defaultLimit
     }
 
     @MainActor

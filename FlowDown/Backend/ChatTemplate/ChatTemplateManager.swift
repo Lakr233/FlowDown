@@ -70,18 +70,17 @@ class ChatTemplateManager {
 
     func update(_ template: ChatTemplate) {
         assert(Thread.isMainThread)
-        if let record = sdb.template(with: template.id.uuidString) {
-            let updated = makeRecord(
-                from: template,
-                existing: record,
-                sortIndex: record.sortIndex,
-                shouldMarkModified: true,
-            )
-            sdb.templateSave(record: updated)
-        } else {
+        guard let record = sdb.template(with: template.id.uuidString) else {
             addTemplate(template)
             return
         }
+        let updated = makeRecord(
+            from: template,
+            existing: record,
+            sortIndex: record.sortIndex,
+            shouldMarkModified: true,
+        )
+        sdb.templateSave(record: updated)
         reloadFromStorage()
     }
 

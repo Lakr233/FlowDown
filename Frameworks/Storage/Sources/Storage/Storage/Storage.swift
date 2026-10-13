@@ -89,28 +89,16 @@ public class Storage {
 
         existsDatabaseFile = FileManager.default.fileExists(atPath: databaseLocation.path)
 
-        if existsDatabaseFile {
-            initVersion = .Version0
-            migrations = [
-                MigrationV0ToV1(),
-                MigrationV1ToV2(deviceId: Storage.deviceId, requiresDataMigration: true),
-                MigrationV2ToV3(),
-                MigrationV3ToV4(),
-                MigrationV4ToV5(),
-                MigrationV5ToV6(),
-                MigrationV6ToV7(),
-            ]
-        } else {
-            initVersion = .Version1
-            migrations = [
-                MigrationV1ToV2(deviceId: Storage.deviceId, requiresDataMigration: false),
-                MigrationV2ToV3(),
-                MigrationV3ToV4(),
-                MigrationV4ToV5(),
-                MigrationV5ToV6(),
-                MigrationV6ToV7(),
-            ]
-        }
+        let tail: [DBMigration] = [
+            MigrationV1ToV2(deviceId: Storage.deviceId, requiresDataMigration: existsDatabaseFile),
+            MigrationV2ToV3(),
+            MigrationV3ToV4(),
+            MigrationV4ToV5(),
+            MigrationV5ToV6(),
+            MigrationV6ToV7(),
+        ]
+        migrations = existsDatabaseFile ? [MigrationV0ToV1()] + tail : tail
+        initVersion = existsDatabaseFile ? .Version0 : .Version1
 
         db = Database(at: databaseLocation.path)
 
@@ -198,7 +186,7 @@ public class Storage {
 private extension Storage {
     func checkMigration() {
         for migration in migrations {
-            guard migration.validate(allowedVersions: DBVersion.allCases) else {
+            guard migration.isSingleStep else {
                 fatalError("Invalid migration: \(migration) crosses multiple versions or uses unknown version")
             }
         }
@@ -290,7 +278,7 @@ public extension Storage {
                             && (UploadQueue.Properties.state == UploadQueue.State.finish
                                 || (UploadQueue.Properties.state
                                     .in([UploadQueue.State.pending, UploadQueue.State.failed])
-                                    && UploadQueue.Properties.failCount >= 100)),
+                                    && UploadQueue.Properties.failCount >= UploadQueue.maxFailCount)),
                     )
 
                 })

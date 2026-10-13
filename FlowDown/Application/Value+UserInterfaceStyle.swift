@@ -11,7 +11,7 @@ import Foundation
 import UIKit
 
 extension UIUserInterfaceStyle {
-    static var cases: [UIUserInterfaceStyle] = [
+    static let cases: [UIUserInterfaceStyle] = [
         .light,
         .dark,
         .unspecified,
@@ -36,17 +36,15 @@ extension UIUserInterfaceStyle {
     }
 
     var catalystAppearance: NSObject? {
-        switch self {
-        case .light:
-            (NSClassFromString("NSAppearance") as? NSObject.Type)?
-                .perform(NSSelectorFromString("appearanceNamed:"), with: "NSAppearanceNameAqua")?
-                .takeUnretainedValue() as? NSObject
-        case .dark:
-            (NSClassFromString("NSAppearance") as? NSObject.Type)?
-                .perform(NSSelectorFromString("appearanceNamed:"), with: "NSAppearanceNameDarkAqua")?
-                .takeUnretainedValue() as? NSObject
+        let name: String? = switch self {
+        case .light: "NSAppearanceNameAqua"
+        case .dark: "NSAppearanceNameDarkAqua"
         default: nil
         }
+        guard let name else { return nil }
+        return (NSClassFromString("NSAppearance") as? NSObject.Type)?
+            .perform(NSSelectorFromString("appearanceNamed:"), with: name)?
+            .takeUnretainedValue() as? NSObject
     }
 }
 

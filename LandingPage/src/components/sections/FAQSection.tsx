@@ -29,7 +29,7 @@ const faqs = [
         </ul>
       </>
     ),
-    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →", external: true },
+    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →" },
     image: { src: "/q-and-a-1.png", alt: "AI Models Support" },
   },
   {
@@ -56,7 +56,7 @@ const faqs = [
         </p>
       </>
     ),
-    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →", external: true },
+    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →" },
     image: { src: "/q-and-a-2.png", alt: "Platform Support" },
   },
   {
@@ -80,7 +80,7 @@ const faqs = [
         </p>
       </>
     ),
-    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →", external: true },
+    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →" },
     image: { src: "/q-and-a-3.png", alt: "Tool Calling Features" },
   },
   {
@@ -105,7 +105,7 @@ const faqs = [
         </li>
       </ul>
     ),
-    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →", external: true },
+    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →" },
     image: { src: "/q-and-a-4.png", alt: "Data Security" },
   },
   {
@@ -130,7 +130,7 @@ const faqs = [
         </li>
       </ul>
     ),
-    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →", external: true },
+    link: { href: "https://flowdown.ai/en-US", label: "LEARN MORE →" },
     image: { src: "/q-and-a-5.png", alt: "Model Configuration" },
   },
   {
@@ -241,7 +241,7 @@ function FAQItem({
 }
 
 export default function FAQSection() {
-  const [openFAQ, setOpenFAQ] = useState<number>(1);
+  const [openFAQ, setOpenFAQ] = useState<number | null>(1);
 
   return (
     <section className="px-6 mt-[120px] max-w-[1280px] mx-auto" id="faq">
@@ -257,13 +257,13 @@ export default function FAQSection() {
             <FAQItem
               question={faq.question}
               isOpen={openFAQ === index}
-              onClick={() => setOpenFAQ(openFAQ === index ? -1 : index)}
+              onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
               answer={
                 <div className="space-y-4">
                   {faq.answer}
                   <Link
                     href={faq.link.href}
-                    target={faq.link.external ? "_blank" : undefined}
+                    target={faq.link.href.startsWith("http") ? "_blank" : undefined}
                     className="text-base font-medium text-black inline-block mt-3"
                   >
                     {faq.link.label}

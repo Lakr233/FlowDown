@@ -144,7 +144,7 @@ private extension SceneDelegate {
                 importTemplate(from: url)
             case "fdmcp":
                 importMCPServer(from: url)
-            default: break // dont know how
+            default: break
             }
         case "flowdown":
             handleFlowDownURL(url)
@@ -173,6 +173,12 @@ private extension SceneDelegate {
         _ = url.startAccessingSecurityScopedResource()
         defer { url.stopAccessingSecurityScopedResource() }
         try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+        let fail: @MainActor (Error) -> Void = { error in
+            Logger.app.errorFile("failed to import template from URL: \(url), error: \(error)")
+            self.mainController.queueBootMessage(
+                text: "Failed to import template: \(error.localizedDescription)",
+            )
+        }
         do {
             let data = try Data(contentsOf: url)
             Task { @MainActor in
@@ -180,17 +186,11 @@ private extension SceneDelegate {
                     let template = try ChatTemplateManager.shared.importTemplate(from: data)
                     mainController.queueBootMessage(text: "Successfully imported \(template.name)")
                 } catch {
-                    Logger.app.errorFile("failed to import template from URL: \(url), error: \(error)")
-                    mainController.queueBootMessage(
-                        text: "Failed to import template: \(error.localizedDescription)",
-                    )
+                    fail(error)
                 }
             }
         } catch {
-            Logger.app.errorFile("failed to import template from URL: \(url), error: \(error)")
-            mainController.queueBootMessage(
-                text: "Failed to import template: \(error.localizedDescription)",
-            )
+            fail(error)
         }
     }
 
@@ -198,6 +198,12 @@ private extension SceneDelegate {
         _ = url.startAccessingSecurityScopedResource()
         defer { url.stopAccessingSecurityScopedResource() }
         try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+        let fail: @MainActor (Error) -> Void = { error in
+            Logger.app.errorFile("failed to import MCP server from URL: \(url), error: \(error)")
+            self.mainController.queueBootMessage(
+                text: "Failed to import MCP server: \(error.localizedDescription)",
+            )
+        }
         do {
             let data = try Data(contentsOf: url)
             Task { @MainActor in
@@ -214,17 +220,11 @@ private extension SceneDelegate {
                         text: "Successfully imported MCP server \(serverName)",
                     )
                 } catch {
-                    Logger.app.errorFile("failed to import MCP server from URL: \(url), error: \(error)")
-                    mainController.queueBootMessage(
-                        text: "Failed to import MCP server: \(error.localizedDescription)",
-                    )
+                    fail(error)
                 }
             }
         } catch {
-            Logger.app.errorFile("failed to import MCP server from URL: \(url), error: \(error)")
-            mainController.queueBootMessage(
-                text: "Failed to import MCP server: \(error.localizedDescription)",
-            )
+            fail(error)
         }
     }
 
@@ -239,10 +239,6 @@ private extension SceneDelegate {
             return
         }
         guard url.host() == "new" else { return }
-        handleNewMessageURL(url)
-    }
-
-    func handleNewMessageURL(_ url: URL) {
         guard let message = Self.newConversationMessage(from: url) else { return }
         mainController.queueNewConversation(text: message, shouldSend: !message.isEmpty)
     }

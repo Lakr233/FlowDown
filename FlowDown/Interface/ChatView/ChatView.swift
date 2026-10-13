@@ -59,7 +59,7 @@ class ChatView: UIView {
 
     @TypedStorage(key: "Chat.Editor.Model.Name.Style", defaultValue: EditorModelNameStyle.trimmed)
     var editorModelNameStyle: EditorModelNameStyle {
-        didSet { editor.updateModelName() }
+        didSet { editor.updateModelinfoFile() }
     }
 
     @TypedStorage(key: "Chat.Editor.Model.Apply.Default", defaultValue: true)
@@ -173,7 +173,7 @@ class ChatView: UIView {
         ModelManager.shared.modelChangedPublisher
             .ensureMainThread()
             .sink { [weak self] _ in
-                self?.editor.updateModelName()
+                self?.editor.updateModelinfoFile()
             }
             .store(in: &cancellables)
 

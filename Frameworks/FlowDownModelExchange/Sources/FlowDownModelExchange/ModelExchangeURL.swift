@@ -49,7 +49,7 @@ public nonisolated enum ModelExchangeURL {
         guard let session = dict["session"],
               let appName = dict["app_name"],
               let reason = dict["reason"],
-              let multipleSelection = dict["multiple_selection"].flatMap({ $0.lowercased() == "true" }),
+              let multipleSelection = dict["multiple_selection"].map({ $0.lowercased() == "true" }),
               let timestampString = dict["timestamp"],
               let timestampValue = TimeInterval(timestampString)
         else { return nil }

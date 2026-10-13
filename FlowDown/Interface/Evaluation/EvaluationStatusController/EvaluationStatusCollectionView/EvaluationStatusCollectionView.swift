@@ -64,13 +64,8 @@ final class EvaluationStatusCollectionView: UIView {
         let changedSections: [Section]
     }
 
-    private struct PendingApply {
-        var animated: Bool
-        var build: SnapshotBuild
-    }
-
     private var isApplyingSnapshot = false
-    private var pendingApply: PendingApply?
+    private var pendingApply: SnapshotBuild?
 
     override var intrinsicContentSize: CGSize {
         .zero
@@ -82,7 +77,7 @@ final class EvaluationStatusCollectionView: UIView {
 
         setupView()
         configureRegistrations()
-        applySessionUpdate(animated: false)
+        applySessionUpdate()
     }
 
     @available(*, unavailable)
@@ -101,46 +96,36 @@ final class EvaluationStatusCollectionView: UIView {
         collectionView.register(EvaluationStatusCell.self, forCellWithReuseIdentifier: "EvaluationStatusCell")
     }
 
-    func applySessionUpdate(animated: Bool) {
-        requestApplySnapshot(animated: animated)
+    func applySessionUpdate() {
+        if Thread.isMainThread {
+            enqueueApplySnapshot()
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.enqueueApplySnapshot()
+            }
+        }
     }
 
     func setOutcomeFilter(_ filter: EvaluationManifest.Suite.Case.Result.Outcome?) {
         outcomeFilter = filter
-        applySessionUpdate(animated: false)
+        applySessionUpdate()
     }
 
-    private func requestApplySnapshot(animated: Bool) {
-        if Thread.isMainThread {
-            enqueueApplySnapshot(animated: animated)
-        } else {
-            DispatchQueue.main.async { [weak self] in
-                self?.enqueueApplySnapshot(animated: animated)
-            }
-        }
-    }
-
-    private func enqueueApplySnapshot(animated: Bool) {
+    private func enqueueApplySnapshot() {
         let build = buildSnapshot()
 
         if isApplyingSnapshot {
-            if var pending = pendingApply {
-                pending.animated = pending.animated || animated
-                pending.build = build
-                pendingApply = pending
-            } else {
-                pendingApply = .init(animated: animated, build: build)
-            }
+            pendingApply = build
             return
         }
 
-        apply(build: build, animated: animated)
+        apply(build: build)
     }
 
-    private func apply(build: SnapshotBuild, animated: Bool) {
+    private func apply(build: SnapshotBuild) {
         isApplyingSnapshot = true
 
-        dataSource.apply(build.snapshot, animatingDifferences: animated) { [weak self] in
+        dataSource.apply(build.snapshot, animatingDifferences: false) { [weak self] in
             guard let self else { return }
 
             lastCaseStates = build.caseStates
@@ -153,7 +138,7 @@ final class EvaluationStatusCollectionView: UIView {
             isApplyingSnapshot = false
             if let pending = pendingApply {
                 pendingApply = nil
-                apply(build: pending.build, animated: pending.animated)
+                apply(build: pending)
             }
         }
     }

@@ -72,12 +72,7 @@ extension StreamAudioEffectSetting {
     }
 
     static func configuredMode() -> StreamAudioEffectSetting {
-        guard
-            let rawValue: Int = ConfigurableKit.value(forKey: storageKey),
-            let mode = StreamAudioEffectSetting(rawValue: rawValue)
-        else {
-            return .off
-        }
-        return mode
+        let raw: Int? = ConfigurableKit.value(forKey: storageKey)
+        return raw.flatMap(Self.init(rawValue:)) ?? .off
     }
 }

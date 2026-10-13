@@ -3,7 +3,7 @@
 import Foundation
 import WCDBSwift
 
-public final class Conversation: Identifiable, Codable, TableNamed, DeviceOwned, TableCodable {
+public final class Conversation: Identifiable, Codable, TableNamed, TableCodable {
     public static let tableName: String = "Conversation"
 
     public var id: String {

@@ -26,9 +26,6 @@ enum PrivateBlurEngine {
         return NSClassFromString(name as String) as? NSObject.Type
     }()
 
-    private static var cachedBackdropAllocMethod: (@convention(c) (AnyObject, Selector) -> NSObject?, Selector)?
-    private static var cachedBackdropInitMethod: (@convention(c) (NSObject, Selector) -> NSObject?, Selector)?
-
     @inline(__always)
     private static func getMethod<T>(object: AnyObject, selector: String) -> T? {
         guard let method = object.method(for: NSSelectorFromString(selector)) else {
@@ -42,40 +39,26 @@ enum PrivateBlurEngine {
             return nil
         }
 
-        let allocatedObject: NSObject?
-        if let cachedBackdropAllocMethod {
-            allocatedObject = cachedBackdropAllocMethod.0(backdropLayerClass, cachedBackdropAllocMethod.1)
-        } else {
-            let selector = NSSelectorFromString("alloc")
-            let method: (@convention(c) (AnyObject, Selector) -> NSObject?)? = getMethod(
-                object: backdropLayerClass,
-                selector: "alloc",
-            )
-            guard let method else {
-                return nil
-            }
-            cachedBackdropAllocMethod = (method, selector)
-            allocatedObject = method(backdropLayerClass, selector)
-        }
-
-        guard let allocatedObject else {
+        let allocSelector = NSSelectorFromString("alloc")
+        let allocMethod: (@convention(c) (AnyObject, Selector) -> NSObject?)? = getMethod(
+            object: backdropLayerClass,
+            selector: "alloc",
+        )
+        guard let allocMethod,
+              let allocatedObject = allocMethod(backdropLayerClass, allocSelector)
+        else {
             return nil
         }
 
-        if let cachedBackdropInitMethod {
-            return cachedBackdropInitMethod.0(allocatedObject, cachedBackdropInitMethod.1) as? CALayer
-        }
-
-        let selector = NSSelectorFromString("init")
-        let method: (@convention(c) (NSObject, Selector) -> NSObject?)? = getMethod(
+        let initSelector = NSSelectorFromString("init")
+        let initMethod: (@convention(c) (NSObject, Selector) -> NSObject?)? = getMethod(
             object: allocatedObject,
             selector: "init",
         )
-        guard let method else {
+        guard let initMethod else {
             return nil
         }
-        cachedBackdropInitMethod = (method, selector)
-        return method(allocatedObject, selector) as? CALayer
+        return initMethod(allocatedObject, initSelector) as? CALayer
     }
 
     @inline(__always)

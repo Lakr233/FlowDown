@@ -8,7 +8,7 @@
 import Foundation
 import WCDBSwift
 
-public final class ConversationSummary: Identifiable, Codable, TableNamed, DeviceOwned, TableCodable {
+public final class ConversationSummary: Identifiable, Codable, TableNamed, TableCodable {
     public static let tableName: String = "ConversationSummary"
 
     static func objectId(forConversationID conversationId: String) -> String {

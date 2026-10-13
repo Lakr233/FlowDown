@@ -59,10 +59,7 @@ class ConfigurableInfoView: ConfigurableView {
         valueLabel.removeTarget(self, action: #selector(tapped), for: .touchUpInside)
         valueLabel.showsMenuAsPrimaryAction = true
         valueLabel.menu = .init(children: [
-            UIDeferredMenuElement.uncached { completion in
-                let menuElements = menu()
-                completion(menuElements)
-            },
+            UIDeferredMenuElement.uncached { completion in completion(menu()) },
         ])
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 import WCDBSwift
 
-public final class ChatTemplateRecord: Identifiable, Codable, TableNamed, DeviceOwned, TableCodable {
+public final class ChatTemplateRecord: Identifiable, Codable, TableNamed, TableCodable {
     public typealias ID = String
 
     public static let tableName: String = "ChatTemplate"

@@ -5,7 +5,6 @@
 //  Created by qaq on 13/12/2025.
 //
 
-import ExtensionKit
 @preconcurrency import Storage
 import SwiftUI
 import TranslationUIProvider

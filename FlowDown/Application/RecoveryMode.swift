@@ -17,7 +17,7 @@ enum RecoveryMode {
     private(set) static var error: Error?
 
     static func launch(with error: Error) -> Never {
-        self.error = error // 在存在 user default 的情况下 window group 可能不会被使用
+        self.error = error // When user defaults exist, the window group may not be used.
         UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, nil, nil)
         fatalError()
     }

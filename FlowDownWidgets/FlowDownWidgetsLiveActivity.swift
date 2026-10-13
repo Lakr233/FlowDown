@@ -10,6 +10,8 @@ import SwiftUI
 import WidgetKit
 
 struct FlowDownWidgetsLiveActivity: Widget {
+    private static let liveActivityURL = URL(string: "flowdown://live-activity")
+
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FlowDownWidgetsAttributes.self) { context in
             VStack {
@@ -44,7 +46,7 @@ struct FlowDownWidgetsLiveActivity: Widget {
             .animation(.interactiveSpring, value: context.state)
             .activityBackgroundTint(.accent)
             .activitySystemActionForegroundColor(.white)
-            .widgetURL(URL(string: "flowdown://live-activity"))
+            .widgetURL(Self.liveActivityURL)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.bottom) {
@@ -84,7 +86,7 @@ struct FlowDownWidgetsLiveActivity: Widget {
                 Image(systemName: "bird.fill")
                     .foregroundStyle(context.state.isFinished ? .accent : .white)
                     .animation(.interactiveSpring, value: context.state)
-                    .widgetURL(URL(string: "flowdown://live-activity"))
+                    .widgetURL(Self.liveActivityURL)
             }
         }
     }

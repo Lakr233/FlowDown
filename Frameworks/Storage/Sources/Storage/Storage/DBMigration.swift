@@ -183,21 +183,8 @@ protocol DBMigration {
 
 extension DBMigration {
     /// 检查迁移是否合法：不允许跨多个版本
-    func validate(allowedVersions: [DBVersion]) -> Bool {
-        // 1. fromVersion 和 toVersion 都必须在允许的版本范围内
-        guard allowedVersions.contains(fromVersion),
-              allowedVersions.contains(toVersion)
-        else {
-            return false
-        }
-
-        // 2. 只允许跨单个版本
-        if let fromIndex = allowedVersions.firstIndex(of: fromVersion),
-           let toIndex = allowedVersions.firstIndex(of: toVersion)
-        {
-            return (toIndex - fromIndex) == 1
-        }
-        return false
+    var isSingleStep: Bool {
+        toVersion.rawValue - fromVersion.rawValue == 1
     }
 }
 
@@ -254,8 +241,8 @@ struct MigrationV1ToV2: DBMigration {
     }
 
     private func performSchemaMigration(db: Database) throws {
-        try createAttachmentTable(db: db)
-        try createMessageTable(db: db)
+        try db.create(table: Attachment.tableName, of: AttachmentTableSchema.self)
+        try db.create(table: Message.tableName, of: MessageTableSchema.self)
         try db.create(table: Conversation.tableName, of: Conversation.self)
 
         try db.create(table: CloudModel.tableName, of: CloudModel.self)
@@ -264,14 +251,6 @@ struct MigrationV1ToV2: DBMigration {
 
         try db.create(table: SyncMetadata.tableName, of: SyncMetadata.self)
         try createUploadQueueTable(db: db)
-    }
-
-    private func createAttachmentTable(db: Database) throws {
-        try db.create(table: Attachment.tableName, of: AttachmentTableSchema.self)
-    }
-
-    private func createMessageTable(db: Database) throws {
-        try db.create(table: Message.tableName, of: MessageTableSchema.self)
     }
 
     private func performDataMigration(db: Database) throws {

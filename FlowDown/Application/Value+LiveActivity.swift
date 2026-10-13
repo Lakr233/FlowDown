@@ -12,18 +12,19 @@ import Foundation
 enum LiveActivitySetting {
     static let storageKey = "app.liveactivity.enabled"
     private static var cancellables: Set<AnyCancellable> = []
+    private static let defaultValue = false
 
     static let configurableObject: ConfigurableObject = .init(
         icon: "bolt.horizontal.circle",
         title: "Enable Live Activity",
         explain: "Show a Live Activity while streaming in the background.",
         key: storageKey,
-        defaultValue: false,
+        defaultValue: defaultValue,
         annotation: .toggle,
     )
 
     static func isEnabled() -> Bool {
-        (ConfigurableKit.value(forKey: storageKey) as Bool?) ?? false
+        (ConfigurableKit.value(forKey: storageKey) as Bool?) ?? defaultValue
     }
 
     static func setEnabled(_ enabled: Bool) {

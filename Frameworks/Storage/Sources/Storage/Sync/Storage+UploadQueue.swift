@@ -270,7 +270,7 @@ package extension Storage {
             .to(UploadQueue.State.pending)
             .where(
                 UploadQueue.Properties.state == UploadQueue.State.failed
-                    && UploadQueue.Properties.failCount < 100,
+                    && UploadQueue.Properties.failCount < UploadQueue.maxFailCount,
             )
 
         try handle.exec(update)
@@ -297,7 +297,7 @@ package extension Storage {
             .where(
                 UploadQueue.Properties.tableName.in(tables)
                     && UploadQueue.Properties.state == UploadQueue.State.pending
-                    && UploadQueue.Properties.failCount < 100,
+                    && UploadQueue.Properties.failCount < UploadQueue.maxFailCount,
             )
             .group(by: UploadQueue.Properties.objectId)
             .order(by: UploadQueue.Properties.creation.order(.ascending))
@@ -333,7 +333,7 @@ package extension Storage {
         }
     }
 
-    /// 查询的指定队列ID集合, state != finish && failCount < 100
+    /// 查询的指定队列ID集合, state != finish && failCount < UploadQueue.maxFailCount
     /// - Parameters:
     ///   - queueIds: 队列ID
     ///   - queryRealObject: 是否需要查询关联的 realObject
@@ -346,7 +346,7 @@ package extension Storage {
         select.where(
             UploadQueue.Properties.id.in(queueIds)
                 && UploadQueue.Properties.state != UploadQueue.State.finish
-                && UploadQueue.Properties.failCount < 100,
+                && UploadQueue.Properties.failCount < UploadQueue.maxFailCount,
         )
         .order(by: [
             UploadQueue.Properties.id.order(.ascending),

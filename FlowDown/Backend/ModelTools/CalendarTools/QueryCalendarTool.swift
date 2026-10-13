@@ -181,7 +181,6 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         controller: UIViewController,
         continuation: CheckedContinuation<String, any Swift.Error>
     ) {
-        // 将Markdown格式的结果转换成更适合展示的纯文本
         let displayText = formatResultForDisplay(result)
 
         let alert = AlertViewController(
@@ -197,7 +196,7 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             }
             context.addAction(title: "Share", attribute: .accent) {
                 context.dispose {
-                    // 返回原始的带格式的结果给AI
+                    // The model gets the original Markdown, not the plain display text.
                     continuation.resume(returning: result)
                 }
             }
@@ -211,7 +210,7 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    /// 将Markdown格式的结果转换为更友好的显示格式
+    /// Converts the Markdown result into plain text for the confirmation alert.
     private func formatResultForDisplay(_ markdownResult: String) -> String {
         var displayLines = [String]()
         let lines = markdownResult.split(separator: "\n")
@@ -229,21 +228,17 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
 
             if trimmedLine.hasPrefix("# ") {
-                // 日期标题 - 完全去除"# "前缀
                 let dateTitle = String(trimmedLine.dropFirst(2))
                 displayLines.append(dateTitle)
                 displayLines.append(String(repeating: "-", count: dateTitle.count))
             } else if trimmedLine.hasPrefix("- **") {
-                // 事件条目 - 将"- **"替换为"• "并删除所有"**"
                 var eventLine = trimmedLine
                 eventLine = eventLine.replacingOccurrences(of: "- **", with: "• ")
                 eventLine = eventLine.replacingOccurrences(of: "**", with: "")
                 displayLines.append(eventLine)
             } else if trimmedLine.hasPrefix("  📍") {
-                // 位置信息保持原样
                 displayLines.append(trimmedLine)
             } else if !trimmedLine.isEmpty {
-                // 其他非空行
                 displayLines.append(trimmedLine)
             }
         }

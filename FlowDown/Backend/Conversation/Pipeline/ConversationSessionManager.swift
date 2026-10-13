@@ -115,15 +115,9 @@ final class ConversationSessionManager {
     }
 
     func resolvePendingRefresh(for sessionID: Conversation.ID) {
-        guard pendingRefresh.contains(sessionID) else { return }
-        guard let session = sessions[sessionID] else {
-            pendingRefresh.remove(sessionID)
-            return
-        }
-        // Task completed, now safe to refresh
+        guard pendingRefresh.remove(sessionID) != nil, let session = sessions[sessionID] else { return }
         logger.infoFile("Executing pending refresh for session \(String(describing: sessionID))")
         session.refreshContentsFromDatabase()
-        pendingRefresh.remove(sessionID)
     }
 
     // MARK: - Execution State Management

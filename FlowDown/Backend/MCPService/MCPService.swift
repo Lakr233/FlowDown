@@ -412,9 +412,7 @@ class MCPService: NSObject {
                 try await connection.ping()
             }
             return false
-        } catch is AwaitCancellableError {
-            return false
-        } catch is CancellationError {
+        } catch is AwaitCancellableError, is CancellationError {
             return false
         } catch let error as MCP.MCPError {
             // A server that does not implement ping still answered on this
@@ -456,7 +454,7 @@ class MCPService: NSObject {
     }
 
     private func updateServerStatus(_ serverId: ModelContextServer.ID, status: ModelContextServer.ConnectionStatus) {
-        // 连接状态不进行同步
+        // Connection status is device-local; do not sync it.
         edit(identifier: serverId, skipSync: true) {
             $0.update(\.connectionStatus, to: status)
             if status == .connected {
@@ -466,7 +464,7 @@ class MCPService: NSObject {
     }
 
     private func updateCapabilities(for serverId: ModelContextServer.ID, hasTools: Bool) {
-        // capabilities不进行同步
+        // Capabilities are discovered per device; do not sync them.
         edit(identifier: serverId, skipSync: true) {
             $0.assign(\.capabilities, to: StringArrayCodable(hasTools ? ["tools"] : []))
         }

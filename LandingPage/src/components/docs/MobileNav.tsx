@@ -13,7 +13,6 @@ export function MobileNav({ items }: MobileNavProps) {
 
   return (
     <>
-      {/* Mobile menu button */}
       <button
         onClick={() => setIsOpen(true)}
         className="lg:hidden fixed bottom-6 right-6 z-40 bg-[#242424] text-white p-4 rounded-full shadow-lg hover:opacity-90 transition-opacity"
@@ -34,7 +33,6 @@ export function MobileNav({ items }: MobileNavProps) {
         </svg>
       </button>
 
-      {/* Overlay */}
       {isOpen && (
         <div
           className="lg:hidden fixed inset-0 z-50 bg-black/30"
@@ -42,13 +40,11 @@ export function MobileNav({ items }: MobileNavProps) {
         />
       )}
 
-      {/* Sidebar drawer */}
       <div
         className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#f6f6f6] transform transition-transform duration-300 ease-in-out shadow-xl flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Close button */}
         <button
           onClick={() => setIsOpen(false)}
           className="absolute top-6 right-4 p-2 text-[#828282] hover:text-[#242424] transition-colors z-10"
@@ -69,7 +65,6 @@ export function MobileNav({ items }: MobileNavProps) {
           </svg>
         </button>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-4 pt-16 space-y-6">
           <DocsNavSections items={items} onNavigate={() => setIsOpen(false)} />
         </nav>
