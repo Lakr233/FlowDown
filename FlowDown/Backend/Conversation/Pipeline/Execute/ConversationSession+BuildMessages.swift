@@ -170,6 +170,16 @@ extension ConversationSession {
         return placeholder == message.document
     }
 
+    /// Marks a user row the pipeline added to carry generated or tool-provided
+    /// attachments. It is not a prompt the user wrote, so retry skips it.
+    func markAsAttachmentHolder(_ message: Message) {
+        encodeAdditionalInfoAndAttachToMessage(message, dic: ["attachment_holder": true])
+    }
+
+    func isAttachmentHolder(_ message: Message) -> Bool {
+        metadataDictionary(of: message)?["attachment_holder"] as? Bool ?? false
+    }
+
     /// Whether the row replays as an assistant tool-call turn, which then
     /// merges with the assistant turn right before it.
     private func replaysStoredToolCall(_ message: Message) -> Bool {

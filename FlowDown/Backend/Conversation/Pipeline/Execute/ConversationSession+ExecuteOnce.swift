@@ -116,6 +116,7 @@ extension ConversationSession {
 
                 let attachmentHolder = appendNewMessage(role: .user)
                 attachmentHolder.update(\.document, to: String(localized: "Received an image"))
+                markAsAttachmentHolder(attachmentHolder)
                 addAttachments(attachments, to: attachmentHolder)
                 await requestUpdate()
             }
@@ -311,6 +312,7 @@ extension ConversationSession {
                     if rawAttachmentCount > 0 {
                         // form a user message for holding attachments
                         let collectorMessage = appendNewMessage(role: .user)
+                        markAsAttachmentHolder(collectorMessage)
 
                         var editorObjects: [RichEditorView.Object.Attachment] = []
 

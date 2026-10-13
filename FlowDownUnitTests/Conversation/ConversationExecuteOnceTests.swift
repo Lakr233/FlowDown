@@ -193,6 +193,30 @@ struct ConversationExecuteOnceTests {
             #expect(texts == ["First question", "First answer", "Second question"])
         }
     }
+
+    @Test
+    @MainActor
+    func retryAfterToolAttachments_targetsTheUserPrompt() async throws {
+        try await withTemporarySession { _, session in
+            let question = session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Take a screenshot")
+            }
+            session.appendNewMessage(role: .assistant) {
+                $0.update(\.document, to: "Calling the tool.")
+            }
+            session.appendNewMessage(role: .toolHint)
+            let holder = session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Collected 1 attachments from tool Screenshot.")
+            }
+            session.markAsAttachmentHolder(holder)
+            let answer = session.appendNewMessage(role: .assistant) {
+                $0.update(\.document, to: "Here is the screenshot.")
+            }
+
+            #expect(session.nearestUserMessage(beforeOrEqual: answer.objectId)?.objectId == question.objectId)
+            #expect(session.nearestUserMessage(beforeOrEqual: holder.objectId)?.objectId == question.objectId)
+        }
+    }
 }
 
 private extension ConversationExecuteOnceTests {
