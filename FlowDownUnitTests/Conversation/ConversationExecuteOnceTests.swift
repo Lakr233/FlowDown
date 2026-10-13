@@ -163,6 +163,95 @@ struct ConversationExecuteOnceTests {
             ])
         }
     }
+
+    @Test
+    @MainActor
+    func webSearchRowWithoutToolRequest_keepsLaterTurns() async throws {
+        try await withTemporarySession { _, session in
+            // Rows from the retired pre-action web search carry no tool
+            // request; they must not cut off the history that follows.
+            session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "First question")
+            }
+            session.appendNewMessage(role: .webSearch)
+            session.appendNewMessage(role: .assistant) {
+                $0.update(\.document, to: "First answer")
+            }
+            session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Second question")
+            }
+
+            var replayed: [ChatRequestBody.Message] = []
+            await session.buildInitialRequestMessages(&replayed, [])
+            let texts = replayed.compactMap { message -> String? in
+                switch message {
+                case let .user(.text(value), _): value
+                case let .assistant(.text(value)?, _, _): value
+                default: nil
+                }
+            }
+            #expect(texts == ["First question", "First answer", "Second question"])
+        }
+    }
+
+    @Test
+    @MainActor
+    func retryAfterToolAttachments_targetsTheUserPrompt() async throws {
+        try await withTemporarySession { _, session in
+            let question = session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Take a screenshot")
+            }
+            session.appendNewMessage(role: .assistant) {
+                $0.update(\.document, to: "Calling the tool.")
+            }
+            session.appendNewMessage(role: .toolHint)
+            let holder = session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Collected 1 attachments from tool Screenshot.")
+            }
+            session.markAsAttachmentHolder(holder)
+            let answer = session.appendNewMessage(role: .assistant) {
+                $0.update(\.document, to: "Here is the screenshot.")
+            }
+
+            #expect(session.nearestUserMessage(beforeOrEqual: answer.objectId)?.objectId == question.objectId)
+            #expect(session.nearestUserMessage(beforeOrEqual: holder.objectId)?.objectId == question.objectId)
+        }
+    }
+
+    @Test
+    @MainActor
+    func summaryFinishingAfterDeletion_isNotSaved() async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+        let conversation = sdb.conversationMake { conversation in
+            conversation.update(\.title, to: "Summary Tests \(UUID().uuidString.prefix(8))")
+        }
+        let conversationID = conversation.id
+        let session = ConversationSessionManager.shared.session(for: conversationID)
+        for index in 1 ... 3 {
+            session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Question \(index)")
+            }
+        }
+        let messages = session.messages
+
+        // The user deletes the conversation while the summary is generated.
+        let service = ChatServiceSpy(chatHandler: { _ in
+            await MainActor.run {
+                ConversationManager.shared.deleteConversation(identifier: conversationID)
+            }
+            return ChatResponse(reasoning: "", text: "SUMMARY: Three questions.\nTOPICS: tests", images: [], tools: [])
+        })
+        try await withChatService(service) {
+            await ConversationSummarizer.shared.summarizeIfNeeded(
+                conversationId: conversationID,
+                messages: messages,
+                using: "unit-test-model",
+            )
+        }
+
+        #expect(!service.receivedBodies.isEmpty)
+        #expect(try Storage.db().getSummary(forConversation: conversationID) == nil)
+    }
 }
 
 private extension ConversationExecuteOnceTests {

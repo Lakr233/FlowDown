@@ -185,6 +185,12 @@ final class ConversationSummarizer {
         messageCount: Int,
     ) throws {
         let storage = try Storage.db()
+        // The summary request takes seconds; a conversation deleted meanwhile
+        // must not come back as context for later prompts.
+        guard storage.conversationWith(identifier: conversationId) != nil else {
+            Logger.model.infoFile("[Summarizer] conversation \(conversationId) was deleted, dropping its summary")
+            return
+        }
         if let existing = try storage.getSummary(forConversation: conversationId) {
             existing.update(\.summary, to: summary)
             existing.update(\.topics, to: topics)

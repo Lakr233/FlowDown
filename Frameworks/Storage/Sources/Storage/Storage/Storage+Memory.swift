@@ -15,7 +15,7 @@ public extension Storage {
         case deleteFailed(String)
         case memoryNotFound(String)
 
-        var localizedDescription: String {
+        public var errorDescription: String? {
             switch self {
             case let .insertFailed(message):
                 "Failed to insert memory: \(message)"
@@ -137,7 +137,7 @@ public extension Storage {
         do {
             let existingMemory: Memory? = try db.getObject(
                 fromTable: Memory.tableName,
-                where: Memory.Properties.objectId == id,
+                where: Memory.Properties.objectId == id && Memory.Properties.removed == false,
             )
 
             guard let existingMemory else {

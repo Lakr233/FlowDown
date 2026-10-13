@@ -79,6 +79,11 @@ final class ConversationSessionManager {
         return newSession
     }
 
+    /// The session already loaded for the conversation, without creating one.
+    func cachedSession(for conversationID: Conversation.ID) -> Session? {
+        sessions[conversationID]
+    }
+
     func invalidateSession(for conversationID: Conversation.ID) {
         sessions.removeValue(forKey: conversationID)
         pendingRefresh.remove(conversationID)

@@ -52,6 +52,16 @@ extension ConversationSession {
             )
         }
 
+        // A tool result must follow the assistant turn that requested it;
+        // providers reject a request that keeps the result without the call.
+        if let lastEvicted = indicesToEvict.last {
+            var next = lastEvicted + 1
+            while next < evictionUpperBound, case .tool = requestMessages[next] {
+                indicesToEvict.append(next)
+                next += 1
+            }
+        }
+
         guard !indicesToEvict.isEmpty else {
             Logger.model.errorFile("unable to remove any more messages, estimated token count: \(estimatedTokenCount)")
             throw NSError(

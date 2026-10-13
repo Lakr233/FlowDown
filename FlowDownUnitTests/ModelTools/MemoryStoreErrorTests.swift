@@ -60,6 +60,15 @@ struct MemoryStoreErrorTests {
         }
         #expect(erasedDescription(error) == String(localized: "Memory not found: \(id)"))
     }
+
+    @Test
+    @MainActor
+    func storageMemoryError_deleteUnknownMemory_namesTheMissingMemory() async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+        let id = UUID().uuidString
+        let result = MemoryStore.shared.deleteMemory(id: id)
+        #expect(result == "Memory with ID \(id) not found")
+    }
 }
 
 private extension MemoryStoreErrorTests {

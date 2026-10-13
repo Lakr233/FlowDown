@@ -19,6 +19,7 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
     private var locationCompletion: ((String, Bool) -> Void)?
     private var loadingIndicator: AlertProgressIndicatorViewController?
     private var currentLocale: Locale?
+    private var isGeocoding = false
 
     override var interfaceName: String {
         String(localized: "Current Location")
@@ -60,7 +61,8 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
 
         if !input.isEmpty,
            let json = decodeArguments(input),
-           let localeIdentifier = json["locale"] as? String
+           let localeIdentifier = json["locale"] as? String,
+           !localeIdentifier.isEmpty
         {
             locale = Locale(identifier: localeIdentifier)
         }
@@ -118,6 +120,7 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
         locationCompletion = wrappedCompletion
         loadingIndicator = indicator
         currentLocale = locale
+        isGeocoding = false
 
         Task.detached { [weak self] in
             guard let self else { return }
@@ -183,7 +186,14 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
             return
         }
 
+        // Both the authorization callback and the explicit check land here;
+        // a second request on the same geocoder would cancel the first.
+        guard !isGeocoding else { return }
+
+        // 获取当前位置
         if let location = locationManager?.location {
+            isGeocoding = true
+            // 地理编码
             geocoder.reverseGeocodeLocation(location, preferredLocale: locale) {
                 placemarks, error in
                 indicator.dismiss(animated: true) {
@@ -268,9 +278,10 @@ class MTLocationTool: ModelTool, @unchecked Sendable {
                 }
             }
         } else {
-            indicator.dismiss(animated: true) {
-                completion(String(localized: "Could not determine current location."), false)
-            }
+            // `location` only holds a cached fix, which is nil until the app
+            // has received one; ask for a fresh fix and continue from the
+            // delegate once it arrives.
+            locationManager?.requestLocation()
         }
     }
 }
@@ -296,6 +307,18 @@ extension MTLocationTool: CLLocationManagerDelegate {
                     false,
                 )
             }
+        }
+    }
+
+    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard !locations.isEmpty else { return }
+        performLocationLookup()
+    }
+
+    func locationManager(_: CLLocationManager, didFailWithError _: Error) {
+        guard !isGeocoding else { return }
+        loadingIndicator?.dismiss(animated: true) {
+            self.locationCompletion?(String(localized: "Could not determine current location."), false)
         }
     }
 }

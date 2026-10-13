@@ -66,15 +66,7 @@ class MCPTool: ModelTool, @unchecked Sendable {
     // MARK: - Tool Execution
 
     override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        var arguments: [String: Value]?
-        if !input.isEmpty {
-            let data = Data(input.utf8)
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                arguments = json.compactMapValues { value in
-                    convertJSONValueToMCPValue(value)
-                }
-            }
-        }
+        let arguments = callArguments(from: input)
 
         let result = try await mcpService.callTool(
             name: toolInfo.name,
@@ -96,6 +88,29 @@ class MCPTool: ModelTool, @unchecked Sendable {
         // later on we process the result content and map audio and image to user attachment
         // so it can be seen by model
         return result.0.serializedRawContent()
+    }
+}
+
+extension MCPTool {
+    /// Decodes the model's arguments for the server. The strict schema makes
+    /// optional parameters required but nullable, so the model sends null for
+    /// every one it skips; those keys are dropped so the server sees them as
+    /// omitted and applies its own defaults instead of rejecting the null.
+    func callArguments(from input: String) -> [String: Value]? {
+        guard !input.isEmpty,
+              let json = try? JSONSerialization.jsonObject(with: Data(input.utf8)) as? [String: Any]
+        else { return nil }
+        var serverRequired: Set<String> = []
+        if case let .object(schema) = toolInfo.inputSchema,
+           case let .array(required) = schema["required"]
+        {
+            for case let .string(key) in required {
+                serverRequired.insert(key)
+            }
+        }
+        return json
+            .filter { !($0.value is NSNull) || serverRequired.contains($0.key) }
+            .compactMapValues { convertJSONValueToMCPValue($0) }
     }
 }
 

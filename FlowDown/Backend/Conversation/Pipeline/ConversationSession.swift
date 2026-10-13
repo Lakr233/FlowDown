@@ -398,7 +398,12 @@ final class ConversationSession: Identifiable {
             return nil
         }
 
-        return messages.last { $0.creation <= message.creation && $0.role == .user }
+        // Rows that only carry a tool's or the model's attachments sit
+        // between the prompt and its answer; retrying them would resend
+        // their placeholder text instead of the user's question.
+        return messages.last {
+            $0.creation <= message.creation && $0.role == .user && !isAttachmentHolder($0)
+        }
     }
 
     func retry(byClearAfter messageIdentifier: Message.ID, currentMessageListView: MessageListView) {
