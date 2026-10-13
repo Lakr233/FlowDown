@@ -15,7 +15,7 @@ jobs:
     runs-on: macos-26
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-depth: 0
@@ -96,6 +96,11 @@ jobs:
             fi
             git checkout "origin/$default_branch" --quiet
           '
+
+          # The FlowDown scheme runs `git submodule update` before every build,
+          # which restores each submodule to the commit recorded in the index.
+          # Stage the new gitlinks so the build and tests use the updated code.
+          git submodule foreach --quiet 'echo "$sm_path"' | xargs git add --
 
           echo "[+] submodules updated"
 

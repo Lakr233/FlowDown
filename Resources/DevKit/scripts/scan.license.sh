@@ -40,6 +40,11 @@ fi
 
 echo "[*] resolving packages..."
 
+# Checkouts left over from packages that are no longer pinned would leak into
+# the scan; drop them so only the current graph is checked out again from the
+# cached repositories.
+rm -rf "$PACKAGE_CLONE_ROOT/checkouts" "$PACKAGE_CLONE_ROOT/workspace-state.json"
+
 with_retry xcodebuild -resolvePackageDependencies \
     -clonedSourcePackagesDirPath "$PACKAGE_CLONE_ROOT" \
     -workspace *.xcworkspace \
@@ -101,17 +106,25 @@ function get_correct_package_name {
     fi
 }
 
-SCANNED_LICENSE_CONTENT="# Open Source License\n\n"
+LICENSE_OUTPUT="$PROJECT_ROOT/FlowDown/BundledResources/OpenSourceLicenses.md"
 
-for dir in "${SCANNER_DIR[@]}"; do
-    if [[ -d "$dir" ]]; then
-        # spm may have duplicated LICENSE file inside their own .build directory
-        for file in $(find "$dir" -name .build -prune -o -name "LICENSE*" -type f -print); do
-            PACKAGE_NAME=$(get_correct_package_name $(basename $(dirname $file)))
-            SCANNED_LICENSE_CONTENT="${SCANNED_LICENSE_CONTENT}\n\n## ${PACKAGE_NAME}\n\n$(cat $file)"
+# find returns files in directory order, which differs between machines;
+# sort with a fixed collation so the output only changes when a license does.
+function license_files {
+    # spm may have duplicated LICENSE file inside their own .build directory
+    find "$1" -name .build -prune -o -name "$2" -type f -print0 | LC_ALL=C sort -z
+}
+
+{
+    printf '# Open Source License\n\n'
+    for dir in "${SCANNER_DIR[@]}"; do
+        [[ -d "$dir" ]] || continue
+        for file in ${(0)"$(license_files "$dir" "LICENSE*")"}; do
+            PACKAGE_NAME=$(get_correct_package_name "$(basename "$(dirname "$file")")")
+            printf '\n\n## %s\n\n%s' "$PACKAGE_NAME" "$(<"$file")"
         done
-        for file in $(find "$dir" -name .build -prune -o -name "COPYING*" -type f -print); do
-            PACKAGE_NAME=$(get_correct_package_name $(basename $(dirname $file)))
+        for file in ${(0)"$(license_files "$dir" "COPYING*")"}; do
+            PACKAGE_NAME=$(get_correct_package_name "$(basename "$(dirname "$file")")")
 
             # special handling for zstd license, it was dual licensed with BSD and GPL
             # https://github.com/facebook/zstd/issues/3717
@@ -119,12 +132,11 @@ for dir in "${SCANNER_DIR[@]}"; do
                 continue
             fi
 
-            SCANNED_LICENSE_CONTENT="${SCANNED_LICENSE_CONTENT}\n\n## ${PACKAGE_NAME}\n\n$(cat $file)"
+            printf '\n\n## %s\n\n%s' "$PACKAGE_NAME" "$(<"$file")"
         done
-    fi
-done
-
-echo -e "$SCANNED_LICENSE_CONTENT" >"$PROJECT_ROOT/FlowDown/BundledResources/OpenSourceLicenses.md"
+    done
+    printf '\n'
+} >"$LICENSE_OUTPUT"
 
 echo "[*] checking for incompatible licenses..."
 
@@ -135,7 +147,7 @@ INCOMPATIBLE_LICENSES_KEYWORDS=(
 )
 
 for keyword in "${INCOMPATIBLE_LICENSES_KEYWORDS[@]}"; do
-    if grep -q "$keyword" "$PROJECT_ROOT/FlowDown/BundledResources/OpenSourceLicenses.md"; then
+    if grep -q "$keyword" "$LICENSE_OUTPUT"; then
         echo "[!] found incompatible license: $keyword"
         exit 1
     fi
