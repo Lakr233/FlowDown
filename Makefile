@@ -54,7 +54,7 @@ endef
 
 .PHONY: all help \
 	build build-ios build-catalyst build-extension \
-	test test-unit test-chat-client-kit test-online-e2e \
+	test test-unit test-chat-client-kit test-storage test-online-e2e \
 	install-metal-toolchain package-resolve package-update scan-license \
 	localization-check localization-stale-check \
 	archive archive-ios archive-macos \
@@ -73,6 +73,7 @@ help:
 	@echo "  test                  Run the default test flow"
 	@echo "  test-unit             Run app tests on the first available iOS simulator"
 	@echo "  test-chat-client-kit  Run ChatClientKit package tests on macOS"
+	@echo "  test-storage          Run Storage package tests on macOS"
 	@echo "  test-online-e2e       Run online e2e tests"
 	@echo ""
 	@echo "Packages & licenses:"
@@ -138,6 +139,17 @@ test-chat-client-kit:
 		-scheme ChatClientKit \
 		-destination "$(MACOS_DESTINATION)" \
 		$(CHAT_CLIENT_KIT_TEST_ARGUMENTS) \
+		test
+
+test-storage:
+	$(prepare-build-dirs)
+	cd Frameworks/Storage && $(BUILD_ENV) XCBUILD_LABEL=test-storage $(ROOT_DIR)/$(XCODEBUILD_WRAPPER) \
+		-scheme Storage \
+		-configuration $(CONFIGURATION) \
+		-derivedDataPath "$(DERIVED_DATA)/storage" \
+		-skipMacroValidation \
+		-skipPackagePluginValidation \
+		-destination "$(MACOS_DESTINATION)" \
 		test
 
 test-online-e2e: install-metal-toolchain package-resolve
