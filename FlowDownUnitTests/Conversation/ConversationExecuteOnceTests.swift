@@ -217,6 +217,41 @@ struct ConversationExecuteOnceTests {
             #expect(session.nearestUserMessage(beforeOrEqual: holder.objectId)?.objectId == question.objectId)
         }
     }
+
+    @Test
+    @MainActor
+    func summaryFinishingAfterDeletion_isNotSaved() async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+        let conversation = sdb.conversationMake { conversation in
+            conversation.update(\.title, to: "Summary Tests \(UUID().uuidString.prefix(8))")
+        }
+        let conversationID = conversation.id
+        let session = ConversationSessionManager.shared.session(for: conversationID)
+        for index in 1 ... 3 {
+            session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Question \(index)")
+            }
+        }
+        let messages = session.messages
+
+        // The user deletes the conversation while the summary is generated.
+        let service = ChatServiceSpy(chatHandler: { _ in
+            await MainActor.run {
+                ConversationManager.shared.deleteConversation(identifier: conversationID)
+            }
+            return ChatResponse(reasoning: "", text: "SUMMARY: Three questions.\nTOPICS: tests", images: [], tools: [])
+        })
+        try await withChatService(service) {
+            await ConversationSummarizer.shared.summarizeIfNeeded(
+                conversationId: conversationID,
+                messages: messages,
+                using: "unit-test-model",
+            )
+        }
+
+        #expect(!service.receivedBodies.isEmpty)
+        #expect(try Storage.db().getSummary(forConversation: conversationID) == nil)
+    }
 }
 
 private extension ConversationExecuteOnceTests {
