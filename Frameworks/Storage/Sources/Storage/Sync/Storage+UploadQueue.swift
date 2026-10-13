@@ -262,14 +262,18 @@ package extension Storage {
         }
     }
 
-    /// 将状态为failed的记录更为状态为pending
+    /// 将状态为uploading/failed的记录更为状态为pending
+    ///
+    /// A row stays `uploading` when its batch never reported back, such as when
+    /// the app quit mid-send or the sync engine state was reset, and only
+    /// `pending` rows are ever scheduled again.
     /// - Parameter handle: The handle of the enclosing transaction.
     func pendingUploadRestToPendingState(handle: Handle) throws {
         let update = StatementUpdate().update(table: UploadQueue.tableName)
         update.set(UploadQueue.Properties.state)
             .to(UploadQueue.State.pending)
             .where(
-                UploadQueue.Properties.state == UploadQueue.State.failed
+                UploadQueue.Properties.state.in([UploadQueue.State.uploading, UploadQueue.State.failed])
                     && UploadQueue.Properties.failCount < 100,
             )
 

@@ -61,6 +61,30 @@ struct StorageDatabaseTransferTests {
     }
 }
 
+extension StorageDatabaseTransferTests {
+    @Test
+    func reopeningStorage_reschedulesUploadsLeftUploading() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("StorageDatabaseTransferTests", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let storage = try Storage.makeForTesting(databaseDir: directory)
+        let conversation = storage.conversationMake { $0.update(\.title, to: "Upload") }
+        _ = storage.makeMessage(with: conversation.id) { $0.update(\.document, to: "Hello") }
+        let queued = storage.pendingUploadList(tables: [Message.tableName])
+        #expect(!queued.isEmpty)
+        // A batch was handed to the sync engine, which never reported back.
+        try storage.pendingUploadChangeState(by: queued.map { ($0.id, .uploading) })
+        #expect(storage.pendingUploadList(tables: [Message.tableName]).isEmpty)
+
+        // Opening the database again runs the launch-time queue recovery.
+        let reopened = try Storage.makeForTesting(databaseDir: directory)
+        #expect(reopened.pendingUploadList(tables: [Message.tableName]).map(\.id) == queued.map(\.id))
+    }
+}
+
 private extension StorageDatabaseTransferTests {
     func withTemporaryStorage(_ body: (Storage) throws -> Void) throws {
         let directory = FileManager.default.temporaryDirectory
