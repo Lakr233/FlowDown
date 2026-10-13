@@ -163,6 +163,36 @@ struct ConversationExecuteOnceTests {
             ])
         }
     }
+
+    @Test
+    @MainActor
+    func webSearchRowWithoutToolRequest_keepsLaterTurns() async throws {
+        try await withTemporarySession { _, session in
+            // Rows from the retired pre-action web search carry no tool
+            // request; they must not cut off the history that follows.
+            session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "First question")
+            }
+            session.appendNewMessage(role: .webSearch)
+            session.appendNewMessage(role: .assistant) {
+                $0.update(\.document, to: "First answer")
+            }
+            session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Second question")
+            }
+
+            var replayed: [ChatRequestBody.Message] = []
+            await session.buildInitialRequestMessages(&replayed, [])
+            let texts = replayed.compactMap { message -> String? in
+                switch message {
+                case let .user(.text(value), _): value
+                case let .assistant(.text(value)?, _, _): value
+                default: nil
+                }
+            }
+            #expect(texts == ["First question", "First answer", "Second question"])
+        }
+    }
 }
 
 private extension ConversationExecuteOnceTests {

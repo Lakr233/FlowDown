@@ -83,14 +83,14 @@ extension ConversationSession {
                     from: message,
                     output: searchResults.joined(separator: "\n"),
                     emptyOutput: String(localized: "Search completed with no results"),
-                ) else { return }
+                ) else { continue }
                 requestMessages.append(contentsOf: replay)
             case .toolHint:
                 guard let replay = await replayStoredToolCall(
                     from: message,
                     output: message.toolStatus.message,
                     emptyOutput: String(localized: "Tool executed successfully with no output"),
-                ) else { return }
+                ) else { continue }
                 requestMessages.append(contentsOf: replay)
             default:
                 continue
@@ -114,7 +114,8 @@ extension ConversationSession {
     /// Replays a stored tool call as the provider expects to see it: the
     /// assistant turn that requested the call, followed by the tool turn that
     /// carries its output. Returns nil when the stored request cannot be
-    /// decoded, which aborts the whole rebuild.
+    /// decoded, such as rows from the retired pre-action web search; the row
+    /// is then skipped so the turns after it still reach the model.
     private func replayStoredToolCall(
         from message: Message,
         output: String,
