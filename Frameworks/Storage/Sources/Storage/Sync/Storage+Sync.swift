@@ -169,8 +169,12 @@ package extension Storage {
 
         if localMilliseconds > lastModifiedMilliseconds {
             // 本地是最新的
+            // A row deleted here must go out as a deletion: the newest queue
+            // entry wins, so an update would replace the pending delete and
+            // keep the record in iCloud.
+            let changes: UploadQueue.Changes = localObject.removed ? .delete : .update
             do {
-                try pendingUploadEnqueue(sources: [(localObject, .update)], skipEnqueueHandler: true, handle: handle)
+                try pendingUploadEnqueue(sources: [(localObject, changes)], skipEnqueueHandler: true, handle: handle)
             } catch {
                 if propagatesEnqueueError {
                     throw error

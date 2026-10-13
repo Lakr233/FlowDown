@@ -154,6 +154,31 @@ struct SyncEngineTests {
         #expect(!environment.mock.state.pendingRecordZoneChanges.contains(.saveRecord(sentQueueRecordID)))
     }
 
+    @Test
+    func olderRemoteCopyOfLocallyDeletedRow_keepsTheDeleteQueued() throws {
+        let environment = try Environment()
+        defer { environment.tearDown() }
+
+        let memory = Memory(deviceId: Storage.deviceId, content: "Remember this", conversationId: "conversation-id")
+        try environment.storage.insertMemory(memory)
+        let record = CKRecord(
+            recordType: Self.recordType,
+            recordID: CKRecord.ID(
+                recordName: Self.makeRecordName(objectId: memory.objectId, tableName: Memory.tableName),
+                zoneID: Self.zoneID,
+            ),
+        )
+        record.encryptedValues["payload"] = try memory.encodePayload()
+        record.lastModifiedMilliseconds = memory.modified.millisecondsSince1970 - 1000
+
+        try environment.storage.deleteMemory(id: memory.id)
+        try environment.storage.handleRemoteUpsert(modifications: [record])
+
+        let latest = environment.storage.pendingUploadList(tables: [Memory.tableName])
+            .filter { $0.objectId == memory.objectId }
+        #expect(latest.map(\.changes) == [.delete])
+    }
+
     // MARK: - Zone deletion
 
     @Test
