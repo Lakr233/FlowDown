@@ -84,6 +84,45 @@ struct ConversationTrimTests {
     }
 
     @Test
+    @MainActor
+    func `trim evicts tool results together with the call that requested them`() async throws {
+        try await withTemporarySession { _, session in
+            let filler = String(repeating: "previous conversation content. ", count: 400)
+            var requestMessages: [ChatRequestBody.Message] = [
+                .system(content: .text("You are a helpful assistant.")),
+                .user(content: .text(filler)),
+                .assistant(
+                    content: .text(filler),
+                    toolCalls: [.init(id: "call_1", function: .init(name: "lookup", arguments: "{}"))],
+                ),
+                .tool(content: .text("Sunny."), toolCallID: "call_1"),
+                .assistant(content: .text("It is sunny.")),
+                .user(content: .text("What about tomorrow?")),
+            ]
+
+            let trimmed = try await runOffMain {
+                try session.removeOutOfContextContents(
+                    &requestMessages,
+                    nil,
+                    512,
+                    preservesReasoning: false,
+                )
+            }
+
+            #expect(trimmed)
+            let orphanedResults = requestMessages.filter {
+                if case .tool = $0 { return true }
+                return false
+            }
+            #expect(orphanedResults.isEmpty)
+            guard case .user = requestMessages.last else {
+                Issue.record("expected the final user message to survive the trim")
+                return
+            }
+        }
+    }
+
+    @Test
     func `reasoning is excluded from the token estimate unless the model preserves thinking`() async throws {
         let reasoning = String(repeating: "let me think about this step by step. ", count: 200)
         let messages: [ChatRequestBody.Message] = [
