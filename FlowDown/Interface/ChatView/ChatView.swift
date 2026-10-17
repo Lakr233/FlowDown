@@ -92,13 +92,19 @@ class ChatView: UIView {
         editor.snp.makeConstraints { make in
             #if targetEnvironment(macCatalyst)
                 make.bottom.equalToSuperview()
+                make.centerX.equalToSuperview()
+                make.width.lessThanOrEqualTo(750)
+                make.width.lessThanOrEqualToSuperview()
+                make.width.equalToSuperview().priority(.low)
             #else
+                // Kept between the side insets too: an iPhone Duo keeps the
+                // clock and the camera in a column along one side.
                 make.bottom.equalTo(safeAreaLayoutGuide)
+                make.centerX.equalTo(safeAreaLayoutGuide)
+                make.width.lessThanOrEqualTo(750)
+                make.width.lessThanOrEqualTo(safeAreaLayoutGuide)
+                make.width.equalTo(safeAreaLayoutGuide).priority(.low)
             #endif
-            make.centerX.equalToSuperview()
-            make.width.lessThanOrEqualTo(750)
-            make.width.lessThanOrEqualToSuperview()
-            make.width.equalToSuperview().priority(.low)
         }
 
         editorBackgroundView.snp.makeConstraints { make in
@@ -246,7 +252,14 @@ class ChatView: UIView {
             if listView.superview !== self {
                 insertSubview(listView, belowSubview: editorBackgroundView)
                 listView.snp.makeConstraints { make in
-                    make.edges.equalToSuperview()
+                    #if targetEnvironment(macCatalyst)
+                        make.edges.equalToSuperview()
+                    #else
+                        // Scrolls under the title bar and the editor, but
+                        // stays out of the side insets.
+                        make.top.bottom.equalToSuperview()
+                        make.left.right.equalTo(safeAreaLayoutGuide)
+                    #endif
                 }
             }
             listView.isHidden = false
@@ -463,13 +476,20 @@ extension ChatView {
             override func layoutSubviews() {
                 super.layoutSubviews()
 
-                let safeTop = safeAreaInsets.top
+                // The bar's background spans the whole width; its controls
+                // stay inside the safe area on every side.
+                let insets = safeAreaInsets
                 backgroundContainer.frame = CGRect(
-                    x: 0,
-                    y: safeTop,
-                    width: bounds.width,
-                    height: max(0, bounds.height - safeTop),
+                    x: insets.left,
+                    y: insets.top,
+                    width: max(0, bounds.width - insets.left - insets.right),
+                    height: max(0, bounds.height - insets.top),
                 )
+            }
+
+            override func safeAreaInsetsDidChange() {
+                super.safeAreaInsetsDidChange()
+                setNeedsLayout()
             }
         #endif
 
@@ -515,9 +535,12 @@ extension ChatView {
 
         private func buildMenu() -> UIMenu? {
             guard let conv else { return nil }
+            // The menu only opens from this button, so anything it presents
+            // (the icon picker popover, a share sheet) points back at it
+            // rather than at the middle of the full-width title bar.
             guard let convMenu = ConversationManager.shared.menu(
                 forConversation: conv,
-                view: self,
+                view: menuButton,
             ) else { return nil }
 
             #if targetEnvironment(macCatalyst)
