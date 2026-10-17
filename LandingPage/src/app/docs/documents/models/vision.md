@@ -61,4 +61,14 @@ Results are written to the attachment’s text representation and persisted (non
 - If results look off, ask the model to re-check attachments or add more context and resend.
 - Delete attachments from the message menu if you don’t want them kept.
 
+### Local MLX Regression Checks
+
+With a multi-image vision checkpoint such as Qwen3.5, enable **Vision** and
+**Skip Recognition If Possible** to exercise the local model directly:
+
+1. Run the model verification, then start a new conversation and send a text-only message.
+2. Attach one image and ask about it using an ordinary prompt. Do not insert model-specific image tokens.
+3. Send a text-only follow-up about that image, then attach two images and ask the model to compare them.
+4. Confirm that the image turns and text-only turns complete without a placeholder/frame-count error.
+
 ![Rendering with attachments](../../../res/screenshots/imgs/flowdown-ai-content-rendering-process.png)
