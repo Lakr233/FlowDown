@@ -43,6 +43,14 @@ class LocalModelEditorController: StackScrollController {
 
     var cancellables: Set<AnyCancellable> = .init()
 
+    /// Holds the model actions; exports started from it anchor their share sheet here.
+    private let actionsBarItem = UIBarButtonItem(
+        image: UIImage(systemName: "ellipsis.circle"),
+        style: .plain,
+        target: nil,
+        action: nil,
+    )
+
     /// `UIContextMenuInteraction` holds its delegate weakly, so the controller keeps them alive.
     private var contextMenuDelegates: [any UIContextMenuInteractionDelegate] = []
 
@@ -61,12 +69,9 @@ class LocalModelEditorController: StackScrollController {
             target: self,
             action: #selector(checkTapped),
         )
-        let actionsItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis.circle"),
-            style: .plain,
-            target: nil,
-            action: nil,
-        )
+        confirmItem.title = String(localized: "Done")
+        let actionsItem = actionsBarItem
+        actionsItem.title = String(localized: "More Actions")
         actionsItem.accessibilityLabel = String(localized: "More Actions")
         actionsItem.menu = buildActionsMenu()
         navigationItem.rightBarButtonItems = [confirmItem, actionsItem]
@@ -370,7 +375,7 @@ class LocalModelEditorController: StackScrollController {
             guard let url else { throw NSError() }
             await completionHandler {
                 DisposableExporter(deletableItem: url, title: "Export Model")
-                    .run(anchor: self.navigationController?.view ?? self.view)
+                    .run(anchor: self.actionsBarItem, presenter: self)
             }
         }
     }

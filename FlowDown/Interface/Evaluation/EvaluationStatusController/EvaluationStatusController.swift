@@ -75,6 +75,7 @@ final class EvaluationStatusController: UIViewController {
             target: self,
             action: #selector(shareTapped),
         )
+        item.title = String(localized: "Share")
         item.accessibilityLabel = String(localized: "Share")
         return item
     }()
@@ -86,6 +87,9 @@ final class EvaluationStatusController: UIViewController {
             target: self,
             action: #selector(backTapped),
         )
+        // The system Back cannot ask before leaving a running evaluation, so
+        // this stands in for it with the same symbol and title.
+        item.title = String(localized: "Back")
         item.accessibilityLabel = String(localized: "Back")
         return item
     }()
@@ -99,6 +103,7 @@ final class EvaluationStatusController: UIViewController {
             completion(createFilterMenuItems())
         }
         let item = UIBarButtonItem(
+            title: String(localized: "Filter Options"),
             image: .init(systemName: "line.3.horizontal.decrease.circle"),
             menu: UIMenu(title: String(localized: "Filter Options"), children: [deferredMenu]),
         )
@@ -251,7 +256,7 @@ final class EvaluationStatusController: UIViewController {
             name: exportName,
             pathExtension: "fder",
         )
-        exporter.run(anchor: view, mode: .file)
+        exporter.run(anchor: shareBarItem, presenter: self, mode: .file)
     }
 
     override func viewWillDisappear(_ animated: Bool) {

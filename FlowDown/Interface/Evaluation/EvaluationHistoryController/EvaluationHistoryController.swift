@@ -70,16 +70,23 @@ class EvaluationHistoryController: UIViewController {
             target: self,
             action: #selector(deleteAllTapped),
         )
+        item.title = String(localized: "Delete All")
         item.tintColor = .systemRed
         return item
     }()
 
-    private lazy var importBarButtonItem: UIBarButtonItem = .init(
-        title: String(localized: "Import"),
-        style: .plain,
-        target: self,
-        action: #selector(importTapped),
-    )
+    private lazy var importBarButtonItem: UIBarButtonItem = {
+        // A symbol lets the item join a vertical bar, the title labels it in
+        // the overflow menu.
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "square.and.arrow.down"),
+            style: .plain,
+            target: self,
+            action: #selector(importTapped),
+        )
+        item.title = String(localized: "Import")
+        return item
+    }()
 
     @objc private func importTapped() {
         presentSessionImportPicker(from: self)

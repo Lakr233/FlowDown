@@ -162,6 +162,7 @@ class HubModelDetailController: StackScrollController {
                 target: self,
                 action: #selector(download),
             )
+            navigationItem.rightBarButtonItem?.title = String(localized: "Done")
         } else {
             if let downloadSize {
                 if downloadSize > 0 {

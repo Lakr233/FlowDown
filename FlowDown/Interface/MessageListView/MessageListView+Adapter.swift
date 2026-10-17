@@ -466,7 +466,7 @@ extension MessageListView {
                     UIAction(title: String(localized: "Share"), image: .init(systemName: "doc.on.doc")) { [weak self] _ in
                         guard let self else { return }
                         DisposableExporter(data: Data(representation.content.utf8), pathExtension: "txt")
-                            .run(anchor: self, mode: .text)
+                            .run(anchor: referenceView ?? self, mode: .text)
                     },
                 ]),
                 UIMenu(options: [.displayInline], children: [

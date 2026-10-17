@@ -56,6 +56,7 @@ extension SettingController.SettingContent {
             view.backgroundColor = .background
 
             navigationItem.rightBarButtonItem = UIBarButtonItem(
+                title: String(localized: "Add"),
                 image: UIImage(systemName: "plus"),
                 menu: UIMenu(children: createAddClientMenuItems()),
             )

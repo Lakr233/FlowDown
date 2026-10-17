@@ -95,17 +95,13 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
     }
 
     private func setupMenuButton() {
-        // Use a custom button to avoid autolayout constraint warnings
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "ellipsis.circle"), for: .normal)
-        button.showsMenuAsPrimaryAction = true
-        button.menu = createMenu()
-
-        // Set explicit size to avoid constraint conflicts
-        button.frame = CGRect(x: 0, y: 0, width: 44, height: 44)
-
-        let menuButton = UIBarButtonItem(customView: button)
-        navigationItem.rightBarButtonItem = menuButton
+        // A plain item rather than a custom view, so it keeps its symbol and
+        // title in a vertical bar and in the overflow menu.
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: String(localized: "More Actions"),
+            image: UIImage(systemName: "ellipsis.circle"),
+            menu: createMenu(),
+        )
     }
 
     private func createMenu() -> UIMenu {
@@ -224,12 +220,7 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
     }
 
     private func updateMenu() {
-        // Update menu for custom button view
-        if let customView = navigationItem.rightBarButtonItem?.customView as? UIButton {
-            customView.menu = createMenu()
-        } else {
-            navigationItem.rightBarButtonItem?.menu = createMenu()
-        }
+        navigationItem.rightBarButtonItem?.menu = createMenu()
     }
 
     private func applyFilters() {
@@ -276,7 +267,12 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
 
     @objc private func shareLog() {
         let text = LogStore.shared.readTail(maxBytes: 512 * 1024)
-        DisposableExporter(data: Data(text.utf8), pathExtension: "txt").run(anchor: view, mode: .text)
+        let exporter = DisposableExporter(data: Data(text.utf8), pathExtension: "txt")
+        if let menuItem = navigationItem.rightBarButtonItem {
+            exporter.run(anchor: menuItem, presenter: self, mode: .text)
+        } else {
+            exporter.run(anchor: view, mode: .text)
+        }
     }
 
     @objc private func clearLog() {

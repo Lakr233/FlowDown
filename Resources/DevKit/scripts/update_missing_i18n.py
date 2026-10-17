@@ -44,6 +44,14 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "Bearer 토큰",
         "zh-Hans": "Bearer 令牌",
     },
+    "Delete All": {
+        "de": "Alle löschen",
+        "es": "Eliminar todo",
+        "fr": "Tout supprimer",
+        "ja": "すべて削除",
+        "ko": "모두 삭제",
+        "zh-Hans": "全部删除",
+    },
     "Edit Authorization (Optional)": {
         "de": "Autorisierung bearbeiten (optional)",
         "es": "Editar autorización (opcional)",

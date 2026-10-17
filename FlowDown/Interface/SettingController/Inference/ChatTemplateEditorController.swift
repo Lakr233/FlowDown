@@ -69,19 +69,24 @@ class ChatTemplateEditorController: StackScrollController, UITextViewDelegate {
         super.viewDidLoad()
         view.backgroundColor = .background
 
-        navigationItem.rightBarButtonItem = .init(
+        let doneItem = UIBarButtonItem(
             image: UIImage(systemName: "checkmark"),
             style: .done,
             target: self,
             action: #selector(checkTapped),
         )
-
-        navigationItem.leftBarButtonItem = .init(
+        doneItem.title = String(localized: "Done")
+        // Trailing, so the leading top of the bar stays free for a vertical bar.
+        let rewriteItem = UIBarButtonItem(
             image: UIImage(systemName: "sparkles"),
             style: .plain,
             target: self,
             action: #selector(sparklesTapped),
         )
+        rewriteItem.title = String(localized: "Rewrite")
+        navigationItem.rightBarButtonItems = [doneItem, rewriteItem]
+        // Edits are saved only by Done; Back would leave without saving them.
+        navigationItem.hidesBackButton = true
 
         ChatTemplateManager.shared.$templates
             .removeDuplicates()
