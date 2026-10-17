@@ -37,6 +37,7 @@ class MCPEditorController: StackScrollController {
             target: self,
             action: #selector(checkTapped),
         )
+        navigationItem.rightBarButtonItem?.title = String(localized: "Done")
 
         MCPService.shared.servers
             .removeDuplicates()

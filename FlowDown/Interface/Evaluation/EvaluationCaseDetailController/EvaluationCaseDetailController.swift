@@ -113,6 +113,7 @@ final class EvaluationCaseDetailController: StackScrollController {
         )
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: String(localized: "Actions"),
             image: UIImage(systemName: "ellipsis.circle"),
             menu: menu,
         )

@@ -83,6 +83,7 @@ extension MainController {
     }
 
     func setupLayoutAsCompactStyle() {
+        appliedSidebarFoldSplit = nil
         sidebarDragger.isHidden = true
         switch isSidebarCollapsed {
         case true:
@@ -125,8 +126,14 @@ extension MainController {
     }
 
     func setupLayoutAsRelaxedStyle() {
-        let sidebarWidth = resolvedSidebarWidth
-        sidebarDragger.isHidden = false
+        // A partly folded iPhone Duo puts the sidebar before the fold and the
+        // chat after it. Without a fold the user's width applies.
+        let foldSplit = allowSidebarPersistence ? sidebarSplitAtFold() : nil
+        appliedSidebarFoldSplit = foldSplit
+        let sidebarWidth = foldSplit?.sidebarWidth ?? resolvedSidebarWidth
+        // The fold sets the width then, so a drag would change nothing on
+        // screen. Collapsed, the dragger is still the handle that reopens it.
+        sidebarDragger.isHidden = foldSplit != nil && !isSidebarCollapsed
         switch isSidebarCollapsed {
         case true:
             sidebarLayoutView.snp.remakeConstraints { make in
@@ -149,7 +156,7 @@ extension MainController {
         case false:
             sidebarLayoutView.snp.remakeConstraints { make in
                 make.top.bottom.equalTo(view.safeAreaLayoutGuide).inset(20)
-                make.left.equalTo(view.safeAreaLayoutGuide).inset(20)
+                make.left.equalTo(view.safeAreaLayoutGuide).inset(Self.relaxedLayoutSpacing)
                 make.width.equalTo(sidebarWidth)
             }
             gestureLayoutGuide.snp.remakeConstraints { make in
@@ -160,7 +167,8 @@ extension MainController {
             if allowSidebarPersistence {
                 contentView.layer.cornerRadius = 0
                 contentView.snp.remakeConstraints { make in
-                    make.left.equalTo(gestureLayoutGuide.snp.right).offset(20)
+                    make.left.equalTo(gestureLayoutGuide.snp.right)
+                        .offset(foldSplit?.chatSpacing ?? Self.relaxedLayoutSpacing)
                     make.right.equalToSuperview()
                     make.top.bottom.equalToSuperview()
                 }

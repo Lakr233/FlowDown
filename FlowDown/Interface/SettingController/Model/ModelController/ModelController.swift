@@ -257,6 +257,7 @@ extension SettingController.SettingContent {
         }
 
         lazy var addItem: UIBarButtonItem = .init(
+            title: String(localized: "Add Model"),
             image: .init(systemName: "plus"),
             menu: UIMenu(children: createAddModelMenuItems()),
         )
@@ -270,6 +271,7 @@ extension SettingController.SettingContent {
                 completion(createFilterMenuItems())
             }
             return UIBarButtonItem(
+                title: String(localized: "Filter Options"),
                 image: .init(systemName: "line.3.horizontal.decrease.circle"),
                 menu: UIMenu(title: String(localized: "Filter Options"), children: [deferredMenu]),
             )

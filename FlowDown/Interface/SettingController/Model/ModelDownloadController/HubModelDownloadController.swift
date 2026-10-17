@@ -95,7 +95,8 @@ class HubModelDownloadController: UIViewController {
             completion(createFilterMenuItems())
         }
         let filterItem = UIBarButtonItem(
-            image: .init(systemName: "ellipsis"),
+            title: String(localized: "Filter Options"),
+            image: .init(systemName: "line.3.horizontal.decrease.circle"),
             menu: UIMenu(children: [deferredMenu]),
         )
 

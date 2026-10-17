@@ -41,15 +41,43 @@ final class DisposableExporter: NSObject {
         self.init(deletableItem: tempURL, title: title)
     }
 
+    /// Where a share sheet that ends up as a popover points.
+    ///
+    /// Anchor to the control that started the export. A popover pointing at
+    /// a whole screen lands wherever that screen's edge is, which on a large
+    /// or folding display can be far from the control or across the fold.
+    private enum Anchor {
+        case view(UIView)
+        case barButtonItem(UIBarButtonItem, presenter: UIViewController)
+
+        @MainActor
+        var presenter: UIViewController? {
+            switch self {
+            case let .view(view): view.parentViewController
+            case let .barButtonItem(_, presenter): presenter
+            }
+        }
+    }
+
     func run(anchor toView: UIView, mode: RunMode = .file) {
         Task { @MainActor in
-            self.runMainActor(anchor: toView, mode: mode)
+            self.runMainActor(anchor: .view(toView), mode: mode)
+        }
+    }
+
+    func run(
+        anchor barButtonItem: UIBarButtonItem,
+        presenter: UIViewController,
+        mode: RunMode = .file,
+    ) {
+        Task { @MainActor in
+            self.runMainActor(anchor: .barButtonItem(barButtonItem, presenter: presenter), mode: mode)
         }
     }
 
     @MainActor
-    private func runMainActor(anchor toView: UIView, mode: RunMode = .file) {
-        guard let presentingViewController = toView.parentViewController else {
+    private func runMainActor(anchor: Anchor, mode: RunMode = .file) {
+        guard let presentingViewController = anchor.presenter else {
             cleanup()
             return
         }
@@ -68,18 +96,23 @@ final class DisposableExporter: NSObject {
             }
         #endif
 
-        presentActivityController(anchor: toView, from: presentingViewController)
+        presentActivityController(anchor: anchor, from: presentingViewController)
     }
 
     @MainActor
-    private func presentActivityController(anchor toView: UIView, from presenter: UIViewController) {
+    private func presentActivityController(anchor: Anchor, from presenter: UIViewController) {
         let activityVC = UIActivityViewController(activityItems: [deletableItem], applicationActivities: nil)
         activityVC.completionWithItemsHandler = { _, _, _, _ in
             self.cleanup()
         }
         if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = toView
-            popover.sourceRect = toView.bounds
+            switch anchor {
+            case let .view(toView):
+                popover.sourceView = toView
+                popover.sourceRect = toView.bounds
+            case let .barButtonItem(item, _):
+                popover.sourceItem = item
+            }
         }
         presenter.present(activityVC, animated: true, completion: nil)
     }

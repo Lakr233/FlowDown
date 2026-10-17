@@ -63,7 +63,7 @@ extension CloudModelEditorController {
             name: fileName,
             pathExtension: ModelManager.flowdownModelConfigurationExtension,
             title: "Export Model",
-        ).run(anchor: navigationController?.view ?? view)
+        ).run(anchor: actionsBarItem, presenter: self)
     }
 
     @MainActor

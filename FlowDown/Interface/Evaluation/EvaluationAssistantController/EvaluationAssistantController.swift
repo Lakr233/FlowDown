@@ -64,13 +64,15 @@ class EvaluationAssistantController: StackScrollController {
             target: self,
             action: #selector(startTapped),
         )
+        startButton.title = String(localized: "Start")
         startButton.accessibilityLabel = String(localized: "Start")
 
         let moreButton = UIBarButtonItem(
             image: UIImage(systemName: "ellipsis.circle"),
             menu: moreMenu,
         )
-        moreButton.accessibilityLabel = "More"
+        moreButton.title = String(localized: "More")
+        moreButton.accessibilityLabel = String(localized: "More")
 
         navigationItem.rightBarButtonItems = [startButton, moreButton]
     }

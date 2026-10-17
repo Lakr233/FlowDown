@@ -64,12 +64,14 @@ final class ModelExchangeSelectionController: UIViewController {
             target: self,
             action: #selector(cancelTapped),
         )
+        navigationItem.leftBarButtonItem?.title = String(localized: "Cancel")
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "checkmark"),
             style: .done,
             target: self,
             action: #selector(confirmTapped),
         )
+        navigationItem.rightBarButtonItem?.title = String(localized: "Done")
     }
 
     private func setupTableView() {

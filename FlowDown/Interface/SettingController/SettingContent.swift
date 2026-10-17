@@ -90,7 +90,19 @@ extension SettingController {
             super.setupContentViews()
 
             if #available(iOS 26, macCatalyst 26, *) {
-                navigationItem.rightBarButtonItem = .init(customView: closeButton)
+                #if targetEnvironment(macCatalyst)
+                    navigationItem.rightBarButtonItem = .init(customView: closeButton)
+                #else
+                    // A system item keeps its symbol and title wherever the bar
+                    // puts it, including a vertical bar, which a custom view
+                    // never joins.
+                    navigationItem.rightBarButtonItem = .init(
+                        systemItem: .close,
+                        primaryAction: .init { [weak self] _ in
+                            self?.navigationController?.dismiss(animated: true, completion: nil)
+                        },
+                    )
+                #endif
             } else {
                 let closeView = UIView()
                 closeView.addSubview(closeButton)

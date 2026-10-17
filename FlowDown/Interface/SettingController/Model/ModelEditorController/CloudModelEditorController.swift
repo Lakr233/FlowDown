@@ -17,6 +17,13 @@ class CloudModelEditorController: StackScrollController {
     var cancellables: Set<AnyCancellable> = .init()
     weak var responseFormatInfoView: ConfigurableInfoView?
     let serverModelListLoader = ServerModelListLoader()
+    /// Holds the model actions; exports started from it anchor their share sheet here.
+    let actionsBarItem = UIBarButtonItem(
+        image: UIImage(systemName: "ellipsis.circle"),
+        style: .plain,
+        target: nil,
+        action: nil,
+    )
 
     init(identifier: CloudModel.ID) {
         self.identifier = identifier
@@ -76,12 +83,9 @@ private extension CloudModelEditorController {
             target: self,
             action: #selector(checkTapped),
         )
-        let actionsItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis.circle"),
-            style: .plain,
-            target: nil,
-            action: nil,
-        )
+        confirmItem.title = String(localized: "Done")
+        let actionsItem = actionsBarItem
+        actionsItem.title = String(localized: "More Actions")
         actionsItem.accessibilityLabel = String(localized: "More Actions")
         actionsItem.menu = buildActionsMenu()
         return [confirmItem, actionsItem]
