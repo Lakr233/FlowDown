@@ -1,6 +1,6 @@
 [submodule "Frameworks/ChatClientKit"]
 	path = Frameworks/ChatClientKit
-	url = https://github.com/Lakr233/ChatClientKit.git
+	url = https://github.com/skateman/ChatClientKit.git
 [submodule "Frameworks/mlx-swift-lm"]
 	path = Frameworks/mlx-swift-lm
 	url = https://github.com/ml-explore/mlx-swift-lm.git
