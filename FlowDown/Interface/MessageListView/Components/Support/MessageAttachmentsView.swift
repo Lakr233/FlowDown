@@ -34,7 +34,7 @@ final class MessageAttachmentsView: UIView {
         }
     }
 
-    static let spacing: CGFloat = 8
+    static let spacing: CGFloat = MessageListView.rowSpacing
 
     private let grid = MessageImageGrid()
     private var cards: [MessageDocumentCard] = []
@@ -155,11 +155,9 @@ final class MessageDocumentCard: UIControl {
     static let maximumWidth: CGFloat = 350
 
     let item: Item
-    private let icon = UIImageView()
     private let name = UILabel()
     private let excerpt = UILabel()
     private static let padding: CGFloat = 12
-    private static let iconSpacing: CGFloat = 6
     private static let excerptSpacing: CGFloat = 8
     private static let previewLines = 3
     private static let sizingExcerpt = UILabel()
@@ -180,12 +178,6 @@ final class MessageDocumentCard: UIControl {
         layer.cornerCurve = .continuous
         clipsToBounds = true
         layer.borderWidth = 1 / max(traitCollection.displayScale, 1)
-        icon.image = UIImage(
-            systemName: Self.symbolName(for: item),
-            withConfiguration: UIImage.SymbolConfiguration(font: Self.nameFont, scale: .small),
-        )
-        icon.tintColor = .secondaryLabel
-        icon.contentMode = .center
         name.font = Self.nameFont
         name.text = item.name
         name.lineBreakMode = .byTruncatingMiddle
@@ -193,7 +185,7 @@ final class MessageDocumentCard: UIControl {
         excerpt.textColor = .secondaryLabel
         excerpt.numberOfLines = Self.previewLines
         excerpt.text = Self.previewText(item)
-        for view in [icon, name, excerpt] {
+        for view in [name, excerpt] {
             view.isUserInteractionEnabled = false
             addSubview(view)
         }
@@ -216,15 +208,7 @@ final class MessageDocumentCard: UIControl {
         super.layoutSubviews()
         let content = bounds.insetBy(dx: Self.padding, dy: Self.padding)
         let headerHeight = ceil(Self.nameFont.lineHeight)
-        let iconWidth = Self.iconWidth
-        icon.frame = directionalFrame(CGRect(x: content.minX, y: content.minY, width: iconWidth, height: headerHeight))
-        let nameX = content.minX + iconWidth + Self.iconSpacing
-        name.frame = directionalFrame(CGRect(
-            x: nameX,
-            y: content.minY,
-            width: max(0, content.maxX - nameX),
-            height: headerHeight,
-        ))
+        name.frame = directionalFrame(CGRect(x: content.minX, y: content.minY, width: content.width, height: headerHeight))
         name.textAlignment = laysOutRightToLeft ? .right : .left
         excerpt.textAlignment = name.textAlignment
         excerpt.frame = CGRect(
@@ -249,22 +233,9 @@ final class MessageDocumentCard: UIControl {
 
     static func width(for item: Item, maximum: CGFloat) -> CGFloat {
         let nameWidth = (item.name as NSString).size(withAttributes: [.font: nameFont]).width
-            + iconWidth + iconSpacing
         let textWidth = ((previewText(item) ?? "") as NSString).size(withAttributes: [.font: excerptFont]).width
         let naturalWidth = ceil(max(nameWidth, textWidth)) + padding * 2
         return max(1, min(maximumWidth, maximum, naturalWidth))
-    }
-
-    private static var iconWidth: CGFloat {
-        ceil(nameFont.lineHeight)
-    }
-
-    private static func symbolName(for item: Item) -> String {
-        switch item.type {
-        case .audio: "waveform"
-        case .image: "photo"
-        case .text: "doc.text"
-        }
     }
 
     private static func previewText(_ item: Item) -> String? {

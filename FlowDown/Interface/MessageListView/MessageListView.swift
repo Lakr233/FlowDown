@@ -90,7 +90,10 @@ final class MessageListView: UIView {
         let side = max(rowHorizontalPadding, ((width - rowReadableWidth) / 2).rounded(.down))
         return .init(top: 0, left: side, bottom: rowSpacing, right: side)
     }
-    var theme: MarkdownTheme = .default {
+
+    /// The reply's theme: the reader's font size with the chat's spacing and
+    /// colours (`ChatMarkdownView.chatTheme(from:)`).
+    var theme: MarkdownTheme = ChatMarkdownView.chatTheme(from: .default) {
         didSet {
             guard oldValue != theme else { return }
             // Every pooled sizing view was built for the old theme and would
@@ -100,7 +103,8 @@ final class MessageListView: UIView {
         }
     }
 
-    private(set) lazy var labelForSizeCalculation: TextLabelView = .init()
+    /// The trace sheet open from a summary in this list, which follows it.
+    weak var openTrace: TraceController?
     private(set) lazy var markdownSizingViewPool: MarkdownSizingViewPool = .init()
     private(set) lazy var markdownPackageCache: MarkdownPackageCache = .init()
 
@@ -166,7 +170,7 @@ final class MessageListView: UIView {
             .ensureMainThread()
             .sink { [weak self] _ in
                 guard let self else { return }
-                theme = MarkdownTheme.default
+                theme = ChatMarkdownView.chatTheme(from: .default)
                 listView.reloadData()
                 updateList()
             }
@@ -301,7 +305,10 @@ final class MessageListView: UIView {
             }
         }
 
-        if let isLoading { entries.append(.activityReporting(isLoading)) }
+        // A running summary already says the turn is at work; the status line
+        // stands in only where there is none.
+        let endsInRunningSummary = if case let .activity(summary)? = entries.last { summary.isRunning } else { false }
+        if let isLoading, !endsInRunningSummary { entries.append(.activityReporting(isLoading)) }
 
         let shouldScrolling = scrolling && isAutoScrollingToBottom
 
@@ -320,6 +327,7 @@ final class MessageListView: UIView {
                 }
             } else {
                 listView.apply(entries, animated: true)
+                updateOpenTrace()
                 #if DEBUG
                     // TEMP scroll-diag: remove after #2.
                     Logger.ui.infoFile("[scroll-diag] apply shouldScroll=\(shouldScrolling) offset=\(Int(listView.contentOffset.y)) max=\(Int(listView.maximumContentOffset.y))")

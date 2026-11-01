@@ -71,7 +71,7 @@ struct ConversationExecutionSupportTests {
 
             try await waitUntil {
                 snapshotEntries(in: listView).contains {
-                    if case let .userContent(messageID, _) = $0 {
+                    if case let .userContent(messageID, _, _) = $0 {
                         return messageID == message.id
                     }
                     return false
@@ -112,7 +112,7 @@ struct ConversationExecutionSupportTests {
             try await waitUntil {
                 let snapshot = snapshotEntries(in: listView)
                 let hasUserMessage = snapshot.contains {
-                    if case let .userContent(messageID, _) = $0 {
+                    if case let .userContent(messageID, _, _) = $0 {
                         return messageID == message.id
                     }
                     return false

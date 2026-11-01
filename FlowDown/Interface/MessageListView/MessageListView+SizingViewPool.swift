@@ -55,7 +55,7 @@ extension MessageListView {
 
             // The same view class the row draws with, so the two lay out alike.
             // Out of a window it never animates.
-            let view = entries[message.id]?.view ?? MarkdownStreamView()
+            let view = entries[message.id]?.view ?? ChatMarkdownView()
             // Assigning the theme reinstalls the current content, so it goes
             // first while the view is still empty or already stale.
             view.theme = theme
