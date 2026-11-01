@@ -229,6 +229,17 @@ extension AttachmentsBar: UICollectionViewDelegate, UICollectionViewDelegateFlow
             return
         }
 
+        previewItemDataSource = Self.presentReadOnlyPreview(for: item, storage: storage, from: self)
+    }
+
+    /// Shows `item` from `view` without editing: text in the text viewer,
+    /// images and audio in Quick Look. Returns the Quick Look data source,
+    /// which the caller keeps while the preview is up, as the controller
+    /// holds it weakly.
+    @discardableResult
+    static func presentReadOnlyPreview(for item: Item, storage: TemporaryStorage? = nil, from view: UIView) -> Any? {
+        assert(Thread.isMainThread)
+        let parentViewController = view.parentViewController
         if item.type == .text {
             let controller = TextEditorController()
             controller.text = item.textRepresentation
@@ -238,7 +249,7 @@ extension AttachmentsBar: UICollectionViewDelegate, UICollectionViewDelegateFlow
                 controller.shouldDismissWhenEscapeKeyPressed = true
             #endif
             parentViewController?.present(controller, animated: true)
-            return
+            return nil
         }
 
         if let previewDataSource = makeQuickLookDataSource(for: item, storage: storage) {
@@ -246,8 +257,7 @@ extension AttachmentsBar: UICollectionViewDelegate, UICollectionViewDelegateFlow
             controller.dataSource = previewDataSource
             controller.delegate = previewDataSource
             parentViewController?.present(controller, animated: true)
-            previewItemDataSource = previewDataSource
-            return
+            return previewDataSource
         }
 
         if !item.textRepresentation.isEmpty {
@@ -260,9 +270,10 @@ extension AttachmentsBar: UICollectionViewDelegate, UICollectionViewDelegateFlow
             #endif
             parentViewController?.present(controller, animated: true)
         }
+        return nil
     }
 
-    private func makeQuickLookDataSource(for item: Item, storage: TemporaryStorage?) -> SingleItemDataSource? {
+    private static func makeQuickLookDataSource(for item: Item, storage: TemporaryStorage?) -> SingleItemDataSource? {
         let tempDir = disposableResourcesDir
         do {
             try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)

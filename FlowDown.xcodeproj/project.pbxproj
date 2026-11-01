@@ -34,6 +34,7 @@
 		5097D6422EF3E36000850D3E /* ChatClientKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5097D6412EF3E36000850D3E /* ChatClientKit */; };
 		5097D6432EF3E36000850D3E /* ChatClientKit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 5097D6412EF3E36000850D3E /* ChatClientKit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		50A350BB2F20A00000B1F430 /* Litext in Frameworks */ = {isa = PBXBuildFile; productRef = 50A350BC2F20A00000B1F430 /* Litext */; };
+		50A350BD2F20A00000B1F430 /* LitextAnimation in Frameworks */ = {isa = PBXBuildFile; productRef = 50A350BE2F20A00000B1F430 /* LitextAnimation */; };
 		50AE757E2EF436FC00D2C845 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 50AE757D2EF436FC00D2C845 /* Collections */; };
 		50AE75802EF436FC00D2C845 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 50AE757F2EF436FC00D2C845 /* OrderedCollections */; };
 		50AE75822EF4370A00D2C845 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 50AE75812EF4370A00D2C845 /* OrderedCollections */; };
@@ -236,6 +237,7 @@
 				505535BC2D72F38900F54B28 /* AlignedCollectionViewFlowLayout in Frameworks */,
 				5078496A2D285B5900B1F430 /* MarkdownView in Frameworks */,
 				50A350BB2F20A00000B1F430 /* Litext in Frameworks */,
+				50A350BD2F20A00000B1F430 /* LitextAnimation in Frameworks */,
 				502272D22EB3DE3200AF9D28 /* UIEffectKit in Frameworks */,
 				50DDB1712DDF16F200351E46 /* ListViewKit in Frameworks */,
 				5081A0142D6DBBBA0079ECBE /* RunestoneEditor in Frameworks */,
@@ -352,6 +354,7 @@
 				50B5149A2D2316EC0092284C /* SwifterSwift */,
 				507849692D285B5900B1F430 /* MarkdownView */,
 				50A350BC2F20A00000B1F430 /* Litext */,
+				50A350BE2F20A00000B1F430 /* LitextAnimation */,
 				50383CE92D2E1E0D00426941 /* BetterCodable */,
 				50C9035A2D428DAD00E6E3A8 /* Storage */,
 				505BC6F82D42A73600894BB0 /* AlertController */,
@@ -1392,6 +1395,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */;
 			productName = Litext;
+		};
+		50A350BE2F20A00000B1F430 /* LitextAnimation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 50A350BA2F20A00000B1F430 /* XCRemoteSwiftPackageReference "Litext" */;
+			productName = LitextAnimation;
 		};
 		50AE757D2EF436FC00D2C845 /* Collections */ = {
 			isa = XCSwiftPackageProductDependency;

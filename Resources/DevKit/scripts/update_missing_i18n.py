@@ -28,6 +28,14 @@ WELCOME_MESSAGE = (
 # Populate this map with explicit translations when introducing new keys.
 # Format: {"Key": {"zh-Hans": "示例", "es": "Ejemplo"}}
 NEW_STRINGS: dict[str, dict[str, str]] = {
+    "Thinking…": {
+        "de": "Denkt nach…",
+        "es": "Pensando…",
+        "fr": "Réflexion…",
+        "ja": "思考中…",
+        "ko": "생각 중…",
+        "zh-Hans": "正在思考…",
+    },
     "Authorization (Optional)": {
         "de": "Autorisierung (optional)",
         "es": "Autorización (opcional)",
