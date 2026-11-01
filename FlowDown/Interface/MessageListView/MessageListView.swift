@@ -76,7 +76,20 @@ final class MessageListView: UIView {
         }
     }
 
-    static let listRowInsets: UIEdgeInsets = .init(top: 0, left: 20, bottom: 16, right: 20)
+    /// The least space beside a row's content.
+    static let rowHorizontalPadding: CGFloat = 20
+    /// The widest a row's content gets: the editor's card at its widest
+    /// (750 pt less its 10 pt gap each side), so text lines up with it.
+    static let rowReadableWidth: CGFloat = 730
+    /// Between one row's content and the next.
+    static let rowSpacing: CGFloat = 16
+
+    /// A row's insets at `width`: the padding, or more to centre the content
+    /// in the readable width, and the spacing below it.
+    static func listRowInsets(for width: CGFloat) -> UIEdgeInsets {
+        let side = max(rowHorizontalPadding, ((width - rowReadableWidth) / 2).rounded(.down))
+        return .init(top: 0, left: side, bottom: rowSpacing, right: side)
+    }
     var theme: MarkdownTheme = .default {
         didSet {
             guard oldValue != theme else { return }

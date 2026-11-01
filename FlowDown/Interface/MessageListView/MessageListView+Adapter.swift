@@ -36,13 +36,22 @@ extension MessageListView {
 
             ListRow(UserAttachmentView.self)
                 .when { if case .userAttachment = $0 { true } else { false } }
-                .height { [weak self] _, context in
-                    guard let self else { return 0 }
-                    return rowHeight(inListWidth: context.width) { _ in AttachmentsBar.itemHeight }
+                .height { [weak self] entry, context in
+                    guard let self, case let .userAttachment(_, attachments) = entry else { return 0 }
+                    return rowHeight(inListWidth: context.width) { containerWidth in
+                        UserAttachmentView.height(
+                            for: attachments,
+                            containerWidth: containerWidth,
+                            previewHeightLimit: self.attachmentPreviewHeightLimit,
+                            displayScale: self.attachmentDisplayScale,
+                        )
+                    }
                 }
                 .configure { [weak self] row, entry, _ in
                     guard let self, case let .userAttachment(_, attachments) = entry else { return }
                     prepare(row, for: entry)
+                    row.previewHeightLimit = attachmentPreviewHeightLimit
+                    row.displayScale = attachmentDisplayScale
                     row.update(with: attachments)
                 }
 
@@ -51,18 +60,26 @@ extension MessageListView {
                 .height { [weak self] entry, context in
                     guard let self, case let .reasoningContent(_, message) = entry else { return 0 }
                     return rowHeight(inListWidth: context.width) { containerWidth in
-                        guard message.isRevealed else { return ReasoningContentView.unrevealedTileHeight }
-                        let attributedContent = NSAttributedString(string: message.content, attributes: [
-                            .font: self.theme.fonts.footnote,
-                            .paragraphStyle: ReasoningContentView.paragraphStyle,
-                        ])
-                        return self.boundingSize(with: containerWidth - 16, for: attributedContent).height
-                            + ReasoningContentView.spacing + ReasoningContentView.revealedTileHeight + 2
+                        let headerHeight = ReasoningContentView.headerHeight(font: self.theme.fonts.body)
+                        if message.isRevealed {
+                            let attributedContent = NSAttributedString(string: message.content, attributes: [
+                                .font: self.theme.fonts.footnote,
+                                .paragraphStyle: ReasoningContentView.paragraphStyle,
+                            ])
+                            let textWidth = containerWidth - ReasoningContentView.textIndent
+                            return headerHeight + ReasoningContentView.textSpacing
+                                + self.boundingSize(with: textWidth, for: attributedContent).height
+                        }
+                        if ReasoningContentView.showsBanner(isRevealed: false, isThinking: message.isThinking) {
+                            return headerHeight + ReasoningContentView.bannerSpacing + MessageBannerView.height
+                        }
+                        return headerHeight
                     }
                 }
                 .configure { [weak self] row, entry, _ in
                     guard let self, case let .reasoningContent(_, message) = entry else { return }
                     prepare(row, for: entry)
+                    row.messageID = message.id
                     row.isRevealed = message.isRevealed
                     row.isThinking = message.isThinking
                     row.thinkingDuration = message.thinkingDuration
@@ -135,13 +152,10 @@ extension MessageListView {
 
             ListRow(ActivityReportingView.self)
                 .when { if case .activityReporting = $0 { true } else { false } }
-                .height { [weak self] entry, context in
-                    guard let self, case let .activityReporting(content) = entry else { return 0 }
+                .height { [weak self] _, context in
+                    guard let self else { return 0 }
                     return rowHeight(inListWidth: context.width) { _ in
-                        let contentHeight = self.boundingSize(with: .infinity, for: .init(string: content, attributes: [
-                            .font: self.theme.fonts.body,
-                        ])).height
-                        return max(contentHeight, ActivityReportingView.loadingSymbolSize.height + 16)
+                        ActivityReportingView.height(font: self.theme.fonts.body)
                     }
                 }
                 .configure { [weak self] row, entry, _ in
@@ -155,12 +169,13 @@ extension MessageListView {
                 .height { [weak self] _, context in
                     guard let self else { return 0 }
                     return rowHeight(inListWidth: context.width) { _ in
-                        self.theme.fonts.body.lineHeight + 20
+                        ToolHintView.height(font: self.theme.fonts.body)
                     }
                 }
                 .configure { [weak self] row, entry, _ in
                     guard let self, case let .toolCallStatus(messageID, status) = entry else { return }
                     prepare(row, for: entry)
+                    row.callID = entry.id
                     row.toolName = status.name
                     row.text = status.message
                     row.state = switch status.state {
@@ -191,10 +206,23 @@ extension MessageListView {
     /// `MessageListRowView` performs. Returns zero while the list has no width
     /// to lay out in.
     private func rowHeight(inListWidth listWidth: CGFloat, content: (CGFloat) -> CGFloat) -> CGFloat {
-        let listRowInsets = MessageListView.listRowInsets
+        let listRowInsets = MessageListView.listRowInsets(for: listWidth)
         let containerWidth = max(0, listWidth - listRowInsets.horizontal)
         guard containerWidth > 0 else { return 0 }
         return content(containerWidth) + listRowInsets.bottom
+    }
+
+    /// The tallest an attachment album or card is drawn: 30% of the screen,
+    /// which holds still while the window resizes, so a row is always laid
+    /// out at the height it was measured at.
+    private var attachmentPreviewHeightLimit: CGFloat {
+        let screenHeight = window?.windowScene?.screen.bounds.height ?? 800
+        return max(120, (screenHeight * 0.3).rounded())
+    }
+
+    /// The screen's scale, which makes an image's pixels its own size in points.
+    private var attachmentDisplayScale: CGFloat {
+        window?.windowScene?.screen.scale ?? traitCollection.displayScale
     }
 
     /// Applies the state every row shares: the current theme, and a context

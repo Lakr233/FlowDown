@@ -37,7 +37,7 @@ class MessageListRowView: ListRowView, UIContextMenuInteractionDelegate {
         themeDidUpdate()
         super.layoutSubviews()
 
-        let insets = MessageListView.listRowInsets
+        let insets = MessageListView.listRowInsets(for: bounds.width)
         contentView.frame = CGRect(
             x: insets.left,
             y: 0,
