@@ -8,23 +8,21 @@ import UIKit
 
 extension MessageListView {
     enum Entry: Identifiable, Hashable {
-        case userContent(Message.ID, MessageRepresentation)
-        case userAttachment(Message.ID, Attachments)
-        case reasoningContent(Message.ID, MessageRepresentation)
+        /// A user message: its attachments over its text.
+        case userContent(Message.ID, MessageRepresentation, Attachments)
+        /// Thoughts and tool calls folded into one line.
+        case activity(ActivitySummary)
         case aiContent(Message.ID, MessageRepresentation)
         case hint(String, String)
         case webSearchContent(Message.WebSearchStatus)
         case activityReporting(String)
-        case toolCallStatus(Message.ID, Message.ToolStatus)
 
         var id: String {
             switch self {
-            case let .userContent(_, message):
+            case let .userContent(_, message, _):
                 "UserContent.\(message.id)"
-            case let .userAttachment(_, message):
-                "UserAttachment.\(message.id)"
-            case let .reasoningContent(_, message):
-                "ReasoningContent.\(message.id)"
+            case let .activity(summary):
+                summary.id
             case let .aiContent(_, message):
                 "AiContent.\(message.id)"
             case let .hint(id, _):
@@ -37,8 +35,6 @@ extension MessageListView {
                 // would remove/insert the row (with fade animations) on every
                 // update instead of reconfiguring it in place.
                 "ActivityReporting"
-            case let .toolCallStatus(messageID, status):
-                "ToolCallStatus.\(messageID).\(status.id)"
             }
         }
     }
@@ -48,9 +44,6 @@ extension MessageListView {
         var createAt: Date
         var role: Message.Role
         var content: String
-        var isRevealed: Bool
-        var isThinking: Bool
-        var thinkingDuration: TimeInterval
         /// Whether this is the reply still being written.
         var isStreaming: Bool
 
@@ -59,9 +52,6 @@ extension MessageListView {
             createAt = message.creation
             role = message.role
             content = message.document.trimmingCharacters(in: .whitespacesAndNewlines)
-            isRevealed = true
-            isThinking = false
-            thinkingDuration = 0
             isStreaming = false
         }
     }
@@ -78,6 +68,9 @@ extension MessageListView {
     }
 
     // MARK: - Convert Messages to Entries
+
+    /// What `ConversationSession` puts in a reply that has reasoning but no text.
+    private static let emptyReplyPlaceholder = String(localized: "Empty message.")
 
     /// Converts messages to entries. While the session is executing, its last
     /// assistant reply is the one still being written and is marked streaming.
@@ -109,11 +102,27 @@ extension MessageListView {
             }
         }
 
+        var summary: ActivitySummary?
+        func fold(_ step: ActivitySummary.Step, of message: Message, thinkingDuration: TimeInterval = 0) {
+            if summary == nil {
+                checkAddDateHint(message.creation)
+                summary = .init(startingWith: message.objectId)
+            }
+            summary?.steps.append(step)
+            summary?.thinkingDuration += thinkingDuration
+        }
+        func endSummary() {
+            guard let finished = summary else { return }
+            entries.append(.activity(finished))
+            summary = nil
+        }
+
         for message in messages {
             switch message.role {
             // MARK: - User Message
 
             case .user:
+                endSummary()
                 let attachmentItems: [Attachments.Item] = session.attachments(for: message.objectId).compactMap {
                     guard let uuid = UUID(uuidString: $0.id) else {
                         return nil
@@ -131,13 +140,13 @@ extension MessageListView {
                         storageSuffix: $0.storageSuffix,
                     )
                 }
-                if !attachmentItems.isEmpty {
+                if !attachmentItems.isEmpty || !message.document.isEmpty {
                     checkAddDateHint(message.creation)
-                    entries.append(.userAttachment(message.objectId, .init(items: attachmentItems)))
-                }
-                if !message.document.isEmpty {
-                    checkAddDateHint(message.creation)
-                    entries.append(.userContent(message.objectId, .init(from: message)))
+                    entries.append(.userContent(
+                        message.objectId,
+                        .init(from: message),
+                        .init(items: attachmentItems),
+                    ))
                 }
                 assert(message.reasoningContent.isEmpty)
 
@@ -145,18 +154,23 @@ extension MessageListView {
 
             case .assistant:
                 let reasoningContent = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
-                let messageContent = message.document.trimmingCharacters(in: .whitespacesAndNewlines)
+                var messageContent = message.document.trimmingCharacters(in: .whitespacesAndNewlines)
+                // The session fills a reply that only thought with a placeholder
+                // when it loads, so the reply never reads as still thinking. In
+                // the summary that reply has no text, and the thought folds in
+                // with the calls after it.
+                if !reasoningContent.isEmpty, messageContent == Self.emptyReplyPlaceholder {
+                    messageContent = ""
+                }
                 if !reasoningContent.isEmpty {
-                    checkAddDateHint(message.creation)
-                    var representation = MessageRepresentation(from: message)
-                    representation.id = message.combinationID
-                    representation.content = reasoningContent
-                    representation.isRevealed = !message.isThinkingFold
-                    representation.isThinking = messageContent.isEmpty
-                    representation.thinkingDuration = message.thinkingDuration
-                    entries.append(.reasoningContent(message.objectId, representation))
+                    fold(
+                        .thought(message.objectId, text: reasoningContent),
+                        of: message,
+                        thinkingDuration: message.thinkingDuration,
+                    )
                 }
                 if !messageContent.isEmpty {
+                    endSummary()
                     checkAddDateHint(message.creation)
                     var representation = MessageRepresentation(from: message)
                     representation.isStreaming = message.objectId == streamingMessageID
@@ -166,20 +180,21 @@ extension MessageListView {
             // MARK: - Web Search
 
             case .webSearch:
+                endSummary()
                 checkAddDateHint(message.creation)
                 entries.append(.webSearchContent(message.webSearchStatus))
 
             // MARK: - Activity Reporting
 
             case .hint:
+                endSummary()
                 checkAddDateHint(message.creation)
                 entries.append(.hint("message.\(message.objectId)", message.document))
 
             // MARK: - Tool Call Status
 
             case .toolHint:
-                checkAddDateHint(message.creation)
-                entries.append(.toolCallStatus(message.objectId, message.toolStatus))
+                fold(.tool(message.objectId, status: message.toolStatus), of: message)
 
             // MARK: - Drop Unrelated
 
@@ -187,6 +202,10 @@ extension MessageListView {
                 break
             }
         }
+        // While the session runs, the summary nothing has come after is the
+        // one the turn is still at work on.
+        summary?.isRunning = isExecuting
+        endSummary()
         return entries
     }
 }

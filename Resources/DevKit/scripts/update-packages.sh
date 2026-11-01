@@ -37,6 +37,7 @@ rm -f "$WORKSPACE_RESOLVED"
 xcodebuild \
     -workspace "$WORKSPACE" \
     -scheme "$SCHEME" \
+    -derivedDataPath "${DERIVED_DATA:-/private/tmp/flowdown-deriveddata}" \
     -resolvePackageDependencies \
     | xcbeautify --is-ci --disable-colored-output --disable-logging
 

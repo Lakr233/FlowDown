@@ -18,83 +18,40 @@ extension MessageListView {
             ListRow(UserMessageView.self)
                 .when { if case .userContent = $0 { true } else { false } }
                 .height { [weak self] entry, context in
-                    guard let self, case let .userContent(_, message) = entry else { return 0 }
+                    guard let self, case let .userContent(_, message, attachments) = entry else { return 0 }
                     return rowHeight(inListWidth: context.width) { containerWidth in
-                        let attributedContent = NSAttributedString(string: message.content, attributes: [
-                            .font: self.theme.fonts.body,
-                        ])
-                        let availableWidth = UserMessageView.availableTextWidth(for: containerWidth)
-                        return self.boundingSize(with: availableWidth, for: attributedContent).height
-                            + UserMessageView.textPadding * 2
-                    }
-                }
-                .configure { [weak self] row, entry, _ in
-                    guard let self, case let .userContent(_, message) = entry else { return }
-                    prepare(row, for: entry)
-                    row.text = message.content
-                }
-
-            ListRow(UserAttachmentView.self)
-                .when { if case .userAttachment = $0 { true } else { false } }
-                .height { [weak self] entry, context in
-                    guard let self, case let .userAttachment(_, attachments) = entry else { return 0 }
-                    return rowHeight(inListWidth: context.width) { containerWidth in
-                        UserAttachmentView.height(
-                            for: attachments,
+                        UserMessageView.height(
+                            for: message,
+                            attachments: attachments,
                             containerWidth: containerWidth,
-                            previewHeightLimit: self.attachmentPreviewHeightLimit,
+                            theme: self.theme,
+                            attachmentHeightLimit: self.attachmentPreviewHeightLimit,
                             displayScale: self.attachmentDisplayScale,
                         )
                     }
                 }
                 .configure { [weak self] row, entry, _ in
-                    guard let self, case let .userAttachment(_, attachments) = entry else { return }
+                    guard let self, case let .userContent(_, message, attachments) = entry else { return }
                     prepare(row, for: entry)
-                    row.previewHeightLimit = attachmentPreviewHeightLimit
+                    row.attachmentHeightLimit = attachmentPreviewHeightLimit
                     row.displayScale = attachmentDisplayScale
-                    row.update(with: attachments)
+                    row.show(message, attachments: attachments)
                 }
 
-            ListRow(ReasoningContentView.self)
-                .when { if case .reasoningContent = $0 { true } else { false } }
+            ListRow(ActivitySummaryView.self)
+                .when { if case .activity = $0 { true } else { false } }
                 .height { [weak self] entry, context in
-                    guard let self, case let .reasoningContent(_, message) = entry else { return 0 }
-                    return rowHeight(inListWidth: context.width) { containerWidth in
-                        let headerHeight = ReasoningContentView.headerHeight(font: self.theme.fonts.body)
-                        if message.isRevealed {
-                            let attributedContent = NSAttributedString(string: message.content, attributes: [
-                                .font: self.theme.fonts.footnote,
-                                .paragraphStyle: ReasoningContentView.paragraphStyle,
-                            ])
-                            let textWidth = containerWidth - ReasoningContentView.textIndent
-                            return headerHeight + ReasoningContentView.textSpacing
-                                + self.boundingSize(with: textWidth, for: attributedContent).height
-                        }
-                        if ReasoningContentView.showsBanner(isRevealed: false, isThinking: message.isThinking) {
-                            return headerHeight + ReasoningContentView.bannerSpacing + MessageBannerView.height
-                        }
-                        return headerHeight
+                    guard let self, case let .activity(summary) = entry else { return 0 }
+                    return rowHeight(inListWidth: context.width) { _ in
+                        ActivitySummaryView.height(for: summary, font: self.theme.fonts.body)
                     }
                 }
                 .configure { [weak self] row, entry, _ in
-                    guard let self, case let .reasoningContent(_, message) = entry else { return }
+                    guard let self, case let .activity(summary) = entry else { return }
                     prepare(row, for: entry)
-                    row.messageID = message.id
-                    row.isRevealed = message.isRevealed
-                    row.isThinking = message.isThinking
-                    row.thinkingDuration = message.thinkingDuration
-                    row.text = message.content
-                    row.thinkingTileTapHandler = { [weak self] newValue in
-                        guard let self else { return }
-                        let thinkingMessages = session.messages.filter {
-                            $0.combinationID == message.id
-                        }
-                        guard let thinkingMessage = thinkingMessages.first else {
-                            return
-                        }
-                        thinkingMessage.update(\.isThinkingFold, to: !newValue)
-                        updateList(animated: true)
-                        session.save()
+                    row.show(summary)
+                    row.onOpenTrace = { [weak self] in
+                        self?.presentTrace(for: summary.id)
                     }
                 }
 
@@ -163,30 +120,6 @@ extension MessageListView {
                     prepare(row, for: entry)
                     row.text = content
                 }
-
-            ListRow(ToolHintView.self)
-                .when { if case .toolCallStatus = $0 { true } else { false } }
-                .height { [weak self] _, context in
-                    guard let self else { return 0 }
-                    return rowHeight(inListWidth: context.width) { _ in
-                        ToolHintView.height(font: self.theme.fonts.body)
-                    }
-                }
-                .configure { [weak self] row, entry, _ in
-                    guard let self, case let .toolCallStatus(messageID, status) = entry else { return }
-                    prepare(row, for: entry)
-                    row.callID = entry.id
-                    row.toolName = status.name
-                    row.text = status.message
-                    row.state = switch status.state {
-                    case 0: .running
-                    case 1: .suceeded
-                    default: .failed
-                    }
-                    row.clickHandler = { [weak self] in
-                        self?.presentToolCallDetails(for: messageID, status: status)
-                    }
-                }
         }
     }
 
@@ -238,13 +171,6 @@ extension MessageListView {
         }
     }
 
-    private func boundingSize(with width: CGFloat, for attributedString: NSAttributedString) -> CGSize {
-        labelForSizeCalculation.preferredMaxLayoutWidth = width
-        labelForSizeCalculation.attributedText = attributedString
-        let contentSize = labelForSizeCalculation.intrinsicContentSize
-        return .init(width: ceil(contentSize.width), height: ceil(contentSize.height))
-    }
-
     private func hasActivatedEventOnLabel(location: CGPoint) -> Bool {
         var lookup: [UIView] = listView.subviews
         while !lookup.isEmpty {
@@ -267,29 +193,14 @@ extension MessageListView {
     private func contextMenu(for entry: Entry, referenceView: UIView?) -> UIMenu? {
         let messageIdentifier: Message.ID
         let representation: MessageRepresentation
-        let isReasoningContent: Bool
 
         switch entry {
-        case let .userContent(msgID, messageRepresentation):
+        case let .userContent(msgID, messageRepresentation, _):
             messageIdentifier = msgID
             representation = messageRepresentation
-            isReasoningContent = false
-        case let .reasoningContent(msgID, messageRepresentation):
-            messageIdentifier = msgID
-            representation = messageRepresentation
-            isReasoningContent = true
         case let .aiContent(msgID, messageRepresentation):
             messageIdentifier = msgID
             representation = messageRepresentation
-            isReasoningContent = false
-        case let .toolCallStatus(messageID, status):
-            let action = UIAction(
-                title: String(localized: "View Details"),
-                image: UIImage(systemName: "doc.text.magnifyingglass"),
-            ) { [weak self] _ in
-                self?.presentToolCallDetails(for: messageID, status: status)
-            }
-            return UIMenu(children: [action])
         default:
             return nil
         }
@@ -297,83 +208,67 @@ extension MessageListView {
         return buildMenu(
             for: messageIdentifier,
             representation: representation,
-            isReasoningContent: isReasoningContent,
             referenceView: referenceView,
         )
     }
 
-    private func presentToolCallDetails(for messageIdentifier: Message.ID, status: Message.ToolStatus) {
-        let text = NSAttributedString(string: toolCallDetailsText(for: messageIdentifier, status: status))
-        presentAndReturnDetailCodeController(
-            code: text,
-            language: "json",
-            title: String(localized: "Text Content"),
-        )
+    /// Opens the trace behind a summary in a sheet, which follows the run
+    /// while it stays open (`updateOpenTrace`).
+    private func presentTrace(for summaryID: String) {
+        guard let summary = currentSummary(withID: summaryID) else { return }
+        let controller = TraceController(summary: summary) { [weak self] messageID in
+            guard let self, let message = session.message(for: messageID) else { return nil }
+            return session.decodeToolRequestFromToolMessage(message)?.args
+        }
+        openTrace = controller
+        presentSheet(controller)
     }
 
-    private func toolCallDetailsText(for messageIdentifier: Message.ID, status: Message.ToolStatus) -> String {
-        var sections: [String] = []
-
-        let title = switch status.state {
-        case 1:
-            String(localized: "Tool call for \(status.name) completed.")
-        case 2:
-            String(localized: "Tool call for \(status.name) failed.")
-        default:
-            String(localized: "Tool call for \(status.name) running")
-        }
-        sections.append(title)
-
-        if let message = session.message(for: messageIdentifier) {
-            if let toolRequest = session.decodeToolRequestFromToolMessage(message) {
-                var parameterText = toolRequest.args
-                if let pretty = prettyPrintedJSON(from: toolRequest.args) {
-                    parameterText = pretty
-                }
-                sections.append([
-                    String(localized: "Parameters"),
-                    parameterText,
-                ].joined(separator: "\n\n"))
-            } else {
-                sections.append(String(localized: "Unable to decode tool parameters."))
+    private func currentSummary(withID id: String) -> ActivitySummary? {
+        for entry in entries {
+            if case let .activity(summary) = entry, summary.id == id {
+                return summary
             }
-        } else {
-            sections.append(String(localized: "Unable to locate the tool message in this session."))
         }
-
-        let trimmedResult = status.message.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmedResult.isEmpty {
-            var formattedResult = trimmedResult
-            if let pretty = prettyPrintedJSON(from: trimmedResult) {
-                formattedResult = pretty
-            }
-            sections.append([
-                String(localized: "Result"),
-                formattedResult,
-            ].joined(separator: "\n\n"))
-        }
-
-        return sections.joined(separator: "\n\n")
+        return nil
     }
 
-    private func prettyPrintedJSON(from jsonString: String) -> String? {
-        guard let data = jsonString.data(using: .utf8) else { return nil }
-        guard let object = try? JSONSerialization.jsonObject(with: data) else {
-            return nil
-        }
-        guard JSONSerialization.isValidJSONObject(object) else {
-            return nil
-        }
-        guard let pretty = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]) else {
-            return nil
-        }
-        return String(decoding: pretty, as: UTF8.self)
+    /// Shows the open trace's summary as the list now has it.
+    func updateOpenTrace() {
+        guard let openTrace, let summary = currentSummary(withID: openTrace.summaryID) else { return }
+        openTrace.show(summary)
+    }
+
+    private func presentSheet(_ controller: UIViewController) {
+        #if targetEnvironment(macCatalyst)
+            let nav = UINavigationController(rootViewController: controller)
+            controller.navigationItem.leftBarButtonItem = UIBarButtonItem(
+                image: UIImage(systemName: "xmark"),
+                primaryAction: UIAction { [weak nav] _ in nav?.dismiss(animated: true) },
+            )
+            controller.navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
+            let holder = AlertBaseController(
+                rootViewController: nav,
+                preferredWidth: 555,
+                preferredHeight: 555,
+            )
+            holder.shouldDismissWhenTappedAround = true
+            holder.shouldDismissWhenEscapeKeyPressed = true
+        #else
+            let holder = UINavigationController(rootViewController: controller)
+            controller.navigationItem.leftBarButtonItem = UIBarButtonItem(
+                image: UIImage(systemName: "xmark"),
+                primaryAction: UIAction { [weak holder] _ in holder?.dismiss(animated: true) },
+            )
+            controller.navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
+            holder.modalPresentationStyle = .formSheet
+        #endif
+        parentViewController?.present(holder, animated: true)
     }
 
     private func buildMenu(
         for messageIdentifier: Message.ID,
         representation: MessageRepresentation,
-        isReasoningContent: Bool,
         referenceView: UIView?,
     ) -> UIMenu {
         UIMenu(children: [
@@ -484,11 +379,7 @@ extension MessageListView {
                         viewer.collectEditedContent { [weak self] text in
                             guard let self else { return }
                             Logger.ui.infoFile("edited \(messageIdentifier) content: \(text)")
-                            if isReasoningContent {
-                                session?.update(messageIdentifier: messageIdentifier, reasoningContent: text)
-                            } else {
-                                session?.update(messageIdentifier: messageIdentifier, content: text)
-                            }
+                            session?.update(messageIdentifier: messageIdentifier, content: text)
                         }
                     },
                     UIAction(title: String(localized: "Share"), image: .init(systemName: "doc.on.doc")) { [weak self] _ in
@@ -499,11 +390,7 @@ extension MessageListView {
                 ]),
                 UIMenu(options: [.displayInline], children: [
                     UIAction(title: String(localized: "Delete"), image: .init(systemName: "trash"), attributes: .destructive) { [weak self] _ in
-                        if isReasoningContent {
-                            self?.session.update(messageIdentifier: messageIdentifier, reasoningContent: "")
-                        } else {
-                            self?.session.delete(messageIdentifier: messageIdentifier)
-                        }
+                        self?.session.delete(messageIdentifier: messageIdentifier)
                     },
                     UIAction(title: String(localized: "Delete w/ After"), image: .init(systemName: "trash"), attributes: .destructive) { [weak self] _ in
                         self?.session?.deleteCurrentAndAfter(messageIdentifier: messageIdentifier)
