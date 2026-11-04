@@ -8,11 +8,14 @@ import UIKit
 /// What the session is doing while a reply has not started, shimmering at
 /// the reply's leading edge.
 final class ActivityReportingView: MessageListRowView {
+    /// An empty status, the session at work with nothing to report, reads
+    /// "Thinking…".
     var text: String? {
         get { label.text }
         set {
-            label.text = newValue
-            label.accessibilityLabel = newValue
+            let text = newValue?.isEmpty == true ? String(localized: "Thinking…") : newValue
+            label.text = text
+            label.accessibilityLabel = text
         }
     }
 
