@@ -73,6 +73,30 @@ struct MessageListActivitySummaryTests {
             #expect(summaries.first?.banner == "Search")
         }
     }
+
+    @Test
+    @MainActor
+    func `a running summary drops the banner once its calls finish`() async throws {
+        try await withTemporarySession { session in
+            _ = session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Look it up")
+            }
+            _ = session.appendNewMessage(role: .toolHint) {
+                $0.update(\.toolStatus, to: .init(name: "Search", state: 1, message: "Found 4."))
+            }
+
+            let listView = MessageListView()
+            listView.session = session
+            let summaries = listView.entries(from: session.messages, isExecuting: true).compactMap {
+                if case let .activity(summary) = $0 { summary } else { nil }
+            }
+
+            #expect(summaries.count == 1)
+            #expect(summaries.first?.isRunning == true)
+            #expect(summaries.first?.title == String(localized: "Thinking…"))
+            #expect(summaries.first?.banner == nil)
+        }
+    }
 }
 
 private extension MessageListActivitySummaryTests {
