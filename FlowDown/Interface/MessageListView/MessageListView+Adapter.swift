@@ -93,20 +93,6 @@ extension MessageListView {
                     row.text = content
                 }
 
-            ListRow(WebSearchStateView.self)
-                .when { if case .webSearchContent = $0 { true } else { false } }
-                .height { [weak self] _, context in
-                    guard let self else { return 0 }
-                    return rowHeight(inListWidth: context.width) { _ in
-                        WebSearchStateView.intrinsicHeight(withLabelFont: self.theme.fonts.body)
-                    }
-                }
-                .configure { [weak self] row, entry, _ in
-                    guard let self, case let .webSearchContent(webSearchPhase) = entry else { return }
-                    prepare(row, for: entry)
-                    row.update(with: webSearchPhase)
-                }
-
             ListRow(ActivityReportingView.self)
                 .when { if case .activityReporting = $0 { true } else { false } }
                 .height { [weak self] _, context in

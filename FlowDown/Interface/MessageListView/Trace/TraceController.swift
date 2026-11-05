@@ -7,11 +7,12 @@ import Storage
 import UIKit
 
 /// The trace behind a summary, in a sheet; the conversation shows one
-/// summary. Each step in order — a thought, a call — is a row, its kind
-/// over a line of its detail (`TraceStep`), and a row with more opens that
-/// step whole (`TraceStepController`). It follows the run: steps are added
-/// and rows reconfigured in place, so the reader's scroll and open page
-/// stay, and the open page shows its step as it grows.
+/// summary. Each step in order — a thought, a call, a search — is a row,
+/// its kind over a line of its detail (`TraceStep`), and a row with more
+/// opens that step whole (`TraceStepController`, or `TraceSearchController`
+/// for a search). It follows the run: steps are added and rows reconfigured
+/// in place, so the reader's scroll and open page stay, and the open page
+/// shows its step as it grows.
 final class TraceController: UITableViewController {
     let summaryID: String
     /// A call's arguments as JSON, looked up when its row is made.
@@ -87,9 +88,11 @@ final class TraceController: UITableViewController {
         snapshot.appendItems(ids)
         snapshot.reconfigureItems(changed)
         dataSource.apply(snapshot, animatingDifferences: view.window != nil)
-        for case let page as TraceStepController in navigationController?.viewControllers ?? [] {
-            if let row = shown[page.stepID]?.row {
+        for page in navigationController?.viewControllers ?? [] {
+            if let page = page as? TraceStepController, let row = shown[page.stepID]?.row {
                 page.show(row.body)
+            } else if let page = page as? TraceSearchController, let search = shown[page.stepID]?.row.search {
+                page.show(search)
             }
         }
     }
@@ -108,7 +111,11 @@ final class TraceController: UITableViewController {
         guard let id = dataSource.itemIdentifier(for: indexPath),
               let row = shown[id]?.row, row.hasDetail
         else { return }
-        let page = TraceStepController(stepID: id, body: row.body, title: row.title)
+        let page: UIViewController = if let search = row.search {
+            TraceSearchController(stepID: id, search: search, title: row.title)
+        } else {
+            TraceStepController(stepID: id, body: row.body, title: row.title)
+        }
         navigationController?.pushViewController(page, animated: true)
     }
 }

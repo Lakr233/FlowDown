@@ -245,7 +245,7 @@ extension ConversationSession {
             if let tool = tool as? MTWebSearchTool {
                 let webSearchMessage = appendNewMessage(role: .webSearch)
                 encodeToolRequestAndAttachToToolMessage(request, message: webSearchMessage)
-                // The web search row reports its own progress from here on.
+                // The activity summary reports the search's progress from here on.
                 hideActivity()
                 let searchResult: [Scrubber.Document]
                 do {

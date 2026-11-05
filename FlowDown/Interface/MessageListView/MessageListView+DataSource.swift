@@ -10,11 +10,10 @@ extension MessageListView {
     enum Entry: Identifiable, Hashable {
         /// A user message: its attachments over its text.
         case userContent(Message.ID, MessageRepresentation, Attachments)
-        /// Thoughts and tool calls folded into one line.
+        /// Thoughts, tool calls and web searches folded into one line.
         case activity(ActivitySummary)
         case aiContent(Message.ID, MessageRepresentation)
         case hint(String, String)
-        case webSearchContent(Message.WebSearchStatus)
         case activityReporting(String)
 
         var id: String {
@@ -27,8 +26,6 @@ extension MessageListView {
                 "AiContent.\(message.id)"
             case let .hint(id, _):
                 "Hint.\(id)"
-            case let .webSearchContent(status):
-                "WebSearchContent.\(status.id)"
             case .activityReporting:
                 // Stable identity: the loading indicator is a single row whose
                 // text changes while streaming. Deriving the id from the content
@@ -139,7 +136,10 @@ extension MessageListView {
             summary?.thinkingDuration += thinkingDuration
         }
         func endSummary() {
-            guard let finished = summary else { return }
+            guard var finished = summary else { return }
+            if !finished.isRunning {
+                finished.settleSearches()
+            }
             entries.append(.activity(finished))
             summary = nil
         }
@@ -206,9 +206,7 @@ extension MessageListView {
             // MARK: - Web Search
 
             case .webSearch:
-                endSummary()
-                checkAddDateHint(message.creation)
-                entries.append(.webSearchContent(message.webSearchStatus))
+                fold(.webSearch(message.objectId, status: message.webSearchStatus, isInterrupted: false), of: message)
 
             // MARK: - Activity Reporting
 
