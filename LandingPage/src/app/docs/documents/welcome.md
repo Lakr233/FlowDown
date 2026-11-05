@@ -27,7 +27,7 @@ Always sanitize feedback before sending. Do not upload service credentials or pe
 - **Immersive experience**: Polished interface with smooth Markdown rendering.
 - **Multi-device sync**: CloudKit keeps conversations, model profiles, memories, and MCP services aligned across iPhone, iPad, and Mac, with manual refresh and scoped control.
 - **Hybrid model ecosystem**: Native support for Apple Intelligence, on-device MLX models, and any OpenAI-compatible API with custom headers.
-- **Flexible configuration & sharing**: Set temperature, context length, request body, and auxiliary behavior per model; import/export `.fdmodel` files or drag configurations to share.
+- **Flexible configuration & sharing**: Set context length and request body, including temperature, per model; import/export `.fdmodel` files or drag configurations to share.
 - **Memory & automation**: Proactive memory injection and Shortcuts triggers. Titles and icons are generated automatically to reduce repetitive steps.
 - **Powerful toolchain**: Calendar management, web search/scraping, location services, URL preview, and MCP toolchains keep complex workflows automated.
 - **Shortcuts integration**: Ask, summarize, or create conversation links via Shortcuts (image input on iOS 18/macOS 15), plus exports for conversations, memories, databases, and logs.

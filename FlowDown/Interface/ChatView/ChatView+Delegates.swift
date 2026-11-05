@@ -105,11 +105,20 @@ extension ChatView: RichEditorView.Delegate {
     )
   }
 
-  func onRichEditorDidAttachImage() {
-    guard let modelID = modelIdentifier(), !modelID.isEmpty else { return }
-    let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
-    guard !modelCapabilities.contains(.visual) else { return }
-    presentVisualInputUnsupportedHint()
+  func onRichEditorVisualInputHint(
+    attachments: [RichEditorView.Object.Attachment],
+    modelIdentifier: String,
+  ) -> String? {
+    // With no model selected, sending asks the user to pick one instead.
+    guard !modelIdentifier.isEmpty else { return nil }
+    let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelIdentifier)
+    guard
+      ConversationSession.hasImagesRequiringVisualInput(
+        attachments,
+        modelCapabilities: modelCapabilities,
+      )
+    else { return nil }
+    return ConversationSession.visualInputUnsupportedHintText
   }
 
   func onRichEditorError(_ error: String) {

@@ -15,10 +15,17 @@ extension ConversationSession {
 
     /// Title and message of the hint as one sentence pair, for VoiceOver and the message list.
     static var visualInputUnsupportedHintText: String {
-        [
+        joinedSentences(
             String(localized: visualInputUnsupportedTitle),
             String(localized: visualInputUnsupportedMessage),
-        ].joined(separator: " ")
+        )
+    }
+
+    /// Full-width punctuation (Chinese, Japanese) ends a sentence without a
+    /// following space; other languages separate sentences with one.
+    static func joinedSentences(_ first: String, _ second: String) -> String {
+        let fullWidthEnd = first.last.map { "。！？".contains($0) } ?? false
+        return first + (fullWidthEnd ? "" : " ") + second
     }
 
     /// An image only reaches a model as pixels; one without a stored text

@@ -1,6 +1,6 @@
 # Inference Configuration
 
-One place for context windows, temperature/sampling, and Reasoning/Thinking toggles. Settings apply per model profile and take effect immediately (synced via iCloud and backups).
+One place for context windows, sampling, and Reasoning/Thinking toggles. Settings apply per model profile and take effect immediately (synced via iCloud and backups).
 
 For local, on-device inference, FlowDown supports MLX model profiles only. GGUF and Core ML files are not supported as direct local model formats in the app.
 
@@ -32,8 +32,7 @@ Support follows the model's MLX `model_type`; individual checkpoints can still r
 ## Core parameters
 
 - **Context Length**: how much history and attachments a model can keep. If the estimate exceeds the limit, FlowDown trims the oldest non-system messages; if nothing can be trimmed, the request is cancelled. Presets: 4k/8k/16k/32k/64k/100k/200k/1M/Infinity.
-- **Creativity (Temperature)**: higher = more diverse wording; lower = stable/deterministic. Start at 0.5–0.75 for general Q&A; 0–0.25 for code/facts. Use presets (e.g., Humankind, Precise) as shortcuts.
-- **Sampling keys**: add `top_p`, `top_k`, `presence_penalty`, `frequency_penalty`, or `repetition_penalty` in JSON/editor view. Change one knob at a time with small steps.
+- **Sampling keys**: add `temperature`, `top_p`, `top_k`, `presence_penalty`, `frequency_penalty`, or `repetition_penalty` in JSON/editor view. Change one knob at a time with small steps. FlowDown sends no `temperature` unless you set one here, so the provider's default applies.
 
 ## Advanced reasoning (Reasoning / Thinking)
 

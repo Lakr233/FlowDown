@@ -103,6 +103,12 @@ struct ConversationVisualInputTests {
             #expect(!session.messages.contains { $0.role == .assistant })
         }
     }
+
+    @Test
+    func `hint sentences are spaced for Latin text and not after full-width punctuation`() {
+        #expect(ConversationSession.joinedSentences("No images.", "Switch models.") == "No images. Switch models.")
+        #expect(ConversationSession.joinedSentences("不支持图像输入。", "请切换模型。") == "不支持图像输入。请切换模型。")
+    }
 }
 
 private extension ConversationVisualInputTests {

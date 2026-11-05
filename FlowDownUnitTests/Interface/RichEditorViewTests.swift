@@ -1,5 +1,7 @@
+import Combine
 @testable import FlowDown
 import Foundation
+import Storage
 import Testing
 import UIKit
 
@@ -13,7 +15,9 @@ private final class RichEditorDelegateSpy: RichEditorView.Delegate {
     private(set) var updatedObjects: [RichEditorView.Object] = []
     private(set) var submittedObjects: [RichEditorView.Object] = []
     private(set) var errors: [String] = []
-    private(set) var attachedImageCount = 0
+    /// Models that can read images; every other model is text only.
+    var visionModels: Set<String> = []
+    static let visualHint = "image cannot be read"
 
     func onRichEditorSubmit(object: RichEditorView.Object, completion _: @escaping (Bool) -> Void) {
         submittedObjects.append(object)
@@ -23,8 +27,15 @@ private final class RichEditorDelegateSpy: RichEditorView.Delegate {
         errors.append(error)
     }
 
-    func onRichEditorDidAttachImage() {
-        attachedImageCount += 1
+    func onRichEditorVisualInputHint(
+        attachments: [RichEditorView.Object.Attachment],
+        modelIdentifier: String,
+    ) -> String? {
+        guard !modelIdentifier.isEmpty else { return nil }
+        let capabilities: Set<ModelCapabilities> = visionModels.contains(modelIdentifier) ? [.visual] : []
+        guard ConversationSession.hasImagesRequiringVisualInput(attachments, modelCapabilities: capabilities)
+        else { return nil }
+        return Self.visualHint
     }
 
     func onRichEditorTogglesUpdate(object _: RichEditorView.Object) {}
@@ -127,11 +138,26 @@ struct RichEditorViewTests {
     }
 
     @MainActor
+    private static func imageAttachment() -> RichEditorView.Object.Attachment {
+        .init(
+            type: .image,
+            name: "square.png",
+            previewImage: .init(),
+            imageRepresentation: .init(),
+            textRepresentation: "",
+            storageSuffix: UUID().uuidString,
+        )
+    }
+
+    @MainActor
     @Test
-    func richEditorAttachments_newImage_notifiesDelegateOnce() {
+    func richEditorVisualInputHint_followsAttachmentsAndModel() {
         let spy = RichEditorDelegateSpy()
+        spy.modelIdentifier = "text-only"
+        spy.visionModels = ["vision"]
         let editor = RichEditorView()
         editor.delegate = spy
+        editor.updateModelinfoFile(postUpdate: false)
 
         let text = RichEditorView.Object.Attachment(
             type: .text,
@@ -142,39 +168,35 @@ struct RichEditorViewTests {
             storageSuffix: UUID().uuidString,
         )
         editor.attachmentsBar.insert(item: text)
-        #expect(spy.attachedImageCount == 0)
+        #expect(!editor.visualInputHint.isActive)
+        #expect(editor.visualInputHint.heightPublisher.value == 0)
 
-        let image = RichEditorView.Object.Attachment(
-            type: .image,
-            name: "square.png",
-            previewImage: .init(),
-            imageRepresentation: .init(),
-            textRepresentation: "",
-            storageSuffix: UUID().uuidString,
-        )
+        let image = Self.imageAttachment()
         editor.attachmentsBar.insert(item: image)
-        #expect(spy.attachedImageCount == 1)
+        #expect(editor.visualInputHint.isActive)
+        #expect(editor.visualInputHint.label.text == RichEditorDelegateSpy.visualHint)
+        #expect(editor.visualInputHint.heightPublisher.value > 0)
 
-        // Updating the same image or removing another attachment is not a new image.
-        editor.attachmentsBar.insert(item: image)
-        editor.attachmentsBar.delete(itemIdentifier: text.id)
-        #expect(spy.attachedImageCount == 1)
+        // Switching to a vision model clears the note, switching back shows it again.
+        spy.modelIdentifier = "vision"
+        editor.updateModelinfoFile(postUpdate: false)
+        #expect(!editor.visualInputHint.isActive)
+        spy.modelIdentifier = "text-only"
+        editor.updateModelinfoFile(postUpdate: false)
+        #expect(editor.visualInputHint.isActive)
+
+        // Removing the image clears it as well.
+        editor.attachmentsBar.delete(itemIdentifier: image.id)
+        #expect(!editor.visualInputHint.isActive)
+        #expect(editor.visualInputHint.heightPublisher.value == 0)
     }
 
     @MainActor
     @Test
-    func richEditorRestore_draftWithImage_doesNotNotifyDelegate() {
+    func richEditorRestore_draftWithImage_showsHintForTextOnlyModel() {
         let spy = RichEditorDelegateSpy()
-        spy.storedObject = .init(text: "look", attachments: [
-            .init(
-                type: .image,
-                name: "square.png",
-                previewImage: .init(),
-                imageRepresentation: .init(),
-                textRepresentation: "",
-                storageSuffix: UUID().uuidString,
-            ),
-        ])
+        spy.modelIdentifier = "text-only"
+        spy.storedObject = .init(text: "look", attachments: [Self.imageAttachment()])
         let editor = RichEditorView()
         editor.delegate = spy
 
@@ -182,7 +204,19 @@ struct RichEditorViewTests {
         defer { try? FileManager.default.removeItem(at: editor.storage.storageDir) }
 
         #expect(editor.collectObject().attachments.count == 1)
-        #expect(spy.attachedImageCount == 0)
+        #expect(editor.visualInputHint.isActive)
+    }
+
+    @MainActor
+    @Test
+    func richEditorVisualInputHint_noModelSelected_staysHidden() {
+        let spy = RichEditorDelegateSpy()
+        let editor = RichEditorView()
+        editor.delegate = spy
+        editor.updateModelinfoFile(postUpdate: false)
+
+        editor.attachmentsBar.insert(item: Self.imageAttachment())
+        #expect(!editor.visualInputHint.isActive)
     }
 
     @MainActor

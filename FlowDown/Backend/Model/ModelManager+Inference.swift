@@ -62,7 +62,6 @@ extension ModelManager {
                             .user(content: userContent),
                         ],
                         maxCompletionTokens: 32,
-                        temperature: 0,
                     ),
                 )
 
