@@ -209,6 +209,7 @@ private extension RichEditorView {
 
 extension RichEditorView: AttachmentsBar.Delegate {
     public func attachmentBarDidUpdateAttachments(_: [AttachmentsBar.Item]) {
+        updateVisualInputHint()
         publishNewEditorStatus()
     }
 }
@@ -233,8 +234,25 @@ extension RichEditorView: QuickSettingBar.Delegate {
         let newModelIdentifier = delegate?.onRichEditorRequestCurrentModelIdentifier()
         quickSettingBar.setModelIdentifier(newModelIdentifier)
         quickSettingBar.updateToolCallAvailability(currentModelSupportsToolCall)
+        updateVisualInputHint()
         if postUpdate {
             delegate?.onRichEditorUpdateObject(object: collectObject())
+        }
+    }
+
+    /// Shows the note under the input and disables sending while an attached
+    /// image cannot reach the selected model; both clear once the model or the
+    /// attachments change.
+    func updateVisualInputHint() {
+        let attachments = Array(attachmentsBar.attachmetns.values)
+        let hint = delegate?.onRichEditorVisualInputHint(
+            attachments: attachments,
+            modelIdentifier: delegate?.onRichEditorRequestCurrentModelIdentifier() ?? "",
+        )
+        let becameVisible = visualInputHint.setActive(hint != nil, text: hint ?? "")
+        inputEditor.sendButton.isEnabled = !visualInputHint.isActive
+        if becameVisible, let hint {
+            UIAccessibility.post(notification: .announcement, argument: hint)
         }
     }
 

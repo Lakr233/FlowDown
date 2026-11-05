@@ -62,7 +62,6 @@ extension ModelManager {
                             .user(content: userContent),
                         ],
                         maxCompletionTokens: 32,
-                        temperature: 0,
                     ),
                 )
 
@@ -328,7 +327,9 @@ extension ModelManager {
         var body = ChatRequestBody(
             messages: prepareRequestBody(modelID: modelID, messages: input),
             maxCompletionTokens: maxCompletionTokens,
-            temperature: temperature < 0 ? nil : .init(temperature),
+            // No app-wide temperature: a model's own `temperature` in its
+            // Extra Body is merged by the client, otherwise the provider default applies.
+            temperature: nil,
             tools: tools,
             toolChoice: toolChoice,
         )

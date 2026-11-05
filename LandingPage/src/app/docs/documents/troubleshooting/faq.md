@@ -39,7 +39,7 @@ This page collects common FlowDown questions. If you still need help, see the [I
 
 **How do per-model settings apply?**
 
-- Each model profile can set temperature, context length, custom request bodies, and auxiliary behavior; changes affect only that profile.
+- Each model profile can set context length and custom request bodies, including `temperature`; changes affect only that profile.
 - The immersive layout only changes how the UI looks; it does not affect model output.
 
 ## Tools & Automation

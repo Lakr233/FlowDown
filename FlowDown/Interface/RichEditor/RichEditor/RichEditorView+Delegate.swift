@@ -11,6 +11,12 @@ extension RichEditorView {
     protocol Delegate: AnyObject {
         func onRichEditorSubmit(object: Object, completion: @escaping (Bool) -> Void)
         func onRichEditorError(_ error: String)
+        /// The note to show under the input while these attachments cannot reach
+        /// the selected model, or nil when there is nothing to say.
+        func onRichEditorVisualInputHint(
+            attachments: [Object.Attachment],
+            modelIdentifier: String,
+        ) -> String?
         func onRichEditorRequestObjectForRestore() -> Object?
         func onRichEditorUpdateObject(object: Object)
         func onRichEditorRequestAutomaticModelSelection()

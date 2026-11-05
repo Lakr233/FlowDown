@@ -150,8 +150,11 @@ final class ConversationSession: Identifiable {
 
     class Models {
         var chat: ModelManager.ModelIdentifier?
-        var auxiliary: ModelManager.ModelIdentifier?
-        var visualAuxiliary: ModelManager.ModelIdentifier?
+        /// Auxiliary tasks (titles, icons, search keywords, memory, summaries)
+        /// always run on the conversation's chat model.
+        var auxiliary: ModelManager.ModelIdentifier? {
+            chat
+        }
     }
 
     let models = Models()
@@ -373,23 +376,6 @@ final class ConversationSession: Identifiable {
             models.chat = conversationModelId
         } else if models.chat == nil || models.chat!.isEmpty {
             models.chat = .defaultModelForConversation
-        }
-
-        // task auxiliary model
-        if ModelManager.ModelIdentifier.defaultModelForAuxiliaryTaskWillUseCurrentChatModel {
-            // When "Use Chat Model" is enabled, always use the chat model
-            models.auxiliary = models.chat ?? .defaultModelForAuxiliaryTask
-        } else {
-            // When "Use Chat Model" is disabled, use the stored auxiliary model
-            // Only update if current value is nil or empty
-            if models.auxiliary == nil || models.auxiliary!.isEmpty {
-                models.auxiliary = .defaultModelForAuxiliaryTask
-            }
-        }
-
-        // visual auxiliary model
-        if models.visualAuxiliary == nil || models.visualAuxiliary!.isEmpty {
-            models.visualAuxiliary = .defaultModelForAuxiliaryVisualTask
         }
     }
 

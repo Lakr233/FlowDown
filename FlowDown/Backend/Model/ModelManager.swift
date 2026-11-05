@@ -49,8 +49,6 @@ class ModelManager: NSObject {
     var additionalPrompt: String {
         didSet { dumpAdditionalPromptToAppGroup() }
     }
-    @TypedStorage(key: "Model.Inference.Prompt.Temperature", defaultValue: 0.75)
-    var temperature: Float
     @TypedStorage(key: "Model.Inference.SearchSensitivity", defaultValue: SearchSensitivity.balanced)
     var searchSensitivity: SearchSensitivity
 
@@ -64,31 +62,6 @@ class ModelManager: NSObject {
     // swiftformat:disable:next redundantFileprivate
     fileprivate var defaultModelForConversation: String {
         didSet { checkDefaultModels() }
-    }
-
-    @TypedStorage(key: "Model.Default.Auxiliary.UseCurrentChatModel", defaultValue: true)
-    // swiftformat:disable:next redundantFileprivate
-    fileprivate var defaultModelForAuxiliaryTaskWillUseCurrentChatModel: Bool {
-        didSet { checkDefaultModels() }
-    }
-
-    @TypedStorage(key: "Model.Default.Auxiliary", defaultValue: "")
-    // swiftformat:disable:next redundantFileprivate
-    fileprivate var defaultModelForAuxiliaryTask: String {
-        didSet { checkDefaultModels() }
-    }
-
-    @TypedStorage(key: "Model.Default.AuxiliaryVisual", defaultValue: "")
-    // swiftformat:disable:next redundantFileprivate
-    fileprivate var defaultModelForAuxiliaryVisualTask: String {
-        didSet { checkDefaultModels() }
-    }
-
-    @TypedStorage(key: "Model.Default.AuxiliaryVisual.SkipIfPossible", defaultValue: true)
-    // swiftformat:disable:next redundantFileprivate
-    var defaultModelForAuxiliaryVisualTaskSkipIfPossible: Bool
-    var defaultModelForAuxiliaryVisualTaskSkipIfPossibleKey: String {
-        _defaultModelForAuxiliaryVisualTaskSkipIfPossible.key
     }
 
     @TypedStorage(key: "Model.ChatInterface.CollapseReasoningSectionWhenComplete", defaultValue: false)
@@ -184,9 +157,6 @@ class ModelManager: NSObject {
             guard let output, let value = PromptType(rawValue: output) else { return }
             self?.defaultPrompt = value
         }
-        Self.temperatureConfigurableObject.whenValueChange(type: Float.self) { [weak self] output in
-            self?.temperature = output ?? 0.75
-        }
     }
 
     func checkDefaultModels() {
@@ -204,29 +174,6 @@ class ModelManager: NSObject {
         {
             Logger.model.debugFile("reset defaultModelForConversation due to not found")
             defaultModelForConversation = ""
-        }
-
-        if !defaultModelForAuxiliaryTask.isEmpty,
-           localModel(identifier: defaultModelForAuxiliaryTask) == nil,
-           cloudModel(identifier: defaultModelForAuxiliaryTask) == nil,
-           !(appleIntelligenceId != nil && defaultModelForAuxiliaryTask == appleIntelligenceId)
-        {
-            Logger.model.debugFile("reset defaultModelForAuxiliaryTask due to not found")
-            defaultModelForAuxiliaryTask = ""
-        }
-
-        if !defaultModelForAuxiliaryVisualTask.isEmpty {
-            let localModelSatisfied = localModel(
-                identifier: defaultModelForAuxiliaryVisualTask
-            )?.capabilities.contains(.visual) ?? false
-            let cloudModelSatisfied = cloudModel(
-                identifier: defaultModelForAuxiliaryVisualTask
-            )?.capabilities.contains(.visual) ?? false
-            // Apple Intelligence does not support visual capabilities
-            if !localModelSatisfied, !cloudModelSatisfied {
-                Logger.model.debugFile("reset defaultModelForAuxiliaryVisualTask due to not found")
-                defaultModelForAuxiliaryVisualTask = ""
-            }
         }
     }
 
@@ -267,17 +214,6 @@ class ModelManager: NSObject {
         }
         return 8192
     }
-
-    static let temperaturePresets: [(title: String.LocalizationValue, value: Double, icon: String)] = [
-        ("Disabled @ -1", -1.0, "gear"),
-        ("Freezing @ 0.0", 0.0, "snowflake"),
-        ("Precise @ 0.25", 0.25, "thermometer.low"),
-        ("Stable @ 0.5", 0.5, "thermometer.low"),
-        ("Humankind @ 0.75", 0.75, "thermometer.medium"),
-        ("Creative @ 1.0", 1.0, "thermometer.medium"),
-        ("Imaginative @ 1.5", 1.5, "thermometer.high"),
-        ("Magical @ 2.0", 2.0, "thermometer.high"),
-    ]
 
     func importModels(at urls: [URL], controller: UIViewController) {
         Indicator.progress(
@@ -404,34 +340,8 @@ extension ModelManager {
 }
 
 extension ModelManager.ModelIdentifier {
-    static var defaultModelForAuxiliaryTaskWillUseCurrentChatModel: Bool {
-        get { ModelManager.shared.defaultModelForAuxiliaryTaskWillUseCurrentChatModel }
-        set { ModelManager.shared.defaultModelForAuxiliaryTaskWillUseCurrentChatModel = newValue }
-    }
-
     static var defaultModelForConversation: Self {
         get { ModelManager.shared.defaultModelForConversation }
         set { ModelManager.shared.defaultModelForConversation = newValue }
-    }
-
-    static var defaultModelForAuxiliaryTask: Self {
-        get {
-            if defaultModelForAuxiliaryTaskWillUseCurrentChatModel {
-                ModelManager.shared.defaultModelForConversation
-            } else {
-                ModelManager.shared.defaultModelForAuxiliaryTask
-            }
-        }
-        set { ModelManager.shared.defaultModelForAuxiliaryTask = newValue }
-    }
-
-    /// Returns the stored auxiliary model identifier, ignoring the "use chat model" setting
-    static var storedAuxiliaryTaskModel: Self {
-        ModelManager.shared.defaultModelForAuxiliaryTask
-    }
-
-    static var defaultModelForAuxiliaryVisualTask: Self {
-        get { ModelManager.shared.defaultModelForAuxiliaryVisualTask }
-        set { ModelManager.shared.defaultModelForAuxiliaryVisualTask = newValue }
     }
 }

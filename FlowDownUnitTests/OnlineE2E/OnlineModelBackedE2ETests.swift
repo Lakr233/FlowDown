@@ -51,7 +51,6 @@ struct OnlineModelBackedE2ETests {
         }
         let session = ConversationSessionManager.shared.session(for: conversation.id)
         session.models.chat = modelID
-        session.models.auxiliary = modelID
 
         for message in session.messages where message.role == .system || message.role == .assistant {
             session.delete(messageIdentifier: message.objectId)

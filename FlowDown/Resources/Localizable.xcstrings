@@ -1243,52 +1243,6 @@
         }
       }
     },
-    "A visual model is required for image attachments." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Für Bildanhänge ist ein visuelles Modell erforderlich."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A visual model is required for image attachments."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se requiere un modelo visual para adjuntar imágenes."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un modèle visuel est requis pour les pièces jointes d’images."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画像添付にはビジュアルモデルが必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이미지 첨부에는 비주얼 모델이 필요합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要设置视觉模型以辨认图片附件。"
-          }
-        }
-      }
-    },
     "Actions" : {
       "localizations" : {
         "de" : {
@@ -5197,52 +5151,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自动化"
-          }
-        }
-      }
-    },
-    "Auxiliary Visual Model" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zusätzliches visuelles Modell"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auxiliary Visual Model"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modelo visual auxiliar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modèle visuel auxiliaire"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "補助ビジュアルモデル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "보조 비주얼 모델"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "视觉辅助模型"
           }
         }
       }
@@ -12116,52 +12024,6 @@
         }
       }
     },
-    "Creative @ 1.0" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kreativ @ 1.0"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creative @ 1.0"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creativo @ 1.0"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créatif @ 1.0"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリエイティブ @ 1.0"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "창의적 @ 1.0"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "创造 @ 1.0"
-          }
-        }
-      }
-    },
     "Current context:\nYour Name: %@\nDate: %@\nUser Locale: %@" : {
       "localizations" : {
         "de" : {
@@ -14423,52 +14285,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "禁用"
-          }
-        }
-      }
-    },
-    "Disabled @ -1" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deaktiviert @ -1"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disabled @ -1"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desactivado @ -1"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désactivé @ -1"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無効 @ -1"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "비활성화 @ -1"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "禁用 @ -1"
           }
         }
       }
@@ -21605,52 +21421,6 @@
       },
       "shouldTranslate" : false
     },
-    "Freezing @ 0.0" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einfrieren @ 0.0"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Freezing @ 0.0"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Congelado @ 0.0"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gelé @ 0.0"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "厳密 @ 0.0"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "엄격 @ 0.0"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "严谨 @ 0.0"
-          }
-        }
-      }
-    },
     "Full Access" : {
       "localizations" : {
         "de" : {
@@ -22710,98 +22480,6 @@
         }
       }
     },
-    "Humankind @ 0.75" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Menschlich @ 0.75"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Humankind @ 0.75"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Humano @ 0.75"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Humain @ 0.75"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "人間味 @ 0.75"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "인간미 @ 0.75"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "类人 @ 0.75"
-          }
-        }
-      }
-    },
-    "I have recognized this image." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ich habe dieses Bild erkannt."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I have recognized this image."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "He reconocido esta imagen."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "J’ai reconnu cette image."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この画像を認識しました。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 이미지를 인식했습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我已识别这张图片。"
-          }
-        }
-      }
-    },
     "iCloud Sync" : {
       "localizations" : {
         "de" : {
@@ -23350,98 +23028,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "图片"
-          }
-        }
-      }
-    },
-    "Imagination" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vorstellungskraft"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Imagination"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Imaginación"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Imagination"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "イマジネーション"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "상상력"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "想象力"
-          }
-        }
-      }
-    },
-    "Imaginative @ 1.5" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fantasievoll @ 1.5"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Imaginative @ 1.5"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Imaginativo @ 1.5"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Imaginatif @ 1.5"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "想像力豊か @ 1.5"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "상상력 풍부 @ 1.5"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "幻想 @ 1.5"
           }
         }
       }
@@ -24730,52 +24316,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "推理服务"
-          }
-        }
-      }
-    },
-    "Inference Settings" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inferenz-Einstellungen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inference Settings"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajustes de inferencia"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paramètres d’inférence"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推論設定"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "추론 설정"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推理设置"
           }
         }
       }
@@ -27596,52 +27136,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "低"
-          }
-        }
-      }
-    },
-    "Magical @ 2.0" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Magisch @ 2.0"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Magical @ 2.0"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mágico @ 2.0"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Magique @ 2.0"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "マジカル @ 2.0"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "마법 @ 2.0"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "魔幻 @ 2.0"
           }
         }
       }
@@ -35116,52 +34610,6 @@
         }
       }
     },
-    "Please describe the image." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bitte beschreibe das Bild."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please describe the image."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Por favor, describe la imagen."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Veuillez décrire l’image."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画像を説明してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이미지를 설명해 주세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请详细表述这张图片。"
-          }
-        }
-      }
-    },
     "Please enter a valid URL." : {
       "localizations" : {
         "de" : {
@@ -35916,52 +35364,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "邮政编码：%@"
-          }
-        }
-      }
-    },
-    "Precise @ 0.25" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Präzise @ 0.25"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Precise @ 0.25"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preciso @ 0.25"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Précis @ 0.25"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "精緻 @ 0.25"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정밀 @ 0.25"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "精确 @ 0.25"
           }
         }
       }
@@ -43098,52 +42500,6 @@
         }
       }
     },
-    "Skip Recognization If Possible" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erkennung nach Möglichkeit überspringen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip Recognization If Possible"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Omitir reconocimiento si es posible"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ignorer la reconnaissance si possible"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可能なら認識をスキップ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가능하면 인식 건너뛰기"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "尝试跳过辨认过程"
-          }
-        }
-      }
-    },
     "Skip the confirmation dialog when executing tools." : {
       "localizations" : {
         "de" : {
@@ -43186,52 +42542,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "跳过工具调用的确认对话框直接执行工具调用。"
-          }
-        }
-      }
-    },
-    "Skip the visual assessment process when the conversation model natively supports visual input. Enabling this option can improve the efficiency when using visual models, but if you switch to a model that does not support visual input after using it, the image information will be lost." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Überspringe die visuelle Prüfung, wenn das Unterhaltungsmodell native visuelle Eingaben unterstützt. Aktivieren kann die Effizienz bei visuellen Modellen erhöhen, aber wenn du danach zu einem Modell ohne visuelle Eingaben wechselst, gehen Bildinformationen verloren."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip the visual assessment process when the conversation model natively supports visual input. Enabling this option can improve the efficiency when using visual models, but if you switch to a model that does not support visual input after using it, the image information will be lost."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Omite la evaluación visual cuando el modelo de conversación soporte entrada visual de forma nativa. Activarlo mejora la eficiencia con modelos visuales, pero si luego cambias a uno sin soporte visual, se perderá la información de la imagen."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sautez l’évaluation visuelle quand le modèle de conversation prend en charge l’entrée visuelle. Activer cette option peut améliorer l’efficacité avec les modèles visuels, mais si vous passez ensuite à un modèle sans support visuel, les informations d’image seront perdues."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会話モデルが視覚入力に対応している場合、ビジュアル評価を省略します。効率向上しますが、非対応モデルに切り替えると画像情報は失われます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "대화 모델이 시각 입력을 기본 지원할 때 시각 평가 과정을 건너뜁니다. 이 옵션을 켜면 비주얼 모델 사용 효율이 향상되지만, 이후 시각 입력을 지원하지 않는 모델로 전환하면 이미지 정보가 사라집니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当对话模型支持视觉输入时，跳过辨认图片的过程。开启这个选项可以提高视觉模型的效率，但在使用后若切换到不支持视觉输入的模型，则会丢失图片信息。"
           }
         }
       }
@@ -43786,52 +43096,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "听写不可用。"
-          }
-        }
-      }
-    },
-    "Stable @ 0.5" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stabil @ 0.5"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stable @ 0.5"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estable @ 0.5"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stable à 0.5"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "安定 @ 0.5"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "안정 @ 0.5"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "稳定 @ 0.5"
           }
         }
       }
@@ -45170,6 +44434,52 @@
         }
       }
     },
+    "Switch to a model with visual capability to send images." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wechsle zu einem Modell mit visuellen Fähigkeiten, um Bilder zu senden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to a model with visual capability to send images."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia a un modelo con capacidad visual para enviar imágenes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passez à un modèle doté de capacités visuelles pour envoyer des images."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像を送信するには、視覚機能に対応したモデルに切り替えてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미지를 보내려면 시각 기능을 지원하는 모델로 전환하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请切换到支持视觉的模型以发送图片。"
+          }
+        }
+      }
+    },
     "Switch to Conversation" : {
       "localizations" : {
         "de" : {
@@ -45857,52 +45167,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "目标语言"
-          }
-        }
-      }
-    },
-    "Task Model" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task-Modell"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task Model"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modelo de tareas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modèle de tâche"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "タスクモデル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "작업 모델"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "任务模型"
           }
         }
       }
@@ -47513,98 +46777,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "模型未返回任何内容。"
-          }
-        }
-      }
-    },
-    "The model is used for auxiliary tasks such as generating conversation titles and web search keywords." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Modell wird für Hilfsaufgaben wie Titelgenerierung und Web-Suchbegriffe verwendet."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model is used for auxiliary tasks such as generating conversation titles and web search keywords."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El modelo se usa para tareas auxiliares como generar títulos de conversación y palabras clave de búsqueda web."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le modèle est utilisé pour des tâches auxiliaires comme générer des titres de conversation et des mots-clés de recherche web."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会話タイトル生成や検索キーワード生成など補助タスクに用いるモデルです。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "대화 제목 생성, 웹 검색 키워드 추출 등 보조 작업에 사용되는 모델입니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此模型用于诸如生成对话标题或网络搜索关键字等辅助场景。"
-          }
-        }
-      }
-    },
-    "The model is used for visual input when the current model does not support it. It will extract information before using the current model for inference." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Modell wird für visuelle Eingaben genutzt, wenn das aktuelle Modell dies nicht unterstützt. Es extrahiert Informationen, bevor das aktuelle Modell für die Inferenz verwendet wird."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model is used for visual input when the current model does not support it. It will extract information before using the current model for inference."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El modelo se usa para entrada visual cuando el modelo actual no la soporta. Extraerá información antes de usar el modelo actual para inferencia."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce modèle est utilisé pour l’entrée visuelle quand le modèle actuel ne la supporte pas. Il extrait l’information avant d’utiliser le modèle actuel pour l’inférence."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "現在のモデルが視覚入力非対応の場合に使用するビジュアル用モデルです。推論前に情報を抽出します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "현재 모델이 시각 입력을 지원하지 않을 때 사용하는 모델입니다. 추론 전에 정보를 추출한 뒤 현재 모델을 사용합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此模型将在当前所选模型不支持视觉输入时提供帮助。这会在所选模型进行推理前，使用此模型提取信息。"
           }
         }
       }
@@ -49262,52 +48434,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此模型似乎过大，可能无法在此设备上加载。"
-          }
-        }
-      }
-    },
-    "This parameter can be used to control the personality of the model. The more imaginative, the more unstable the output. This parameter is also known as temperature." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieser Parameter steuert die Persönlichkeit des Modells. Je fantasievoller, desto instabiler die Ausgabe. Auch bekannt als Temperatur."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This parameter can be used to control the personality of the model. The more imaginative, the more unstable the output. This parameter is also known as temperature."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este parámetro controla la personalidad del modelo. Cuanto más imaginativo, más inestable la salida. También se conoce como temperatura."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce paramètre contrôle la personnalité du modèle. Plus il est imaginatif, plus la sortie est instable. Aussi appelé température."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このパラメータでモデルのパーソナリティを制御できます。想像力を上げるほど出力は不安定になります（いわゆる temperature）。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 매개변수는 모델의 성격을 조정합니다. 상상력을 높일수록 출력이 불안정해집니다. temperature로도 알려져 있습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此参数可用于控制模型的性格。想象力越丰富，输出越不稳定。此参数亦可称为温度。"
           }
         }
       }
@@ -52143,52 +51269,6 @@
         }
       }
     },
-    "Unable to decode image." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bild kann nicht dekodiert werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to decode image."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede decodificar la imagen."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de décoder l’image."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画像をデコードできません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이미지를 디코드할 수 없습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法打开这张图片。"
-          }
-        }
-      }
-    },
     "Unable to decode string key value map from text: %@" : {
       "localizations" : {
         "de" : {
@@ -52507,52 +51587,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法生成标题"
-          }
-        }
-      }
-    },
-    "Unable to identify the image with tool model." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bild kann mit dem Tool-Modell nicht erkannt werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to identify the image with tool model."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede identificar la imagen con el modelo de herramienta."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d’identifier l’image avec le modèle outil."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ツールモデルで画像を特定できませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "도구 모델로 이미지를 식별할 수 없습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法使用工具模型辨认图片。"
           }
         }
       }
@@ -54167,52 +53201,6 @@
         }
       }
     },
-    "Use Chat Model" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chat-Modell verwenden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use Chat Model"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar modelo de chat"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser le modèle de chat"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "チャットモデルを使用"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "채팅 모델 사용"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用对话模型"
-          }
-        }
-      }
-    },
     "Use Custom Sound Effect" : {
       "localizations" : {
         "de" : {
@@ -55041,52 +54029,6 @@
         }
       }
     },
-    "Using a local or mini model for this purpose will lower overall costs while maintaining a consistent experience." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Für diesen Zweck ein lokales oder Mini-Modell zu nutzen, senkt die Gesamtkosten bei gleichbleibender Erfahrung."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Using a local or mini model for this purpose will lower overall costs while maintaining a consistent experience."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar un modelo local o mini para este fin reduce costos manteniendo una experiencia consistente."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser un modèle local ou léger pour cet usage réduit les coûts tout en maintenant une expérience cohérente."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この目的にローカル/小型モデルを使うとコストを抑えつつ体験を維持できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 목적에 로컬 또는 미니 모델을 사용하면 비용을 낮추면서 일관된 경험을 유지할 수 있습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用本地模型或者云端小模型可以降低推理成本，节约开销，同时提供一致的体验。"
-          }
-        }
-      }
-    },
     "Usually, you don't need to clean caches and temporary files. But if you have any issues, try these." : {
       "localizations" : {
         "de" : {
@@ -55175,52 +54117,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "实用工具"
-          }
-        }
-      }
-    },
-    "Utilize the current chat model to assist with auxiliary tasks." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das aktuelle Chat-Modell für Hilfsaufgaben einsetzen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilize the current chat model to assist with auxiliary tasks."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usa el modelo de chat actual para ayudar en tareas auxiliares."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utilisez le modèle de chat actuel pour aider aux tâches auxiliaires."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "現在のチャットモデルを利用して補助タスクを支援します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "현재 채팅 모델을 활용해 보조 작업을 돕습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用对话模型完成辅助任务。"
           }
         }
       }
@@ -56003,52 +54899,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "视觉"
-          }
-        }
-      }
-    },
-    "Visual Assessment" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visuelle Bewertung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visual Assessment"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Evaluación visual"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Évaluation visuelle"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ビジュアル評価"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "시각 평가"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "视觉辅助"
           }
         }
       }
@@ -57939,52 +56789,6 @@
         }
       }
     },
-    "While using a visual assessment model may result in some loss of information, it can make tasks requiring visual input possible." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Verwendung eines visuellen Bewertungsmodells kann zwar Informationsverlust bedeuten, ermöglicht aber Aufgaben, die visuelle Eingaben erfordern."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "While using a visual assessment model may result in some loss of information, it can make tasks requiring visual input possible."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar un modelo de evaluación visual puede implicar pérdida de información, pero permite tareas que requieren entrada visual."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’usage d’un modèle d’évaluation visuelle peut entraîner une perte d’information, mais rend possibles les tâches nécessitant une entrée visuelle."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ビジュアル評価モデルを使うと情報が一部失われる可能性がありますが、視覚入力が必要なタスクを可能にします。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "시각 평가 모델은 일부 정보 손실이 있을 수 있지만 시각 입력이 필요한 작업을 가능하게 합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "虽然使用视觉评估模型可能会丢失一些信息，但它能使需要视觉输入的任务成为可能。"
-          }
-        }
-      }
-    },
     "Would you like to apply the new Authorization token to all models with the same inference endpoint and current token?" : {
       "localizations" : {
         "de" : {
@@ -59782,6 +58586,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享…"
+          }
+        }
+      }
+    },
+    "Send" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "送信"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "보내기"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送"
           }
         }
       }

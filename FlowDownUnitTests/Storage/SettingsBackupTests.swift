@@ -79,6 +79,56 @@ struct SettingsBackupTests {
     }
 
     @Test
+    func `import skips retired inference settings from older backups`() throws {
+        try withIsolatedStorage(prefix: "settings.") { storage, suite in
+            let retired: [(String, Data)] = try [
+                ("Model.Default.Auxiliary", encodedConfigurableValue("task-model")),
+                ("Model.Default.Auxiliary.UseCurrentChatModel", encodedConfigurableValue(false)),
+                ("Model.Default.AuxiliaryVisual", encodedConfigurableValue("visual-model")),
+                ("Model.Default.AuxiliaryVisual.SkipIfPossible", encodedConfigurableValue(false)),
+                ("InferenceController.defaultAuxiliaryModelAlignWithChatModel", encodedConfigurableValue(false)),
+                ("Model.Inference.Prompt.Temperature", encodedConfigurableValue(1.5)),
+                ("CONFKIT.Model.Inference.Temperature", encodedConfigurableValue(1.5)),
+            ]
+            #expect(Set(retired.map(\.0)) == SettingsBackup.retiredKeys)
+
+            let importURL = try makeBackupFile(
+                items: retired.map { .init(key: $0.0, data: $0.1) } + [
+                    .init(key: LiveActivitySetting.storageKey, data: encodedConfigurableValue(true)),
+                ],
+            )
+            defer { try? FileManager.default.removeItem(at: importURL) }
+
+            try SettingsBackup.importBackup(from: importURL, storage: storage)
+
+            let restoredLiveActivity: Bool? = ConfigurableKit.value(
+                forKey: LiveActivitySetting.storageKey,
+                storage: storage
+            )
+            #expect(restoredLiveActivity == true)
+            for (key, _) in retired {
+                #expect(storage.value(forKey: key) == nil)
+                #expect(suite.object(forKey: "settings.\(key)") == nil)
+            }
+        }
+    }
+
+    @Test
+    func `export leaves out retired inference settings`() throws {
+        try withIsolatedStorage(prefix: "settings.") { storage, _ in
+            ConfigurableKit.set(value: true, forKey: LiveActivitySetting.storageKey, storage: storage)
+            ConfigurableKit.set(value: "task-model", forKey: "Model.Default.Auxiliary", storage: storage)
+            ConfigurableKit.set(value: 1.5, forKey: "CONFKIT.Model.Inference.Temperature", storage: storage)
+
+            let exportURL = try SettingsBackup.export(storage: storage)
+            defer { try? FileManager.default.removeItem(at: exportURL) }
+
+            let payload = try decodeBackupPayload(at: exportURL)
+            #expect(Set(payload.items.map(\.key)) == [LiveActivitySetting.storageKey])
+        }
+    }
+
+    @Test
     func `import rejects incompatible backup versions`() throws {
         try withIsolatedStorage { storage, _ in
             let importURL = try makeBackupFile(formatVersion: 999, items: [])

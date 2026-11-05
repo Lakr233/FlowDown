@@ -18,7 +18,6 @@ extension ModelManager {
         requiresCapabilities: Set<ModelCapabilities> = [],
         allowSelectionWithNone: Bool = false,
         onCompletion: @escaping (ModelIdentifier) -> Void,
-        includeQuickActions: Bool,
     ) -> [UIMenuElement] {
         let localModels = ModelManager.shared.localModels.value.filter {
             !$0.model_identifier.isEmpty
@@ -183,67 +182,6 @@ extension ModelManager {
 
         if !leadingElements.isEmpty {
             finalChildren.insert(contentsOf: leadingElements, at: 0)
-        }
-
-        if includeQuickActions {
-            let taskMenu = buildModelSelectionMenu(
-                currentSelection: Self.ModelIdentifier.defaultModelForAuxiliaryTask,
-                requiresCapabilities: [],
-                allowSelectionWithNone: !Self.ModelIdentifier.defaultModelForAuxiliaryTask.isEmpty,
-                onCompletion: { identifier in
-                    Self.ModelIdentifier.defaultModelForAuxiliaryTask = identifier
-                },
-                includeQuickActions: false,
-            )
-            let taskModelSelect = UIMenu(
-                title: String(localized: "Task Model"),
-                image: UIImage(systemName: "ellipsis.bubble"),
-                children: taskMenu,
-            )
-
-            let auxVisionMenu = buildModelSelectionMenu(
-                currentSelection: Self.ModelIdentifier.defaultModelForAuxiliaryVisualTask,
-                requiresCapabilities: [.visual],
-                allowSelectionWithNone: !Self.ModelIdentifier.defaultModelForAuxiliaryVisualTask.isEmpty,
-                onCompletion: { identifier in
-                    Self.ModelIdentifier.defaultModelForAuxiliaryVisualTask = identifier
-                },
-                includeQuickActions: false,
-            )
-            let auxVisionModelSelect = UIMenu(
-                title: String(localized: "Auxiliary Visual Model"),
-                image: UIImage(systemName: "eye"),
-                children: auxVisionMenu,
-            )
-
-            let temperatureGroup = UIMenu(
-                title: String(localized: "Imagination"),
-                options: [.displayInline],
-                children: ModelManager.temperaturePresets.map { preset -> UIAction in
-                    let currentValue = Double(ModelManager.shared.temperature)
-                    let isCurrent = abs(currentValue - preset.value) < 0.0001
-                    return UIAction(
-                        title: String(localized: preset.title),
-                        image: UIImage(systemName: preset.icon),
-                        state: isCurrent ? .on : .off,
-                    ) { _ in
-                        ModelManager.shared.temperature = Float(preset.value)
-                    }
-                },
-            )
-            let quickMenu = UIMenu(
-                title: String(localized: "Parameters"),
-                options: [.displayInline],
-                children: [UIMenu(
-                    title: String(localized: "Inference Settings"),
-                    children: [
-                        taskModelSelect,
-                        auxVisionModelSelect,
-                        temperatureGroup,
-                    ],
-                )],
-            )
-            finalChildren.append(quickMenu)
         }
 
         return finalChildren

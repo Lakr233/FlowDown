@@ -88,6 +88,7 @@ class RichEditorView: EditorSectionView {
 
     let attachmentsBar = AttachmentsBar()
     let inputEditor = InputEditor()
+    let visualInputHint = VisualInputHintBar()
     let quickSettingBar = QuickSettingBar()
     let controlPanel = ControlPanel()
 
@@ -101,6 +102,7 @@ class RichEditorView: EditorSectionView {
     lazy var sectionSubviews: [EditorSectionView] = [
         attachmentsBar,
         inputEditor,
+        visualInputHint,
         quickSettingBar,
         controlPanel,
     ]

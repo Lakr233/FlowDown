@@ -95,6 +95,10 @@ extension RichEditorView {
     }
 
     func submitValues() {
+        // Return, Command-Return and the send shortcut land here without passing
+        // through the send button, so check again against the current model.
+        updateVisualInputHint()
+        guard !visualInputHint.isActive else { return }
         var object = collectObject()
         // Only the submitted message gets the fallback text. Drafts keep the
         // raw text so it never comes back as something the user typed.

@@ -61,19 +61,6 @@ extension ChatView: RichEditorView.Delegate {
 
     let session = ConversationSessionManager.shared.session(for: conversationID)
     offloadModelsToSession(modelIdentifier: modelIdentifier())
-    let shouldHaveVisualModel = object.attachments.contains { $0.type == .image }
-    if shouldHaveVisualModel {
-      let currentModelCanSee = ModelManager.shared.modelCapabilities(identifier: modelID)
-        .contains(.visual)
-      let auxModelExists = !(session.models.visualAuxiliary?.isEmpty ?? true)
-      guard currentModelCanSee || auxModelExists else {
-        presentModelRequiredAlert(
-          message: "A visual model is required for image attachments.",
-        )
-        completion(false)
-        return
-      }
-    }
 
     completion(true)
 
@@ -91,26 +78,20 @@ extension ChatView: RichEditorView.Delegate {
     #endif
   }
 
-  private func presentModelRequiredAlert(
-    message: String.LocalizationValue,
-  ) {
-    let alert = AlertViewController(
-      title: "Error",
-      message: message,
-    ) { [weak self] context in
-      context.allowSimpleDispose()
-      context.addAction(title: "Close") {
-        context.dispose()
-      }
-      context.addAction(title: "Configure", attribute: .accent) { [weak self] in
-        context.dispose { [weak self] in
-          SettingController.setNextEntryPage(.modelManagement)
-          let setting = SettingController()
-          self?.parentViewController?.present(setting, animated: true)
-        }
-      }
-    }
-    parentViewController?.present(alert, animated: true)
+  func onRichEditorVisualInputHint(
+    attachments: [RichEditorView.Object.Attachment],
+    modelIdentifier: String,
+  ) -> String? {
+    // With no model selected, sending asks the user to pick one instead.
+    guard !modelIdentifier.isEmpty else { return nil }
+    let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelIdentifier)
+    guard
+      ConversationSession.hasImagesRequiringVisualInput(
+        attachments,
+        modelCapabilities: modelCapabilities,
+      )
+    else { return nil }
+    return ConversationSession.visualInputUnsupportedHintText
   }
 
   func onRichEditorError(_ error: String) {
@@ -209,7 +190,6 @@ extension ChatView: RichEditorView.Delegate {
         }
         completion()
       },
-      includeQuickActions: true,
     )
   }
 
@@ -357,12 +337,6 @@ extension ChatView: RichEditorView.Delegate {
     let session = ConversationSessionManager.shared.session(for: conversationIdentifier)
 
     session.models.chat = modelIdentifier ?? .defaultModelForConversation
-    if ModelManager.ModelIdentifier.defaultModelForAuxiliaryTaskWillUseCurrentChatModel {
-      session.models.auxiliary = session.models.chat ?? .defaultModelForAuxiliaryTask
-    } else {
-      session.models.auxiliary = ModelManager.ModelIdentifier.defaultModelForAuxiliaryTask
-    }
-    session.models.visualAuxiliary = ModelManager.ModelIdentifier.defaultModelForAuxiliaryVisualTask
 
     NSObject.cancelPreviousPerformRequests(withTarget: self)
     perform(#selector(printModelInfomation), with: nil, afterDelay: 0.25)
@@ -376,7 +350,5 @@ extension ChatView: RichEditorView.Delegate {
       "chat: \(ModelManager.shared.modelName(identifier: session.models.chat))")
     Logger.model.debugFile(
       "task: \(ModelManager.shared.modelName(identifier: session.models.auxiliary))")
-    Logger.model.debugFile(
-      "view: \(ModelManager.shared.modelName(identifier: session.models.visualAuxiliary))")
   }
 }

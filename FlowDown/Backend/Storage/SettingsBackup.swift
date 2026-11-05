@@ -45,6 +45,23 @@ enum SettingsBackup {
     /// which holds the CKSyncEngine state serialization for this device.
     private static let excludedKeys: Set<String> = ["FlowDownSyncEngineState"]
 
+    /// Settings the app no longer has: the task and visual auxiliary models and the
+    /// app-wide temperature. Older backups still carry them; they are skipped on
+    /// import and left out of new exports so nothing writes them back.
+    static let retiredKeys: Set<String> = [
+        "Model.Default.Auxiliary",
+        "Model.Default.Auxiliary.UseCurrentChatModel",
+        "Model.Default.AuxiliaryVisual",
+        "Model.Default.AuxiliaryVisual.SkipIfPossible",
+        "InferenceController.defaultAuxiliaryModelAlignWithChatModel",
+        "Model.Inference.Prompt.Temperature",
+        "CONFKIT.Model.Inference.Temperature",
+    ]
+
+    private static func isSkipped(_ key: String) -> Bool {
+        excludedKeys.contains(key) || retiredKeys.contains(key)
+    }
+
     static func export(storage: KeyValueStorage = ConfigurableKit.storage) throws -> URL {
         let storage = try userDefaultsStorage(from: storage)
         let items = try collectConfigurableItems(from: storage)
@@ -83,7 +100,7 @@ enum SettingsBackup {
             storage.setValue(nil, forKey: key)
         }
 
-        for item in payload.items where !excludedKeys.contains(item.key) {
+        for item in payload.items where !isSkipped(item.key) {
             storage.setValue(item.data, forKey: item.key)
         }
     }
@@ -109,7 +126,7 @@ private extension SettingsBackup {
             guard let data = value as? Data else { continue }
             guard isConfigurableValue(data) else { continue }
             guard let key = normalize(storedKey: storedKey, prefix: prefix) else { continue }
-            guard !excludedKeys.contains(key) else { continue }
+            guard !isSkipped(key) else { continue }
             items.append(.init(key: key, data: data))
         }
         return items

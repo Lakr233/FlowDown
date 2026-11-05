@@ -34,28 +34,6 @@ extension SettingController.SettingContent {
             $0.configure(description: "The model used for new conversations.")
         }
 
-        private let defaultAuxiliaryModelAlignWithChatModel = ConfigurableBooleanBlockView(storage: .init(
-            key: "InferenceController.defaultAuxiliaryModelAlignWithChatModel",
-            defaultValue: true,
-            storage: UserDefaultKeyValueStorage(suite: .standard),
-        )).with {
-            $0.configure(icon: UIImage(systemName: "quote.bubble"))
-            $0.configure(title: "Use Chat Model")
-            $0.configure(description: "Utilize the current chat model to assist with auxiliary tasks.")
-        }
-
-        private let defaultAuxiliaryModel = ConfigurableInfoView().with {
-            $0.configure(icon: UIImage(systemName: "ellipsis.bubble"))
-            $0.configure(title: "Task Model")
-            $0.configure(description: "The model is used for auxiliary tasks such as generating conversation titles and web search keywords.")
-        }
-
-        private let defaultAuxiliaryVisualModel = ConfigurableInfoView().with {
-            $0.configure(icon: UIImage(systemName: "eye"))
-            $0.configure(title: "Auxiliary Visual Model")
-            $0.configure(description: "The model is used for visual input when the current model does not support it. It will extract information before using the current model for inference.")
-        }
-
         private let appleIntelligenceToggle = ConfigurableBooleanBlockView(storage: .init(
             key: ModelManager.appleIntelligenceEnabledKey,
             defaultValue: true,
@@ -65,16 +43,6 @@ extension SettingController.SettingContent {
             $0.configure(title: "Enable Foundation Model")
             $0.configure(description: "Show Foundation Model in the model picker when available.")
         }
-
-        private let skipVisualAssessmentView = ConfigurableObject(
-            icon: "arrowshape.zigzag.forward",
-            title: "Skip Recognization If Possible",
-            explain: "Skip the visual assessment process when the conversation model natively supports visual input. Enabling this option can improve the efficiency when using visual models, but if you switch to a model that does not support visual input after using it, the image information will be lost.",
-            key: ModelManager.shared.defaultModelForAuxiliaryVisualTaskSkipIfPossibleKey,
-            defaultValue: true,
-            annotation: .toggle,
-        )
-        .createView()
 
         override func setupContentViews() {
             super.setupContentViews()
@@ -101,44 +69,6 @@ extension SettingController.SettingContent {
             )
             stackView.addArrangedSubview(SeparatorView())
 
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionHeaderView().with(
-                    header: "Task Model",
-                ),
-            ) { $0.bottom /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(defaultAuxiliaryModelAlignWithChatModel)
-            stackView.addArrangedSubview(SeparatorView())
-            stackView.addArrangedSubviewWithMargin(defaultAuxiliaryModel)
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionFooterView().with(
-                    footer: "Using a local or mini model for this purpose will lower overall costs while maintaining a consistent experience.",
-                ),
-            ) { $0.top /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionHeaderView().with(
-                    header: "Visual Assessment",
-                ),
-            ) { $0.bottom /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(defaultAuxiliaryVisualModel)
-            stackView.addArrangedSubview(SeparatorView())
-            stackView.addArrangedSubviewWithMargin(skipVisualAssessmentView)
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionFooterView().with(
-                    footer: "While using a visual assessment model may result in some loss of information, it can make tasks requiring visual input possible.",
-                ),
-            ) { $0.top /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
-
             defer { updateDefaultModelinfoFile() }
 
             stackView.addArrangedSubviewWithMargin(
@@ -155,9 +85,6 @@ extension SettingController.SettingContent {
             stackView.addArrangedSubview(SeparatorView())
 
             stackView.addArrangedSubviewWithMargin(ModelManager.includeDynamicSystemInfo.createView())
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(ModelManager.temperatureConfigurableObject.createView())
             stackView.addArrangedSubview(SeparatorView())
 
             stackView.addArrangedSubviewWithMargin(
@@ -259,64 +186,6 @@ extension SettingController.SettingContent {
                         ModelManager.ModelIdentifier.defaultModelForConversation = identifier
                         self?.updateDefaultModelinfoFile()
                     },
-                    includeQuickActions: false,
-                )
-            }
-
-            // When "Use Chat Model" is enabled, show the chat model
-            // Otherwise, show the actual stored auxiliary model
-            let devAuxId: String = if defaultAuxiliaryModelAlignWithChatModel.boolValue {
-                ModelManager.ModelIdentifier.defaultModelForConversation
-            } else {
-                ModelManager.ModelIdentifier.storedAuxiliaryTaskModel
-            }
-
-            configureModelRow(defaultAuxiliaryModel, id: devAuxId)
-
-            defaultAuxiliaryModel.use { [weak self] in
-                guard let self else { return [] }
-                if defaultAuxiliaryModelAlignWithChatModel.boolValue == true {
-                    return []
-                }
-                return ModelManager.shared.buildModelSelectionMenu(
-                    currentSelection: ModelManager.ModelIdentifier.storedAuxiliaryTaskModel,
-                    requiresCapabilities: [],
-                    allowSelectionWithNone: true,
-                    onCompletion: { [weak self] identifier in
-                        ModelManager.ModelIdentifier.defaultModelForAuxiliaryTask = identifier
-                        self?.updateDefaultModelinfoFile()
-                    },
-                    includeQuickActions: false,
-                )
-            }
-
-            if defaultAuxiliaryModelAlignWithChatModel.boolValue {
-                defaultAuxiliaryModel.alpha = 0.5
-                defaultAuxiliaryModel.isUserInteractionEnabled = false
-            } else {
-                defaultAuxiliaryModel.alpha = 1.0
-                defaultAuxiliaryModel.isUserInteractionEnabled = true
-            }
-
-            defaultAuxiliaryModelAlignWithChatModel.onUpdated = { [weak self] value in
-                ModelManager.ModelIdentifier.defaultModelForAuxiliaryTaskWillUseCurrentChatModel = value
-                self?.updateDefaultModelinfoFile()
-            }
-
-            let devAuxVisualId = ModelManager.ModelIdentifier.defaultModelForAuxiliaryVisualTask
-            defaultAuxiliaryVisualModel.configure(value: displayName(for: devAuxVisualId))
-
-            defaultAuxiliaryVisualModel.use { [weak self] in
-                guard let self else { return [] }
-                return ModelManager.shared.buildModelSelectionMenu(
-                    currentSelection: ModelManager.ModelIdentifier.defaultModelForAuxiliaryVisualTask,
-                    requiresCapabilities: [.visual],
-                    allowSelectionWithNone: true,
-                    onCompletion: { [weak self] identifier in
-                        ModelManager.ModelIdentifier.defaultModelForAuxiliaryVisualTask = identifier
-                        self?.updateDefaultModelinfoFile()
-                    },
-                    includeQuickActions: false,
                 )
             }
         }

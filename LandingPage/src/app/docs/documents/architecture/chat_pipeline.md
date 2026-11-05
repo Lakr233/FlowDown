@@ -16,7 +16,7 @@ When you press **Send**, FlowDown coordinates system prompts, attachments, tool 
 
 Before contacting the model, FlowDown performs lightweight tasks to prepare context:
 
-- **Attachment extraction** – Parses PDFs, images, and text files into summaries. For images without descriptions, the system generates local captions unless the chosen vision model allows skipping auxiliary recognition.
+- **Attachment extraction** – Parses PDFs, images, and text files into summaries. Images go straight to vision models; no separate recognition step runs.
 - **Template & memory recall** – If enabled, injects long-term memory summaries and memory-tool guidance; existing system prompts (including templates) are inherited from history.
 - **Web search planning** – When browsing is on and tool calling is off, FlowDown asks the model for up to three short queries based on recent turns and attachment text. The model can decide not to search or automatically fetch results and attach them as `<web_document id="n">` snippets for citation.
 - **Tool environment setup** – Gathers enabled tools. When browsing is off, search tools are filtered out; if MCP servers are enabled, connections are warmed up.
@@ -50,7 +50,7 @@ You can stop at any time with the stop button. The long-press quick menu also le
 
 ## 6. Auxiliary Tasks
 
-- If auto-rename is enabled, auxiliary models refresh conversation titles and icons.
+- If auto-rename is enabled, the chat model refreshes conversation titles and icons.
 - Diagnostic logs are recorded for export via **Settings → Support**.
 - Completion signals are sent to Shortcuts, MCP, calendar, and other automations.
 
