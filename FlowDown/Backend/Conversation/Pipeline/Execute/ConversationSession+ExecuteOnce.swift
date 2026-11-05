@@ -181,8 +181,8 @@ extension ConversationSession {
             let document = String(localized: "Thinking finished without output any content.")
             message.update(\.document, to: document)
             if !pendingToolCalls.isEmpty {
-                // The placeholder only keeps the reasoning tile from spinning;
-                // replays must not send it as the assistant's own words.
+                // The placeholder is not the assistant's own words: the list
+                // hides it, and replays must not send it either.
                 markDocumentAsPlaceholder(message)
             }
         }

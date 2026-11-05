@@ -141,9 +141,9 @@ extension ConversationSession {
     }
 
     /// Gives each assistant message cut off mid-reasoning the placeholder the
-    /// completed round writes. The reasoning tile reads an empty document as
-    /// still thinking, so a failed or cancelled stream would otherwise leave
-    /// it animating.
+    /// completed round writes, so its reasoning still replays with a non-empty
+    /// turn. The message list folds the reply into the activity summary and
+    /// never shows the placeholder; the summary stops once the session does.
     func finalizeInterruptedReasoning() {
         for message in messages where message.role == .assistant {
             let reasoning = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)

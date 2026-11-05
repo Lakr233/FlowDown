@@ -69,8 +69,35 @@ extension MessageListView {
 
     // MARK: - Convert Messages to Entries
 
-    /// What `ConversationSession` puts in a reply that has reasoning but no text.
-    private static let emptyReplyPlaceholder = String(localized: "Empty message.")
+    /// What `ConversationSession` puts in a reply that has reasoning but no
+    /// text: "Thinking finished…" when a round ends (or is cut off) without
+    /// text, "Empty message." when such a reply is loaded or edited empty.
+    /// Saved replies keep the language the app ran in when they were written,
+    /// so every shipped translation counts, not just the current one.
+    static let emptyReplyPlaceholders: Set<String> = {
+        let keys = ["Empty message.", "Thinking finished without output any content."]
+        var placeholders = Set(keys)
+        for key in keys {
+            placeholders.insert(Bundle.main.localizedString(forKey: key, value: key, table: nil))
+        }
+        for localization in Bundle.main.localizations {
+            guard let path = Bundle.main.path(forResource: localization, ofType: "lproj"),
+                  let bundle = Bundle(path: path)
+            else { continue }
+            for key in keys {
+                placeholders.insert(bundle.localizedString(forKey: key, value: key, table: nil))
+            }
+        }
+        return placeholders
+    }()
+
+    /// Whether a reply that thought carries only the session's placeholder in
+    /// place of text. The mark the session leaves before a tool call is exact;
+    /// rows without it (no call, cut off, or saved by older versions) match by
+    /// text.
+    private func isEmptyReplyPlaceholder(_ content: String, of message: Message) -> Bool {
+        session.documentIsPlaceholder(message) || Self.emptyReplyPlaceholders.contains(content)
+    }
 
     /// Converts messages to entries. While the session is executing, its last
     /// assistant reply is the one still being written and is marked streaming.
@@ -155,11 +182,10 @@ extension MessageListView {
             case .assistant:
                 let reasoningContent = message.reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines)
                 var messageContent = message.document.trimmingCharacters(in: .whitespacesAndNewlines)
-                // The session fills a reply that only thought with a placeholder
-                // when it loads, so the reply never reads as still thinking. In
-                // the summary that reply has no text, and the thought folds in
-                // with the calls after it.
-                if !reasoningContent.isEmpty, messageContent == Self.emptyReplyPlaceholder {
+                // The session fills a reply that only thought with a placeholder,
+                // so replays never send an empty turn. In the summary that reply
+                // has no text, and the thought folds in with the steps around it.
+                if !reasoningContent.isEmpty, isEmptyReplyPlaceholder(messageContent, of: message) {
                     messageContent = ""
                 }
                 if !reasoningContent.isEmpty {
