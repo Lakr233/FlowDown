@@ -111,6 +111,8 @@ class RichEditorView: EditorSectionView {
 
     weak var delegate: Delegate?
     var objectTransactionInProgress = false
+    /// Image attachments already reported through `onRichEditorDidAttachImage`.
+    var knownImageAttachmentIDs: Set<AttachmentsBar.Item.ID> = []
     var heightContraints: NSLayoutConstraint = .init()
 
     var handlerColor: UIColor = .init {

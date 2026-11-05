@@ -208,7 +208,14 @@ private extension RichEditorView {
 }
 
 extension RichEditorView: AttachmentsBar.Delegate {
-    public func attachmentBarDidUpdateAttachments(_: [AttachmentsBar.Item]) {
+    public func attachmentBarDidUpdateAttachments(_ attachments: [AttachmentsBar.Item]) {
+        let imageIDs = Set(attachments.filter { $0.type == .image }.map(\.id))
+        let addedImage = !imageIDs.isSubset(of: knownImageAttachmentIDs)
+        knownImageAttachmentIDs = imageIDs
+        // A restored draft is not a new attachment; it is checked again on send.
+        if addedImage, !objectTransactionInProgress {
+            delegate?.onRichEditorDidAttachImage()
+        }
         publishNewEditorStatus()
     }
 }

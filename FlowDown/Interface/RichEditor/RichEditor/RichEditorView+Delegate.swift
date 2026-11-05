@@ -11,6 +11,8 @@ extension RichEditorView {
     protocol Delegate: AnyObject {
         func onRichEditorSubmit(object: Object, completion: @escaping (Bool) -> Void)
         func onRichEditorError(_ error: String)
+        /// The user added an image; the delegate tells them when the current model cannot read it.
+        func onRichEditorDidAttachImage()
         func onRichEditorRequestObjectForRestore() -> Object?
         func onRichEditorUpdateObject(object: Object)
         func onRichEditorRequestAutomaticModelSelection()

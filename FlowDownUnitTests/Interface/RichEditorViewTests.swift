@@ -13,6 +13,7 @@ private final class RichEditorDelegateSpy: RichEditorView.Delegate {
     private(set) var updatedObjects: [RichEditorView.Object] = []
     private(set) var submittedObjects: [RichEditorView.Object] = []
     private(set) var errors: [String] = []
+    private(set) var attachedImageCount = 0
 
     func onRichEditorSubmit(object: RichEditorView.Object, completion _: @escaping (Bool) -> Void) {
         submittedObjects.append(object)
@@ -20,6 +21,10 @@ private final class RichEditorDelegateSpy: RichEditorView.Delegate {
 
     func onRichEditorError(_ error: String) {
         errors.append(error)
+    }
+
+    func onRichEditorDidAttachImage() {
+        attachedImageCount += 1
     }
 
     func onRichEditorTogglesUpdate(object _: RichEditorView.Object) {}
@@ -119,6 +124,65 @@ struct RichEditorViewTests {
         #expect(spy.submittedObjects.count == 1)
         #expect(spy.submittedObjects.first?.text == String(localized: "Attached \(1) Documents"))
         #expect(spy.submittedObjects.first?.attachments.count == 1)
+    }
+
+    @MainActor
+    @Test
+    func richEditorAttachments_newImage_notifiesDelegateOnce() {
+        let spy = RichEditorDelegateSpy()
+        let editor = RichEditorView()
+        editor.delegate = spy
+
+        let text = RichEditorView.Object.Attachment(
+            type: .text,
+            name: "notes.txt",
+            previewImage: .init(),
+            imageRepresentation: .init(),
+            textRepresentation: "notes",
+            storageSuffix: UUID().uuidString,
+        )
+        editor.attachmentsBar.insert(item: text)
+        #expect(spy.attachedImageCount == 0)
+
+        let image = RichEditorView.Object.Attachment(
+            type: .image,
+            name: "square.png",
+            previewImage: .init(),
+            imageRepresentation: .init(),
+            textRepresentation: "",
+            storageSuffix: UUID().uuidString,
+        )
+        editor.attachmentsBar.insert(item: image)
+        #expect(spy.attachedImageCount == 1)
+
+        // Updating the same image or removing another attachment is not a new image.
+        editor.attachmentsBar.insert(item: image)
+        editor.attachmentsBar.delete(itemIdentifier: text.id)
+        #expect(spy.attachedImageCount == 1)
+    }
+
+    @MainActor
+    @Test
+    func richEditorRestore_draftWithImage_doesNotNotifyDelegate() {
+        let spy = RichEditorDelegateSpy()
+        spy.storedObject = .init(text: "look", attachments: [
+            .init(
+                type: .image,
+                name: "square.png",
+                previewImage: .init(),
+                imageRepresentation: .init(),
+                textRepresentation: "",
+                storageSuffix: UUID().uuidString,
+            ),
+        ])
+        let editor = RichEditorView()
+        editor.delegate = spy
+
+        editor.use(identifier: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: editor.storage.storageDir) }
+
+        #expect(editor.collectObject().attachments.count == 1)
+        #expect(spy.attachedImageCount == 0)
     }
 
     @MainActor

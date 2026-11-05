@@ -45170,6 +45170,52 @@
         }
       }
     },
+    "Switch to a model with visual capability to send images." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wechsle zu einem Modell mit visuellen Fähigkeiten, um Bilder zu senden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to a model with visual capability to send images."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia a un modelo con capacidad visual para enviar imágenes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passez à un modèle doté de capacités visuelles pour envoyer des images."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像を送信するには、視覚機能に対応したモデルに切り替えてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미지를 보내려면 시각 기능을 지원하는 모델로 전환하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请切换到支持视觉的模型以发送图片。"
+          }
+        }
+      }
+    },
     "Switch to Conversation" : {
       "localizations" : {
         "de" : {

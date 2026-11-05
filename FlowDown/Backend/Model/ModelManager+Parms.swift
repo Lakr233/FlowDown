@@ -90,23 +90,6 @@ extension ModelManager {
         defaultValue: true,
         annotation: .toggle,
     )
-
-    static let temperatureConfigurableObject: ConfigurableObject = .init(
-        icon: "sparkles",
-        title: "Imagination",
-        explain: "This parameter can be used to control the personality of the model. The more imaginative, the more unstable the output. This parameter is also known as temperature.",
-        key: "CONFKIT.Model.Inference.Temperature",
-        defaultValue: 0.75,
-        annotation: .menu {
-            ModelManager.temperaturePresets.map { preset in
-                .init(
-                    icon: preset.icon,
-                    title: preset.title,
-                    rawValue: preset.value,
-                )
-            }
-        },
-    )
 }
 
 extension ModelManager {

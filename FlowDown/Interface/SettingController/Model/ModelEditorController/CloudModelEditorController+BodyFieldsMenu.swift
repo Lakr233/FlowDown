@@ -238,7 +238,7 @@ extension CloudModelEditorController {
                 title: "Add \("temperature")",
                 systemImage: "sparkles",
                 controller: controller,
-            ) { $0["temperature"] = Double(ModelManager.shared.temperature) },
+            ) { $0["temperature"] = 0.75 },
             makeDictionaryAction(
                 title: "Add \("top_p")",
                 systemImage: "sparkles",

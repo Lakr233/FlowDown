@@ -22,7 +22,6 @@ extension ConversationSession {
             Logger.app.infoFile("do infere called: \(id)")
             Logger.app.infoFile("    - chat - \(ModelManager.shared.modelName(identifier: models.chat))")
             Logger.app.infoFile("    - task - \(ModelManager.shared.modelName(identifier: models.auxiliary))")
-            Logger.app.infoFile("    - view - \(ModelManager.shared.modelName(identifier: models.visualAuxiliary))")
 
             var backgroundTask: UIBackgroundTaskIdentifier = .invalid
             backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in
@@ -185,13 +184,10 @@ extension ConversationSession {
         save()
 
         try checkCancellation()
-        try await preprocessAttachments(
-            &object,
-            modelCapabilities.contains(.visual),
-            currentMessageListView,
-            userMessage,
+        await noteImagesRequiringVisualInput(
+            object.attachments,
+            modelCapabilities: modelCapabilities,
         )
-        save()
 
         if !object.attachments.isEmpty {
             showActivity(String(localized: "Processing Attachments"))
@@ -270,7 +266,7 @@ extension ConversationSession {
 
         let shouldExtractMemory = modelWillExecuteTools && ModelToolsManager.shared.canStoreMemory
         let recentMessages = Array(messages.suffix(6))
-        let auxModel = models.auxiliary ?? models.chat
+        let auxModel = models.auxiliary
         let convId = id
         let allMessages = messages
         await MainActor.run {
