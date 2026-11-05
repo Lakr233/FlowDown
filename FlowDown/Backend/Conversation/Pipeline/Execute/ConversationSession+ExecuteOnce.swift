@@ -181,8 +181,8 @@ extension ConversationSession {
             let document = String(localized: "Thinking finished without output any content.")
             message.update(\.document, to: document)
             if !pendingToolCalls.isEmpty {
-                // The placeholder only keeps the reasoning tile from spinning;
-                // replays must not send it as the assistant's own words.
+                // The placeholder is not the assistant's own words: the list
+                // hides it, and replays must not send it either.
                 markDocumentAsPlaceholder(message)
             }
         }
@@ -245,7 +245,7 @@ extension ConversationSession {
             if let tool = tool as? MTWebSearchTool {
                 let webSearchMessage = appendNewMessage(role: .webSearch)
                 encodeToolRequestAndAttachToToolMessage(request, message: webSearchMessage)
-                // The web search row reports its own progress from here on.
+                // The activity summary reports the search's progress from here on.
                 hideActivity()
                 let searchResult: [Scrubber.Document]
                 do {

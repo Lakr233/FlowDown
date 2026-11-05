@@ -10,7 +10,7 @@ import Storage
 /// one line of its detail, and whether it has a page to open. A thought is
 /// "Thoughts" over the start of its text; a call is its name over the
 /// reason it was given (else the command it runs or what it names, else
-/// its result).
+/// its result); a search is "Web Search" over its query and how it went.
 struct TraceStep: Hashable {
     let id: String
     let title: String
@@ -18,9 +18,11 @@ struct TraceStep: Hashable {
     let subtitle: String
     /// What its page shows, nil when it has nothing to show.
     let body: TraceBody.Key?
+    /// A search's page instead, with its sources to open.
+    let search: TraceSearch?
 
     var hasDetail: Bool {
-        body != nil
+        body != nil || search != nil
     }
 
     /// Past this many characters an excerpt ends in an ellipsis: more than
@@ -36,6 +38,7 @@ struct TraceStep: Hashable {
             title = String(localized: "Thoughts")
             subtitle = Self.excerpt(text)
             body = text.isEmpty ? nil : .init(source: text, call: nil)
+            search = nil
         case let .tool(_, status):
             let result = status.message.trimmingCharacters(in: .whitespacesAndNewlines)
             let call = TraceBody.Call(title: status.name, arguments: arguments ?? "", result: result)
@@ -43,6 +46,15 @@ struct TraceStep: Hashable {
             title = status.name
             subtitle = Self.excerpt(Self.callLine(detail))
             body = detail.sections.isEmpty ? nil : .init(source: "", call: call)
+            search = nil
+        case let .webSearch(_, status, isInterrupted):
+            let line = status.statusText(isInterrupted: isInterrupted)
+            title = String(localized: "Web Search")
+            subtitle = Self.excerpt((status.queries + [line]).joined(separator: " · "))
+            body = nil
+            search = status.queries.isEmpty && status.searchResults.isEmpty
+                ? nil
+                : TraceSearch(queries: status.queries, status: line, sources: status.searchResults)
         }
     }
 

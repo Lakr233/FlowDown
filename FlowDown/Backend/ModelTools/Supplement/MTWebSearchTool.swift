@@ -101,6 +101,10 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
             await session.requestUpdate()
         }
 
+        // Cancelling ends the stream without an error: the search did not
+        // finish, so it must not read as one that found nothing.
+        try Task.checkCancellation()
+
         var statusFinal = webSearchMessage.webSearchStatus
         statusFinal.proccessProgress = 1.0
         webSearchMessage.assign(\.webSearchStatus, to: statusFinal)

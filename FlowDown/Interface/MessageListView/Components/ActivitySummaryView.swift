@@ -45,8 +45,9 @@ final class ActivitySummaryView: MessageListRowView {
         header.isAccessibilityElement = true
         header.accessibilityLabel = title
         header.accessibilityTraits = .button
+        let traceAction = summary.hasThoughts ? String(localized: "View Thoughts") : String(localized: "Trace")
         header.accessibilityCustomActions = [
-            UIAccessibilityCustomAction(name: String(localized: "View Thoughts")) { [weak self] _ in
+            UIAccessibilityCustomAction(name: traceAction) { [weak self] _ in
                 self?.onOpenTrace?()
                 return true
             },
