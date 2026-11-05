@@ -26,7 +26,7 @@ Thumbnails appear above the composer; tap or hover to preview, rename, or remove
 ## How It Works
 
 - **Vision models**: receive the image directly, plus any text stored with the attachment.
-- **Text-only models**: receive no image and no recognition step runs. A hint appears under the input box while the draft holds an image, and sending is blocked until you switch to a Vision model or remove the image.
+- **Text-only models**: receive no image and no recognition step runs. A hint appears under the input box while the draft holds an image, and the send button stays disabled until you switch to a Vision model or remove the image.
 
 Images already in a conversation follow the same rule. If you switch to a text-only model later, it receives any text stored with the attachment; an image without stored text is left out of the request.
 

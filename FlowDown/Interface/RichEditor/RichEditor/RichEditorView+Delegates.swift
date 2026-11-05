@@ -240,15 +240,17 @@ extension RichEditorView: QuickSettingBar.Delegate {
         }
     }
 
-    /// Shows the note under the input while an attached image cannot reach the
-    /// selected model; it goes away once the model or the attachments change.
+    /// Shows the note under the input and disables sending while an attached
+    /// image cannot reach the selected model; both clear once the model or the
+    /// attachments change.
     func updateVisualInputHint() {
         let attachments = Array(attachmentsBar.attachmetns.values)
         let hint = delegate?.onRichEditorVisualInputHint(
             attachments: attachments,
-            modelIdentifier: quickSettingBar.modelIdentifier,
+            modelIdentifier: delegate?.onRichEditorRequestCurrentModelIdentifier() ?? "",
         )
         let becameVisible = visualInputHint.setActive(hint != nil, text: hint ?? "")
+        inputEditor.sendButton.isEnabled = !visualInputHint.isActive
         if becameVisible, let hint {
             UIAccessibility.post(notification: .announcement, argument: hint)
         }

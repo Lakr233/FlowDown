@@ -61,18 +61,6 @@ extension ChatView: RichEditorView.Delegate {
 
     let session = ConversationSessionManager.shared.session(for: conversationID)
     offloadModelsToSession(modelIdentifier: modelIdentifier())
-    let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
-    guard
-      !ConversationSession.hasImagesRequiringVisualInput(
-        object.attachments,
-        modelCapabilities: modelCapabilities,
-      )
-    else {
-      // Keep the draft so the user can switch models or remove the image.
-      presentVisualInputUnsupportedHint()
-      completion(false)
-      return
-    }
 
     completion(true)
 
@@ -88,21 +76,6 @@ extension ChatView: RichEditorView.Delegate {
         self.editor.focus()
       }
     #endif
-  }
-
-  /// Tells the user the selected model cannot read images; nothing is sent
-  /// to a separate recognition model.
-  private func presentVisualInputUnsupportedHint() {
-    Indicator.present(
-      title: ConversationSession.visualInputUnsupportedTitle,
-      message: ConversationSession.visualInputUnsupportedMessage,
-      preset: .error,
-      referencingView: self,
-    )
-    UIAccessibility.post(
-      notification: .announcement,
-      argument: ConversationSession.visualInputUnsupportedHintText,
-    )
   }
 
   func onRichEditorVisualInputHint(

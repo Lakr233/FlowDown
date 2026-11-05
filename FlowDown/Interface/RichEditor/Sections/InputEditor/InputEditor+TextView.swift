@@ -123,7 +123,8 @@ extension InputEditor: UITextViewDelegate {
     public func textView(_ textView: UITextView, shouldChangeTextIn _: NSRange, replacementText text: String) -> Bool {
         #if !targetEnvironment(macCatalyst)
             if text == "\n", !EditorBehavior.useConfirmationOnSend {
-                textView.resignFirstResponder()
+                // A draft that cannot be sent stays in edit, keyboard included.
+                if sendButton.isEnabled { textView.resignFirstResponder() }
                 delegate?.onInputEditorSubmitButtonTapped()
                 return false
             }

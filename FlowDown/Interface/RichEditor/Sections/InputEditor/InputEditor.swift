@@ -125,6 +125,8 @@ class InputEditor: EditorSectionView {
         sendButton.tapAction = { [weak self] in
             self?.delegate?.onInputEditorSubmitButtonTapped()
         }
+        sendButton.isAccessibilityElement = true
+        sendButton.accessibilityLabel = String(localized: "Send")
         elementClipper.addSubview(sendButton)
 
         // icon and reset of the element share height of 32

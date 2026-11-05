@@ -217,6 +217,120 @@ struct RichEditorViewTests {
 
         editor.attachmentsBar.insert(item: Self.imageAttachment())
         #expect(!editor.visualInputHint.isActive)
+        #expect(editor.inputEditor.sendButton.isEnabled)
+    }
+
+    @MainActor
+    @Test
+    func richEditorSendButton_followsHint() {
+        let spy = RichEditorDelegateSpy()
+        spy.modelIdentifier = "text-only"
+        spy.visionModels = ["vision"]
+        let editor = RichEditorView()
+        editor.delegate = spy
+        editor.updateModelinfoFile(postUpdate: false)
+        let sendButton = editor.inputEditor.sendButton
+        #expect(sendButton.isEnabled)
+        #expect(sendButton.isAccessibilityElement)
+        #expect(sendButton.accessibilityTraits.contains(.button))
+        #expect(sendButton.accessibilityLabel == String(localized: "Send"))
+
+        let image = Self.imageAttachment()
+        editor.attachmentsBar.insert(item: image)
+        #expect(!sendButton.isEnabled)
+        #expect(sendButton.accessibilityTraits.contains(.notEnabled))
+
+        spy.modelIdentifier = "vision"
+        editor.updateModelinfoFile(postUpdate: false)
+        #expect(sendButton.isEnabled)
+        #expect(!sendButton.accessibilityTraits.contains(.notEnabled))
+
+        spy.modelIdentifier = "text-only"
+        editor.updateModelinfoFile(postUpdate: false)
+        #expect(!sendButton.isEnabled)
+
+        editor.attachmentsBar.delete(itemIdentifier: image.id)
+        #expect(sendButton.isEnabled)
+    }
+
+    @MainActor
+    @Test
+    func richEditorSubmit_imageForTextOnlyModel_blocksEveryPathAndKeepsDraft() {
+        let previousConfirmation = EditorBehavior.useConfirmationOnSend
+        defer { EditorBehavior.useConfirmationOnSend = previousConfirmation }
+        EditorBehavior.useConfirmationOnSend = false
+
+        let spy = RichEditorDelegateSpy()
+        spy.modelIdentifier = "text-only"
+        spy.visionModels = ["vision"]
+        let editor = RichEditorView()
+        editor.delegate = spy
+        editor.updateModelinfoFile(postUpdate: false)
+        editor.inputEditor.set(text: "look")
+        editor.attachmentsBar.insert(item: Self.imageAttachment())
+
+        let input = editor.inputEditor
+        editor.submitValues()
+        input.sendButton.tapAction()
+        input.textView.onReturnKeyPressed()
+        input.textView.onCommandReturnKeyPressed()
+        _ = input.textView(input.textView, shouldChangeTextIn: NSRange(), replacementText: "\n")
+
+        #expect(spy.submittedObjects.isEmpty)
+        #expect(spy.errors.isEmpty)
+        #expect(editor.isUserInteractionEnabled)
+        #expect(editor.collectObject().text == "look")
+        #expect(editor.collectObject().attachments.count == 1)
+
+        spy.modelIdentifier = "vision"
+        editor.updateModelinfoFile(postUpdate: false)
+        input.textView.onReturnKeyPressed()
+        #expect(spy.submittedObjects.count == 1)
+        #expect(spy.submittedObjects.first?.attachments.count == 1)
+    }
+
+    @MainActor
+    @Test
+    func richEditorSubmit_rechecksCurrentModel() {
+        let spy = RichEditorDelegateSpy()
+        spy.modelIdentifier = "vision"
+        spy.visionModels = ["vision"]
+        let editor = RichEditorView()
+        editor.delegate = spy
+        editor.updateModelinfoFile(postUpdate: false)
+        editor.inputEditor.set(text: "look")
+        editor.attachmentsBar.insert(item: Self.imageAttachment())
+        #expect(editor.inputEditor.sendButton.isEnabled)
+
+        // The model changes with no refresh reaching the editor.
+        spy.modelIdentifier = "text-only"
+        editor.submitValues()
+        #expect(spy.submittedObjects.isEmpty)
+        #expect(editor.visualInputHint.isActive)
+        #expect(!editor.inputEditor.sendButton.isEnabled)
+
+        spy.modelIdentifier = "vision"
+        editor.submitValues()
+        #expect(spy.submittedObjects.count == 1)
+        #expect(!editor.visualInputHint.isActive)
+        #expect(editor.inputEditor.sendButton.isEnabled)
+    }
+
+    @MainActor
+    @Test
+    func iconButton_disabled_ignoresTaps() {
+        let button = IconButton(icon: "send")
+        var tapCount = 0
+        button.tapAction = { tapCount += 1 }
+        let tap = NSSelectorFromString("buttonAction")
+
+        button.isEnabled = false
+        button.perform(tap)
+        #expect(tapCount == 0)
+
+        button.isEnabled = true
+        button.perform(tap)
+        #expect(tapCount == 1)
     }
 
     @MainActor

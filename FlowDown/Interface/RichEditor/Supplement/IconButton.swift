@@ -12,6 +12,19 @@ class IconButton: UIView {
 
     var tapAction: () -> Void = {}
 
+    /// A disabled button stays in place, greyed out, and ignores taps.
+    var isEnabled = true {
+        didSet {
+            guard oldValue != isEnabled else { return }
+            imageView.tintColor = isEnabled ? .label : .tertiaryLabel
+            if isEnabled {
+                accessibilityTraits.remove(.notEnabled)
+            } else {
+                accessibilityTraits.insert(.notEnabled)
+            }
+        }
+    }
+
     required init() {
         super.init(frame: .zero)
         addSubview(imageView)
@@ -23,6 +36,7 @@ class IconButton: UIView {
         addGestureRecognizer(tap)
 
         isUserInteractionEnabled = true
+        accessibilityTraits = .button
     }
 
     @available(*, unavailable)
@@ -53,6 +67,7 @@ class IconButton: UIView {
     }
 
     @objc private func buttonAction() {
+        guard isEnabled else { return }
         guard !isHidden else { return }
         guard alpha > 0 else { return }
         puddingAnimate()
