@@ -57,11 +57,12 @@ extension MessageListView {
             return hasThoughts ? max(1, seconds) : seconds
         }
 
-        /// The newest call's name, shown under a running summary.
+        /// The newest running call's name, shown under a running summary. Once
+        /// the calls are done the model is thinking again and it goes away.
         var banner: String? {
             guard isRunning else { return nil }
             for step in steps.reversed() {
-                if case let .tool(_, status) = step {
+                if case let .tool(_, status) = step, status.state == 0 {
                     return status.name
                 }
             }
