@@ -82,7 +82,9 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
         guard access.granted else {
             let errorMessage = access.error?.localizedDescription ?? "Unknown error"
             return ModelToolOutput(
-                text: String(localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."),
+                text: String(
+                    localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."
+                ),
             )
         }
 

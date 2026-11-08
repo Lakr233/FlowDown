@@ -18,7 +18,8 @@ final class MTDeleteReminderTool: ConfigurableModelTool, @unchecked Sendable {
     var definition: ChatRequestBody.Tool {
         .function(
             name: "delete_reminder",
-            description: "Permanently delete a reminder, after the user confirms. Get reminder_id from query_reminders first.",
+            description:
+            "Permanently delete a reminder, after the user confirms. Get reminder_id from query_reminders first.",
             parameters: [
                 "type": "object",
                 "properties": [
