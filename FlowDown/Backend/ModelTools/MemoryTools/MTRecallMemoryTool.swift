@@ -43,6 +43,6 @@ final class MTRecallMemoryTool: ConfigurableModelTool, @unchecked Sendable {
     }
 
     func execute(_: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
-        await ModelToolOutput(text: MemoryStore.shared.getAllMemories())
+        await ModelToolOutput(text: MemoryStore.shared.recallToolText())
     }
 }

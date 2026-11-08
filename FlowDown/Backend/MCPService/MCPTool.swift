@@ -57,7 +57,6 @@ final class MCPTool: ModelTool, @unchecked Sendable {
         )
 
         let output = MCPToolContent.output(from: result.content)
-        // isError is optional
         if result.isError == true {
             Logger.network.errorFile("MCP Tool \(toolInfo.name) returned error: \(output.text)")
             throw ModelToolError.failure(
@@ -138,44 +137,31 @@ extension MCPTool {
         if case let .object(properties) = schema["properties"] {
             var normalizedProperties = properties
 
-            let originalRequired = extractStringArray(from: schema["required"]) ?? []
+            let originalRequired = extractStringArray(from: schema["required"])
             let propertyKeys = normalizedProperties.keys.sorted()
-            let propertyKeySet = Set(propertyKeys)
             let originalRequiredSet = Set(originalRequired)
 
             // Strict schemas must list every property as required, so the ones
             // the server left optional have to accept null instead.
-            for key in propertyKeySet.subtracting(originalRequiredSet) {
-                guard let propertySchema = normalizedProperties[key] else { continue }
-                normalizedProperties[key] = allowNullInSchema(propertySchema)
-            }
-
-            for (key, value) in normalizedProperties {
-                normalizedProperties[key] = normalizeStrictJSONSchemaValue(value)
+            for (key, value) in properties {
+                let nullable = originalRequiredSet.contains(key) ? value : allowNullInSchema(value)
+                normalizedProperties[key] = normalizeStrictJSONSchemaValue(nullable)
             }
 
             schema["properties"] = .object(normalizedProperties)
             schema["required"] = .array(propertyKeys.map { .string($0) })
-        } else {
-            if schema["required"] == nil {
-                schema["required"] = .array([])
-            }
+        } else if schema["required"] == nil {
+            schema["required"] = .array([])
         }
 
         if let itemsValue = schema["items"] {
             schema["items"] = normalizeStrictJSONSchemaValue(itemsValue)
         }
 
-        if let anyOfValue = schema["anyOf"], case let .array(anyOfArray) = anyOfValue {
-            schema["anyOf"] = .array(anyOfArray.map { normalizeStrictJSONSchemaValue($0) })
-        }
-
-        if let oneOfValue = schema["oneOf"], case let .array(oneOfArray) = oneOfValue {
-            schema["oneOf"] = .array(oneOfArray.map { normalizeStrictJSONSchemaValue($0) })
-        }
-
-        if let allOfValue = schema["allOf"], case let .array(allOfArray) = allOfValue {
-            schema["allOf"] = .array(allOfArray.map { normalizeStrictJSONSchemaValue($0) })
+        for combinatorKey in ["anyOf", "oneOf", "allOf"] {
+            if case let .array(subschemas) = schema[combinatorKey] {
+                schema[combinatorKey] = .array(subschemas.map { normalizeStrictJSONSchemaValue($0) })
+            }
         }
 
         // `$ref` targets have to be strict as well.
@@ -211,14 +197,13 @@ extension MCPTool {
         }
     }
 
-    private func extractStringArray(from value: AnyCodingValue?) -> [String]? {
-        guard let value else { return nil }
-        guard case let .array(array) = value else { return nil }
+    private func extractStringArray(from value: AnyCodingValue?) -> [String] {
+        guard case let .array(array) = value else { return [] }
         let strings = array.compactMap { element -> String? in
             guard case let .string(s) = element else { return nil }
             return s
         }
-        return strings.count == array.count ? strings : nil
+        return strings.count == array.count ? strings : []
     }
 
     private func allowNullInSchema(_ schema: AnyCodingValue) -> AnyCodingValue {
@@ -235,11 +220,7 @@ extension MCPTool {
                     return .object(updated)
                 case let .array(typeArray):
                     var updated = dict
-                    var next = typeArray
-                    if !next.contains(where: { if case let .string(s) = $0 { s == "null" } else { false } }) {
-                        next.append(.string("null"))
-                    }
-                    updated["type"] = .array(next)
+                    updated["type"] = .array(typeArray + [.string("null")])
                     return .object(updated)
                 default:
                     break
@@ -248,10 +229,7 @@ extension MCPTool {
 
             if let anyOfValue = dict["anyOf"], case let .array(anyOfArray) = anyOfValue {
                 var updated = dict
-                let hasNull = anyOfArray.contains { schemaAllowsNull($0) }
-                if !hasNull {
-                    updated["anyOf"] = .array(anyOfArray + [.object(["type": .string("null")])])
-                }
+                updated["anyOf"] = .array(anyOfArray + [.object(["type": .string("null")])])
                 return .object(updated)
             }
         }
@@ -272,16 +250,13 @@ extension MCPTool {
             case let .string(typeString):
                 return typeString == "null"
             case let .array(typeArray):
-                return typeArray.contains { element in
-                    if case let .string(s) = element { return s == "null" }
-                    return false
-                }
+                return typeArray.contains(.string("null"))
             default:
                 break
             }
         }
 
-        if let anyOfValue = dict["anyOf"], case let .array(anyOfArray) = anyOfValue {
+        if case let .array(anyOfArray) = dict["anyOf"] {
             return anyOfArray.contains { schemaAllowsNull($0) }
         }
 
@@ -309,7 +284,7 @@ extension MCPTool {
         }
     }
 
-    func convertJSONValueToMCPValue(_ jsonValue: Any) -> Value? {
+    private func convertJSONValueToMCPValue(_ jsonValue: Any) -> Value? {
         switch jsonValue {
         case let string as String:
             return .string(string)
@@ -321,12 +296,6 @@ extension MCPTool {
             } else {
                 return .double(number.doubleValue)
             }
-        case let bool as Bool:
-            return .bool(bool)
-        case let int as Int:
-            return .int(int)
-        case let double as Double:
-            return .double(double)
         case let array as [Any]:
             let values = array.compactMap { convertJSONValueToMCPValue($0) }
             return .array(values)

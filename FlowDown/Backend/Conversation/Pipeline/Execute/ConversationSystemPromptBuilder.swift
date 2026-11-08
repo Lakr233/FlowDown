@@ -20,8 +20,7 @@ enum ConversationSystemPromptBuilder {
         let enabledTools: [any ModelTool]
         let proactiveMemoryScope: MemoryProactiveProvisionScope
         let searchSensitivity: ModelManager.SearchSensitivity
-        /// Cleared when the user opts out of dynamic system info.
-        var runtimeSystemInfoProvider: ((String) -> String)?
+        let runtimeSystemInfoProvider: ((String) -> String)?
         let proactiveMemoryContextProvider: () async -> String?
         let recentConversationContextProvider: (_ limit: Int) async -> String?
 
@@ -30,7 +29,7 @@ enum ConversationSystemPromptBuilder {
                 enabledTools: ModelToolsManager.shared.enabledTools.map { $0 as any ModelTool },
                 proactiveMemoryScope: MemoryProactiveProvisionSetting.currentScope,
                 searchSensitivity: ModelManager.shared.searchSensitivity,
-                runtimeSystemInfoProvider: { modelName in
+                runtimeSystemInfoProvider: ModelManager.shared.includeDynamicSystemInfo ? { modelName in
                     String(localized:
                         """
                         Current context:
@@ -38,7 +37,7 @@ enum ConversationSystemPromptBuilder {
                         Date: \(Date().promptTimestamp)
                         User Locale: \(Locale.current.identifier)
                         """)
-                },
+                } : nil,
                 proactiveMemoryContextProvider: {
                     await MemoryStore.shared.formattedProactiveMemoryContext()
                 },

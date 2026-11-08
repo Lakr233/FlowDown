@@ -76,16 +76,7 @@ extension ConversationSession {
         modelID: ModelManager.ModelIdentifier,
         inputObject: RichEditorView.Object,
     ) async {
-        var object = inputObject
-
-        let modelName = ModelManager.shared.modelName(identifier: modelID)
         let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
-        let modelContextLength = ModelManager.shared.modelContextLength(identifier: modelID)
-        var modelWillExecuteTools = false
-        if case let .bool(value) = object.options[.tools], value {
-            assert(modelCapabilities.contains(.tool))
-            modelWillExecuteTools = true
-        }
 
         assert(models.chat != nil)
 
@@ -99,15 +90,11 @@ extension ConversationSession {
 
         do {
             try await doInfereExecuteCore(
-                &object,
+                inputObject,
                 modelCapabilities,
                 &requestMessages,
-                modelName,
-                modelWillExecuteTools,
-                modelContextLength,
                 modelID,
             )
-            save()
         } catch {
             logger.errorFile("\(error.localizedDescription)")
             finalizeInterruptedReasoning()
@@ -122,7 +109,6 @@ extension ConversationSession {
                 let errorMessage = appendNewMessage(role: .assistant)
                 errorMessage.update(\.document, to: "```\n\(sanitized)")
             }
-            await requestUpdate()
         }
 
         stopThinkingForAll()
@@ -130,7 +116,6 @@ extension ConversationSession {
         await requestUpdate()
         save()
 
-        await requestUpdate()
         await MainActor.run { UIApplication.shared.isIdleTimerDisabled = false }
         endActivity()
     }
@@ -160,14 +145,18 @@ extension ConversationSession {
     }
 
     private func doInfereExecuteCore(
-        _ object: inout RichEditorView.Object,
+        _ object: RichEditorView.Object,
         _ modelCapabilities: Set<ModelCapabilities>,
         _ requestMessages: inout [ChatRequestBody.Message],
-        _ modelName: String,
-        _ modelWillExecuteTools: Bool,
-        _ modelContextLength: Int,
         _ modelID: ModelManager.ModelIdentifier,
     ) async throws {
+        let modelName = ModelManager.shared.modelName(identifier: modelID)
+        let modelContextLength = ModelManager.shared.modelContextLength(identifier: modelID)
+        let modelWillExecuteTools = if case let .bool(value) = object.options[.tools] { value } else { false }
+        if modelWillExecuteTools {
+            assert(modelCapabilities.contains(.tool))
+        }
+
         try checkCancellation()
         showActivity()
 
@@ -197,8 +186,7 @@ extension ConversationSession {
             save()
         }
 
-        let servers = MCPService.shared.servers.value
-        let shouldPrepareMCP = servers.filter(\.isEnabled).count > 0
+        let shouldPrepareMCP = MCPService.shared.servers.value.contains(where: \.isEnabled)
         if shouldPrepareMCP {
             showActivity(String(localized: "Preparing Model Context"))
             await MCPService.shared.prepareForConversation { [weak self] status in
@@ -213,12 +201,15 @@ extension ConversationSession {
             : .empty
         let webSearchEnabled = toolSet.contains { $0 is MTWebSearchTool }
 
-        await injectNewSystemCommand(
-            &requestMessages,
-            modelName,
-            modelWillExecuteTools,
-            webSearchEnabled,
-            object,
+        await ConversationSystemPromptBuilder.appendMessages(
+            to: &requestMessages,
+            input: .init(
+                userText: object.text,
+                modelName: modelName,
+                modelWillExecuteTools: modelWillExecuteTools,
+                webSearchEnabled: webSearchEnabled,
+            ),
+            dependencies: .live(),
         )
 
         try checkCancellation()

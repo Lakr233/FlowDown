@@ -55,34 +55,28 @@ final class MTWebScraperTool: ConfigurableModelTool, @unchecked Sendable {
             throw ModelToolError.invalidArguments(String(localized: "Invalid URL provided"))
         }
 
-        return try await ModelToolOutput(text: scrape(url: url))
+        guard let doc = await scrape(url: url) else {
+            throw ModelToolError.failure(String(localized: "Failed to fetch the web content."))
+        }
+
+        let maxSize = 32768
+        let truncatedContent = doc.textDocument.count > maxSize
+            ? String(doc.textDocument.prefix(maxSize)) + "...\n"
+                + String(localized: "Content truncated due to excessive length.")
+            : doc.textDocument
+
+        return ModelToolOutput(text: String(localized: """
+        Web Content from: \(url.absoluteString)
+        Title: \(doc.title)
+
+        \(truncatedContent)
+        """))
     }
 
     @MainActor
-    func scrape(url: URL) async throws -> String {
-        try await withCheckedThrowingContinuation { continuation in
-            Scrubber.document(for: url) { doc in
-                guard let doc else {
-                    continuation.resume(
-                        throwing: ModelToolError.failure(String(localized: "Failed to fetch the web content."))
-                    )
-                    return
-                }
-
-                let maxSize = 32768
-                let truncatedContent = doc.textDocument.count > maxSize
-                    ? String(doc.textDocument.prefix(maxSize)) + "..." + "\n"
-                        + String(localized: "Content truncated due to excessive length.")
-                    : doc.textDocument
-
-                let result = String(localized: """
-                Web Content from: \(url.absoluteString)
-                Title: \(doc.title)
-
-                \(truncatedContent)
-                """)
-                continuation.resume(returning: result)
-            }
+    private func scrape(url: URL) async -> Scrubber.Document? {
+        await withCheckedContinuation { continuation in
+            Scrubber.document(for: url) { continuation.resume(returning: $0) }
         }
     }
 }

@@ -36,23 +36,17 @@ final class ModelToolsManager {
             registry.append(MTLocationTool())
         #endif
 
-        let memoryTools: [any ConfigurableModelTool] = [
+        registry += [
             MTStoreMemoryTool(),
             MTRecallMemoryTool(),
             MTListMemoriesTool(),
             MTUpdateMemoryTool(),
             MTDeleteMemoryTool(),
         ]
-        registry.append(contentsOf: memoryTools)
 
         tools = registry
 
-        #if DEBUG
-            var registeredToolNames: Set<String> = []
-            for tool in tools {
-                assert(registeredToolNames.insert(tool.functionName).inserted)
-            }
-        #endif
+        assert(Set(tools.map { $0.functionName }).count == tools.count)
 
         ModelToolAuthorization.migrateLegacySetting()
     }
@@ -61,20 +55,16 @@ final class ModelToolsManager {
         tools.filter { $0.isEnabled }
     }
 
-    func tools(in group: ModelToolGroup) -> [any ConfigurableModelTool] {
-        tools.filter { $0.group == group }
-    }
-
     var memoryTools: [any ConfigurableModelTool] {
-        tools(in: .memory)
+        tools.filter { $0.group == .memory }
     }
 
     var calendarTools: [any ConfigurableModelTool] {
-        tools(in: .calendar)
+        tools.filter { $0.group == .calendar }
     }
 
     var reminderTools: [any ConfigurableModelTool] {
-        tools(in: .reminders)
+        tools.filter { $0.group == .reminders }
     }
 
     /// The tools settings and the tools menu list one by one.
@@ -83,36 +73,25 @@ final class ModelToolsManager {
     }
 
     var enabledMemoryWritingTools: [any ConfigurableModelTool] {
-        enabledTools.filter { Self.isMemoryWritingTool($0) }
+        enabledTools.filter { $0 is MTStoreMemoryTool || $0 is MTUpdateMemoryTool || $0 is MTDeleteMemoryTool }
     }
 
     var canStoreMemory: Bool {
         enabledTools.contains { $0 is MTStoreMemoryTool }
     }
 
-    static func isMemoryTool(_ tool: any ModelTool) -> Bool {
-        (tool as? any ConfigurableModelTool)?.group == .memory
-    }
-
-    static func isMemoryWritingTool(_ tool: any ModelTool) -> Bool {
-        tool is MTStoreMemoryTool || tool is MTUpdateMemoryTool || tool is MTDeleteMemoryTool
-    }
-
     static func shouldExposeMemory(
         modelWillExecuteTools: Bool,
         enabledTools: [any ModelTool],
     ) -> Bool {
-        guard modelWillExecuteTools else { return false }
-        return enabledTools.contains { isMemoryTool($0) }
+        modelWillExecuteTools && enabledTools.contains { ($0 as? any ConfigurableModelTool)?.group == .memory }
     }
 
     /// The enabled built-in tools, then the tools of every connected MCP
     /// server, as one inference offers them.
-    func makeToolSet(includingMCP: Bool = true) async -> ModelToolSet {
+    func makeToolSet() async -> ModelToolSet {
         var result: [any ModelTool] = enabledTools.map { $0 as any ModelTool }
-        if includingMCP {
-            await result.append(contentsOf: MCPService.shared.listServerTools().map { $0 as any ModelTool })
-        }
+        await result.append(contentsOf: MCPService.shared.listServerTools().map { $0 as any ModelTool })
         return ModelToolSet(tools: result)
     }
 }
@@ -120,7 +99,7 @@ final class ModelToolsManager {
 // MARK: - Settings
 
 extension ModelToolsManager {
-    static var calendarValue: Bool {
+    private static var calendarValue: Bool {
         get { shared.calendarTools.contains { $0.isEnabled } }
         set { for tool in shared.calendarTools { tool.isEnabled = newValue } }
     }
@@ -135,7 +114,7 @@ extension ModelToolsManager {
         }
     }
 
-    static var remindersValue: Bool {
+    private static var remindersValue: Bool {
         get { shared.reminderTools.contains { $0.isEnabled } }
         set { for tool in shared.reminderTools { tool.isEnabled = newValue } }
     }

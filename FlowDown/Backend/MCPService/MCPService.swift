@@ -135,15 +135,7 @@ class MCPService: NSObject {
     @discardableResult
     func importServer(from data: Data) throws -> ModelContextServer {
         let server = try ModelContextServer.decodeCompatible(from: data)
-
-        // Basic validation: endpoint is required.
-        if server.endpoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            throw NSError(
-                domain: "MCPImport",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Invalid MCP server configuration: missing endpoint."],
-            )
-        }
+        try Self.requireEndpoint(of: server, domain: "MCPImport")
 
         // Always treat imports as a new local object.
         server.update(\.deviceId, to: Storage.deviceId)
@@ -163,13 +155,7 @@ class MCPService: NSObject {
     }
 
     func exportServerData(_ server: ModelContextServer) throws -> Data {
-        if server.endpoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            throw NSError(
-                domain: "MCPExport",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Invalid MCP server configuration: missing endpoint."],
-            )
-        }
+        try Self.requireEndpoint(of: server, domain: "MCPExport")
 
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
@@ -178,6 +164,16 @@ class MCPService: NSObject {
         // Validate round-trip decodability (including legacy format support).
         _ = try ModelContextServer.decodeCompatible(from: data)
         return data
+    }
+
+    private static func requireEndpoint(of server: ModelContextServer, domain: String) throws {
+        if server.endpoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            throw NSError(
+                domain: domain,
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid MCP server configuration: missing endpoint."],
+            )
+        }
     }
 
     func ensureOrReconnect(_ serverID: ModelContextServer.ID) {
@@ -223,21 +219,21 @@ class MCPService: NSObject {
                 }
                 let fingerprint = Self.configFingerprint(server)
                 await MainActor.run {
-                    guard let current = self.server(with: serverID),
-                          current.isEnabled,
-                          self.connectionGeneration[serverID, default: 0] == generation,
-                          Self.configFingerprint(current) == fingerprint
-                    else {
+                    if let current = self.server(with: serverID),
+                       current.isEnabled,
+                       self.connectionGeneration[serverID, default: 0] == generation,
+                       Self.configFingerprint(current) == fingerprint
+                    {
+                        self.commitConnection(connection, for: serverID)
+                    } else {
                         connection.disconnect()
-                        self.updateServerStatus(serverID, status: .connected)
-                        return
                     }
-                    self.commitConnection(connection, for: serverID)
                     self.updateServerStatus(serverID, status: .connected)
                 }
+                let toolServerName = self.server(with: serverID)?.displayName
                 let toolSummary = toolInfos.map { toolInfo in
-                    if let toolServer = self.server(with: serverID) {
-                        return "\(toolServer.displayName): \(toolInfo.name)"
+                    if let toolServerName {
+                        return "\(toolServerName): \(toolInfo.name)"
                     }
                     return toolInfo.name
                 }.joined(separator: ", ")
@@ -312,16 +308,15 @@ class MCPService: NSObject {
             }
 
             return await MainActor.run {
+                self.clearFlight(for: serverID, generation: generation)
                 guard let current = self.server(with: serverID),
                       current.isEnabled,
                       self.connectionGeneration[serverID, default: 0] == generation,
                       Self.configFingerprint(current) == fingerprint
                 else {
-                    self.clearFlight(for: serverID, generation: generation)
                     connection.disconnect()
                     return nil
                 }
-                self.clearFlight(for: serverID, generation: generation)
                 self.commitConnection(connection, for: serverID)
                 if let discoveredTools {
                     self.toolInfoCache[serverID] = discoveredTools
@@ -414,11 +409,10 @@ class MCPService: NSObject {
             return false
         } catch is AwaitCancellableError, is CancellationError {
             return false
-        } catch let error as MCP.MCPError {
+        } catch MCP.MCPError.methodNotFound {
             // A server that does not implement ping still answered on this
             // session.
-            if case .methodNotFound = error { return false }
-            return true
+            return false
         } catch {
             return true
         }

@@ -10,12 +10,15 @@ import ConfigurableKit
 import Foundation
 
 final class MTListMemoriesTool: ConfigurableModelTool, @unchecked Sendable {
+    private static let defaultLimit = 20
+
     var interfaceName: String {
         String(localized: "List Memories")
     }
 
     var definition: ChatRequestBody.Tool {
-        .function(
+        let maxLimit = MemoryStore.memoryLimitRange.upperBound
+        return .function(
             name: "list_memories",
             description: "List stored memories with their IDs, which update_memory and delete_memory require.",
             parameters: [
@@ -23,7 +26,9 @@ final class MTListMemoriesTool: ConfigurableModelTool, @unchecked Sendable {
                 "properties": [
                     "limit": [
                         "type": "number",
-                        "description": "How many memories to return (default 20, max 100).",
+                        "description": .string(
+                            "How many memories to return (default \(Self.defaultLimit), max \(maxLimit)).",
+                        ),
                     ],
                 ],
                 "required": ["limit"],
@@ -49,7 +54,7 @@ final class MTListMemoriesTool: ConfigurableModelTool, @unchecked Sendable {
     }
 
     func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
-        let limit = arguments["limit"] as? Int ?? 20
-        return await ModelToolOutput(text: MemoryStore.shared.listMemoriesWithIds(limit: limit))
+        let limit = arguments["limit"] as? Int ?? Self.defaultLimit
+        return await ModelToolOutput(text: MemoryStore.shared.listToolText(limit: limit))
     }
 }

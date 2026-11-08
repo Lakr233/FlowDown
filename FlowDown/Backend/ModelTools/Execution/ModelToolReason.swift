@@ -14,7 +14,7 @@ import Foundation
 enum ModelToolReason {
     static let key = "reason"
 
-    static let parameter: AnyCodingValue = .object([
+    private static let parameter: AnyCodingValue = .object([
         "type": .string("string"),
         "description": .string(
             "A few words on why you are making this call, shown to the user, e.g. \"Check tomorrow's schedule\". Write it in the user's language.",
@@ -53,18 +53,23 @@ enum ModelToolReason {
         guard var object = (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [String: Any],
               let value = object.removeValue(forKey: key)
         else { return (json, nil) }
-        let reason = (value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let reason = normalized(value)
         guard let data = try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]),
               let arguments = String(data: data, encoding: .utf8)
         else { return (json, reason) }
-        return (arguments, reason?.isEmpty == false ? reason : nil)
+        return (arguments, reason)
     }
 
     /// The reason a stored call gave, for showing it again.
     static func reason(in json: String) -> String? {
-        guard let object = (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [String: Any],
-              let reason = (object[key] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !reason.isEmpty
+        guard let object = (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [String: Any]
+        else { return nil }
+        return normalized(object[key])
+    }
+
+    /// `value` trimmed, nil when it is not a string or holds nothing but whitespace.
+    private static func normalized(_ value: Any?) -> String? {
+        guard let reason = (value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty
         else { return nil }
         return reason
     }

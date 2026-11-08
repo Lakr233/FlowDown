@@ -14,8 +14,8 @@ final class MTLocationTool: NSObject, ConfigurableModelTool, @unchecked Sendable
     private var locationManager: CLLocationManager?
     private let geocoder = CLGeocoder()
 
-    private var locationCompletion: ((String, Bool) -> Void)?
-    private var currentLocale: Locale?
+    private var locationCompletion: ((Result<String, Error>) -> Void)?
+    private var currentLocale: Locale = .current
     private var isGeocoding = false
 
     var interfaceName: String {
@@ -81,14 +81,10 @@ final class MTLocationTool: NSObject, ConfigurableModelTool, @unchecked Sendable
             // Both the authorization callback and the explicit check below can
             // finish the lookup; only the first answer counts.
             var isCompletionCalled = false
-            locationCompletion = { text, success in
+            locationCompletion = { result in
                 guard !isCompletionCalled else { return }
                 isCompletionCalled = true
-                if success {
-                    continuation.resume(returning: text)
-                } else {
-                    continuation.resume(throwing: ModelToolError.failure(text))
-                }
+                continuation.resume(with: result)
             }
             currentLocale = locale
             isGeocoding = false
@@ -104,33 +100,21 @@ final class MTLocationTool: NSObject, ConfigurableModelTool, @unchecked Sendable
                 manager.requestWhenInUseAuthorization()
 
             case .denied, .restricted:
-                locationCompletion?(
-                    String(
-                        localized:
-                        "Location access is not available. Please check your device settings.",
-                    ),
-                    false,
-                )
+                let message = String(localized: "Location access is not available. Please check your device settings.")
+                locationCompletion?(.failure(ModelToolError.failure(message)))
 
             case .authorizedWhenInUse, .authorizedAlways:
                 performLocationLookup()
 
             @unknown default:
-                locationCompletion?(
-                    String(localized: "Unknown authorization status for location services."),
-                    false,
-                )
+                let message = String(localized: "Unknown authorization status for location services.")
+                locationCompletion?(.failure(ModelToolError.failure(message)))
             }
         }
     }
 
     private func performLocationLookup() {
-        guard let completion = locationCompletion,
-              let locale = currentLocale
-        else {
-            locationCompletion?(String(localized: "Could not determine current location."), false)
-            return
-        }
+        guard let completion = locationCompletion else { return }
 
         // Both the authorization callback and the explicit check land here;
         // a second request on the same geocoder would cancel the first.
@@ -145,24 +129,19 @@ final class MTLocationTool: NSObject, ConfigurableModelTool, @unchecked Sendable
         }
 
         isGeocoding = true
-        geocoder.reverseGeocodeLocation(location, preferredLocale: locale) { placemarks, error in
+        geocoder.reverseGeocodeLocation(location, preferredLocale: currentLocale) { placemarks, error in
             if let error {
-                completion(
-                    String(
-                        localized:
-                        "Error getting location details: \(error.localizedDescription)",
-                    ),
-                    false,
-                )
+                let message = String(localized: "Error getting location details: \(error.localizedDescription)")
+                completion(.failure(ModelToolError.failure(message)))
                 return
             }
 
             guard let placemark = placemarks?.first else {
-                completion(String(localized: "No location details found."), false)
+                completion(.failure(ModelToolError.failure(String(localized: "No location details found."))))
                 return
             }
 
-            completion(Self.describe(placemark, at: location), true)
+            completion(.success(Self.describe(placemark, at: location)))
         }
     }
 
@@ -238,26 +217,25 @@ extension MTLocationTool: CLLocationManagerDelegate {
             performLocationLookup()
 
         case .denied, .restricted:
-            locationCompletion?(String(localized: "Location access denied by user."), false)
+            let message = String(localized: "Location access denied by user.")
+            locationCompletion?(.failure(ModelToolError.failure(message)))
 
         case .notDetermined:
             break
 
         @unknown default:
-            locationCompletion?(
-                String(localized: "Unknown authorization status for location services."),
-                false,
-            )
+            let message = String(localized: "Unknown authorization status for location services.")
+            locationCompletion?(.failure(ModelToolError.failure(message)))
         }
     }
 
-    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard !locations.isEmpty else { return }
+    func locationManager(_: CLLocationManager, didUpdateLocations _: [CLLocation]) {
         performLocationLookup()
     }
 
     func locationManager(_: CLLocationManager, didFailWithError _: Error) {
         guard !isGeocoding else { return }
-        locationCompletion?(String(localized: "Could not determine current location."), false)
+        let message = String(localized: "Could not determine current location.")
+        locationCompletion?(.failure(ModelToolError.failure(message)))
     }
 }

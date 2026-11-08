@@ -56,8 +56,8 @@ final class MTDeleteReminderTool: ConfigurableModelTool, @unchecked Sendable {
     func approvalSummary(for arguments: ModelToolArguments) async -> String? {
         guard let reminderId = try? parse(arguments) else { return nil }
         return ReminderToolsShared.withExistingReminder(id: reminderId) { reminder in
-            let title = reminder.title ?? String(localized: "Untitled")
-            let listName = reminder.calendar?.title ?? String(localized: "Reminders")
+            let title = ReminderToolsShared.displayTitle(of: reminder)
+            let listName = ReminderToolsShared.displayListName(of: reminder)
             return [
                 title,
                 String(localized: "List: \(listName)"),
@@ -72,11 +72,9 @@ final class MTDeleteReminderTool: ConfigurableModelTool, @unchecked Sendable {
         try await ReminderToolsShared.requireAccess()
 
         let eventStore = EKEventStore()
-        guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
-            throw ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found."))
-        }
+        let reminder = try ReminderToolsShared.requireReminder(id: reminderId, eventStore: eventStore)
 
-        let title = reminder.title ?? String(localized: "Untitled")
+        let title = ReminderToolsShared.displayTitle(of: reminder)
         do {
             try eventStore.remove(reminder, commit: true)
         } catch {

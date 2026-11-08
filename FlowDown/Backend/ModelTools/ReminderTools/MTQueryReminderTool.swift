@@ -92,27 +92,27 @@ final class MTQueryReminderTool: ConfigurableModelTool, @unchecked Sendable {
     }
 
     func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
-        guard let json = arguments.object else {
+        guard arguments.object != nil else {
             throw ModelToolError.invalidArguments(String(localized: "Invalid input parameters"))
         }
 
-        let status = (json["status"] as? String) ?? "incomplete"
-        let listName = (json["list_name"] as? String) ?? ""
+        let status = arguments.string("status") ?? "incomplete"
+        let listName = arguments.string("list_name") ?? ""
 
         let dueRange = try Self.parseRange(
             prefix: "due",
-            startString: (json["due_start_date"] as? String) ?? "",
-            endString: (json["due_end_date"] as? String) ?? "",
+            startString: arguments.string("due_start_date") ?? "",
+            endString: arguments.string("due_end_date") ?? "",
         )
         let alertRange = try Self.parseRange(
             prefix: "alert",
-            startString: (json["alert_start_date"] as? String) ?? "",
-            endString: (json["alert_end_date"] as? String) ?? "",
+            startString: arguments.string("alert_start_date") ?? "",
+            endString: arguments.string("alert_end_date") ?? "",
         )
         let completedRange = try Self.parseRange(
             prefix: "completed",
-            startString: (json["completed_start_date"] as? String) ?? "",
-            endString: (json["completed_end_date"] as? String) ?? "",
+            startString: arguments.string("completed_start_date") ?? "",
+            endString: arguments.string("completed_end_date") ?? "",
         )
 
         try await ReminderToolsShared.requireAccess()
@@ -138,7 +138,7 @@ final class MTQueryReminderTool: ConfigurableModelTool, @unchecked Sendable {
         return ModelToolOutput(text: result)
     }
 
-    struct DateRange: Equatable {
+    struct DateRange {
         let start: Date?
         let end: Date?
 
@@ -178,30 +178,27 @@ final class MTQueryReminderTool: ConfigurableModelTool, @unchecked Sendable {
         }
 
         if !startString.isEmpty, start == nil {
-            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey:
-                    "\(prefix): " + String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
-            ])
+            throw ModelToolError.invalidArguments(
+                "\(prefix): " + String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
+            )
         }
         if !endString.isEmpty, end == nil {
-            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey:
-                    "\(prefix): " + String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
-            ])
+            throw ModelToolError.invalidArguments(
+                "\(prefix): " + String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
+            )
         }
 
         if let start, let end {
             if end < start {
-                throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey:
-                        "\(prefix): " + String(localized: "start_date must be on or before end_date."),
-                ])
+                throw ModelToolError.invalidArguments(
+                    "\(prefix): " + String(localized: "start_date must be on or before end_date."),
+                )
             }
             let days = calendar.dateComponents([.day], from: start, to: end).day ?? 0
             if days > 365 {
-                throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Date range cannot exceed 365 days"),
-                ])
+                throw ModelToolError.invalidArguments(
+                    "\(prefix): " + String(localized: "Date range cannot exceed 365 days"),
+                )
             }
         }
 
@@ -261,14 +258,9 @@ final class MTQueryReminderTool: ConfigurableModelTool, @unchecked Sendable {
         alert: DateRange,
         completed: DateRange,
     ) -> [EKReminder] {
-        if !due.isActive, !alert.isActive, !completed.isActive {
-            return reminders
-        }
-
-        return reminders.filter { reminder in
+        reminders.filter { reminder in
             if due.isActive {
-                guard let components = reminder.dueDateComponents,
-                      let date = Calendar.current.date(from: components),
+                guard let date = ReminderToolsShared.dueDate(of: reminder),
                       due.contains(date)
                 else { return false }
             }

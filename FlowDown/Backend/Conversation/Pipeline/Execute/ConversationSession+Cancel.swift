@@ -9,7 +9,7 @@ import Combine
 import Foundation
 import Storage
 
-class InferenceUserCancellationError: Error, LocalizedError {
+struct InferenceUserCancellationError: LocalizedError {
     var errorDescription: String? {
         String(localized: "User cancelled the operation.")
     }

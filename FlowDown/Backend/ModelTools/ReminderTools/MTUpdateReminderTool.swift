@@ -104,7 +104,7 @@ final class MTUpdateReminderTool: ConfigurableModelTool, @unchecked Sendable {
     func approvalSummary(for arguments: ModelToolArguments) async -> String? {
         guard let request = try? parse(arguments) else { return nil }
         return ReminderToolsShared.withExistingReminder(id: request.reminderId) { reminder in
-            let title = reminder.title ?? String(localized: "Untitled")
+            let title = ReminderToolsShared.displayTitle(of: reminder)
             let summary = Self.summarizeChanges(request.changes, currentTitle: reminder.title)
             guard !summary.isEmpty else { return title }
             return title + "\n\n" + summary.joined(separator: "\n")
@@ -116,9 +116,7 @@ final class MTUpdateReminderTool: ConfigurableModelTool, @unchecked Sendable {
         try await ReminderToolsShared.requireAccess()
 
         let eventStore = EKEventStore()
-        guard let reminder = ReminderToolsShared.fetchReminder(id: request.reminderId, eventStore: eventStore) else {
-            throw ModelToolError.failure(String(localized: "Reminder with id \(request.reminderId) not found."))
-        }
+        let reminder = try ReminderToolsShared.requireReminder(id: request.reminderId, eventStore: eventStore)
 
         let changes = request.changes
         guard !changes.isEmpty else {
@@ -143,16 +141,14 @@ final class MTUpdateReminderTool: ConfigurableModelTool, @unchecked Sendable {
         } else if let newPriority = changes.newPriority {
             reminder.priority = newPriority
         }
+        if let newListName = changes.newListName {
+            reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
+                named: newListName,
+                eventStore: eventStore,
+            )
+        }
         do {
-            if let newListName = changes.newListName {
-                reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
-                    named: newListName,
-                    eventStore: eventStore,
-                )
-            }
             try eventStore.save(reminder, commit: true)
-        } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
-            throw error
         } catch {
             throw ModelToolError.failure(
                 String(localized: "Failed to update reminder: \(error.localizedDescription)"),
@@ -171,7 +167,7 @@ final class MTUpdateReminderTool: ConfigurableModelTool, @unchecked Sendable {
         return try Request(reminderId: reminderId, changes: Self.parseChanges(from: json))
     }
 
-    struct ParsedChanges: Equatable {
+    struct ParsedChanges {
         var newTitle: String?
         var newNotes: String?
         var clearNotes: Bool
@@ -206,42 +202,17 @@ final class MTUpdateReminderTool: ConfigurableModelTool, @unchecked Sendable {
         let clearPriority = (json["clear_priority"] as? Bool) ?? false
 
         if clearNotes, notesChange != nil {
-            throw NSError(
-                domain: "MTUpdateReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "clear_notes cannot be combined with a non-empty notes value.",
-                ],
-            )
+            throw ModelToolError.invalidArguments("clear_notes cannot be combined with a non-empty notes value.")
         }
         if clearDueDate, dueDateChange != nil {
-            throw NSError(
-                domain: "MTUpdateReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey:
-                        "clear_due_date cannot be combined with a non-empty due_date value.",
-                ],
-            )
+            throw ModelToolError.invalidArguments("clear_due_date cannot be combined with a non-empty due_date value.")
         }
         if clearPriority, priorityRaw != nil {
-            throw NSError(
-                domain: "MTUpdateReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "clear_priority cannot be combined with a priority >= 0.",
-                ],
-            )
+            throw ModelToolError.invalidArguments("clear_priority cannot be combined with a priority >= 0.")
         }
 
-        if let dueDateChange, ReminderToolsShared.parseISODate(dueDateChange) == nil {
-            throw NSError(
-                domain: "MTUpdateReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "Invalid due_date format. Use ISO 8601 UTC.",
-                ],
-            )
+        if let dueDateChange, ReminderToolsShared.dueDateComponents(from: dueDateChange) == nil {
+            throw ModelToolError.invalidArguments("Invalid due_date format. Use ISO 8601 UTC.")
         }
 
         return ParsedChanges(

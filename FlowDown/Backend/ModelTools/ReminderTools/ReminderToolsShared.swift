@@ -27,7 +27,7 @@ enum ReminderToolsShared {
     }
 
     /// Asks for Reminders access using whichever API the running OS provides.
-    static func requestAccess() async -> Bool {
+    private static func requestAccess() async -> Bool {
         let eventStore = EKEventStore()
         if #available(iOS 17, macCatalyst 17, *) {
             return (try? await eventStore.requestFullAccessToReminders()) ?? false
@@ -181,6 +181,18 @@ enum ReminderToolsShared {
         )
     }
 
+    static func displayTitle(of reminder: EKReminder) -> String {
+        reminder.title ?? String(localized: "Untitled")
+    }
+
+    static func displayListName(of reminder: EKReminder) -> String {
+        reminder.calendar?.title ?? String(localized: "Reminders")
+    }
+
+    static func dueDate(of reminder: EKReminder) -> Date? {
+        reminder.dueDateComponents.flatMap { Calendar.current.date(from: $0) }
+    }
+
     static func formatReminders(_ reminders: [EKReminder]) -> String {
         if reminders.isEmpty {
             return String(localized: "No reminders found.")
@@ -193,29 +205,24 @@ enum ReminderToolsShared {
 
         var grouped: [String: [EKReminder]] = [:]
         for reminder in reminders {
-            let listName = reminder.calendar?.title ?? String(localized: "Reminders")
+            let listName = displayListName(of: reminder)
             grouped[listName, default: []].append(reminder)
         }
 
         var lines: [String] = []
-        for listName in grouped.keys.sorted() {
+        for (listName, items) in grouped.sorted(by: { $0.key < $1.key }) {
             lines.append("# \(listName)")
             lines.append("")
 
-            let items = grouped[listName] ?? []
             let sorted = items.sorted { lhs, rhs in
-                let lhsDate = lhs.dueDateComponents.flatMap { Calendar.current.date(from: $0) } ?? .distantFuture
-                let rhsDate = rhs.dueDateComponents.flatMap { Calendar.current.date(from: $0) } ?? .distantFuture
-                return lhsDate < rhsDate
+                (dueDate(of: lhs) ?? .distantFuture) < (dueDate(of: rhs) ?? .distantFuture)
             }
 
             for reminder in sorted {
                 let checkbox = reminder.isCompleted ? "[x]" : "[ ]"
-                let title = reminder.title ?? String(localized: "Untitled")
+                let title = displayTitle(of: reminder)
                 var meta: [String] = []
-                if let components = reminder.dueDateComponents,
-                   let date = Calendar.current.date(from: components)
-                {
+                if let date = dueDate(of: reminder) {
                     meta.append(String(localized: "due: \(dateFormatter.string(from: date))"))
                 }
                 let alertDates = (reminder.alarms ?? []).compactMap(\.absoluteDate)
@@ -244,5 +251,12 @@ enum ReminderToolsShared {
 
     static func fetchReminder(id: String, eventStore: EKEventStore) -> EKReminder? {
         eventStore.calendarItem(withIdentifier: id) as? EKReminder
+    }
+
+    static func requireReminder(id: String, eventStore: EKEventStore) throws -> EKReminder {
+        guard let reminder = fetchReminder(id: id, eventStore: eventStore) else {
+            throw ModelToolError.failure(String(localized: "Reminder with id \(id) not found."))
+        }
+        return reminder
     }
 }

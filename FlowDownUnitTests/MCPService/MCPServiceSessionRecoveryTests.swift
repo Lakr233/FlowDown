@@ -7,10 +7,12 @@ import Testing
 
 @Suite(.serialized)
 struct MCPServiceSessionRecoveryTests {
+    init() async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+    }
+
     @Test
     func callToolSessionExpired_replacesDeadConnection() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let dead = SessionConnectionSpy(
             callToolError: MCP.MCPError.internalError("Session expired"),
             pingError: MCP.MCPError.internalError("Bad request"),
@@ -43,8 +45,6 @@ struct MCPServiceSessionRecoveryTests {
 
     @Test
     func callToolSessionLostAndReconnectFails_keepsDeadConnectionAndTools() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let dead = SessionConnectionSpy(
             callToolError: MCP.MCPError.internalError("Bad request"),
             pingError: MCP.MCPError.internalError("Bad request"),
@@ -79,8 +79,6 @@ struct MCPServiceSessionRecoveryTests {
 
     @Test
     func callToolPingTimesOut_keepsConnectionWithoutReconnecting() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         // A ping that times out is inconclusive; the spy reports the timeout
         // directly so the shared wait timeout stays untouched.
         let silent = SessionConnectionSpy(
@@ -112,8 +110,6 @@ struct MCPServiceSessionRecoveryTests {
 
     @Test
     func callToolErrorWithLiveSession_keepsConnectionAndTools() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let connection = SessionConnectionSpy(
             callToolError: MCP.MCPError.invalidParams("missing query"),
         )
@@ -181,12 +177,7 @@ private final class SessionRecoveryFixture: @unchecked Sendable {
     }
 
     func registered(_ connection: SessionConnectionSpy) async -> Bool {
-        let serverID = server.id
-        let service = service
-        return await MainActor.run {
-            guard let current = service.connections[serverID] else { return false }
-            return current === connection
-        }
+        await MainActor.run { service.connections[server.id] === connection }
     }
 
     func tearDown() {
@@ -216,7 +207,6 @@ private final class SessionConnectionSpy: MCPConnectionControlling, @unchecked S
     var isConnected: Bool { state.withLock { $0.connected } }
 
     func connect() async throws {
-        let connectError = connectError
         state.withLock {
             $0.connects += 1
             if connectError == nil { $0.connected = true }

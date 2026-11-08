@@ -38,10 +38,7 @@ extension ConversationSession {
                     attachments,
                     modelCapabilities: modelCapabilities,
                 )
-                if !attachmentMessages.isEmpty {
-                    // Add the content of the previous attachments to the conversation context.
-                    requestMessages.append(contentsOf: attachmentMessages)
-                }
+                requestMessages.append(contentsOf: attachmentMessages)
                 if !message.document.isEmpty {
                     requestMessages.append(.user(content: .text(message.document)))
                 } else {
@@ -69,14 +66,12 @@ extension ConversationSession {
                     reasoning: reasoning.isEmpty ? nil : reasoning,
                 ))
             case .webSearch:
-                var index = 0
-                let searchResults = message.webSearchStatus.searchResults.map {
-                    index += 1
-                    return """
-                    <index>\(index)</index>
-                    <title>\($0.title)</title>
-                    <url>\($0.url.absoluteString)</url>
-                    <content>\($0.toolResult)</content>
+                let searchResults = message.webSearchStatus.searchResults.enumerated().map { offset, result in
+                    """
+                    <index>\(offset + 1)</index>
+                    <title>\(result.title)</title>
+                    <url>\(result.url.absoluteString)</url>
+                    <content>\(result.toolResult)</content>
                     """
                 }
                 guard let replay = await replayStoredToolCall(
@@ -98,24 +93,14 @@ extension ConversationSession {
         }
     }
 
-    /*
-     {
-       "error": {
-         "message": "Provider returned error",
-         "metadata": {
-           "raw": "{\n  \"error\": {\n    \"message\": \"Missing required parameter: 'input[6].arguments'.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"input[6].arguments\",\n    \"code\": \"missing_required_parameter\"\n  }\n}",
-           "provider_name": "Azure"
-         },
-         "code": 400
-       },
-     }
-     */
-
     /// Replays a stored tool call as the provider expects to see it: the
     /// assistant turn that requested the call, followed by the tool turn that
-    /// carries its output. Returns nil when the stored request cannot be
-    /// decoded, such as rows from the retired pre-action web search; the row
-    /// is then skipped so the turns after it still reach the model.
+    /// carries its output. Providers such as Azure reject a tool turn whose
+    /// preceding call has no `arguments` ("Missing required parameter:
+    /// 'input[n].arguments'"), so the call goes out with its arguments.
+    /// Returns nil when the stored request cannot be decoded, such as rows
+    /// from the retired pre-action web search; the row is then skipped so the
+    /// turns after it still reach the model.
     private func replayStoredToolCall(
         from message: Message,
         output: String,
@@ -250,16 +235,11 @@ extension ConversationSession {
                     assertionFailure()
                     return nil
                 }
+                var parts: [ChatRequestBody.Message.ContentPart] = [.imageURL(url)]
                 if !attachment.textRepresentation.isEmpty {
-                    return .user(
-                        content: .parts([
-                            .imageURL(url),
-                            .text(attachment.textRepresentation),
-                        ]),
-                    )
-                } else {
-                    return .user(content: .parts([.imageURL(url)]))
+                    parts.append(.text(attachment.textRepresentation))
                 }
+                return .user(content: .parts(parts))
             } else {
                 guard !attachment.textRepresentation.isEmpty else {
                     logger.infoFile("[-] image attachment ignored because not processed")

@@ -52,8 +52,8 @@ final class MTDeleteMemoryTool: ConfigurableModelTool, @unchecked Sendable {
         .memory
     }
 
-    /// Declares its own `reason`, which the store records with the deletion;
-    /// FlowDown leaves it on the arguments.
+    /// Declares its own `reason`, so FlowDown leaves it on the arguments; the
+    /// store echoes it in the result and does not persist it.
     func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
         guard let memoryId = arguments.string("memory_id") else {
             throw ModelToolError.invalidArguments(String(localized: "Invalid parameters. memory_id is required."))

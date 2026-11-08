@@ -75,11 +75,7 @@ final class MTWebSearchTool: ConfigurableModelTool, @unchecked Sendable {
             }
             return ModelToolOutput(text: archives.joined(separator: "\n"))
         } catch {
-            var status = row.webSearchStatus
-            if !(error is CancellationError) {
-                status.proccessProgress = -1
-            }
-            row.assign(\.webSearchStatus, to: status)
+            row.markModified()
             await session.requestUpdate()
             throw error
         }
@@ -107,7 +103,7 @@ final class MTWebSearchTool: ConfigurableModelTool, @unchecked Sendable {
             row.assign(\.webSearchStatus, to: status)
         }
 
-        for try await phase in session.gatheringWebContent(
+        for await phase in session.gatheringWebContent(
             searchQueries: [query],
             onSetWebDocumentResult: onSetWebContents,
         ) {
@@ -118,7 +114,7 @@ final class MTWebSearchTool: ConfigurableModelTool, @unchecked Sendable {
             status.currentQuery = phase.query
             status.currentQueryBeginDate = phase.queryBeginDate
             status.numberOfResults = phase.numberOfResults
-            status.proccessProgress = max(0.1, phase.proccessProgress)
+            status.proccessProgress = phase.proccessProgress
             row.assign(\.webSearchStatus, to: status)
             await session.requestUpdate()
         }

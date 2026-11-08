@@ -32,20 +32,13 @@ struct ModelToolSet: @unchecked Sendable {
 
     init(tools: [any ModelTool]) {
         entries = tools.map { tool in
-            if let definition = ModelToolReason.adding(to: tool.definition) {
-                Entry(tool: tool, definition: definition, carriesReason: true)
-            } else {
-                Entry(tool: tool, definition: tool.definition, carriesReason: false)
-            }
+            let added = ModelToolReason.adding(to: tool.definition)
+            return Entry(tool: tool, definition: added ?? tool.definition, carriesReason: added != nil)
         }
     }
 
     var isEmpty: Bool {
         entries.isEmpty
-    }
-
-    var tools: [any ModelTool] {
-        entries.map(\.tool)
     }
 
     /// The definitions to send, nil when there is nothing to offer.
@@ -66,10 +59,7 @@ struct ModelToolSet: @unchecked Sendable {
     /// has the call's name.
     func resolve(_ request: ToolRequest) -> Call? {
         guard let entry = entry(named: request.name) else { return nil }
-        guard entry.carriesReason else {
-            return Call(tool: entry.tool, arguments: .init(json: request.args), reason: nil)
-        }
-        let split = ModelToolReason.split(request.args)
+        let split = entry.carriesReason ? ModelToolReason.split(request.args) : (arguments: request.args, reason: nil)
         return Call(tool: entry.tool, arguments: .init(json: split.arguments), reason: split.reason)
     }
 

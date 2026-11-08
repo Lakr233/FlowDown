@@ -8,25 +8,19 @@ import Foundation
 /// What a call gives back: the text the model reads, and any images or
 /// audio, which reach the model as attachments after every result of the
 /// turn.
-struct ModelToolOutput: Sendable, Equatable {
-    struct Attachment: Sendable, Equatable, Hashable {
+struct ModelToolOutput: Sendable {
+    struct Attachment: Sendable {
         let name: String
         let data: Data
         let mimeType: String?
     }
 
     var text: String
-    var images: [Attachment]
-    var audio: [Attachment]
-
-    init(text: String, images: [Attachment] = [], audio: [Attachment] = []) {
-        self.text = text
-        self.images = images
-        self.audio = audio
-    }
+    var images: [Attachment] = []
+    var audio: [Attachment] = []
 
     /// Past this many characters the text is cut, with a note to the model.
-    static let textLimit = 64 * 1024
+    private static let textLimit = 64 * 1024
 
     /// The text cut at `textLimit`, with a note saying so.
     var truncatedText: String {
@@ -40,10 +34,10 @@ struct ModelToolOutput: Sendable, Equatable {
     /// The text as the model receives it: truncated, and a short note in
     /// place of an empty result so the turn never reads as lost.
     var modelText: String {
-        let text = truncatedText
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        let truncated = truncatedText
+        guard !truncated.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return String(localized: "Tool executed successfully with no output")
         }
-        return text
+        return truncated
     }
 }

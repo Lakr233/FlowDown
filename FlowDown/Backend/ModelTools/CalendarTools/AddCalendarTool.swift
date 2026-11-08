@@ -168,25 +168,22 @@ final class MTAddCalendarTool: ConfigurableModelTool, @unchecked Sendable {
         var index = value.startIndex
         while index < value.endIndex {
             let char = value[index]
-            if char == "\\", value.index(after: index) < value.endIndex {
-                let next = value[value.index(after: index)]
+            let nextIndex = value.index(after: index)
+            if char == "\\", nextIndex < value.endIndex {
+                let next = value[nextIndex]
                 switch next {
                 case "n", "N":
                     result += "\n"
-                case "\\":
-                    result += "\\"
-                case ";":
-                    result += ";"
-                case ",":
-                    result += ","
+                case "\\", ";", ",":
+                    result.append(next)
                 default:
                     result += String(char)
                     result += String(next)
                 }
-                index = value.index(after: value.index(after: index))
+                index = value.index(after: nextIndex)
             } else {
                 result += String(char)
-                index = value.index(after: index)
+                index = nextIndex
             }
         }
         return result

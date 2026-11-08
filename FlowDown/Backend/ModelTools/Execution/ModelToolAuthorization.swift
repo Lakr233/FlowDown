@@ -11,12 +11,13 @@ import Foundation
 /// private data, or runs a tool from an MCP server, asks first; searching
 /// the web or reading memories never does.
 enum ModelToolAuthorization {
-    static let requiresConfirmationKey = "wiki.qaq.ModelTools.RequiresConfirmation"
+    private static let requiresConfirmationKey = "wiki.qaq.ModelTools.RequiresConfirmation"
+    private static let requiresConfirmationByDefault = true
     /// The switch this setting replaced, which skipped every dialog.
     static let legacySkipConfirmationKey = "ModelToolsManager.skipConfirmation"
 
     static var requiresConfirmation: Bool {
-        get { ConfigurableKit.value(forKey: requiresConfirmationKey) ?? true }
+        get { ConfigurableKit.value(forKey: requiresConfirmationKey) ?? requiresConfirmationByDefault }
         set { ConfigurableKit.set(value: newValue, forKey: requiresConfirmationKey) }
     }
 
@@ -25,7 +26,7 @@ enum ModelToolAuthorization {
         title: "Require Confirmation",
         explain: "Asks before tools use your calendar, reminders, or location, and before tools from MCP servers run.",
         key: requiresConfirmationKey,
-        defaultValue: true,
+        defaultValue: requiresConfirmationByDefault,
         annotation: .toggle,
     )
 

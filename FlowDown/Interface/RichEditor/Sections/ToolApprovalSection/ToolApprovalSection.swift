@@ -80,10 +80,7 @@ final class ToolApprovalSection: EditorSectionView {
             addSubview(view)
         }
 
-        alpha = 0
-        isUserInteractionEnabled = false
-        accessibilityElementsHidden = true
-        heightPublisher.send(0)
+        applyVisibility(false)
 
         registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (self: Self, _) in
             self.setNeedsLayout()
@@ -97,14 +94,17 @@ final class ToolApprovalSection: EditorSectionView {
         if let request {
             setText(of: request)
         }
-        let visible = request != nil
+        applyVisibility(isPresenting)
+        heightPublisher.send(isPresenting ? layoutContent() : 0)
+        if isPresenting {
+            UIAccessibility.post(notification: .screenChanged, argument: titleLabel)
+        }
+    }
+
+    private func applyVisibility(_ visible: Bool) {
         alpha = visible ? 1 : 0
         isUserInteractionEnabled = visible
         accessibilityElementsHidden = !visible
-        heightPublisher.send(visible ? layoutContent() : 0)
-        if visible {
-            UIAccessibility.post(notification: .screenChanged, argument: titleLabel)
-        }
     }
 
     private func setText(of request: ModelToolApprovalRequest) {
@@ -157,7 +157,6 @@ final class ToolApprovalSection: EditorSectionView {
     }
 
     /// Places the content for the current width and returns the height it needs.
-    @discardableResult
     private func layoutContent() -> CGFloat {
         let contentWidth = max(1, bounds.width - inset * 2)
         func height(of view: UIView, width: CGFloat) -> CGFloat {

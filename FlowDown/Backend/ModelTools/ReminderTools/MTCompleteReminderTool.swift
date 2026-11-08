@@ -69,7 +69,7 @@ final class MTCompleteReminderTool: ConfigurableModelTool, @unchecked Sendable {
             let action = request.completed
                 ? String(localized: "Mark as Done")
                 : String(localized: "Mark as Not Done")
-            let title = reminder.title ?? String(localized: "Untitled")
+            let title = ReminderToolsShared.displayTitle(of: reminder)
             return [action, title].joined(separator: "\n")
         }
     }
@@ -79,11 +79,9 @@ final class MTCompleteReminderTool: ConfigurableModelTool, @unchecked Sendable {
         try await ReminderToolsShared.requireAccess()
 
         let eventStore = EKEventStore()
-        guard let reminder = ReminderToolsShared.fetchReminder(id: request.reminderId, eventStore: eventStore) else {
-            throw ModelToolError.failure(String(localized: "Reminder with id \(request.reminderId) not found."))
-        }
+        let reminder = try ReminderToolsShared.requireReminder(id: request.reminderId, eventStore: eventStore)
 
-        let title = reminder.title ?? String(localized: "Untitled")
+        let title = ReminderToolsShared.displayTitle(of: reminder)
         reminder.isCompleted = request.completed
         do {
             try eventStore.save(reminder, commit: true)

@@ -7,7 +7,7 @@ import Combine
 import Foundation
 
 /// A call waiting for the user, as its card shows it.
-struct ModelToolApprovalRequest: Identifiable, Equatable, Sendable {
+struct ModelToolApprovalRequest: Equatable, Sendable {
     let id: UUID
     let toolName: String
     let icon: String

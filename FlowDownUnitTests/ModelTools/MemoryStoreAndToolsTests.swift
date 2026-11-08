@@ -8,7 +8,6 @@ struct MemoryStoreAndToolsTests {
     @Test
     @MainActor
     func `memory store async APIs return searchable memories and proactive context`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
         try await withCleanMemoryStore {
             let teaMemory = try await MemoryStore.shared.storeAsync(
                 content: "User likes jasmine tea",
@@ -37,7 +36,6 @@ struct MemoryStoreAndToolsTests {
     @Test
     @MainActor
     func `memory tools store list update recall and delete memories`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
         try await withCleanMemoryStore {
             let storeTool = MTStoreMemoryTool()
             let listTool = MTListMemoriesTool()
@@ -46,7 +44,7 @@ struct MemoryStoreAndToolsTests {
             let deleteTool = MTDeleteMemoryTool()
 
             let storeOutput = try await run(storeTool, #"{"content":"User prefers detailed release notes"}"#)
-            let storedMemory = try await waitForSingleMemory()
+            let storedMemory = try #require(try await MemoryStore.shared.getAllMemoriesAsync().first)
 
             let listOutput = try await run(listTool, #"{"limit":10}"#)
             let updateOutput = try await run(
@@ -77,31 +75,14 @@ private extension MemoryStoreAndToolsTests {
     func withCleanMemoryStore(
         _ body: () async throws -> Void,
     ) async throws {
-        try await resetMemories()
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+        try await MemoryStore.shared.deleteAllMemoriesAsync()
         do {
             try await body()
-            try await resetMemories()
+            try await MemoryStore.shared.deleteAllMemoriesAsync()
         } catch {
-            try? await resetMemories()
+            try? await MemoryStore.shared.deleteAllMemoriesAsync()
             throw error
         }
-    }
-
-    @MainActor
-    func resetMemories() async throws {
-        try await MemoryStore.shared.deleteAllMemoriesAsync()
-    }
-
-    @MainActor
-    func waitForSingleMemory() async throws -> Memory {
-        for _ in 0 ..< 50 {
-            let memories = try await MemoryStore.shared.getAllMemoriesAsync()
-            if let memory = memories.first {
-                return memory
-            }
-            try await Task.sleep(for: .milliseconds(50))
-        }
-
-        throw NSError(domain: "MemoryStoreAndToolsTests", code: 1)
     }
 }

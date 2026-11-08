@@ -76,25 +76,15 @@ struct MCPToolStrictSchemaTests {
 
     @Test
     func skippedOptionalArguments_areOmittedFromTheCall() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
-        let tool = MCPTool(
-            toolInfo: MCPToolInfo(
-                name: "search",
-                inputSchema: [
-                    "type": "object",
-                    "properties": [
-                        "query": ["type": "string"],
-                        "limit": ["type": "integer"],
-                        "cursor": ["type": ["string", "null"]],
-                    ],
-                    "required": ["query", "cursor"],
-                ],
-                serverID: "strict-schema-server",
-                serverName: "strict.example.com",
-            ),
-            mcpService: .shared,
-        )
+        let tool = try await tool(for: [
+            "type": "object",
+            "properties": [
+                "query": ["type": "string"],
+                "limit": ["type": "integer"],
+                "cursor": ["type": ["string", "null"]],
+            ],
+            "required": ["query", "cursor"],
+        ])
 
         let arguments = tool.callArguments(from: #"{"query":"swift","limit":null,"cursor":null}"#)
 
@@ -103,10 +93,10 @@ struct MCPToolStrictSchemaTests {
 }
 
 private extension MCPToolStrictSchemaTests {
-    func strictParameters(for inputSchema: Value) async throws -> [String: AnyCodingValue] {
+    func tool(for inputSchema: Value) async throws -> MCPTool {
         try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
 
-        let tool = MCPTool(
+        return MCPTool(
             toolInfo: MCPToolInfo(
                 name: "search",
                 inputSchema: inputSchema,
@@ -115,6 +105,10 @@ private extension MCPToolStrictSchemaTests {
             ),
             mcpService: .shared,
         )
+    }
+
+    func strictParameters(for inputSchema: Value) async throws -> [String: AnyCodingValue] {
+        let tool = try await tool(for: inputSchema)
         guard case let .function(_, _, parameters, strict) = tool.definition else {
             Issue.record("Expected a function tool definition.")
             return [:]

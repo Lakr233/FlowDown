@@ -66,14 +66,12 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
     }
 
     func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
-        guard let json = arguments.object,
-              let startDateString = json["start_date"] as? String
-        else {
+        guard let startDateString = arguments.string("start_date") else {
             throw ModelToolError.invalidArguments(String(localized: "Invalid input parameters"))
         }
 
-        let endDateString = json["end_date"] as? String
-        let includeAllDayEvents = json["include_all_day_events"] as? Bool ?? true
+        let endDateString = arguments.string("end_date")
+        let includeAllDayEvents = arguments["include_all_day_events"] as? Bool ?? true
 
         let (startDate, endDate) = try Self.queryWindow(
             start: startDateString,
@@ -111,36 +109,15 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
         dateFormatter.timeZone = calendar.timeZone
 
         guard let startDate = dateFormatter.date(from: startDateString) else {
-            throw NSError(
-                domain: "MTQueryCalendarTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid start date format. Use YYYY-MM-DD."),
-                ],
-            )
+            throw ModelToolError.invalidArguments(String(localized: "Invalid start date format. Use YYYY-MM-DD."))
         }
 
-        var endDate: Date
-        if let endDateStr = endDateString, let date = dateFormatter.date(from: endDateStr) {
-            endDate = date
+        let lastDay = endDateString.flatMap { dateFormatter.date(from: $0) } ?? startDate
+        let endDate = calendar.date(byAdding: .day, value: 1, to: lastDay) ?? lastDay
 
-            // Add one day to end date to include the entire end day (until midnight)
-            endDate = calendar.date(byAdding: .day, value: 1, to: endDate) ?? endDate
-
-            // Verify date range doesn't exceed 7 days
-            let components = calendar.dateComponents([.day], from: startDate, to: endDate)
-            if let days = components.day, days > 7 {
-                throw NSError(
-                    domain: "MTQueryCalendarTool",
-                    code: 400,
-                    userInfo: [
-                        NSLocalizedDescriptionKey: String(localized: "Date range cannot exceed 7 days"),
-                    ],
-                )
-            }
-        } else {
-            // If no end date, set to end of start date
-            endDate = calendar.date(byAdding: .day, value: 1, to: startDate) ?? startDate
+        let components = calendar.dateComponents([.day], from: startDate, to: endDate)
+        if let days = components.day, days > 7 {
+            throw ModelToolError.invalidArguments(String(localized: "Date range cannot exceed 7 days"))
         }
 
         return (startDate, endDate)
@@ -153,17 +130,12 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
         includeAllDayEvents: Bool,
     ) -> String {
         let eventStore = EKEventStore()
-
-        // Create the predicate to search between the start and end dates
         let predicate = eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: nil)
-
-        // Fetch all events matching the predicate
         let events = eventStore.events(matching: predicate)
 
         if events.isEmpty {
             let dateFormatter = DateFormatter()
             dateFormatter.dateStyle = .medium
-            dateFormatter.locale = Locale.current
 
             let startDateString = dateFormatter.string(from: startDate)
             let endDateString = dateFormatter.string(
@@ -177,37 +149,25 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
             }
         }
 
-        // Format events
         let filteredEvents = includeAllDayEvents ? events : events.filter { !$0.isAllDay }
         if filteredEvents.isEmpty {
             return String(localized: "No events found for the specified criteria.")
         }
 
-        // Group events by date
         var eventsByDate: [String: [EKEvent]] = [:]
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .full
-        dateFormatter.timeStyle = .none
-        dateFormatter.locale = Locale.current
 
         let timeFormatter = DateFormatter()
-        timeFormatter.dateStyle = .none
         timeFormatter.timeStyle = .short
-        timeFormatter.locale = Locale.current
 
         for event in filteredEvents {
             guard let startDate = event.startDate else { continue }
             let dateString = dateFormatter.string(from: startDate)
-
-            if eventsByDate[dateString] == nil {
-                eventsByDate[dateString] = []
-            }
-
-            eventsByDate[dateString]?.append(event)
+            eventsByDate[dateString, default: []].append(event)
         }
 
-        // Sort dates and events
         let sortedDates = eventsByDate.keys.sorted { date1, date2 in
             guard let date1Obj = dateFormatter.date(from: date1),
                   let date2Obj = dateFormatter.date(from: date2)
@@ -217,30 +177,27 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
             return date1Obj < date2Obj
         }
 
-        // Build result string
         var resultBuilder = [String]()
 
         for dateString in sortedDates {
             resultBuilder.append("# \(dateString)")
             resultBuilder.append("")
 
-            guard let dateEvents = eventsByDate[dateString] else { continue }
-            let sortedEvents = dateEvents.sorted { $0.startDate ?? Date() < $1.startDate ?? Date() }
+            let dateEvents = eventsByDate[dateString, default: []]
+            let sortedEvents = dateEvents.sorted { $0.startDate < $1.startDate }
 
             for event in sortedEvents {
                 let calendar = event.calendar
-                let calendarColor = calendar?.cgColor != nil ? colorName(from: calendar!.cgColor) : "Default"
+                let calendarColor = calendar?.cgColor.map { colorName(from: $0) } ?? "Default"
 
-                var eventString = ""
+                var eventString = "- **\(event.title ?? "-")**"
 
                 if event.isAllDay {
-                    eventString += "- **\(event.title ?? "-")** (\(String(localized: "All day")))"
+                    eventString += " (\(String(localized: "All day")))"
                 } else if let startDate = event.startDate, let endDate = event.endDate {
                     let startTimeStr = timeFormatter.string(from: startDate)
                     let endTimeStr = timeFormatter.string(from: endDate)
-                    eventString += "- **\(event.title ?? "-")** (\(startTimeStr) - \(endTimeStr))"
-                } else {
-                    eventString += "- **\(event.title ?? "-")**"
+                    eventString += " (\(startTimeStr) - \(endTimeStr))"
                 }
 
                 eventString += " [\(calendar?.title ?? String(localized: "Calendar")): \(calendarColor)]"
@@ -258,16 +215,16 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
     }
 
     private func colorName(from cgColor: CGColor) -> String {
-        let colorNames = [
-            [1.0, 0.0, 0.0]: "red",
-            [0.0, 1.0, 0.0]: "green",
-            [0.0, 0.0, 1.0]: "blue",
-            [1.0, 1.0, 0.0]: "yellow",
-            [1.0, 0.0, 1.0]: "magenta",
-            [0.0, 1.0, 1.0]: "cyan",
-            [1.0, 0.5, 0.0]: "orange",
-            [0.5, 0.0, 0.5]: "purple",
-            [0.5, 0.5, 0.5]: "gray",
+        let colorNames: [(components: [Double], name: String)] = [
+            ([1.0, 0.0, 0.0], "red"),
+            ([0.0, 1.0, 0.0], "green"),
+            ([0.0, 0.0, 1.0], "blue"),
+            ([1.0, 1.0, 0.0], "yellow"),
+            ([1.0, 0.0, 1.0], "magenta"),
+            ([0.0, 1.0, 1.0], "cyan"),
+            ([1.0, 0.5, 0.0], "orange"),
+            ([0.5, 0.0, 0.5], "purple"),
+            ([0.5, 0.5, 0.5], "gray"),
         ]
 
         guard let components = cgColor.components, cgColor.numberOfComponents == 4 else {
@@ -278,15 +235,8 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
         let g = round(components[1] * 10) / 10
         let b = round(components[2] * 10) / 10
 
-        for (colorComponents, name) in colorNames {
-            if abs(r - colorComponents[0]) < 0.2,
-               abs(g - colorComponents[1]) < 0.2,
-               abs(b - colorComponents[2]) < 0.2
-            {
-                return name
-            }
-        }
-
-        return String(localized: "Custom Tag Color")
+        return colorNames.first {
+            abs(r - $0.components[0]) < 0.2 && abs(g - $0.components[1]) < 0.2 && abs(b - $0.components[2]) < 0.2
+        }?.name ?? String(localized: "Custom Tag Color")
     }
 }

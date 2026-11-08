@@ -295,19 +295,15 @@ private extension MemoryExtractorTests {
     }
 
     @MainActor
-    func waitForMemories(
-        count: Int,
-        timeout: Duration = .seconds(2),
-        pollInterval: Duration = .milliseconds(50),
-    ) async throws -> [Memory] {
-        let deadline = ContinuousClock.now + timeout
+    func waitForMemories(count: Int) async throws -> [Memory] {
+        let deadline = ContinuousClock.now + .seconds(2)
 
         while ContinuousClock.now < deadline {
             let memories = try await MemoryStore.shared.getAllMemoriesAsync()
             if memories.count == count {
                 return memories
             }
-            try await Task.sleep(for: pollInterval)
+            try await Task.sleep(for: .milliseconds(50))
         }
 
         throw NSError(

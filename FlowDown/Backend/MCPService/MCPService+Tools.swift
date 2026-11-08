@@ -5,14 +5,9 @@
 //  Created by Alan Ye on 7/10/25.
 //
 
-import AlertController
-import ChatClientKit
-import Combine
-import ConfigurableKit
 import Foundation
 import MCP
 import Storage
-import UIKit
 
 // MARK: - MCPService Tools Extension
 

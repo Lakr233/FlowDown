@@ -2,7 +2,6 @@
 import Foundation
 import Storage
 import Testing
-import UIKit
 
 /// Every input here is rejected before it reaches the database, so these
 /// tests never write rows that the serialized memory suites could observe.
@@ -10,23 +9,20 @@ struct StoreMemoryToolTests {
     @Test
     @MainActor
     func storeMemory_emptyContent_throwsInvalidContent() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-        await expectRejected(#"{"content":""}"#)
+        try await expectRejected(#"{"content":""}"#)
     }
 
     @Test
     @MainActor
     func storeMemory_whitespaceContent_throwsInvalidContent() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-        await expectRejected(#"{"content":"   "}"#)
+        try await expectRejected(#"{"content":"   "}"#)
     }
 
     @Test
     @MainActor
     func storeMemory_overlongContent_throwsInvalidContent() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
         let content = String(repeating: "a", count: 2001)
-        await expectRejected(#"{"content":"\#(content)"}"#)
+        try await expectRejected(#"{"content":"\#(content)"}"#)
 
         let memories = try await MemoryStore.shared.getAllMemoriesAsync()
         #expect(!memories.contains { $0.content == content })
@@ -35,7 +31,8 @@ struct StoreMemoryToolTests {
 
 private extension StoreMemoryToolTests {
     @MainActor
-    func expectRejected(_ input: String) async {
+    func expectRejected(_ input: String) async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
         let error = await #expect(throws: NSError.self) {
             try await MTStoreMemoryTool().execute(.init(json: input), context: .headless)
         }

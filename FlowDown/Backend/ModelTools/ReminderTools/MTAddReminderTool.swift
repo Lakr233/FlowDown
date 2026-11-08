@@ -121,14 +121,12 @@ final class MTAddReminderTool: ConfigurableModelTool, @unchecked Sendable {
             reminder.dueDateComponents = dueDateComponents
         }
         if request.priority != 0 { reminder.priority = request.priority }
+        reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
+            named: request.listName,
+            eventStore: eventStore,
+        )
         do {
-            reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
-                named: request.listName,
-                eventStore: eventStore,
-            )
             try eventStore.save(reminder, commit: true)
-        } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
-            throw error
         } catch {
             throw ModelToolError.failure(
                 String(localized: "Failed to add reminder: \(error.localizedDescription)"),
