@@ -123,6 +123,25 @@ final class MTUpdateReminderTool: ConfigurableModelTool, @unchecked Sendable {
             return ModelToolOutput(text: String(localized: "No changes specified; reminder left untouched."))
         }
 
+        try Self.apply(changes, to: reminder, eventStore: eventStore)
+        do {
+            try eventStore.save(reminder, commit: true)
+        } catch {
+            throw ModelToolError.failure(
+                String(localized: "Failed to update reminder: \(error.localizedDescription)"),
+            )
+        }
+
+        return ModelToolOutput(text: String(localized: "Reminder updated: \(reminder.title ?? "-")"))
+    }
+
+    /// Writes `changes` onto `reminder` without saving it. Throws when the
+    /// new list name matches no Reminders list.
+    static func apply(
+        _ changes: ParsedChanges,
+        to reminder: EKReminder,
+        eventStore: EKEventStore,
+    ) throws {
         if let newTitle = changes.newTitle { reminder.title = newTitle }
         if changes.clearNotes {
             reminder.notes = nil
@@ -147,15 +166,6 @@ final class MTUpdateReminderTool: ConfigurableModelTool, @unchecked Sendable {
                 eventStore: eventStore,
             )
         }
-        do {
-            try eventStore.save(reminder, commit: true)
-        } catch {
-            throw ModelToolError.failure(
-                String(localized: "Failed to update reminder: \(error.localizedDescription)"),
-            )
-        }
-
-        return ModelToolOutput(text: String(localized: "Reminder updated: \(reminder.title ?? "-")"))
     }
 
     private func parse(_ arguments: ModelToolArguments) throws -> Request {

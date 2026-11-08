@@ -23,15 +23,15 @@ struct ModelToolsScopeTests {
     }
 
     @Test(arguments: [
-        ("tool-1", "scrape_web_page", MTWebScraperTool().definition, #"{"url":""}"#),
-        ("tool-2", "web_search", MTWebSearchTool().definition, #"{"query":""}"#),
+        ("scrape_web_page", MTWebScraperTool().definition, #"{"url":""}"#),
+        ("web_search", MTWebSearchTool().definition, #"{"query":""}"#),
     ])
     func `web tools repair empty arguments into object payload`(
-        row: (id: String, name: String, definition: ChatRequestBody.Tool, expected: String),
+        row: (name: String, definition: ChatRequestBody.Tool, expected: String),
     ) {
         let repaired = ToolCallArgumentRepair.normalize(
             request: ToolRequest(
-                id: row.id,
+                id: "tool",
                 name: row.name,
                 args: ""
             ),

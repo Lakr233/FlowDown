@@ -144,38 +144,14 @@ struct ReminderToolsIntegrationTests {
 
     // MARK: - Helpers
 
-    /// Mirrors the Update action block in `MTUpdateReminderTool`. Centralized
-    /// here so that the tests cover the same branches the production tool
-    /// uses, without standing up a full alert/UI pipeline.
+    /// Applies `changes` the way `MTUpdateReminderTool` does, then saves,
+    /// without going through the tool's access request.
     private func applyChanges(
         _ changes: MTUpdateReminderTool.ParsedChanges,
         to reminder: EKReminder,
         eventStore: EKEventStore,
     ) throws {
-        if let newTitle = changes.newTitle { reminder.title = newTitle }
-        if changes.clearNotes {
-            reminder.notes = nil
-        } else if let newNotes = changes.newNotes {
-            reminder.notes = newNotes
-        }
-        if changes.clearDueDate {
-            reminder.dueDateComponents = nil
-        } else if let newDueDate = changes.newDueDate,
-                  let components = ReminderToolsShared.dueDateComponents(from: newDueDate)
-        {
-            reminder.dueDateComponents = components
-        }
-        if changes.clearPriority {
-            reminder.priority = 0
-        } else if let newPriority = changes.newPriority {
-            reminder.priority = newPriority
-        }
-        if let newListName = changes.newListName {
-            reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
-                named: newListName,
-                eventStore: eventStore,
-            )
-        }
+        try MTUpdateReminderTool.apply(changes, to: reminder, eventStore: eventStore)
         try eventStore.save(reminder, commit: true)
     }
 
