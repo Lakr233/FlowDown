@@ -73,7 +73,7 @@ help:
 	@echo ""
 	@echo "Test:"
 	@echo "  test                  Run the default test flow"
-	@echo "  test-unit             Run app tests on the first available iOS simulator"
+	@echo "  test-unit             Run app tests on the first available iOS simulator (UNIT_TEST_ARGUMENTS narrows the run, UNIT_TEST_DESTINATION picks the device)"
 	@echo "  test-chat-client-kit  Run ChatClientKit package tests on macOS"
 	@echo "  test-storage          Run Storage package tests on macOS"
 	@echo "  test-online-e2e       Run online e2e tests"
@@ -136,10 +136,11 @@ test: test-unit
 
 test-unit:
 	$(prepare-build-dirs)
-	DESTINATION="$$(./Resources/DevKit/scripts/get_first_ios_simulator.sh)"; \
+	DESTINATION="$${UNIT_TEST_DESTINATION:-$$(./Resources/DevKit/scripts/get_first_ios_simulator.sh)}"; \
 	$(BUILD_ENV) XCBUILD_LABEL=test-unit $(XCODEBUILD) \
 		-scheme $(IOS_SCHEME) \
 		-destination "$$DESTINATION" \
+		$(UNIT_TEST_ARGUMENTS) \
 		test
 
 test-chat-client-kit:

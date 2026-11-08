@@ -205,14 +205,11 @@ extension ConversationSession {
         return try? JSONSerialization.jsonObject(with: metadata, options: [.fragmentsAllowed]) as? [String: Any]
     }
 
+    /// Repairs a stored call's arguments against the definition the tool
+    /// would be offered with now, `reason` included.
     func normalizeStoredToolRequest(_ request: ToolRequest) async -> ToolRequest {
-        guard let tool = await ModelToolsManager.shared.findTool(for: request) else {
-            return ToolCallArgumentRepair.normalize(request: request, using: nil)
-        }
-        return ToolCallArgumentRepair.normalize(
-            request: request,
-            using: [tool.definition]
-        )
+        let definition = await ModelToolsManager.shared.makeToolSet().definition(named: request.name)
+        return ToolCallArgumentRepair.normalize(request: request, using: definition.map { [$0] })
     }
 
     func makeMessageFromAttachments(

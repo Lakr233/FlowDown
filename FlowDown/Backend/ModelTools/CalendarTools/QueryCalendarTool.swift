@@ -5,19 +5,18 @@
 //  Created on 2/28/25.
 //
 
-import AlertController
 import ChatClientKit
 import ConfigurableKit
+import CoreGraphics
 import EventKit
 import Foundation
-import UIKit
 
-class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Query Calendar")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "query_calendar_events",
             description: """
@@ -47,7 +46,7 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "calendar",
             title: "Query Calendar",
@@ -58,17 +57,19 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
+    var access: ModelToolAccess {
+        .privateData
+    }
+
+    var group: ModelToolGroup? {
+        .calendar
+    }
+
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        guard let json = arguments.object,
               let startDateString = json["start_date"] as? String
         else {
-            throw NSError(
-                domain: "MTQueryCalendarTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid input parameters"),
-                ],
-            )
+            throw ModelToolError.invalidArguments(String(localized: "Invalid input parameters"))
         }
 
         let endDateString = json["end_date"] as? String
@@ -79,14 +80,20 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             end: endDateString,
         )
 
-        let viewController = try await anchorController(for: view)
+        let access = await CalendarToolsShared.requestAccess()
+        guard access.granted else {
+            let errorMessage = access.error?.localizedDescription ?? "Unknown error"
+            return ModelToolOutput(
+                text: String(localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."),
+            )
+        }
 
-        return try await queryWithUserInteraction(
+        let result = fetchCalendarEvents(
             startDate: startDate,
             endDate: endDate,
             includeAllDayEvents: includeAllDayEvents,
-            controller: viewController,
         )
+        return ModelToolOutput(text: result)
     }
 
     /// Turns the model's `YYYY-MM-DD` bounds into a search window of whole
@@ -139,123 +146,12 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
         return (startDate, endDate)
     }
 
-    @MainActor
-    func queryWithUserInteraction(
-        startDate: Date,
-        endDate: Date,
-        includeAllDayEvents: Bool,
-        controller: UIViewController
-    ) async throws -> String {
-        try await withCheckedThrowingContinuation { cont in
-            CalendarToolsShared.requestAccess { [weak self] granted, error in
-                Task { @MainActor [weak self] in
-                    guard let self, granted else {
-                        let errorMessage = error?.localizedDescription ?? "Unknown error"
-                        cont.resume(returning: String(localized: "Calendar access denied: \(errorMessage). Please enable calendar access in Settings."))
-                        return
-                    }
-
-                    fetchCalendarEvents(
-                        startDate: startDate,
-                        endDate: endDate,
-                        includeAllDayEvents: includeAllDayEvents,
-                    ) { result, error in
-                        if let error {
-                            cont.resume(
-                                throwing: ModelToolError.failure(
-                                    String(localized: "Failed to query calendar: \(error.localizedDescription)")
-                                )
-                            )
-                        } else {
-                            self.showQueryResults(result: result, controller: controller, continuation: cont)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @MainActor
-    private func showQueryResults(
-        result: String,
-        controller: UIViewController,
-        continuation: CheckedContinuation<String, any Swift.Error>
-    ) {
-        let displayText = formatResultForDisplay(result)
-
-        let alert = AlertViewController(
-            title: "Calendar Events",
-            message: "\(displayText)",
-        ) { context in
-            context.addAction(title: "Cancel") {
-                context.dispose {
-                    continuation.resume(
-                        throwing: ModelToolError.failure(String(localized: "User cancelled sharing calendar events."))
-                    )
-                }
-            }
-            context.addAction(title: "Share", attribute: .accent) {
-                context.dispose {
-                    // The model gets the original Markdown, not the plain display text.
-                    continuation.resume(returning: result)
-                }
-            }
-        }
-
-        ModelToolPresentation.present(
-            alert,
-            on: controller,
-            continuation: continuation,
-            displayFailure: String(localized: "Failed to display results dialog."),
-        )
-    }
-
-    /// Converts the Markdown result into plain text for the confirmation alert.
-    private func formatResultForDisplay(_ markdownResult: String) -> String {
-        var displayLines = [String]()
-        let lines = markdownResult.split(separator: "\n")
-
-        var lineCount = 0
-        var lineLimitExceeded = false
-
-        for line in lines {
-            lineCount += 1
-            if lineCount > 6 {
-                lineLimitExceeded = true
-                break
-            }
-
-            let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
-
-            if trimmedLine.hasPrefix("# ") {
-                let dateTitle = String(trimmedLine.dropFirst(2))
-                displayLines.append(dateTitle)
-                displayLines.append(String(repeating: "-", count: dateTitle.count))
-            } else if trimmedLine.hasPrefix("- **") {
-                var eventLine = trimmedLine
-                eventLine = eventLine.replacingOccurrences(of: "- **", with: "• ")
-                eventLine = eventLine.replacingOccurrences(of: "**", with: "")
-                displayLines.append(eventLine)
-            } else if trimmedLine.hasPrefix("  📍") {
-                displayLines.append(trimmedLine)
-            } else if !trimmedLine.isEmpty {
-                displayLines.append(trimmedLine)
-            }
-        }
-
-        if lineLimitExceeded {
-            displayLines.append("\n... \(String(localized: "More events available"))")
-        }
-
-        return displayLines.joined(separator: "\n")
-    }
-
+    /// The events in the window as Markdown, grouped by day.
     private func fetchCalendarEvents(
         startDate: Date,
         endDate: Date,
         includeAllDayEvents: Bool,
-        completion: @escaping (String, Error?) -> Void
-    ) {
+    ) -> String {
         let eventStore = EKEventStore()
 
         // Create the predicate to search between the start and end dates
@@ -271,22 +167,20 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
 
             let startDateString = dateFormatter.string(from: startDate)
             let endDateString = dateFormatter.string(
-                from: Calendar.current.date(byAdding: .day, value: -1, to: endDate) ?? endDate
+                from: Calendar.current.date(byAdding: .day, value: -1, to: endDate) ?? endDate,
             )
 
             if startDateString == endDateString {
-                completion(String(localized: "No events found for \(startDateString)."), nil)
+                return String(localized: "No events found for \(startDateString).")
             } else {
-                completion(String(localized: "No events found between \(startDateString) and \(endDateString)."), nil)
+                return String(localized: "No events found between \(startDateString) and \(endDateString).")
             }
-            return
         }
 
         // Format events
         let filteredEvents = includeAllDayEvents ? events : events.filter { !$0.isAllDay }
         if filteredEvents.isEmpty {
-            completion(String(localized: "No events found for the specified criteria."), nil)
-            return
+            return String(localized: "No events found for the specified criteria.")
         }
 
         // Group events by date
@@ -360,7 +254,7 @@ class MTQueryCalendarTool: ModelTool, @unchecked Sendable {
             }
         }
 
-        completion(resultBuilder.joined(separator: "\n"), nil)
+        return resultBuilder.joined(separator: "\n")
     }
 
     private func colorName(from cgColor: CGColor) -> String {

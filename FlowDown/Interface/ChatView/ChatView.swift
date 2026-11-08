@@ -15,6 +15,8 @@ import UIKit
 class ChatView: UIView {
     var conversationIdentifier: Conversation.ID?
     var cancellables: Set<AnyCancellable> = .init()
+    /// Follows the tool call waiting in the conversation on screen.
+    private var toolApprovalCancellable: AnyCancellable?
 
     let handlerColor: UIColor = .init {
         switch $0.userInterfaceStyle {
@@ -89,6 +91,10 @@ class ChatView: UIView {
 
         editor.handlerColor = handlerColor
         editor.delegate = self
+        editor.toolApproval.onDecision = { [weak self] request, decision in
+            guard let self, let conversationIdentifier else { return }
+            sessionManager.session(for: conversationIdentifier).toolApprovalGate.resolve(request.id, with: decision)
+        }
         editor.snp.makeConstraints { make in
             #if targetEnvironment(macCatalyst)
                 make.bottom.equalToSuperview()
@@ -217,14 +223,16 @@ class ChatView: UIView {
 
     func prepareForReuse() {
         if let conversationIdentifier, sessionManager.isSessionExecuting(conversationIdentifier) {
-            // A running stream anchors its tool confirmations to this list view,
-            // so it stays in the view hierarchy and is only hidden.
+            // A running stream keeps updating this list view, so it stays in
+            // the view hierarchy and is only hidden.
             currentMessageListView?.isHidden = true
         } else {
             // Removes the current message list view from the superview.
             currentMessageListView?.removeFromSuperview()
         }
         conversationIdentifier = nil
+        toolApprovalCancellable = nil
+        editor.showToolApproval(nil)
         editor.prepareForReuse()
     }
 
@@ -277,6 +285,12 @@ class ChatView: UIView {
         let isExecuting = sessionManager.isSessionExecuting(conversation)
         editor.setProcessingMode(isExecuting)
         updateCurrentMessageListInsets()
+
+        toolApprovalCancellable = sessionManager.session(for: conversation).toolApprovalGate.pendingRequest
+            .ensureMainThread()
+            .sink { [weak self] request in
+                self?.editor.showToolApproval(request)
+            }
 
         offloadModelsToSession(modelIdentifier: modelIdentifier())
         removeUnusedListViews()

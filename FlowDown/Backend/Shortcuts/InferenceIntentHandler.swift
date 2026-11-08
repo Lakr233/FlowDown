@@ -51,11 +51,11 @@ enum InferenceIntentHandler {
             InferenceIntentHandler.preparePrompt()
         }
 
-        var enabledToolsProvider: () -> [ModelTool] = {
-            ModelToolsManager.shared.enabledTools
+        var enabledToolsProvider: () -> [any ModelTool] = {
+            ModelToolsManager.shared.enabledTools.map { $0 as any ModelTool }
         }
 
-        var shouldExposeMemory: (Bool, [ModelTool]) -> Bool = { modelWillExecuteTools, enabledTools in
+        var shouldExposeMemory: (Bool, [any ModelTool]) -> Bool = { modelWillExecuteTools, enabledTools in
             ModelToolsManager.shouldExposeMemory(
                 modelWillExecuteTools: modelWillExecuteTools,
                 enabledTools: enabledTools,
@@ -66,8 +66,8 @@ enum InferenceIntentHandler {
             await MemoryStore.shared.formattedProactiveMemoryContext()
         }
 
-        var memoryWritingToolsProvider: () -> [ModelTool] = {
-            ModelToolsManager.shared.enabledMemoryWritingTools
+        var memoryWritingToolsProvider: () -> [any ModelTool] = {
+            ModelToolsManager.shared.enabledMemoryWritingTools.map { $0 as any ModelTool }
         }
 
         var streamingInfer: (
@@ -84,8 +84,8 @@ enum InferenceIntentHandler {
             )
         }
 
-        var executeMemoryWritingToolCalls: ([ToolRequest], [ModelTool]) async -> Void = { toolCalls, tools in
-            await InferenceIntentHandler.executeMemoryWritingToolCalls(toolCalls, using: tools)
+        var executeMemoryWritingToolCalls: ([ToolRequest], ModelToolSet) async -> Void = { toolCalls, toolSet in
+            await InferenceIntentHandler.executeMemoryWritingToolCalls(toolCalls, using: toolSet)
         }
 
         var persistConversation: @MainActor (
@@ -160,7 +160,7 @@ enum InferenceIntentHandler {
         }
 
         var proactiveMemoryProvided = false
-        var memoryWritingTools: [ModelTool] = []
+        var memoryWritingTools: [any ModelTool] = []
         let enabledTools = dependencies.enabledToolsProvider()
         let shouldExposeMemory = options.forcedTool == nil
             && dependencies.shouldExposeMemory(options.enableMemory, enabledTools)
@@ -215,7 +215,8 @@ enum InferenceIntentHandler {
 
         requestMessages.append(userMessage)
 
-        var toolDefinitions = memoryWritingTools.isEmpty ? nil : memoryWritingTools.map(\.definition)
+        let memoryToolSet = ModelToolSet(tools: memoryWritingTools)
+        var toolDefinitions = memoryToolSet.definitions
         var toolChoice: ChatRequestBody.ToolChoice?
         if let forcedTool = options.forcedTool {
             toolDefinitions = [forcedTool]
@@ -268,8 +269,8 @@ enum InferenceIntentHandler {
             }
         }
 
-        if !memoryWritingTools.isEmpty, !toolRequests.isEmpty {
-            await dependencies.executeMemoryWritingToolCalls(toolRequests, memoryWritingTools)
+        if !memoryToolSet.isEmpty, !toolRequests.isEmpty {
+            await dependencies.executeMemoryWritingToolCalls(toolRequests, memoryToolSet)
         }
 
         if options.saveToConversation {
@@ -508,16 +509,19 @@ enum InferenceIntentHandler {
         session.notifyMessagesDidChange()
     }
 
-    private static func executeMemoryWritingToolCalls(_ toolCalls: [ToolRequest], using tools: [ModelTool]) async {
-        guard !toolCalls.isEmpty else { return }
-        let mapping = Dictionary(uniqueKeysWithValues: tools.map { ($0.functionName.lowercased(), $0) })
-
-        for call in toolCalls {
-            guard let tool = mapping[call.name.lowercased()] else { continue }
+    /// Memory tools reach no private data, so they run without a card;
+    /// anything that would ask is skipped, since Shortcuts has no one to ask.
+    private static func executeMemoryWritingToolCalls(_ toolCalls: [ToolRequest], using toolSet: ModelToolSet) async {
+        for request in toolCalls {
+            guard let call = toolSet.resolve(request) else { continue }
+            guard !ModelToolAuthorization.needsApproval(call.tool) else {
+                Logger.model.errorFile("skipped \(call.tool.functionName): it needs approval")
+                continue
+            }
             do {
-                _ = try await tool.execute(with: call.args, anchorTo: UIView())
+                _ = try await call.tool.execute(call.arguments, context: .headless)
             } catch {
-                Logger.model.errorFile("Memory tool \(tool.functionName) failed: \(error.localizedDescription)")
+                Logger.model.errorFile("Memory tool \(call.tool.functionName) failed: \(error.localizedDescription)")
             }
         }
     }

@@ -124,18 +124,18 @@ extension SettingController.SettingContent {
 
       stackView.addArrangedSubviewWithMargin(
         ConfigurableSectionHeaderView().with(
-          header: "Automation",
+          header: "Authorization",
         ),
       ) { $0.bottom /= 2 }
       stackView.addArrangedSubview(SeparatorView())
 
-      stackView.addArrangedSubviewWithMargin(ModelToolsManager.skipConfirmation)
+      stackView.addArrangedSubviewWithMargin(ModelToolAuthorization.configurableObject.createView())
       stackView.addArrangedSubview(SeparatorView())
 
       stackView.addArrangedSubviewWithMargin(
         ConfigurableSectionFooterView().with(
           footer:
-            "We strongly recommend that you do not enable this feature unless you are sure what you are doing. It may cause unexpected behavior and even data loss.",
+            "When this is off, tools run without asking, including ones that change your calendar or reminders. Web search and memory never ask.",
         ),
       ) { $0.top /= 2 }
       stackView.addArrangedSubview(SeparatorView())

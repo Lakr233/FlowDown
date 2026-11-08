@@ -9,14 +9,13 @@ import ChatClientKit
 import ConfigurableKit
 import Foundation
 import ScrubberKit
-import UIKit
 
-class MTWebScraperTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTWebScraperTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Web Reader")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "scrape_web_page",
             description: "Fetch a web page and return its text content, for reading articles or extracting data.",
@@ -35,7 +34,7 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "globe",
             title: "Web Reader",
@@ -46,28 +45,21 @@ class MTWebScraperTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
-              let urlString = json["url"] as? String,
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        guard let urlString = arguments.string("url"),
               let url = URL(string: urlString),
               let scheme = url.scheme,
               ["http", "https"].contains(scheme.lowercased()),
               url.host != nil
         else {
-            throw NSError(
-                domain: "MTWebScraperTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid URL provided"),
-                ],
-            )
+            throw ModelToolError.invalidArguments(String(localized: "Invalid URL provided"))
         }
 
-        return try await scrapeWithUserInteraction(url: url)
+        return try await ModelToolOutput(text: scrape(url: url))
     }
 
     @MainActor
-    func scrapeWithUserInteraction(url: URL) async throws -> String {
+    func scrape(url: URL) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             Scrubber.document(for: url) { doc in
                 guard let doc else {

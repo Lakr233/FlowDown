@@ -40,6 +40,10 @@ final class ConversationSession: Identifiable {
     /// string = plain dots), nil hides it. Only written on the main queue.
     let activityText = CurrentValueSubject<String?, Never>(nil)
 
+    /// The tool call waiting for the user, which the composer shows in place
+    /// of the input while this conversation is on screen.
+    let toolApprovalGate = ModelToolApprovalGate()
+
     // Main-queue-confined; every mutation funnels through DispatchQueue.main
     // so state transitions keep the order their call sites issued them in —
     // an unstructured Task per call would not guarantee that.
@@ -392,7 +396,7 @@ final class ConversationSession: Identifiable {
         }
     }
 
-    func retry(byClearAfter messageIdentifier: Message.ID, currentMessageListView: MessageListView) {
+    func retry(byClearAfter messageIdentifier: Message.ID) {
         guard let nearestUserMessage = nearestUserMessage(beforeOrEqual: messageIdentifier) else {
             assertionFailure()
             return
@@ -431,7 +435,6 @@ final class ConversationSession: Identifiable {
         deleteCurrentAndAfter(messageIdentifier: nearestUserMessage.objectId) {
             self.doInfere(
                 modelID: modelID,
-                currentMessageListView: currentMessageListView,
                 inputObject: editorObject,
             ) {}
         }

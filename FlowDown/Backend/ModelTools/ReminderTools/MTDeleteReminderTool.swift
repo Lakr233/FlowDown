@@ -5,19 +5,17 @@
 //  Created by XZB-1248 on 5/10/26.
 //
 
-import AlertController
 import ChatClientKit
 import ConfigurableKit
 import EventKit
 import Foundation
-import UIKit
 
-class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTDeleteReminderTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Delete Reminder")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "delete_reminder",
             description: "Permanently delete a reminder, after the user confirms. Get reminder_id from query_reminders first.",
@@ -36,7 +34,7 @@ class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "checklist",
             title: "Delete Reminder",
@@ -47,90 +45,53 @@ class MTDeleteReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
-              let reminderId = json["reminder_id"] as? String, !reminderId.isEmpty
-        else {
-            throw NSError(
-                domain: "MTDeleteReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "reminder_id is required."),
-                ],
-            )
-        }
-
-        let viewController = try await anchorController(for: view)
-
-        return try await deleteWithUserInteraction(reminderId: reminderId, controller: viewController)
+    var access: ModelToolAccess {
+        .privateData
     }
 
-    @MainActor
-    private func deleteWithUserInteraction(
-        reminderId: String,
-        controller: UIViewController,
-    ) async throws -> String {
-        try await ReminderToolsShared.withAuthorization { cont in
-            let eventStore = EKEventStore()
-            guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
-                cont.resume(
-                    throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found."))
-                )
-                return
-            }
+    var group: ModelToolGroup? {
+        .reminders
+    }
 
-            self.showConfirmation(
-                reminder: reminder,
-                eventStore: eventStore,
-                controller: controller,
-                continuation: cont,
-            )
+    func approvalSummary(for arguments: ModelToolArguments) async -> String? {
+        guard let reminderId = try? parse(arguments) else { return nil }
+        return ReminderToolsShared.withExistingReminder(id: reminderId) { reminder in
+            let title = reminder.title ?? String(localized: "Untitled")
+            let listName = reminder.calendar?.title ?? String(localized: "Reminders")
+            return [
+                title,
+                String(localized: "List: \(listName)"),
+                "",
+                String(localized: "This cannot be undone."),
+            ].joined(separator: "\n")
         }
     }
 
-    @MainActor
-    private func showConfirmation(
-        reminder: EKReminder,
-        eventStore: EKEventStore,
-        controller: UIViewController,
-        continuation: CheckedContinuation<String, any Swift.Error>,
-    ) {
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        let reminderId = try parse(arguments)
+        try await ReminderToolsShared.requireAccess()
+
+        let eventStore = EKEventStore()
+        guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
+            throw ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found."))
+        }
+
         let title = reminder.title ?? String(localized: "Untitled")
-        let listName = reminder.calendar?.title ?? String(localized: "Reminders")
-
-        let body = title + "\n"
-            + String(localized: "List: \(listName)") + "\n\n"
-            + String(localized: "This cannot be undone.")
-        let alert = AlertViewController(
-            title: "Delete Reminder",
-            message: .init(body),
-        ) { context in
-            context.addAction(title: "Cancel") {
-                context.dispose {
-                    continuation.resume(throwing: ModelToolError.userCancelled())
-                }
-            }
-            context.addAction(title: "Delete", attribute: .accent) {
-                context.dispose {
-                    do {
-                        try eventStore.remove(reminder, commit: true)
-                        continuation.resume(returning: String(localized: "Reminder deleted: \(title)"))
-                    } catch {
-                        continuation.resume(
-                            throwing: ModelToolError.failure(
-                                String(localized: "Failed to delete reminder: \(error.localizedDescription)")
-                            )
-                        )
-                    }
-                }
-            }
+        do {
+            try eventStore.remove(reminder, commit: true)
+        } catch {
+            throw ModelToolError.failure(
+                String(localized: "Failed to delete reminder: \(error.localizedDescription)"),
+            )
         }
+        return ModelToolOutput(text: String(localized: "Reminder deleted: \(title)"))
+    }
 
-        ModelToolPresentation.present(
-            alert,
-            on: controller,
-            continuation: continuation,
-            displayFailure: String(localized: "Failed to display confirmation dialog."),
-        )
+    /// The id of the reminder the call names.
+    private func parse(_ arguments: ModelToolArguments) throws -> String {
+        guard let reminderId = arguments.string("reminder_id"), !reminderId.isEmpty else {
+            throw ModelToolError.invalidArguments(String(localized: "reminder_id is required."))
+        }
+        return reminderId
     }
 }

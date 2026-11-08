@@ -38,6 +38,8 @@ extension MessageListView {
         var thinkingDuration: TimeInterval = 0
         /// The turn is still at work on this summary: nothing has come after it.
         var isRunning = false
+        /// The reason each running call gave, by its row.
+        var reasons: [Message.ID: String] = [:]
 
         init(startingWith messageID: Message.ID) {
             id = "Activity.\(messageID)"
@@ -72,15 +74,15 @@ extension MessageListView {
             return hasThoughts ? max(1, seconds) : seconds
         }
 
-        /// The newest running call's name, or a running search's progress,
-        /// shown under a running summary. Once the calls are done the model is
-        /// thinking again and it goes away.
+        /// The newest running call's reason, else its name, or a running
+        /// search's progress, shown under a running summary. Once the calls
+        /// are done the model is thinking again and it goes away.
         var banner: String? {
             guard isRunning else { return nil }
             for step in steps.reversed() {
                 switch step {
-                case let .tool(_, status) where status.state == 0:
-                    return status.name
+                case let .tool(messageID, status) where status.state == 0:
+                    return reasons[messageID] ?? status.name
                 case let .webSearch(_, status, _) where status.isUnfinished:
                     return status.statusText()
                 default:

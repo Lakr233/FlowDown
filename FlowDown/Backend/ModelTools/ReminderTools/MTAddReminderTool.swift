@@ -5,19 +5,49 @@
 //  Created by XZB-1248 on 5/10/26.
 //
 
-import AlertController
 import ChatClientKit
 import ConfigurableKit
 import EventKit
 import Foundation
-import UIKit
 
-class MTAddReminderTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTAddReminderTool: ConfigurableModelTool, @unchecked Sendable {
+    /// The reminder a call asks for.
+    private struct Request {
+        let title: String
+        let notes: String
+        let dueDateComponents: DateComponents?
+        let priority: Int
+        let listName: String
+
+        /// The lines that describe the reminder on the approval card.
+        var summaryLines: [String] {
+            var lines = [String(localized: "Title: \(title)")]
+            if !notes.isEmpty {
+                lines.append(String(localized: "Notes: \(notes)"))
+            }
+            if let dueDateComponents, let dueDate = Calendar.current.date(from: dueDateComponents) {
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                // A date-only due date is an all-day reminder; showing midnight
+                // would suggest a time the user never gave.
+                formatter.timeStyle = dueDateComponents.hour == nil ? .none : .short
+                lines.append(String(localized: "Due: \(formatter.string(from: dueDate))"))
+            }
+            if priority != 0 {
+                lines.append(String(localized: "Priority: \(ReminderToolsShared.priorityLabel(priority))"))
+            }
+            if !listName.isEmpty {
+                lines.append(String(localized: "List: \(listName)"))
+            }
+            return lines
+        }
+    }
+
+    var interfaceName: String {
         String(localized: "Add to Reminders")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "add_reminder",
             description: """
@@ -55,7 +85,7 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "checklist",
             title: "Add to Reminders",
@@ -66,145 +96,72 @@ class MTAddReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
-              let title = json["title"] as? String, !title.isEmpty
-        else {
-            throw NSError(
-                domain: "MTAddReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "A non-empty title is required."),
-                ],
+    var access: ModelToolAccess {
+        .privateData
+    }
+
+    var group: ModelToolGroup? {
+        .reminders
+    }
+
+    func approvalSummary(for arguments: ModelToolArguments) async -> String? {
+        guard let request = try? parse(arguments) else { return nil }
+        return request.summaryLines.joined(separator: "\n")
+    }
+
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        let request = try parse(arguments)
+        try await ReminderToolsShared.requireAccess()
+
+        let eventStore = EKEventStore()
+        let reminder = EKReminder(eventStore: eventStore)
+        reminder.title = request.title
+        if !request.notes.isEmpty { reminder.notes = request.notes }
+        if let dueDateComponents = request.dueDateComponents {
+            reminder.dueDateComponents = dueDateComponents
+        }
+        if request.priority != 0 { reminder.priority = request.priority }
+        do {
+            reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
+                named: request.listName,
+                eventStore: eventStore,
+            )
+            try eventStore.save(reminder, commit: true)
+        } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
+            throw error
+        } catch {
+            throw ModelToolError.failure(
+                String(localized: "Failed to add reminder: \(error.localizedDescription)"),
             )
         }
 
-        let notes = (json["notes"] as? String) ?? ""
-        let dueDateString = (json["due_date"] as? String) ?? ""
-        let priority = (json["priority"] as? Int) ?? 0
-        let listName = (json["list_name"] as? String) ?? ""
+        let id = reminder.calendarItemIdentifier
+        return ModelToolOutput(text: String(localized: "Reminder added: \(request.title) [id: \(id)]"))
+    }
+
+    private func parse(_ arguments: ModelToolArguments) throws -> Request {
+        guard let title = arguments.string("title"), !title.isEmpty else {
+            throw ModelToolError.invalidArguments(String(localized: "A non-empty title is required."))
+        }
+
+        let notes = arguments.string("notes") ?? ""
+        let dueDateString = arguments.string("due_date") ?? ""
+        let priority = arguments["priority"] as? Int ?? 0
+        let listName = arguments.string("list_name") ?? ""
 
         let dueDateComponents: DateComponents? = dueDateString.isEmpty
             ? nil
             : ReminderToolsShared.dueDateComponents(from: dueDateString)
         if !dueDateString.isEmpty, dueDateComponents == nil {
-            throw NSError(
-                domain: "MTAddReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid due_date format. Use ISO 8601 UTC."),
-                ],
-            )
+            throw ModelToolError.invalidArguments(String(localized: "Invalid due_date format. Use ISO 8601 UTC."))
         }
 
-        let viewController = try await anchorController(for: view)
-
-        return try await addWithUserInteraction(
+        return Request(
             title: title,
             notes: notes,
             dueDateComponents: dueDateComponents,
             priority: priority,
             listName: listName,
-            controller: viewController,
-        )
-    }
-
-    @MainActor
-    private func addWithUserInteraction(
-        title: String,
-        notes: String,
-        dueDateComponents: DateComponents?,
-        priority: Int,
-        listName: String,
-        controller: UIViewController,
-    ) async throws -> String {
-        try await ReminderToolsShared.withAuthorization { cont in
-            self.showConfirmation(
-                title: title,
-                notes: notes,
-                dueDateComponents: dueDateComponents,
-                priority: priority,
-                listName: listName,
-                controller: controller,
-                continuation: cont,
-            )
-        }
-    }
-
-    @MainActor
-    private func showConfirmation(
-        title: String,
-        notes: String,
-        dueDateComponents: DateComponents?,
-        priority: Int,
-        listName: String,
-        controller: UIViewController,
-        continuation: CheckedContinuation<String, any Swift.Error>,
-    ) {
-        var lines = [String(localized: "Title: \(title)")]
-        if !notes.isEmpty {
-            lines.append(String(localized: "Notes: \(notes)"))
-        }
-        if let dueDateComponents, let dueDate = Calendar.current.date(from: dueDateComponents) {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            // A date-only due date is an all-day reminder; showing midnight
-            // would suggest a time the user never gave.
-            formatter.timeStyle = dueDateComponents.hour == nil ? .none : .short
-            lines.append(String(localized: "Due: \(formatter.string(from: dueDate))"))
-        }
-        if priority != 0 {
-            lines.append(String(localized: "Priority: \(ReminderToolsShared.priorityLabel(priority))"))
-        }
-        if !listName.isEmpty {
-            lines.append(String(localized: "List: \(listName)"))
-        }
-
-        let alert = AlertViewController(
-            title: "Add to Reminders",
-            message: .init(lines.joined(separator: "\n")),
-        ) { context in
-            context.addAction(title: "Cancel") {
-                context.dispose {
-                    continuation.resume(throwing: ModelToolError.userCancelled())
-                }
-            }
-            context.addAction(title: "Add", attribute: .accent) {
-                context.dispose {
-                    let eventStore = EKEventStore()
-                    let reminder = EKReminder(eventStore: eventStore)
-                    reminder.title = title
-                    if !notes.isEmpty { reminder.notes = notes }
-                    if let dueDateComponents {
-                        reminder.dueDateComponents = dueDateComponents
-                    }
-                    if priority != 0 { reminder.priority = priority }
-                    do {
-                        reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
-                            named: listName,
-                            eventStore: eventStore,
-                        )
-                        try eventStore.save(reminder, commit: true)
-                        let id = reminder.calendarItemIdentifier
-                        continuation.resume(returning: String(localized: "Reminder added: \(title) [id: \(id)]"))
-                    } catch let error as NSError where error.domain == ReminderToolsShared.errorDomain {
-                        continuation.resume(throwing: error)
-                    } catch {
-                        continuation.resume(
-                            throwing: ModelToolError.failure(
-                                String(localized: "Failed to add reminder: \(error.localizedDescription)")
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        ModelToolPresentation.present(
-            alert,
-            on: controller,
-            continuation: continuation,
-            displayFailure: String(localized: "Failed to display confirmation dialog."),
         )
     }
 }

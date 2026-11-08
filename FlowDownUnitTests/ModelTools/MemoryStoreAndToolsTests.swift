@@ -2,7 +2,6 @@
 import Foundation
 import Storage
 import Testing
-import UIKit
 
 @Suite(.serialized)
 struct MemoryStoreAndToolsTests {
@@ -40,33 +39,23 @@ struct MemoryStoreAndToolsTests {
     func `memory tools store list update recall and delete memories`() async throws {
         try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
         try await withCleanMemoryStore {
-            let anchor = UIView()
             let storeTool = MTStoreMemoryTool()
             let listTool = MTListMemoriesTool()
             let updateTool = MTUpdateMemoryTool()
             let recallTool = MTRecallMemoryTool()
             let deleteTool = MTDeleteMemoryTool()
 
-            let storeOutput = try await storeTool.execute(
-                with: #"{"content":"User prefers detailed release notes"}"#,
-                anchorTo: anchor,
-            )
+            let storeOutput = try await run(storeTool, #"{"content":"User prefers detailed release notes"}"#)
             let storedMemory = try await waitForSingleMemory()
 
-            let listOutput = try await listTool.execute(
-                with: #"{"limit":10}"#,
-                anchorTo: anchor,
+            let listOutput = try await run(listTool, #"{"limit":10}"#)
+            let updateOutput = try await run(
+                updateTool,
+                #"{"memory_id":"\#(storedMemory.id)","new_content":"User prefers concise release notes"}"#,
             )
-            let updateOutput = try await updateTool.execute(
-                with: #"{"memory_id":"\#(storedMemory.id)","new_content":"User prefers concise release notes"}"#,
-                anchorTo: anchor,
-            )
-            let recallOutput = try await recallTool.execute(with: "{}", anchorTo: anchor)
-            let deleteOutput = try await deleteTool.execute(
-                with: #"{"memory_id":"\#(storedMemory.id)","reason":"outdated"}"#,
-                anchorTo: anchor,
-            )
-            let recallAfterDelete = try await recallTool.execute(with: "{}", anchorTo: anchor)
+            let recallOutput = try await run(recallTool, "{}")
+            let deleteOutput = try await run(deleteTool, #"{"memory_id":"\#(storedMemory.id)","reason":"outdated"}"#)
+            let recallAfterDelete = try await run(recallTool, "{}")
 
             #expect(storeOutput.contains("User prefers detailed release notes"))
             #expect(listOutput.contains(storedMemory.id))
@@ -80,6 +69,10 @@ struct MemoryStoreAndToolsTests {
 }
 
 private extension MemoryStoreAndToolsTests {
+    func run(_ tool: any ModelTool, _ arguments: String) async throws -> String {
+        try await tool.execute(.init(json: arguments), context: .headless).text
+    }
+
     @MainActor
     func withCleanMemoryStore(
         _ body: () async throws -> Void,

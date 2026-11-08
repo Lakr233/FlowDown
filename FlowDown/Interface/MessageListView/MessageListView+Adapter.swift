@@ -266,7 +266,7 @@ extension MessageListView {
                     else { return nil }
                     return UIAction(title: String(localized: "Retry"), image: .init(systemName: "arrow.clockwise")) { [weak self] _ in
                         guard let self else { return }
-                        session.retry(byClearAfter: messageIdentifier, currentMessageListView: self)
+                        session.retry(byClearAfter: messageIdentifier)
                     }
                 }(),
                 { () -> UIAction? in
@@ -305,7 +305,7 @@ extension MessageListView {
                     else { return nil }
                     return UIAction(title: String(localized: "Retry"), image: .init(systemName: "arrow.clockwise")) { [weak self] _ in
                         guard let self else { return }
-                        session.retry(byClearAfter: messageIdentifier, currentMessageListView: self)
+                        session.retry(byClearAfter: messageIdentifier)
                     }
                 }(),
             ].compactMap(\.self)),

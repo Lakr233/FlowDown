@@ -37,9 +37,8 @@ private extension StoreMemoryToolTests {
     @MainActor
     func expectRejected(_ input: String) async {
         let error = await #expect(throws: NSError.self) {
-            try await MTStoreMemoryTool().execute(with: input, anchorTo: UIView())
+            try await MTStoreMemoryTool().execute(.init(json: input), context: .headless)
         }
-        #expect(error?.domain == "MTStoreMemoryTool")
         #expect(error?.code == 400)
         // The pipeline reports `error.localizedDescription` to the model and the
         // tool row, so it must be the localized rejection message.

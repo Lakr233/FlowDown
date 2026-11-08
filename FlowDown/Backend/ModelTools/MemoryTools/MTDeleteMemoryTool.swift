@@ -8,14 +8,13 @@
 import ChatClientKit
 import ConfigurableKit
 import Foundation
-import UIKit
 
-class MTDeleteMemoryTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTDeleteMemoryTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Delete Memory")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "delete_memory",
             description: "Delete a memory that is outdated or wrong. Get its ID from list_memories first.",
@@ -38,7 +37,7 @@ class MTDeleteMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "trash.circle",
             title: "Delete Memory",
@@ -49,20 +48,18 @@ class MTDeleteMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
-              let memoryId = json["memory_id"] as? String
-        else {
-            throw NSError(
-                domain: "MTDeleteMemoryTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid parameters. memory_id is required."),
-                ],
-            )
+    var group: ModelToolGroup? {
+        .memory
+    }
+
+    /// Declares its own `reason`, which the store records with the deletion;
+    /// FlowDown leaves it on the arguments.
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        guard let memoryId = arguments.string("memory_id") else {
+            throw ModelToolError.invalidArguments(String(localized: "Invalid parameters. memory_id is required."))
         }
 
-        let reason = json["reason"] as? String
-        return await MemoryStore.shared.deleteMemory(id: memoryId, reason: reason)
+        let reason = arguments.string("reason")
+        return await ModelToolOutput(text: MemoryStore.shared.deleteMemory(id: memoryId, reason: reason))
     }
 }

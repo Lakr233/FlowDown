@@ -8,14 +8,13 @@
 import ChatClientKit
 import ConfigurableKit
 import Foundation
-import UIKit
 
-class MTListMemoriesTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTListMemoriesTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "List Memories")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "list_memories",
             description: "List stored memories with their IDs, which update_memory and delete_memory require.",
@@ -34,7 +33,7 @@ class MTListMemoriesTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "list.bullet.clipboard",
             title: "List Memories",
@@ -45,15 +44,12 @@ class MTListMemoriesTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        var limit = 20
+    var group: ModelToolGroup? {
+        .memory
+    }
 
-        if let json = decodeArguments(input),
-           let limitValue = json["limit"] as? Int
-        {
-            limit = limitValue
-        }
-
-        return await MemoryStore.shared.listMemoriesWithIds(limit: limit)
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        let limit = arguments["limit"] as? Int ?? 20
+        return await ModelToolOutput(text: MemoryStore.shared.listMemoriesWithIds(limit: limit))
     }
 }

@@ -82,6 +82,8 @@ FlowDown is a Swift-based AI/LLM client for iOS and macOS (Catalyst) with a priv
 - Preserve tool-event source order and always finalize EOS-delimited parsers. Never expose protocol payloads as assistant text.
 - Treat Foundation Models streaming partials as cumulative text followed by at most one captured tool invocation: emit only text deltas, then make the tool event terminal so the caller can execute it and submit the result on the next turn.
 - For local reasoning models, use the resolved model `reasoningConfig` and seed stream routing from the prepared prompt. Chat templates may prefill the opening reasoning delimiter, so generated output can begin inside reasoning and emit only the closing delimiter; parsers must also preserve partial delimiters across chunks.
+- Tools never present UI. A call to a tool whose `access` is `.privateData` or `.external` waits on the conversation's `ModelToolApprovalGate` while Require Confirmation is on, and the composer shows the card; web and memory tools run at once. Every offered definition gains a required `reason` (`ModelToolReason`) that is taken off before the tool runs; a tool that declares its own `reason` keeps it.
+- Calls resolve against the `ModelToolSet` the request was built with, not the tools enabled when the call arrives; an unknown name, a denial or a failure becomes a result the model reads, and only cancellation ends the turn.
 - Treat tool parameters as a wire-schema boundary: normalize shorthand parameter types into a root `type: object` JSON Schema before inference, preserve already-complete schemas, and validate the encoded request shape against the provider.
 
 ## Testing Expectations

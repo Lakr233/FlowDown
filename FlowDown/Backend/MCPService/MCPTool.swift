@@ -5,14 +5,12 @@
 //  Created by 秋星桥 on 7/10/25.
 //
 
-import AlertController
 import ChatClientKit
-import ConfigurableKit
 import Foundation
 import MCP
 import Storage
 
-class MCPTool: ModelTool, @unchecked Sendable {
+final class MCPTool: ModelTool, @unchecked Sendable {
     // MARK: - Properties
 
     let toolInfo: MCPToolInfo
@@ -23,20 +21,23 @@ class MCPTool: ModelTool, @unchecked Sendable {
     init(toolInfo: MCPToolInfo, mcpService: MCPService) {
         self.toolInfo = toolInfo
         self.mcpService = mcpService
-        super.init()
     }
 
     // MARK: - ModelTool Implementation
 
-    override var interfaceName: String {
+    var interfaceName: String {
         toolInfo.name
     }
 
-    override var functionName: String {
-        toolInfo.name
+    var interfaceIcon: String {
+        "server.rack"
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var access: ModelToolAccess {
+        .external
+    }
+
+    var definition: ChatRequestBody.Tool {
         let parameters = convertMCPSchemaToJSONValues(toolInfo.inputSchema)
         return .function(
             name: toolInfo.name,
@@ -46,48 +47,24 @@ class MCPTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override var isEnabled: Bool {
-        get { true }
-        set { assertionFailure() }
-    }
-
-    override class var controlObject: ConfigurableObject {
-        assertionFailure()
-        return .init(
-            icon: "hammer",
-            title: "MCP Tool",
-            explain: "Tools from connected MCP servers",
-            key: "MCP.Tools.Enabled",
-            defaultValue: true,
-            annotation: .toggle,
-        )
-    }
-
     // MARK: - Tool Execution
 
-    override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        let arguments = callArguments(from: input)
-
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
         let result = try await mcpService.callTool(
             name: toolInfo.name,
-            arguments: arguments,
+            arguments: callArguments(from: arguments.json),
             from: toolInfo.serverID,
         )
 
+        let output = MCPToolContent.output(from: result.content)
         // isError is optional
         if result.isError == true {
-            Logger.network.errorFile("MCP Tool \(toolInfo.name) returned error: \(result.content)")
-            let text = "MCP Tool returned error: \(result.content.debugDescription)"
-            throw NSError(
-                domain: "MCPToolErrorDomain",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: text],
+            Logger.network.errorFile("MCP Tool \(toolInfo.name) returned error: \(output.text)")
+            throw ModelToolError.failure(
+                output.text.isEmpty ? String(localized: "The MCP server reported an error.") : output.text,
             )
         }
-
-        // later on we process the result content and map audio and image to user attachment
-        // so it can be seen by model
-        return result.0.serializedRawContent()
+        return output
     }
 }
 
@@ -111,28 +88,6 @@ extension MCPTool {
         return json
             .filter { !($0.value is NSNull) || serverRequired.contains($0.key) }
             .compactMapValues { convertJSONValueToMCPValue($0) }
-    }
-}
-
-extension [Tool.Content] {
-    static let encoder = JSONEncoder()
-    static let decoder = JSONDecoder()
-
-    func serializedRawContent() -> String {
-        do {
-            let data = try Self.encoder.encode(self)
-            let text = String(data: data, encoding: .utf8)
-            return text ?? ""
-        } catch {
-            Logger.chatService.errorFile("failed to encode tool content: \(error.localizedDescription)")
-            return error.localizedDescription
-        }
-    }
-
-    static func decodeContents(_ input: String?) throws -> [Tool.Content] {
-        guard let input else { return [] }
-        let data = Data(input.utf8)
-        return try decoder.decode([Tool.Content].self, from: data)
     }
 }
 

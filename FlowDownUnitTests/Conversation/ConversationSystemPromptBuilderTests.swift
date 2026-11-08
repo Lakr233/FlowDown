@@ -93,7 +93,7 @@ struct ConversationSystemPromptBuilderTests {
   func `recent conversation context is injected whenever memory is enabled`(
     _ testCase: RecentConversationCase
   ) async {
-    let enabledTools: [ModelTool] =
+    let enabledTools: [any ModelTool] =
       switch testCase.tools {
       case .memory:
         [MTRecallMemoryTool()]
@@ -153,7 +153,7 @@ struct ConversationSystemPromptBuilderTests {
   func `proactive memory exposure requires both tool execution and a memory tool`(
     _ testCase: MemoryExposureCase
   ) async {
-    let enabledTools: [ModelTool] =
+    let enabledTools: [any ModelTool] =
       switch testCase.tools {
       case .memory:
         [MTRecallMemoryTool()]
@@ -394,7 +394,7 @@ struct ConversationSystemPromptBuilderTests {
 
   private func makeDependencies(
     proactiveMemoryScope: MemoryProactiveProvisionScope,
-    enabledTools: [ModelTool],
+    enabledTools: [any ModelTool],
     searchSensitivity: ModelManager.SearchSensitivity = .balanced,
     runtimeSystemInfoProvider: ((String) -> String)? = nil,
     recorder: PromptContextProviderRecorder? = nil,

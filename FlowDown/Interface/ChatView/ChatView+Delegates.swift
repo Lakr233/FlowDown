@@ -16,7 +16,7 @@ import UIKit
 extension ChatView: RichEditorView.Delegate {
   func onRichEditorSubmit(object: RichEditorView.Object, completion: @escaping (Bool) -> Void) {
     guard let conversationID = conversationIdentifier,
-      let currentMessageListView
+      currentMessageListView != nil
     else {
       assertionFailure()
       return
@@ -66,7 +66,6 @@ extension ChatView: RichEditorView.Delegate {
 
     session.doInfere(
       modelID: modelID,
-      currentMessageListView: currentMessageListView,
       inputObject: object,
     ) {}
 
@@ -208,7 +207,7 @@ extension ChatView: RichEditorView.Delegate {
       }
     ]
 
-    func createAction(for tools: [ModelTool]) -> [UIAction] {
+    func createAction(for tools: [any ConfigurableModelTool]) -> [UIAction] {
       tools.map { tool in
         UIAction(
           title: tool.interfaceName,

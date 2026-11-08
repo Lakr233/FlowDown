@@ -5,19 +5,23 @@
 //  Created by XZB-1248 on 5/10/26.
 //
 
-import AlertController
 import ChatClientKit
 import ConfigurableKit
 import EventKit
 import Foundation
-import UIKit
 
-class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTCompleteReminderTool: ConfigurableModelTool, @unchecked Sendable {
+    /// The reminder a call names, and the state it asks for.
+    private struct Request {
+        let reminderId: String
+        let completed: Bool
+    }
+
+    var interfaceName: String {
         String(localized: "Complete Reminder")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "complete_reminder",
             description: "Mark a reminder completed, or un-complete it. Get reminder_id from query_reminders first.",
@@ -40,7 +44,7 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "checklist",
             title: "Complete Reminder",
@@ -51,107 +55,57 @@ class MTCompleteReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
-              let reminderId = json["reminder_id"] as? String, !reminderId.isEmpty
-        else {
-            throw NSError(
-                domain: "MTCompleteReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "reminder_id is required."),
-                ],
-            )
-        }
-
-        let completed = (json["completed"] as? Bool) ?? true
-
-        let viewController = try await anchorController(for: view)
-
-        return try await completeWithUserInteraction(
-            reminderId: reminderId,
-            completed: completed,
-            controller: viewController,
-        )
+    var access: ModelToolAccess {
+        .privateData
     }
 
-    @MainActor
-    private func completeWithUserInteraction(
-        reminderId: String,
-        completed: Bool,
-        controller: UIViewController,
-    ) async throws -> String {
-        try await ReminderToolsShared.withAuthorization { cont in
-            let eventStore = EKEventStore()
-            guard let reminder = ReminderToolsShared.fetchReminder(id: reminderId, eventStore: eventStore) else {
-                cont.resume(
-                    throwing: ModelToolError.failure(String(localized: "Reminder with id \(reminderId) not found."))
-                )
-                return
-            }
+    var group: ModelToolGroup? {
+        .reminders
+    }
 
-            self.showConfirmation(
-                reminder: reminder,
-                eventStore: eventStore,
-                completed: completed,
-                controller: controller,
-                continuation: cont,
-            )
+    func approvalSummary(for arguments: ModelToolArguments) async -> String? {
+        guard let request = try? parse(arguments) else { return nil }
+        return ReminderToolsShared.withExistingReminder(id: request.reminderId) { reminder in
+            let action = request.completed
+                ? String(localized: "Mark as Done")
+                : String(localized: "Mark as Not Done")
+            let title = reminder.title ?? String(localized: "Untitled")
+            return [action, title].joined(separator: "\n")
         }
     }
 
-    @MainActor
-    private func showConfirmation(
-        reminder: EKReminder,
-        eventStore: EKEventStore,
-        completed: Bool,
-        controller: UIViewController,
-        continuation: CheckedContinuation<String, any Swift.Error>,
-    ) {
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        let request = try parse(arguments)
+        try await ReminderToolsShared.requireAccess()
+
+        let eventStore = EKEventStore()
+        guard let reminder = ReminderToolsShared.fetchReminder(id: request.reminderId, eventStore: eventStore) else {
+            throw ModelToolError.failure(String(localized: "Reminder with id \(request.reminderId) not found."))
+        }
+
         let title = reminder.title ?? String(localized: "Untitled")
-        let dialogTitle = completed
-            ? String(localized: "Mark as Done")
-            : String(localized: "Mark as Not Done")
-        let actionLabel = completed
-            ? String(localized: "Mark Done")
-            : String(localized: "Un-complete")
-
-        let alert = AlertViewController(
-            title: .init(dialogTitle),
-            message: .init(title),
-        ) { context in
-            context.addAction(title: "Cancel") {
-                context.dispose {
-                    continuation.resume(throwing: ModelToolError.userCancelled())
-                }
-            }
-            context.addAction(title: .init(actionLabel), attribute: .accent) {
-                context.dispose {
-                    reminder.isCompleted = completed
-                    do {
-                        try eventStore.save(reminder, commit: true)
-                        let message: String = if completed {
-                            String(localized: "Reminder marked completed: \(title)")
-                        } else {
-                            String(localized: "Reminder marked uncompleted: \(title)")
-                        }
-                        continuation.resume(returning: message)
-                    } catch {
-                        continuation.resume(
-                            throwing: ModelToolError.failure(
-                                String(localized: "Failed to update reminder: \(error.localizedDescription)")
-                            )
-                        )
-                    }
-                }
-            }
+        reminder.isCompleted = request.completed
+        do {
+            try eventStore.save(reminder, commit: true)
+        } catch {
+            throw ModelToolError.failure(
+                String(localized: "Failed to update reminder: \(error.localizedDescription)"),
+            )
         }
 
-        ModelToolPresentation.present(
-            alert,
-            on: controller,
-            continuation: continuation,
-            displayFailure: String(localized: "Failed to display confirmation dialog."),
-        )
+        let message: String = if request.completed {
+            String(localized: "Reminder marked completed: \(title)")
+        } else {
+            String(localized: "Reminder marked uncompleted: \(title)")
+        }
+        return ModelToolOutput(text: message)
+    }
+
+    private func parse(_ arguments: ModelToolArguments) throws -> Request {
+        guard let reminderId = arguments.string("reminder_id"), !reminderId.isEmpty else {
+            throw ModelToolError.invalidArguments(String(localized: "reminder_id is required."))
+        }
+        let completed = arguments["completed"] as? Bool ?? true
+        return Request(reminderId: reminderId, completed: completed)
     }
 }

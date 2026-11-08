@@ -14,7 +14,6 @@ import UIKit
 extension ConversationSession {
     func doInfere(
         modelID: ModelManager.ModelIdentifier,
-        currentMessageListView: MessageListView,
         inputObject: RichEditorView.Object,
         completion: @escaping () -> Void,
     ) {
@@ -54,7 +53,6 @@ extension ConversationSession {
                 await requestUpdate()
                 await doInfereExecute(
                     modelID: modelID,
-                    currentMessageListView: currentMessageListView,
                     inputObject: inputObject,
                 )
                 self.currentTask = nil
@@ -76,7 +74,6 @@ extension ConversationSession {
 
     private nonisolated func doInfereExecute(
         modelID: ModelManager.ModelIdentifier,
-        currentMessageListView: MessageListView,
         inputObject: RichEditorView.Object,
     ) async {
         var object = inputObject
@@ -102,7 +99,6 @@ extension ConversationSession {
 
         do {
             try await doInfereExecuteCore(
-                currentMessageListView,
                 &object,
                 modelCapabilities,
                 &requestMessages,
@@ -152,6 +148,9 @@ extension ConversationSession {
         }
     }
 
+    /// How many rounds of tool calls one message may run.
+    static let toolRoundLimit = 64
+
     func requestLinkContentIndex(_ url: URL) -> Int {
         assert(!Thread.isMainThread)
         let index = linkedContents.count + 1
@@ -161,7 +160,6 @@ extension ConversationSession {
     }
 
     private func doInfereExecuteCore(
-        _ currentMessageListView: MessageListView,
         _ object: inout RichEditorView.Object,
         _ modelCapabilities: Set<ModelCapabilities>,
         _ requestMessages: inout [ChatRequestBody.Message],
@@ -210,13 +208,10 @@ extension ConversationSession {
             showActivity(String(localized: "Preparing Model Context"))
         }
 
-        var tools: [ModelTool] = []
-        if modelWillExecuteTools {
-            await tools.append(contentsOf: ModelToolsManager.shared.getEnabledToolsIncludeMCP())
-        }
-
-        let toolsDefinitions = tools.isEmpty ? nil : tools.map(\.definition)
-        let webSearchEnabled = tools.contains { $0 is MTWebSearchTool }
+        let toolSet: ModelToolSet = modelWillExecuteTools
+            ? await ModelToolsManager.shared.makeToolSet()
+            : .empty
+        let webSearchEnabled = toolSet.contains { $0 is MTWebSearchTool }
 
         await injectNewSystemCommand(
             &requestMessages,
@@ -229,7 +224,7 @@ extension ConversationSession {
         try checkCancellation()
         if try removeOutOfContextContents(
             &requestMessages,
-            toolsDefinitions,
+            toolSet.definitions,
             modelContextLength,
             preservesReasoning: modelCapabilities.contains(.preservedThinking),
         ) {
@@ -245,19 +240,33 @@ extension ConversationSession {
         save()
 
         var shouldContinue = false
+        var toolRounds = 0
         repeat {
             // A round returns true exactly when it executed tools, so the next
             // one is their follow-up even if attachments now end the request.
             let isFollowUpAfterToolCall = shouldContinue
             shouldContinue = try await doMainInferenceOnce(
-                currentMessageListView,
                 modelID,
                 &requestMessages,
-                toolsDefinitions,
+                toolSet,
                 modelWillExecuteTools,
                 isFollowUpAfterToolCall,
             )
             save()
+            if shouldContinue {
+                toolRounds += 1
+                // A model that keeps calling tools would otherwise run until
+                // the context fills up.
+                if toolRounds >= Self.toolRoundLimit {
+                    let hintMessage = appendNewMessage(role: .hint)
+                    hintMessage.update(
+                        \.document,
+                        to: String(localized: "Stopped after \(toolRounds) rounds of tool calls."),
+                    )
+                    await requestUpdate()
+                    shouldContinue = false
+                }
+            }
         } while shouldContinue
 
         await requestUpdate()

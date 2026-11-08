@@ -17,7 +17,7 @@ enum ConversationSystemPromptBuilder {
     }
 
     struct Dependencies {
-        let enabledTools: [ModelTool]
+        let enabledTools: [any ModelTool]
         let proactiveMemoryScope: MemoryProactiveProvisionScope
         let searchSensitivity: ModelManager.SearchSensitivity
         /// Cleared when the user opts out of dynamic system info.
@@ -27,7 +27,7 @@ enum ConversationSystemPromptBuilder {
 
         static func live() -> Dependencies {
             .init(
-                enabledTools: ModelToolsManager.shared.enabledTools,
+                enabledTools: ModelToolsManager.shared.enabledTools.map { $0 as any ModelTool },
                 proactiveMemoryScope: MemoryProactiveProvisionSetting.currentScope,
                 searchSensitivity: ModelManager.shared.searchSensitivity,
                 runtimeSystemInfoProvider: { modelName in

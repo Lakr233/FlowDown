@@ -219,6 +219,12 @@ extension MessageListView {
 
             case .toolHint:
                 fold(.tool(message.objectId, status: message.toolStatus), of: message)
+                if message.toolStatus.state == ToolCallState.running,
+                   let arguments = session.decodeToolRequestFromToolMessage(message)?.args,
+                   let reason = ModelToolReason.reason(in: arguments)
+                {
+                    summary?.reasons[message.objectId] = reason
+                }
 
             // MARK: - Drop Unrelated
 

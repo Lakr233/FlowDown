@@ -8,14 +8,13 @@
 import ChatClientKit
 import ConfigurableKit
 import Foundation
-import UIKit
 
-class MTRecallMemoryTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTRecallMemoryTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Recall Memory")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "recall_memory",
             description: "Retrieve every stored memory for context about the user's preferences, projects and history.",
@@ -28,7 +27,7 @@ class MTRecallMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "square.and.arrow.up",
             title: "Recall Memory",
@@ -39,7 +38,11 @@ class MTRecallMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with _: String, anchorTo _: UIView) async throws -> String {
-        await MemoryStore.shared.getAllMemories()
+    var group: ModelToolGroup? {
+        .memory
+    }
+
+    func execute(_: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        await ModelToolOutput(text: MemoryStore.shared.getAllMemories())
     }
 }
