@@ -7,9 +7,7 @@
 
 import ChatClientKit
 import Foundation
-import ScrubberKit
 import Storage
-import UniformTypeIdentifiers
 
 extension ConversationSession {
     private enum StreamedMessageField {
@@ -49,11 +47,12 @@ extension ConversationSession {
         }
     }
 
+    /// Streams one assistant turn and runs the tools it calls. Returns true
+    /// when it ran tools, so the caller sends their results in a follow-up.
     func doMainInferenceOnce(
-        _ currentMessageListView: MessageListView,
         _ modelID: ModelManager.ModelIdentifier,
         _ requestMessages: inout [ChatRequestBody.Message],
-        _ tools: [ChatRequestBody.Tool]?,
+        _ toolSet: ModelToolSet,
         _ modelWillExecuteTools: Bool,
         _ isImmediateFollowUpAfterToolCall: Bool,
     ) async throws -> Bool {
@@ -65,6 +64,7 @@ extension ConversationSession {
             "model_id": modelID,
         ])
 
+        let tools = toolSet.definitions
         let stream = try await ModelManager.shared.streamingInfer(
             with: modelID,
             input: requestMessages,
@@ -218,202 +218,12 @@ extension ConversationSession {
         }
         guard !pendingToolCalls.isEmpty else { return false }
 
-        await requestUpdate()
-        showActivity(String(localized: "Utilizing tool call"))
-
-        // Tool results must directly follow the assistant turn that requested
-        // them, so attachment messages join the request after every result.
-        var deferredAttachmentMessages: [ChatRequestBody.Message] = []
-        for request in pendingToolCalls {
-            try checkCancellation()
-            guard let tool = await ModelToolsManager.shared.findTool(for: request) else {
-                Logger.chatService.errorFile("unable to find tool for request: \(request)")
-                await Logger.chatService.infoFile(
-                    "available tools: \(ModelToolsManager.shared.getEnabledToolsIncludeMCP())"
-                )
-                throw NSError(
-                    domain: "Tool Error",
-                    code: -1,
-                    userInfo: [
-                        NSLocalizedDescriptionKey:
-                            String(localized: "Unable to process tool request with name: \(request.name)"),
-                    ],
-                )
-            }
-            showActivity(String(localized: "Utilizing tool: \(tool.interfaceName)"))
-
-            if let tool = tool as? MTWebSearchTool {
-                let webSearchMessage = appendNewMessage(role: .webSearch)
-                encodeToolRequestAndAttachToToolMessage(request, message: webSearchMessage)
-                // The activity summary reports the search's progress from here on.
-                hideActivity()
-                let searchResult: [Scrubber.Document]
-                do {
-                    searchResult = try await tool.execute(
-                        with: request.args,
-                        session: self,
-                        webSearchMessage: webSearchMessage,
-                        anchorTo: currentMessageListView,
-                    )
-                } catch is CancellationError {
-                    throw InferenceUserCancellationError()
-                }
-                var webAttachments: [RichEditorView.Object.Attachment] = []
-                for doc in searchResult {
-                    let index = requestLinkContentIndex(doc.url)
-                    webAttachments.append(.init(
-                        type: .text,
-                        name: doc.title,
-                        previewImage: .init(),
-                        imageRepresentation: .init(),
-                        textRepresentation: formatAsWebArchive(
-                            document: doc.textDocument,
-                            title: doc.title,
-                            atIndex: index,
-                        ),
-                        storageSuffix: UUID().uuidString,
-                    ))
-                }
-                showActivity()
-
-                if webAttachments.isEmpty {
-                    requestMessages.append(.tool(
-                        content: .text(String(localized: "Web search returned no results.")),
-                        toolCallID: request.id,
-                    ))
-                } else {
-                    requestMessages.append(.tool(
-                        content: .text(webAttachments.map(\.textRepresentation).joined(separator: "\n")),
-                        toolCallID: request.id,
-                    ))
-                }
-            } else {
-                var toolStatus = Message.ToolStatus(name: tool.interfaceName, state: 0, message: "")
-                let toolMessage = appendNewMessage(role: .toolHint)
-                toolMessage.update(\.toolStatus, to: toolStatus)
-                encodeToolRequestAndAttachToToolMessage(request, message: toolMessage)
-                await requestUpdate()
-                // The running tool row (and a possible confirmation dialog)
-                // is the visible progress now.
-                hideActivity()
-
-                do {
-                    let result = try await ModelToolsManager.shared.perform(
-                        withTool: tool,
-                        parms: request.args,
-                        anchorTo: currentMessageListView,
-                    )
-                    var toolResponseText = result.text
-
-                    let rawAttachmentCount = (result.imageAttachments.count + result.audioAttachments.count)
-                    if rawAttachmentCount > 0 {
-                        // form a user message for holding attachments
-                        let collectorMessage = appendNewMessage(role: .user)
-                        markAsAttachmentHolder(collectorMessage)
-
-                        var editorObjects: [RichEditorView.Object.Attachment] = []
-
-                        let imageAttachments = result.imageAttachments.map { image in
-                            RichEditorView.Object.Attachment(
-                                type: .image,
-                                name: String(localized: "Tool Provided Image"),
-                                previewImage: image.data,
-                                imageRepresentation: image.data,
-                                textRepresentation: "",
-                                storageSuffix: UUID().uuidString,
-                            )
-                        }
-                        editorObjects.append(contentsOf: imageAttachments)
-
-                        var audioAttachments: [RichEditorView.Object.Attachment] = []
-                        for (index, audio) in result.audioAttachments.enumerated() {
-                            showActivity(String(localized: "Transcoding audio attachment \(index + 1)"))
-                            do {
-                                let fileExtension = audio.mimeType.flatMap { mime in
-                                    UTType(mimeType: mime)?.preferredFilenameExtension
-                                }
-                                let transcoded = try await AudioTranscoder.transcode(
-                                    data: audio.data,
-                                    fileExtension: fileExtension,
-                                )
-                                let attachment = try await RichEditorView.Object.Attachment.makeAudioAttachment(
-                                    transcoded: transcoded,
-                                    storage: nil,
-                                    suggestedName: audio.name,
-                                )
-                                audioAttachments.append(attachment)
-                            } catch {
-                                Logger.model.errorFile("failed to process audio attachment from tool \(tool.interfaceName): \(error.localizedDescription)")
-                            }
-                        }
-                        editorObjects.append(contentsOf: audioAttachments)
-                        let finalAttachmentCount = editorObjects.count
-                        collectorMessage.update(\.document, to: String(
-                            localized: "Collected \(finalAttachmentCount) attachments from tool \(tool.interfaceName).",
-                        ))
-
-                        toolResponseText = [result.text, collectorMessage.document]
-                            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                            .joined(separator: "\n")
-
-                        addAttachments(editorObjects, to: collectorMessage)
-                        updateAttachments(editorObjects, for: collectorMessage)
-                        await requestUpdate()
-
-                        // Visual models get the images in the request; for other models the tool
-                        // has usually returned the text they need already.
-                        let modelCapabilities = ModelManager.shared.modelCapabilities(identifier: modelID)
-                        let messages = await makeMessageFromAttachments(
-                            editorObjects,
-                            modelCapabilities: modelCapabilities,
-                        )
-                        deferredAttachmentMessages.append(contentsOf: messages)
-                    }
-
-                    // 64k len is quite large already
-                    let toolResponseLimit = 64 * 1024
-                    if toolResponseText.count > toolResponseLimit {
-                        toolResponseText = """
-                        \(String(toolResponseText.prefix(toolResponseLimit)))...
-                        [truncated output due to length exceeding \(toolResponseLimit) characters]
-                        """
-                    }
-
-                    toolStatus.state = 1
-                    toolStatus.message = toolResponseText
-                    toolMessage.update(\.toolStatus, to: toolStatus)
-                    await requestUpdate()
-                    let finalToolContent = toolResponseText.trimmingCharacters(in: .whitespacesAndNewlines)
-                    requestMessages.append(.tool(
-                        content: .text(
-                            finalToolContent.isEmpty
-                                ? String(localized: "Tool executed successfully with no output")
-                                : toolResponseText
-                        ),
-                        toolCallID: request.id,
-                    ))
-                } catch {
-                    let cancelled = error is CancellationError || error is InferenceUserCancellationError
-                    toolStatus.state = 2
-                    toolStatus.message = cancelled
-                        ? String(localized: "Cancelled by user.")
-                        : error.localizedDescription
-                    toolMessage.update(\.toolStatus, to: toolStatus)
-                    save()
-                    await requestUpdate()
-                    // The row is settled; only then may cancellation abort the
-                    // round, otherwise it would stay "running" forever.
-                    if cancelled { throw InferenceUserCancellationError() }
-                    requestMessages.append(.tool(
-                        content: .text("Tool execution failed. Reason: \(error.localizedDescription)"),
-                        toolCallID: request.id
-                    ))
-                }
-            }
-        }
-        requestMessages.append(contentsOf: deferredAttachmentMessages)
-
-        await requestUpdate()
+        try await performToolCalls(
+            pendingToolCalls,
+            toolSet: toolSet,
+            modelID: modelID,
+            requestMessages: &requestMessages,
+        )
         return true
     }
 }

@@ -165,7 +165,9 @@ final class MemoryExtractor {
                 guard !union.isEmpty else { continue }
                 let jaccard = Double(intersection.count) / Double(union.count)
                 if jaccard > 0.7 {
-                    Logger.model.debugFile("MemoryExtractor: deduplicating '\(candidate)' (Jaccard \(String(format: "%.2f", jaccard)) with '\(existing)')")
+                    Logger.model.debugFile(
+                        "MemoryExtractor: deduplicating '\(candidate)' (Jaccard \(String(format: "%.2f", jaccard)) with '\(existing)')"
+                    )
                     return false
                 }
             }

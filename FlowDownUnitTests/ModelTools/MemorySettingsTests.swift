@@ -14,7 +14,7 @@ struct MemorySettingsTests {
   @MainActor
   @Test
   func `memory context is hidden when request tools are disabled`() {
-    let memoryTools: [ModelTool] = [MTRecallMemoryTool()]
+    let memoryTools: [any ModelTool] = [MTRecallMemoryTool()]
 
     #expect(
       !ModelToolsManager.shouldExposeMemory(
@@ -26,8 +26,8 @@ struct MemorySettingsTests {
   @MainActor
   @Test
   func `memory context is available only with enabled memory tools`() {
-    let nonMemoryTools: [ModelTool] = [MTWebScraperTool()]
-    let memoryTools: [ModelTool] = [MTRecallMemoryTool()]
+    let nonMemoryTools: [any ModelTool] = [MTWebScraperTool()]
+    let memoryTools: [any ModelTool] = [MTRecallMemoryTool()]
 
     #expect(
       !ModelToolsManager.shouldExposeMemory(

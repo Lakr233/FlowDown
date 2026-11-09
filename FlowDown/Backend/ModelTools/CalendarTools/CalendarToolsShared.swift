@@ -10,13 +10,20 @@ import Foundation
 
 enum CalendarToolsShared {
     /// Asks for calendar access using whichever API the running OS provides.
-    /// Both calendar tools used to inline this `#available` dance themselves.
-    static func requestAccess(completion: @escaping (Bool, (any Swift.Error)?) -> Void) {
+    /// Returns whether it was granted, and the error EventKit gave when the
+    /// request itself failed.
+    static func requestAccess() async -> (granted: Bool, error: (any Swift.Error)?) {
         let eventStore = EKEventStore()
-        if #available(iOS 17, macCatalyst 17, *) {
-            eventStore.requestFullAccessToEvents { granted, error in completion(granted, error) }
-        } else {
-            eventStore.requestAccess(to: .event) { granted, error in completion(granted, error) }
+        do {
+            let granted: Bool
+            if #available(iOS 17, macCatalyst 17, *) {
+                granted = try await eventStore.requestFullAccessToEvents()
+            } else {
+                granted = try await eventStore.requestAccess(to: .event)
+            }
+            return (granted, nil)
+        } catch {
+            return (false, error)
         }
     }
 }

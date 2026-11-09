@@ -5,7 +5,6 @@
 //  Created by Alan Ye on 7/10/25.
 //
 
-import Combine
 import Foundation
 import MCP
 import os
@@ -42,7 +41,7 @@ final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
     // actor, so calls on it are safe from any concurrency domain.
     private let clientLock = OSAllocatedUnfairLock<MCP.Client?>(initialState: nil)
 
-    var client: MCP.Client? {
+    private var client: MCP.Client? {
         clientLock.withLock { $0 }
     }
 
@@ -134,7 +133,7 @@ final class MCPConnection: MCPConnectionControlling, @unchecked Sendable {
 
     func callTool(
         name: String,
-        arguments: [String: Value]? = nil
+        arguments: [String: Value]?
     ) async throws -> (content: [Tool.Content], isError: Bool?) {
         guard let client else {
             throw MCPError.connectionFailed

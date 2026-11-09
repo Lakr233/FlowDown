@@ -8,14 +8,13 @@
 import ChatClientKit
 import ConfigurableKit
 import Foundation
-import UIKit
 
-class MTUpdateMemoryTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTUpdateMemoryTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Update Memory")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "update_memory",
             description: """
@@ -41,7 +40,7 @@ class MTUpdateMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "pencil.circle",
             title: "Update Memory",
@@ -52,21 +51,19 @@ class MTUpdateMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
-              let memoryId = json["memory_id"] as? String,
-              let newContent = json["new_content"] as? String
+    var group: ModelToolGroup? {
+        .memory
+    }
+
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        guard let memoryId = arguments.string("memory_id"),
+              let newContent = arguments.string("new_content")
         else {
-            throw NSError(
-                domain: "MTUpdateMemoryTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey:
-                        String(localized: "Invalid parameters. Both memory_id and new_content are required."),
-                ],
+            throw ModelToolError.invalidArguments(
+                String(localized: "Invalid parameters. Both memory_id and new_content are required."),
             )
         }
 
-        return await MemoryStore.shared.updateMemory(id: memoryId, newContent: newContent)
+        return await ModelToolOutput(text: MemoryStore.shared.updateMemory(id: memoryId, newContent: newContent))
     }
 }

@@ -5,19 +5,17 @@
 //  Created by XZB-1248 on 5/10/26.
 //
 
-import AlertController
 import ChatClientKit
 import ConfigurableKit
 import EventKit
 import Foundation
-import UIKit
 
-class MTQueryReminderTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTQueryReminderTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Query Reminders")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "query_reminders",
             description: """
@@ -74,7 +72,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "checklist",
             title: "Query Reminders",
@@ -85,50 +83,62 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo view: UIView) async throws -> String {
-        guard let json = decodeArguments(input)
-        else {
-            throw NSError(
-                domain: "MTQueryReminderTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid input parameters"),
-                ],
-            )
+    var access: ModelToolAccess {
+        .privateData
+    }
+
+    var group: ModelToolGroup? {
+        .reminders
+    }
+
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        guard arguments.object != nil else {
+            throw ModelToolError.invalidArguments(String(localized: "Invalid input parameters"))
         }
 
-        let status = (json["status"] as? String) ?? "incomplete"
-        let listName = (json["list_name"] as? String) ?? ""
+        let status = arguments.string("status") ?? "incomplete"
+        let listName = arguments.string("list_name") ?? ""
 
         let dueRange = try Self.parseRange(
             prefix: "due",
-            startString: (json["due_start_date"] as? String) ?? "",
-            endString: (json["due_end_date"] as? String) ?? "",
+            startString: arguments.string("due_start_date") ?? "",
+            endString: arguments.string("due_end_date") ?? "",
         )
         let alertRange = try Self.parseRange(
             prefix: "alert",
-            startString: (json["alert_start_date"] as? String) ?? "",
-            endString: (json["alert_end_date"] as? String) ?? "",
+            startString: arguments.string("alert_start_date") ?? "",
+            endString: arguments.string("alert_end_date") ?? "",
         )
         let completedRange = try Self.parseRange(
             prefix: "completed",
-            startString: (json["completed_start_date"] as? String) ?? "",
-            endString: (json["completed_end_date"] as? String) ?? "",
+            startString: arguments.string("completed_start_date") ?? "",
+            endString: arguments.string("completed_end_date") ?? "",
         )
 
-        let viewController = try await anchorController(for: view)
+        try await ReminderToolsShared.requireAccess()
 
-        return try await queryWithUserInteraction(
+        let eventStore = EKEventStore()
+        let calendars: [EKCalendar]? = if listName.isEmpty {
+            nil
+        } else {
+            try [ReminderToolsShared.resolveCalendarRequiringName(
+                named: listName,
+                eventStore: eventStore,
+            )]
+        }
+
+        let result = await fetchReminders(
+            eventStore: eventStore,
+            calendars: calendars,
             status: status,
-            listName: listName,
             due: dueRange,
             alert: alertRange,
             completed: completedRange,
-            controller: viewController,
         )
+        return ModelToolOutput(text: result)
     }
 
-    struct DateRange: Equatable {
+    struct DateRange {
         let start: Date?
         let end: Date?
 
@@ -168,79 +178,34 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         }
 
         if !startString.isEmpty, start == nil {
-            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey:
-                    "\(prefix): " + String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
-            ])
+            throw ModelToolError.invalidArguments(
+                "\(prefix): " + String(localized: "Invalid start_date format. Use ISO 8601 UTC."),
+            )
         }
         if !endString.isEmpty, end == nil {
-            throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                NSLocalizedDescriptionKey:
-                    "\(prefix): " + String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
-            ])
+            throw ModelToolError.invalidArguments(
+                "\(prefix): " + String(localized: "Invalid end_date format. Use ISO 8601 UTC."),
+            )
         }
 
         if let start, let end {
             if end < start {
-                throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey:
-                        "\(prefix): " + String(localized: "start_date must be on or before end_date."),
-                ])
+                throw ModelToolError.invalidArguments(
+                    "\(prefix): " + String(localized: "start_date must be on or before end_date."),
+                )
             }
             let days = calendar.dateComponents([.day], from: start, to: end).day ?? 0
             if days > 365 {
-                throw NSError(domain: "MTQueryReminderTool", code: 400, userInfo: [
-                    NSLocalizedDescriptionKey: "\(prefix): " + String(localized: "Date range cannot exceed 365 days"),
-                ])
+                throw ModelToolError.invalidArguments(
+                    "\(prefix): " + String(localized: "Date range cannot exceed 365 days"),
+                )
             }
         }
 
         return DateRange(start: start, end: end)
     }
 
-    @MainActor
-    private func queryWithUserInteraction(
-        status: String,
-        listName: String,
-        due: DateRange,
-        alert: DateRange,
-        completed: DateRange,
-        controller: UIViewController,
-    ) async throws -> String {
-        try await ReminderToolsShared.withAuthorization { cont in
-            let eventStore = EKEventStore()
-            let calendars: [EKCalendar]?
-            if listName.isEmpty {
-                calendars = nil
-            } else {
-                do {
-                    calendars = [try ReminderToolsShared.resolveCalendarRequiringName(
-                        named: listName,
-                        eventStore: eventStore,
-                    )]
-                } catch {
-                    cont.resume(throwing: error)
-                    return
-                }
-            }
-
-            self.fetchReminders(
-                eventStore: eventStore,
-                calendars: calendars,
-                status: status,
-                due: due,
-                alert: alert,
-                completed: completed,
-            ) { result in
-                // EventKit's fetchReminders callback fires on a background
-                // queue; hop back to the main actor before touching UI.
-                Task { @MainActor in
-                    self.showResults(result: result, controller: controller, continuation: cont)
-                }
-            }
-        }
-    }
-
+    /// The matching reminders, formatted for the model.
     private func fetchReminders(
         eventStore: EKEventStore,
         calendars: [EKCalendar]?,
@@ -248,8 +213,7 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         due: DateRange,
         alert: DateRange,
         completed: DateRange,
-        completion: @escaping (String) -> Void,
-    ) {
+    ) async -> String {
         // EventKit's status-specific predicates can take a date range, but they
         // bind it to a specific field (due date for incomplete, completion date
         // for completed). The tool exposes three independent ranges that are
@@ -273,15 +237,18 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
             )
         }
 
-        eventStore.fetchReminders(matching: predicate) { reminders in
-            let list = reminders ?? []
-            let filtered = Self.applyDateFilters(
-                list,
-                due: due,
-                alert: alert,
-                completed: completed,
-            )
-            completion(ReminderToolsShared.formatReminders(filtered))
+        // EventKit calls back on a background queue; filter and format there
+        // so only the finished text leaves the callback.
+        return await withCheckedContinuation { continuation in
+            eventStore.fetchReminders(matching: predicate) { reminders in
+                let filtered = Self.applyDateFilters(
+                    reminders ?? [],
+                    due: due,
+                    alert: alert,
+                    completed: completed,
+                )
+                continuation.resume(returning: ReminderToolsShared.formatReminders(filtered))
+            }
         }
     }
 
@@ -291,14 +258,9 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
         alert: DateRange,
         completed: DateRange,
     ) -> [EKReminder] {
-        if !due.isActive, !alert.isActive, !completed.isActive {
-            return reminders
-        }
-
-        return reminders.filter { reminder in
+        reminders.filter { reminder in
             if due.isActive {
-                guard let components = reminder.dueDateComponents,
-                      let date = Calendar.current.date(from: components),
+                guard let date = ReminderToolsShared.dueDate(of: reminder),
                       due.contains(date)
                 else { return false }
             }
@@ -311,68 +273,5 @@ class MTQueryReminderTool: ModelTool, @unchecked Sendable {
             }
             return true
         }
-    }
-
-    @MainActor
-    private func showResults(
-        result: String,
-        controller: UIViewController,
-        continuation: CheckedContinuation<String, any Swift.Error>,
-    ) {
-        let preview = formatPreview(result)
-
-        let alert = AlertViewController(
-            title: "Reminders",
-            message: .init(preview),
-        ) { context in
-            context.addAction(title: "Cancel") {
-                context.dispose {
-                    continuation.resume(
-                        throwing: ModelToolError.failure(String(localized: "User cancelled sharing reminders."))
-                    )
-                }
-            }
-            context.addAction(title: "Share", attribute: .accent) {
-                context.dispose {
-                    continuation.resume(returning: result)
-                }
-            }
-        }
-
-        ModelToolPresentation.present(
-            alert,
-            on: controller,
-            continuation: continuation,
-            displayFailure: String(localized: "Failed to display results dialog."),
-        )
-    }
-
-    private func formatPreview(_ markdown: String) -> String {
-        var displayLines: [String] = []
-        let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false)
-        let truncated = lines.count > 8
-
-        for line in lines.prefix(8) {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.hasPrefix("# ") {
-                let title = String(trimmed.dropFirst(2))
-                displayLines.append(title)
-                displayLines.append(String(repeating: "-", count: title.count))
-            } else if trimmed.hasPrefix("- ") {
-                var line = String(trimmed.dropFirst(2))
-                if let idRange = line.range(of: " [id: ") {
-                    line = String(line[..<idRange.lowerBound])
-                }
-                displayLines.append("• " + line)
-            } else if !trimmed.isEmpty {
-                displayLines.append(trimmed)
-            }
-        }
-
-        if truncated {
-            displayLines.append("\n... \(String(localized: "More reminders available"))")
-        }
-
-        return displayLines.joined(separator: "\n")
     }
 }

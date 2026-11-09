@@ -17,32 +17,47 @@ enum ReminderToolsShared {
         case notFound
     }
 
-    /// Every reminder tool needs the same preamble before it can touch
-    /// `EKEventStore` or present UI: ask for access, hop to the main actor and
-    /// fail the awaiting continuation when the user said no.
-    @MainActor
-    static func withAuthorization(
-        _ body: @escaping @MainActor (CheckedContinuation<String, any Swift.Error>) -> Void,
-    ) async throws -> String {
-        try await withCheckedThrowingContinuation { cont in
-            requestAccess { granted in
-                Task { @MainActor in
-                    guard granted else {
-                        cont.resume(throwing: authorizationDeniedError())
-                        return
-                    }
-                    body(cont)
-                }
-            }
+    /// Every reminder tool runs this before it touches `EKEventStore`: it
+    /// asks for access and throws `authorizationDeniedError()` when the user
+    /// said no.
+    static func requireAccess() async throws {
+        guard await requestAccess() else {
+            throw authorizationDeniedError()
         }
     }
 
-    static func requestAccess(completion: @escaping (Bool) -> Void) {
+    /// Asks for Reminders access using whichever API the running OS provides.
+    private static func requestAccess() async -> Bool {
         let eventStore = EKEventStore()
         if #available(iOS 17, macCatalyst 17, *) {
-            eventStore.requestFullAccessToReminders { granted, _ in completion(granted) }
+            return (try? await eventStore.requestFullAccessToReminders()) ?? false
         } else {
-            eventStore.requestAccess(to: .reminder) { granted, _ in completion(granted) }
+            return (try? await eventStore.requestAccess(to: .reminder)) ?? false
+        }
+    }
+
+    /// Whether Reminders access is already granted. Unlike `requestAccess()`
+    /// it never asks the user.
+    static var hasAccess: Bool {
+        let status = EKEventStore.authorizationStatus(for: .reminder)
+        if #available(iOS 17, macCatalyst 17, *) {
+            return status == .fullAccess
+        } else {
+            return status == .authorized
+        }
+    }
+
+    /// Runs `body` on the reminder `id` names, to describe a call on its
+    /// approval card. Reads only when access is already granted, so
+    /// describing a call never asks for it; nil when access is missing or
+    /// no reminder has that id.
+    static func withExistingReminder<Value>(id: String, _ body: (EKReminder) -> Value) -> Value? {
+        guard hasAccess else { return nil }
+        let eventStore = EKEventStore()
+        // A fetched reminder reads through its store, so keep the store alive
+        // until `body` is done with it.
+        return withExtendedLifetime(eventStore) {
+            fetchReminder(id: id, eventStore: eventStore).map(body)
         }
     }
 
@@ -166,6 +181,18 @@ enum ReminderToolsShared {
         )
     }
 
+    static func displayTitle(of reminder: EKReminder) -> String {
+        reminder.title ?? String(localized: "Untitled")
+    }
+
+    static func displayListName(of reminder: EKReminder) -> String {
+        reminder.calendar?.title ?? String(localized: "Reminders")
+    }
+
+    static func dueDate(of reminder: EKReminder) -> Date? {
+        reminder.dueDateComponents.flatMap { Calendar.current.date(from: $0) }
+    }
+
     static func formatReminders(_ reminders: [EKReminder]) -> String {
         if reminders.isEmpty {
             return String(localized: "No reminders found.")
@@ -178,29 +205,24 @@ enum ReminderToolsShared {
 
         var grouped: [String: [EKReminder]] = [:]
         for reminder in reminders {
-            let listName = reminder.calendar?.title ?? String(localized: "Reminders")
+            let listName = displayListName(of: reminder)
             grouped[listName, default: []].append(reminder)
         }
 
         var lines: [String] = []
-        for listName in grouped.keys.sorted() {
+        for (listName, items) in grouped.sorted(by: { $0.key < $1.key }) {
             lines.append("# \(listName)")
             lines.append("")
 
-            let items = grouped[listName] ?? []
             let sorted = items.sorted { lhs, rhs in
-                let lhsDate = lhs.dueDateComponents.flatMap { Calendar.current.date(from: $0) } ?? .distantFuture
-                let rhsDate = rhs.dueDateComponents.flatMap { Calendar.current.date(from: $0) } ?? .distantFuture
-                return lhsDate < rhsDate
+                (dueDate(of: lhs) ?? .distantFuture) < (dueDate(of: rhs) ?? .distantFuture)
             }
 
             for reminder in sorted {
                 let checkbox = reminder.isCompleted ? "[x]" : "[ ]"
-                let title = reminder.title ?? String(localized: "Untitled")
+                let title = displayTitle(of: reminder)
                 var meta: [String] = []
-                if let components = reminder.dueDateComponents,
-                   let date = Calendar.current.date(from: components)
-                {
+                if let date = dueDate(of: reminder) {
                     meta.append(String(localized: "due: \(dateFormatter.string(from: date))"))
                 }
                 let alertDates = (reminder.alarms ?? []).compactMap(\.absoluteDate)
@@ -229,5 +251,12 @@ enum ReminderToolsShared {
 
     static func fetchReminder(id: String, eventStore: EKEventStore) -> EKReminder? {
         eventStore.calendarItem(withIdentifier: id) as? EKReminder
+    }
+
+    static func requireReminder(id: String, eventStore: EKEventStore) throws -> EKReminder {
+        guard let reminder = fetchReminder(id: id, eventStore: eventStore) else {
+            throw ModelToolError.failure(String(localized: "Reminder with id \(id) not found."))
+        }
+        return reminder
     }
 }

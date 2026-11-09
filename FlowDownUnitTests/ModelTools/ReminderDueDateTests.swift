@@ -29,7 +29,8 @@ struct ReminderDueDateTests {
     @Test
     func dueDateComponents_timestamp_keepsLocalHourAndMinute() throws {
         let newYork = try calendar("America/New_York")
-        let components = try #require(ReminderToolsShared.dueDateComponents(from: "2026-10-05T15:30:00Z", calendar: newYork))
+        let components =
+            try #require(ReminderToolsShared.dueDateComponents(from: "2026-10-05T15:30:00Z", calendar: newYork))
         #expect(components.year == 2026)
         #expect(components.month == 10)
         #expect(components.day == 5)

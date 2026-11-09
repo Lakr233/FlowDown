@@ -8,14 +8,13 @@
 import ChatClientKit
 import ConfigurableKit
 import Foundation
-import UIKit
 
-class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTStoreMemoryTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Store Memory")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "store_memory",
             description: """
@@ -37,7 +36,7 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "square.and.arrow.down",
             title: "Store Memory",
@@ -48,17 +47,13 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        guard let json = decodeArguments(input),
-              let content = json["content"] as? String
-        else {
-            throw NSError(
-                domain: "MTStoreMemoryTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid memory content"),
-                ],
-            )
+    var group: ModelToolGroup? {
+        .memory
+    }
+
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
+        guard let content = arguments.string("content") else {
+            throw ModelToolError.invalidArguments(String(localized: "Invalid memory content"))
         }
 
         // Await the insert so a rejected or failed store reaches the model as a
@@ -66,15 +61,9 @@ class MTStoreMemoryTool: ModelTool, @unchecked Sendable {
         do {
             _ = try await MemoryStore.shared.storeAsync(content: content)
         } catch MemoryStoreError.invalidContent(_) {
-            throw NSError(
-                domain: "MTStoreMemoryTool",
-                code: 400,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "Invalid memory content"),
-                ],
-            )
+            throw ModelToolError.invalidArguments(String(localized: "Invalid memory content"))
         }
 
-        return String(localized: "Memory stored successfully: \(content)")
+        return ModelToolOutput(text: String(localized: "Memory stored successfully: \(content)"))
     }
 }

@@ -6,10 +6,12 @@ import Testing
 
 @Suite(.serialized)
 struct MCPToolDiscoveryTests {
+    init() async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+    }
+
     @Test
     func `getAllTools maps hosts and ignores disabled or failing servers`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let service = MCPService.shared
         let originalFactory = service.connectionFactory
 
@@ -63,10 +65,9 @@ struct MCPToolDiscoveryTests {
         _ = try await testConnection(service: service, serverID: hostServer.id)
         _ = try await testConnection(service: service, serverID: fallbackServer.id)
 
-        do {
+        await #expect(throws: (any Error).self) {
             _ = try await testConnection(service: service, serverID: failingServer.id)
-            Issue.record("Expected failing MCP server to report an error.")
-        } catch {}
+        }
 
         _ = try await testConnection(service: service, serverID: disabledServer.id)
 
@@ -88,8 +89,6 @@ struct MCPToolDiscoveryTests {
 
     @Test
     func `listServerTools wraps discovered tools and callTool requires a connection`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let service = MCPService.shared
         let originalFactory = service.connectionFactory
 
@@ -133,13 +132,8 @@ struct MCPToolDiscoveryTests {
         #expect(tool.functionName == "translate")
         #expect(tool.toolInfo.description == "translate text")
 
-        do {
+        await #expect(throws: FlowDown.MCPError.connectionFailed) {
             _ = try await service.callTool(name: "translate", from: unconnectedServer.id)
-            Issue.record("Expected callTool to fail when no connection exists.")
-        } catch let error as FlowDown.MCPError {
-            #expect(error == .connectionFailed)
-        } catch {
-            Issue.record("Expected MCPError.connectionFailed, got \(error).")
         }
     }
 }

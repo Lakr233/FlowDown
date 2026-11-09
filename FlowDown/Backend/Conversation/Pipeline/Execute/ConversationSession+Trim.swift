@@ -67,7 +67,6 @@ extension ConversationSession {
             throw NSError(
                 domain: String(localized: "Inference Service"),
                 code: 1,
-                userInfo: ["reason": "unable to remove any more messages"],
             )
         }
 

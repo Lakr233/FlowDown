@@ -14,7 +14,7 @@ struct MCPConnectionLifecycleTests {
 
         // A server that answers every request, initialize included, with an
         // error, and notes when the client side of the pair goes away.
-        let peer = PeerProbe()
+        let peerClosed = OSAllocatedUnfairLock(initialState: false)
         let serverMessages = await serverTransport.receive()
         let server = Task {
             do {
@@ -30,7 +30,7 @@ struct MCPConnectionLifecycleTests {
                     try await serverTransport.send(JSONSerialization.data(withJSONObject: reply))
                 }
             } catch {}
-            peer.markClosed()
+            peerClosed.withLock { $0 = true }
         }
         defer { server.cancel() }
 
@@ -45,7 +45,7 @@ struct MCPConnectionLifecycleTests {
         #expect(!connection.isConnected)
         // The client's transport was disconnected instead of being left
         // running behind a dropped client.
-        #expect(await eventually { peer.closed })
+        #expect(await eventually { peerClosed.withLock { $0 } })
     }
 
     @Test
@@ -70,29 +70,15 @@ struct MCPConnectionLifecycleTests {
             service.remove(server.id)
         }
 
-        let result: Result<String, Error> = await withCheckedContinuation { continuation in
-            service.testConnection(serverID: server.id) { result in
-                continuation.resume(returning: result)
+        await #expect(throws: (any Error).self) {
+            _ = try await withCheckedThrowingContinuation { continuation in
+                service.testConnection(serverID: server.id) { continuation.resume(with: $0) }
             }
-        }
-
-        if case .success = result {
-            Issue.record("Expected the connection test to fail when listing tools fails.")
         }
         #expect(connection.connectCount == 1)
         #expect(connection.disconnectCount == 1)
         let committed = await MainActor.run { service.connections[server.id] != nil }
         #expect(!committed)
-    }
-}
-
-private final class PeerProbe: @unchecked Sendable {
-    private let state = OSAllocatedUnfairLock(initialState: false)
-
-    var closed: Bool { state.withLock { $0 } }
-
-    func markClosed() {
-        state.withLock { $0 = true }
     }
 }
 

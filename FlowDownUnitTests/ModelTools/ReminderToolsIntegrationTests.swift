@@ -25,7 +25,7 @@ struct ReminderToolsIntegrationTests {
     @Test
     func `resolveCalendarRequiringName returns the named test calendar`() throws {
         let calendar = try ReminderToolsShared.resolveCalendarRequiringName(
-            named: environment.calendarTitle,
+            named: environment.calendar.title,
             eventStore: environment.eventStore,
         )
         #expect(calendar.calendarIdentifier == environment.calendar.calendarIdentifier)
@@ -34,7 +34,7 @@ struct ReminderToolsIntegrationTests {
     @Test
     func `resolveCalendarRequiringName matches case-insensitively`() throws {
         let calendar = try ReminderToolsShared.resolveCalendarRequiringName(
-            named: environment.calendarTitle.uppercased(),
+            named: environment.calendar.title.uppercased(),
             eventStore: environment.eventStore,
         )
         #expect(calendar.calendarIdentifier == environment.calendar.calendarIdentifier)
@@ -42,8 +42,7 @@ struct ReminderToolsIntegrationTests {
 
     @Test
     func `resolveCalendarRequiringName throws on a typo'd list name`() {
-        // The whole point of Fix A. A non-empty unknown name must surface as a
-        // domain error, not silently land on the default list.
+        // A non-empty unknown name must surface as a domain error, not silently land on the default list.
         #expect(throws: NSError.self) {
             try ReminderToolsShared.resolveCalendarRequiringName(
                 named: "FlowDown-NonExistent-\(UUID().uuidString)",
@@ -72,7 +71,6 @@ struct ReminderToolsIntegrationTests {
         let store = environment.eventStore
         let calendar = environment.calendar
 
-        // Seed: add reminder with notes, due date and priority.
         let reminder = EKReminder(eventStore: store)
         reminder.title = "Integration target"
         reminder.notes = "starting notes"
@@ -86,7 +84,6 @@ struct ReminderToolsIntegrationTests {
         environment.track(reminder)
         let id = reminder.calendarItemIdentifier
 
-        // Query through the formatter and confirm presence.
         let predicate = store.predicateForReminders(in: [calendar])
         let fetched = try await fetchReminders(store: store, predicate: predicate)
         #expect(fetched.contains { $0.calendarItemIdentifier == id })
@@ -94,17 +91,11 @@ struct ReminderToolsIntegrationTests {
         #expect(formatted.contains("Integration target"))
         #expect(formatted.contains("[id: \(id)]"))
 
-        // Apply parsed changes that exercise the new clear flags. Mirror the
-        // saver block in MTUpdateReminderTool so we exercise the real branches.
         let changes = MTUpdateReminderTool.ParsedChanges(
             newTitle: "Integration renamed",
-            newNotes: nil,
             clearNotes: true,
-            newDueDate: nil,
             clearDueDate: true,
-            newPriority: nil,
             clearPriority: true,
-            newListName: nil,
         )
         try applyChanges(changes, to: reminder, eventStore: store)
 
@@ -114,7 +105,6 @@ struct ReminderToolsIntegrationTests {
         #expect(reloaded.dueDateComponents == nil)
         #expect(reloaded.priority == 0)
 
-        // Mark complete and verify completion-only predicate sees it.
         reloaded.isCompleted = true
         try store.save(reloaded, commit: true)
         let completedPredicate = store.predicateForCompletedReminders(
@@ -125,7 +115,6 @@ struct ReminderToolsIntegrationTests {
         let completed = try await fetchReminders(store: store, predicate: completedPredicate)
         #expect(completed.contains { $0.calendarItemIdentifier == id })
 
-        // Delete and verify it disappears.
         try store.remove(reloaded, commit: true)
         environment.untrack(id)
         let afterDelete = try await fetchReminders(store: store, predicate: predicate)
@@ -143,12 +132,8 @@ struct ReminderToolsIntegrationTests {
         environment.track(reminder)
 
         let badChanges = MTUpdateReminderTool.ParsedChanges(
-            newTitle: nil,
-            newNotes: nil,
             clearNotes: false,
-            newDueDate: nil,
             clearDueDate: false,
-            newPriority: nil,
             clearPriority: false,
             newListName: "FlowDown-NonExistent-\(UUID().uuidString)",
         )
@@ -159,39 +144,14 @@ struct ReminderToolsIntegrationTests {
 
     // MARK: - Helpers
 
-    /// Mirrors the Update action block in `MTUpdateReminderTool`. Centralized
-    /// here so that the tests cover the same branches the production tool
-    /// uses, without standing up a full alert/UI pipeline.
+    /// Applies `changes` the way `MTUpdateReminderTool` does, then saves,
+    /// without going through the tool's access request.
     private func applyChanges(
         _ changes: MTUpdateReminderTool.ParsedChanges,
         to reminder: EKReminder,
         eventStore: EKEventStore,
     ) throws {
-        if let newTitle = changes.newTitle { reminder.title = newTitle }
-        if changes.clearNotes {
-            reminder.notes = nil
-        } else if let newNotes = changes.newNotes {
-            reminder.notes = newNotes
-        }
-        if changes.clearDueDate {
-            reminder.dueDateComponents = nil
-        } else if let newDueDate = changes.newDueDate, let date = ReminderToolsShared.parseISODate(newDueDate) {
-            reminder.dueDateComponents = Calendar.current.dateComponents(
-                [.year, .month, .day, .hour, .minute],
-                from: date,
-            )
-        }
-        if changes.clearPriority {
-            reminder.priority = 0
-        } else if let newPriority = changes.newPriority {
-            reminder.priority = newPriority
-        }
-        if let newListName = changes.newListName {
-            reminder.calendar = try ReminderToolsShared.resolveCalendarRequiringName(
-                named: newListName,
-                eventStore: eventStore,
-            )
-        }
+        try MTUpdateReminderTool.apply(changes, to: reminder, eventStore: eventStore)
         try eventStore.save(reminder, commit: true)
     }
 
@@ -222,13 +182,11 @@ enum ReminderIntegrationGate {
 final class ReminderTestEnvironment: @unchecked Sendable {
     let eventStore: EKEventStore
     let calendar: EKCalendar
-    let calendarTitle: String
     private var trackedIds: Set<String> = []
 
-    private init(eventStore: EKEventStore, calendar: EKCalendar, title: String) {
+    private init(eventStore: EKEventStore, calendar: EKCalendar) {
         self.eventStore = eventStore
         self.calendar = calendar
-        calendarTitle = title
     }
 
     static func make() async throws -> ReminderTestEnvironment {
@@ -243,10 +201,10 @@ final class ReminderTestEnvironment: @unchecked Sendable {
 
         let title = "FlowDown-Test-\(UUID().uuidString.prefix(8))"
         let calendar = EKCalendar(for: .reminder, eventStore: store)
-        calendar.title = String(title)
+        calendar.title = title
         calendar.source = source
         try store.saveCalendar(calendar, commit: true)
-        return ReminderTestEnvironment(eventStore: store, calendar: calendar, title: String(title))
+        return ReminderTestEnvironment(eventStore: store, calendar: calendar)
     }
 
     func track(_ reminder: EKReminder) {
@@ -280,11 +238,7 @@ final class ReminderTestEnvironment: @unchecked Sendable {
                     cont.resume(returning: ())
                 }
             }
-            if #available(iOS 17, macCatalyst 17, *) {
-                store.requestFullAccessToReminders(completion: handler)
-            } else {
-                store.requestAccess(to: .reminder, completion: handler)
-            }
+            store.requestFullAccessToReminders(completion: handler)
         }
     }
 

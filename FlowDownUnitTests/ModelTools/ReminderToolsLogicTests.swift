@@ -87,8 +87,7 @@ struct ReminderToolsLogicTests {
 
     @Test
     func `matchCalendarTitle reports notFound for non-empty unknown names`() {
-        // The whole point of Fix A: a typo'd list_name must NOT silently fall
-        // back to the default list. notFound is the signal callers throw on.
+        // A typo'd list_name must NOT silently fall back to the default list. notFound is the signal callers throw on.
         #expect(ReminderToolsShared.matchCalendarTitle("typo", in: ["Inbox", "Work"]) == .notFound)
         #expect(ReminderToolsShared.matchCalendarTitle("Inbox", in: []) == .notFound)
     }
@@ -223,9 +222,9 @@ struct ReminderToolsLogicTests {
 
     // MARK: - MTUpdateReminderTool.parseChanges
 
-    @Test
-    func `parseChanges treats empty strings as leave-unchanged`() throws {
-        let parsed = try MTUpdateReminderTool.parseChanges(from: [
+    /// Parses a full leave-unchanged payload with `overrides` merged over it.
+    private func parseChanges(_ overrides: [String: Any] = [:]) throws -> MTUpdateReminderTool.ParsedChanges {
+        let base: [String: Any] = [
             "reminder_id": "id-1",
             "title": "",
             "notes": "",
@@ -235,7 +234,13 @@ struct ReminderToolsLogicTests {
             "priority": -1,
             "clear_priority": false,
             "list_name": "",
-        ])
+        ]
+        return try MTUpdateReminderTool.parseChanges(from: base.merging(overrides) { $1 })
+    }
+
+    @Test
+    func `parseChanges treats empty strings as leave-unchanged`() throws {
+        let parsed = try parseChanges()
         #expect(parsed.isEmpty)
         #expect(parsed.newTitle == nil)
         #expect(parsed.newNotes == nil)
@@ -249,15 +254,11 @@ struct ReminderToolsLogicTests {
 
     @Test
     func `parseChanges captures non-empty values verbatim`() throws {
-        let parsed = try MTUpdateReminderTool.parseChanges(from: [
-            "reminder_id": "id-1",
+        let parsed = try parseChanges([
             "title": "Buy milk",
             "notes": "2L whole",
-            "clear_notes": false,
             "due_date": "2026-05-12T09:00:00Z",
-            "clear_due_date": false,
             "priority": 5,
-            "clear_priority": false,
             "list_name": "Groceries",
         ])
         #expect(parsed.newTitle == "Buy milk")
@@ -270,17 +271,7 @@ struct ReminderToolsLogicTests {
 
     @Test
     func `parseChanges accepts the three clear flags independently`() throws {
-        let parsed = try MTUpdateReminderTool.parseChanges(from: [
-            "reminder_id": "id-1",
-            "title": "",
-            "notes": "",
-            "clear_notes": true,
-            "due_date": "",
-            "clear_due_date": true,
-            "priority": -1,
-            "clear_priority": true,
-            "list_name": "",
-        ])
+        let parsed = try parseChanges(["clear_notes": true, "clear_due_date": true, "clear_priority": true])
         #expect(parsed.clearNotes)
         #expect(parsed.clearDueDate)
         #expect(parsed.clearPriority)
@@ -290,51 +281,21 @@ struct ReminderToolsLogicTests {
     @Test
     func `parseChanges rejects clear_notes combined with a non-empty notes value`() {
         #expect(throws: NSError.self) {
-            try MTUpdateReminderTool.parseChanges(from: [
-                "reminder_id": "id-1",
-                "title": "",
-                "notes": "Some text",
-                "clear_notes": true,
-                "due_date": "",
-                "clear_due_date": false,
-                "priority": -1,
-                "clear_priority": false,
-                "list_name": "",
-            ])
+            try parseChanges(["notes": "Some text", "clear_notes": true])
         }
     }
 
     @Test
     func `parseChanges rejects clear_due_date combined with a non-empty due_date`() {
         #expect(throws: NSError.self) {
-            try MTUpdateReminderTool.parseChanges(from: [
-                "reminder_id": "id-1",
-                "title": "",
-                "notes": "",
-                "clear_notes": false,
-                "due_date": "2026-05-12T09:00:00Z",
-                "clear_due_date": true,
-                "priority": -1,
-                "clear_priority": false,
-                "list_name": "",
-            ])
+            try parseChanges(["due_date": "2026-05-12T09:00:00Z", "clear_due_date": true])
         }
     }
 
     @Test
     func `parseChanges rejects clear_priority combined with a priority >= 0`() {
         #expect(throws: NSError.self) {
-            try MTUpdateReminderTool.parseChanges(from: [
-                "reminder_id": "id-1",
-                "title": "",
-                "notes": "",
-                "clear_notes": false,
-                "due_date": "",
-                "clear_due_date": false,
-                "priority": 5,
-                "clear_priority": true,
-                "list_name": "",
-            ])
+            try parseChanges(["priority": 5, "clear_priority": true])
         }
     }
 
@@ -342,25 +303,16 @@ struct ReminderToolsLogicTests {
 
     @Test
     func `summarizeChanges renders cleared sentinels for clear flags`() {
-        let parsed = MTUpdateReminderTool.ParsedChanges(
-            newTitle: nil,
-            newNotes: nil,
-            clearNotes: true,
-            newDueDate: nil,
-            clearDueDate: true,
-            newPriority: nil,
-            clearPriority: true,
-            newListName: nil,
-        )
+        let parsed = MTUpdateReminderTool.ParsedChanges(clearNotes: true, clearDueDate: true, clearPriority: true)
         let lines = MTUpdateReminderTool.summarizeChanges(parsed, currentTitle: "Existing")
         #expect(lines.count == 3)
         let cleared = String(localized: "(cleared)")
         #expect(lines.allSatisfy { $0.contains(cleared) })
         // The categories use localized prefixes ("Notes → ..." in en, "备注 → ..." in zh-Hans).
         // Match by the localized template's stable prefix so the test survives any locale.
-        let notesPrefix = prefixBeforeArrow(String(localized: "Notes → \(String(localized: "(cleared)"))"))
-        let duePrefix = prefixBeforeArrow(String(localized: "Due → \(String(localized: "(cleared)"))"))
-        let priorityPrefix = prefixBeforeArrow(String(localized: "Priority → \(String(localized: "(cleared)"))"))
+        let notesPrefix = prefixBeforeArrow(String(localized: "Notes → \(cleared)"))
+        let duePrefix = prefixBeforeArrow(String(localized: "Due → \(cleared)"))
+        let priorityPrefix = prefixBeforeArrow(String(localized: "Priority → \(cleared)"))
         #expect(lines.contains { $0.hasPrefix(notesPrefix) })
         #expect(lines.contains { $0.hasPrefix(duePrefix) })
         #expect(lines.contains { $0.hasPrefix(priorityPrefix) })
@@ -398,16 +350,7 @@ struct ReminderToolsLogicTests {
 
     @Test
     func `summarizeChanges returns empty for a no-op update`() {
-        let parsed = MTUpdateReminderTool.ParsedChanges(
-            newTitle: nil,
-            newNotes: nil,
-            clearNotes: false,
-            newDueDate: nil,
-            clearDueDate: false,
-            newPriority: nil,
-            clearPriority: false,
-            newListName: nil,
-        )
+        let parsed = MTUpdateReminderTool.ParsedChanges(clearNotes: false, clearDueDate: false, clearPriority: false)
         #expect(parsed.isEmpty)
         #expect(MTUpdateReminderTool.summarizeChanges(parsed, currentTitle: "Anything").isEmpty)
     }
@@ -415,17 +358,7 @@ struct ReminderToolsLogicTests {
     @Test
     func `parseChanges rejects malformed due_date`() {
         #expect(throws: NSError.self) {
-            try MTUpdateReminderTool.parseChanges(from: [
-                "reminder_id": "id-1",
-                "title": "",
-                "notes": "",
-                "clear_notes": false,
-                "due_date": "next tuesday",
-                "clear_due_date": false,
-                "priority": -1,
-                "clear_priority": false,
-                "list_name": "",
-            ])
+            try parseChanges(["due_date": "next tuesday"])
         }
     }
 }

@@ -5,14 +5,12 @@
 //  Created by 秋星桥 on 7/10/25.
 //
 
-import AlertController
 import ChatClientKit
-import ConfigurableKit
 import Foundation
 import MCP
 import Storage
 
-class MCPTool: ModelTool, @unchecked Sendable {
+final class MCPTool: ModelTool, @unchecked Sendable {
     // MARK: - Properties
 
     let toolInfo: MCPToolInfo
@@ -23,20 +21,23 @@ class MCPTool: ModelTool, @unchecked Sendable {
     init(toolInfo: MCPToolInfo, mcpService: MCPService) {
         self.toolInfo = toolInfo
         self.mcpService = mcpService
-        super.init()
     }
 
     // MARK: - ModelTool Implementation
 
-    override var interfaceName: String {
+    var interfaceName: String {
         toolInfo.name
     }
 
-    override var functionName: String {
-        toolInfo.name
+    var interfaceIcon: String {
+        "server.rack"
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var access: ModelToolAccess {
+        .external
+    }
+
+    var definition: ChatRequestBody.Tool {
         let parameters = convertMCPSchemaToJSONValues(toolInfo.inputSchema)
         return .function(
             name: toolInfo.name,
@@ -46,48 +47,23 @@ class MCPTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override var isEnabled: Bool {
-        get { true }
-        set { assertionFailure() }
-    }
-
-    override class var controlObject: ConfigurableObject {
-        assertionFailure()
-        return .init(
-            icon: "hammer",
-            title: "MCP Tool",
-            explain: "Tools from connected MCP servers",
-            key: "MCP.Tools.Enabled",
-            defaultValue: true,
-            annotation: .toggle,
-        )
-    }
-
     // MARK: - Tool Execution
 
-    override func execute(with input: String, anchorTo _: UIView) async throws -> String {
-        let arguments = callArguments(from: input)
-
+    func execute(_ arguments: ModelToolArguments, context _: ModelToolContext) async throws -> ModelToolOutput {
         let result = try await mcpService.callTool(
             name: toolInfo.name,
-            arguments: arguments,
+            arguments: callArguments(from: arguments.json),
             from: toolInfo.serverID,
         )
 
-        // isError is optional
+        let output = MCPToolContent.output(from: result.content)
         if result.isError == true {
-            Logger.network.errorFile("MCP Tool \(toolInfo.name) returned error: \(result.content)")
-            let text = "MCP Tool returned error: \(result.content.debugDescription)"
-            throw NSError(
-                domain: "MCPToolErrorDomain",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: text],
+            Logger.network.errorFile("MCP Tool \(toolInfo.name) returned error: \(output.text)")
+            throw ModelToolError.failure(
+                output.text.isEmpty ? String(localized: "The MCP server reported an error.") : output.text,
             )
         }
-
-        // later on we process the result content and map audio and image to user attachment
-        // so it can be seen by model
-        return result.0.serializedRawContent()
+        return output
     }
 }
 
@@ -111,28 +87,6 @@ extension MCPTool {
         return json
             .filter { !($0.value is NSNull) || serverRequired.contains($0.key) }
             .compactMapValues { convertJSONValueToMCPValue($0) }
-    }
-}
-
-extension [Tool.Content] {
-    static let encoder = JSONEncoder()
-    static let decoder = JSONDecoder()
-
-    func serializedRawContent() -> String {
-        do {
-            let data = try Self.encoder.encode(self)
-            let text = String(data: data, encoding: .utf8)
-            return text ?? ""
-        } catch {
-            Logger.chatService.errorFile("failed to encode tool content: \(error.localizedDescription)")
-            return error.localizedDescription
-        }
-    }
-
-    static func decodeContents(_ input: String?) throws -> [Tool.Content] {
-        guard let input else { return [] }
-        let data = Data(input.utf8)
-        return try decoder.decode([Tool.Content].self, from: data)
     }
 }
 
@@ -183,44 +137,31 @@ extension MCPTool {
         if case let .object(properties) = schema["properties"] {
             var normalizedProperties = properties
 
-            let originalRequired = extractStringArray(from: schema["required"]) ?? []
+            let originalRequired = extractStringArray(from: schema["required"])
             let propertyKeys = normalizedProperties.keys.sorted()
-            let propertyKeySet = Set(propertyKeys)
             let originalRequiredSet = Set(originalRequired)
 
             // Strict schemas must list every property as required, so the ones
             // the server left optional have to accept null instead.
-            for key in propertyKeySet.subtracting(originalRequiredSet) {
-                guard let propertySchema = normalizedProperties[key] else { continue }
-                normalizedProperties[key] = allowNullInSchema(propertySchema)
-            }
-
-            for (key, value) in normalizedProperties {
-                normalizedProperties[key] = normalizeStrictJSONSchemaValue(value)
+            for (key, value) in properties {
+                let nullable = originalRequiredSet.contains(key) ? value : allowNullInSchema(value)
+                normalizedProperties[key] = normalizeStrictJSONSchemaValue(nullable)
             }
 
             schema["properties"] = .object(normalizedProperties)
             schema["required"] = .array(propertyKeys.map { .string($0) })
-        } else {
-            if schema["required"] == nil {
-                schema["required"] = .array([])
-            }
+        } else if schema["required"] == nil {
+            schema["required"] = .array([])
         }
 
         if let itemsValue = schema["items"] {
             schema["items"] = normalizeStrictJSONSchemaValue(itemsValue)
         }
 
-        if let anyOfValue = schema["anyOf"], case let .array(anyOfArray) = anyOfValue {
-            schema["anyOf"] = .array(anyOfArray.map { normalizeStrictJSONSchemaValue($0) })
-        }
-
-        if let oneOfValue = schema["oneOf"], case let .array(oneOfArray) = oneOfValue {
-            schema["oneOf"] = .array(oneOfArray.map { normalizeStrictJSONSchemaValue($0) })
-        }
-
-        if let allOfValue = schema["allOf"], case let .array(allOfArray) = allOfValue {
-            schema["allOf"] = .array(allOfArray.map { normalizeStrictJSONSchemaValue($0) })
+        for combinatorKey in ["anyOf", "oneOf", "allOf"] {
+            if case let .array(subschemas) = schema[combinatorKey] {
+                schema[combinatorKey] = .array(subschemas.map { normalizeStrictJSONSchemaValue($0) })
+            }
         }
 
         // `$ref` targets have to be strict as well.
@@ -256,14 +197,13 @@ extension MCPTool {
         }
     }
 
-    private func extractStringArray(from value: AnyCodingValue?) -> [String]? {
-        guard let value else { return nil }
-        guard case let .array(array) = value else { return nil }
+    private func extractStringArray(from value: AnyCodingValue?) -> [String] {
+        guard case let .array(array) = value else { return [] }
         let strings = array.compactMap { element -> String? in
             guard case let .string(s) = element else { return nil }
             return s
         }
-        return strings.count == array.count ? strings : nil
+        return strings.count == array.count ? strings : []
     }
 
     private func allowNullInSchema(_ schema: AnyCodingValue) -> AnyCodingValue {
@@ -280,11 +220,7 @@ extension MCPTool {
                     return .object(updated)
                 case let .array(typeArray):
                     var updated = dict
-                    var next = typeArray
-                    if !next.contains(where: { if case let .string(s) = $0 { s == "null" } else { false } }) {
-                        next.append(.string("null"))
-                    }
-                    updated["type"] = .array(next)
+                    updated["type"] = .array(typeArray + [.string("null")])
                     return .object(updated)
                 default:
                     break
@@ -293,10 +229,7 @@ extension MCPTool {
 
             if let anyOfValue = dict["anyOf"], case let .array(anyOfArray) = anyOfValue {
                 var updated = dict
-                let hasNull = anyOfArray.contains { schemaAllowsNull($0) }
-                if !hasNull {
-                    updated["anyOf"] = .array(anyOfArray + [.object(["type": .string("null")])])
-                }
+                updated["anyOf"] = .array(anyOfArray + [.object(["type": .string("null")])])
                 return .object(updated)
             }
         }
@@ -317,16 +250,13 @@ extension MCPTool {
             case let .string(typeString):
                 return typeString == "null"
             case let .array(typeArray):
-                return typeArray.contains { element in
-                    if case let .string(s) = element { return s == "null" }
-                    return false
-                }
+                return typeArray.contains(.string("null"))
             default:
                 break
             }
         }
 
-        if let anyOfValue = dict["anyOf"], case let .array(anyOfArray) = anyOfValue {
+        if case let .array(anyOfArray) = dict["anyOf"] {
             return anyOfArray.contains { schemaAllowsNull($0) }
         }
 
@@ -354,7 +284,7 @@ extension MCPTool {
         }
     }
 
-    func convertJSONValueToMCPValue(_ jsonValue: Any) -> Value? {
+    private func convertJSONValueToMCPValue(_ jsonValue: Any) -> Value? {
         switch jsonValue {
         case let string as String:
             return .string(string)
@@ -366,12 +296,6 @@ extension MCPTool {
             } else {
                 return .double(number.doubleValue)
             }
-        case let bool as Bool:
-            return .bool(bool)
-        case let int as Int:
-            return .int(int)
-        case let double as Double:
-            return .double(double)
         case let array as [Any]:
             let values = array.compactMap { convertJSONValueToMCPValue($0) }
             return .array(values)

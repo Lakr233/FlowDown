@@ -25,15 +25,13 @@ struct ConversationExecuteOnceTests {
                 })
             })
             try await withChatService(service) {
-                let listView = MessageListView()
                 let round = Task { @MainActor () -> Error? in
                     var requestMessages: [ChatRequestBody.Message] = [.user(content: .text("Hello"))]
                     do {
                         _ = try await session.doMainInferenceOnce(
-                            listView,
                             "unit-test-model",
                             &requestMessages,
-                            nil,
+                            .empty,
                             false,
                             false,
                         )
@@ -54,7 +52,7 @@ struct ConversationExecuteOnceTests {
 
     @Test
     @MainActor
-    func reasoningThenToolCall_sendsNoPlaceholderAsAssistantContent() async throws {
+    func reasoningThenUnknownToolCall_reportsToModelWithoutPlaceholder() async throws {
         try await withTemporarySession { _, session in
             let reasoning = "Checking the forecast first."
             let service = ChatServiceSpy(streamHandler: { _ in
@@ -65,59 +63,49 @@ struct ConversationExecuteOnceTests {
                 })
             })
             try await withChatService(service) {
-                let listView = MessageListView()
                 var requestMessages: [ChatRequestBody.Message] = [.user(content: .text("Weather?"))]
-                // The tool cannot run here, so the round throws once it has
-                // recorded the assistant turn.
-                var didThrow = false
-                do {
-                    _ = try await session.doMainInferenceOnce(
-                        listView,
-                        "unit-test-model",
-                        &requestMessages,
-                        nil,
-                        true,
-                        false,
-                    )
-                } catch {
-                    didThrow = true
-                }
-                #expect(didThrow)
+                // Tool calls run inside a live turn; without one the round
+                // reads as cancelled before the first call.
+                session.currentTask = Task {}
+                defer { session.currentTask = nil }
+                // No offered tool answers to the name: the model reads that as
+                // the call's result, and the turn goes on.
+                let ranTools = try await session.doMainInferenceOnce(
+                    "unit-test-model",
+                    &requestMessages,
+                    .empty,
+                    true,
+                    false,
+                )
+                #expect(ranTools)
 
-                guard case let .assistant(content, toolCalls, sentReasoning)? = requestMessages.last else {
-                    Issue.record("expected the round to append the assistant tool-call turn")
+                guard requestMessages.count == 3,
+                      case let .assistant(content, toolCalls, sentReasoning) = requestMessages[1],
+                      case let .tool(result, toolCallID) = requestMessages[2]
+                else {
+                    Issue.record("expected the assistant tool-call turn followed by its result")
                     return
                 }
                 let sentAnyContent = content != nil
                 #expect(!sentAnyContent)
                 #expect(toolCalls?.count == 1)
                 #expect(sentReasoning == reasoning)
+                #expect(toolCallID == toolCalls?.first?.id)
+                guard case let .text(resultText) = result else {
+                    Issue.record("expected a text result")
+                    return
+                }
+                #expect(resultText.contains("unit_test_missing_tool"))
 
-                guard let assistant = session.messages.last(where: { $0.role == .assistant }) else {
-                    Issue.record("expected the round to keep its assistant message")
+                guard let assistant = session.messages.last(where: { $0.role == .assistant }),
+                      let toolRow = session.messages.last(where: { $0.role == .toolHint })
+                else {
+                    Issue.record("expected the round to keep its assistant message and a tool row")
                     return
                 }
                 // The UI keeps its placeholder; only the requests drop it.
                 #expect(!assistant.document.isEmpty)
-
-                // No tool row follows yet, so nothing would carry the tool
-                // call; the placeholder text keeps the turn from going out
-                // with neither content nor tool calls.
-                let orphaned = await assistantTurns(replaying: session)
-                #expect(orphaned == [
-                    AssistantTurn(content: assistant.document, toolCallCount: 0, reasoning: reasoning),
-                ])
-
-                let toolRow = session.appendNewMessage(role: .toolHint) {
-                    $0.update(
-                        \.toolStatus,
-                        to: Message.ToolStatus(name: "unit_test_missing_tool", state: 1, message: "Sunny")
-                    )
-                }
-                session.encodeToolRequestAndAttachToToolMessage(
-                    ToolRequest(name: "unit_test_missing_tool", args: "{}"),
-                    message: toolRow,
-                )
+                #expect(toolRow.toolStatus.state == ToolCallState.failed)
 
                 // The replayed tool call merges into this turn, which then
                 // carries no text at all.
@@ -126,10 +114,19 @@ struct ConversationExecuteOnceTests {
                     AssistantTurn(content: nil, toolCallCount: 1, reasoning: reasoning),
                 ])
 
+                // Without the tool row nothing carries the tool call; the
+                // placeholder text keeps the turn from going out with neither
+                // content nor tool calls.
+                session.discard(messageIdentifier: toolRow.objectId)
+                let orphaned = await assistantTurns(replaying: session)
+                #expect(orphaned == [
+                    AssistantTurn(content: assistant.document, toolCallCount: 0, reasoning: reasoning),
+                ])
+
                 assistant.update(\.document, to: "Edited answer")
                 let edited = await assistantTurns(replaying: session)
                 #expect(edited == [
-                    AssistantTurn(content: "Edited answer", toolCallCount: 1, reasoning: reasoning),
+                    AssistantTurn(content: "Edited answer", toolCallCount: 0, reasoning: reasoning),
                 ])
             }
         }

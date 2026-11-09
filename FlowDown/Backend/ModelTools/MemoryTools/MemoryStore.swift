@@ -15,12 +15,12 @@ class MemoryStore {
     private let queue = DispatchQueue(label: "wiki.qaq.MemoryStore", qos: .utility)
     private let maxMemoryCount = 1000
     private let maxMemoryLength = 2000
-    private let memoryLimitRange = 1 ... 100
+    nonisolated static let memoryLimitRange = 1 ... 100
 
     private init() {}
 
     private func clampedLimit(_ limit: Int) -> Int {
-        min(max(limit, memoryLimitRange.lowerBound), memoryLimitRange.upperBound)
+        min(max(limit, Self.memoryLimitRange.lowerBound), Self.memoryLimitRange.upperBound)
     }
 
     private func validatedContent(_ content: String) throws -> String {
@@ -37,60 +37,48 @@ class MemoryStore {
         return trimmedContent
     }
 
+    /// Runs `body` against the database on `queue`. A `MemoryStoreError` thrown by
+    /// `body` passes through unchanged; any other failure becomes `storageError`.
+    private func onQueue<T>(_ body: @escaping @Sendable (Storage) throws -> T) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            queue.async {
+                do {
+                    continuation.resume(returning: try body(Storage.db()))
+                } catch let error as MemoryStoreError {
+                    continuation.resume(throwing: error)
+                } catch {
+                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
+                }
+            }
+        }
+    }
+
     // MARK: - Public Async API
 
     func storeAsync(content: String, conversationId: String? = nil) async throws -> Memory {
         let trimmedContent = try validatedContent(content)
 
-        return try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    let memory = Memory(
-                        deviceId: Storage.deviceId,
-                        content: trimmedContent,
-                        conversationId: conversationId
-                    )
-                    try storage.insertMemory(memory)
+        return try await onQueue { storage in
+            let memory = Memory(
+                deviceId: Storage.deviceId,
+                content: trimmedContent,
+                conversationId: conversationId
+            )
+            try storage.insertMemory(memory)
 
-                    try storage.deleteOldMemories(keepCount: self.maxMemoryCount)
+            try storage.deleteOldMemories(keepCount: self.maxMemoryCount)
 
-                    continuation.resume(returning: memory)
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
-            }
+            return memory
         }
     }
 
     func getAllMemoriesAsync() async throws -> [Memory] {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    let memories = try storage.getAllMemories()
-                    continuation.resume(returning: memories)
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
-            }
-        }
+        try await onQueue { try $0.getAllMemories() }
     }
 
     func getMemoriesWithLimit(_ limit: Int) async throws -> [Memory] {
         let safeLimit = clampedLimit(limit)
-
-        return try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    let memories = try storage.getMemoriesWithLimit(safeLimit)
-                    continuation.resume(returning: memories)
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
-            }
-        }
+        return try await onQueue { try $0.getMemoriesWithLimit(safeLimit) }
     }
 
     func searchMemories(query: String, limit: Int = 20) async throws -> [Memory] {
@@ -100,76 +88,33 @@ class MemoryStore {
         }
 
         let safeLimit = clampedLimit(limit)
-
-        return try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    let memories = try storage.searchMemories(query: trimmedQuery, limit: safeLimit)
-                    continuation.resume(returning: memories)
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
-            }
-        }
+        return try await onQueue { try $0.searchMemories(query: trimmedQuery, limit: safeLimit) }
     }
 
     func updateMemoryAsync(id: String, newContent: String) async throws {
         let trimmedContent = try validatedContent(newContent)
 
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    guard let existingMemory = try storage.getMemory(id: id) else {
-                        continuation.resume(throwing: MemoryStoreError.memoryNotFound(id))
-                        return
-                    }
-
-                    existingMemory.update(\.content, to: trimmedContent)
-                    try storage.updateMemory(existingMemory)
-
-                    continuation.resume()
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
+        try await onQueue { storage in
+            guard let existingMemory = try storage.getMemory(id: id) else {
+                throw MemoryStoreError.memoryNotFound(id)
             }
+
+            existingMemory.update(\.content, to: trimmedContent)
+            try storage.updateMemory(existingMemory)
         }
     }
 
     func deleteMemoryAsync(id: String) async throws {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    try storage.deleteMemory(id: id)
-
-                    continuation.resume()
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
-            }
-        }
+        try await onQueue { try $0.deleteMemory(id: id) }
     }
 
     func deleteAllMemoriesAsync() async throws {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                do {
-                    let storage = try Storage.db()
-                    try storage.deleteAllMemories()
-
-                    continuation.resume()
-                } catch {
-                    continuation.resume(throwing: MemoryStoreError.storageError(error.localizedDescription))
-                }
-            }
-        }
+        try await onQueue { try $0.deleteAllMemories() }
     }
 
     // MARK: - Sync API
 
-    func getAllMemories() -> String {
+    func recallToolText() -> String {
         do {
             return Self.render(try Storage.db().getAllMemories(), includeIdentifiers: false)
         } catch {
@@ -177,7 +122,7 @@ class MemoryStore {
         }
     }
 
-    func listMemoriesWithIds(limit: Int = 20) -> String {
+    func listToolText(limit: Int) -> String {
         do {
             let storage = try Storage.db()
             return Self.render(
@@ -258,17 +203,10 @@ class MemoryStore {
         }
     }
 
-    func formattedProactiveMemoryContext() async -> String? {
-        await formattedProactiveMemoryContext(for: MemoryProactiveProvisionSetting.currentScope)
-    }
-
-    func formattedProactiveMemoryContext(for scope: MemoryProactiveProvisionScope) async -> String? {
-        switch scope.filter {
-        case .none:
-            return nil
-        default:
-            break
-        }
+    func formattedProactiveMemoryContext(
+        for scope: MemoryProactiveProvisionScope = MemoryProactiveProvisionSetting.currentScope,
+    ) async -> String? {
+        if case .none = scope.filter { return nil }
 
         do {
             let memories = try await getAllMemoriesAsync()

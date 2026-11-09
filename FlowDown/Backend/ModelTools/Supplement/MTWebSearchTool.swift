@@ -10,14 +10,13 @@ import ConfigurableKit
 import Foundation
 @preconcurrency import ScrubberKit
 import Storage
-import UIKit
 
-class MTWebSearchTool: ModelTool, @unchecked Sendable {
-    override var interfaceName: String {
+final class MTWebSearchTool: ConfigurableModelTool, @unchecked Sendable {
+    var interfaceName: String {
         String(localized: "Web Search")
     }
 
-    override var definition: ChatRequestBody.Tool {
+    var definition: ChatRequestBody.Tool {
         .function(
             name: "web_search",
             description: "Search the web for current information, news and facts.",
@@ -36,7 +35,11 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override class var controlObject: ConfigurableObject {
+    var transcriptRole: Message.Role {
+        .webSearch
+    }
+
+    static var controlObject: ConfigurableObject {
         .init(
             icon: "magnifyingglass",
             title: "Web Search",
@@ -47,30 +50,45 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
         )
     }
 
-    override func execute(with _: String, anchorTo _: UIView) async throws -> String {
-        fatalError("MTWebSearchTool must be specially handled and cannot be executed directly.")
-    }
-
-    nonisolated func execute(
-        with input: String,
-        session: ConversationSession,
-        webSearchMessage: Message,
-        anchorTo messageListView: MessageListView,
-    ) async throws -> [Scrubber.Document] {
-        guard let json = decodeArguments(input),
-              let query = json["query"] as? String
-        else {
-            throw NSError(
-                domain: "MTWebSearchTool",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Invalid parameters"],
-            )
+    /// Runs in a conversation only: the search reports its progress on the
+    /// call's row, and the pages it reads become citable web documents.
+    func execute(_ arguments: ModelToolArguments, context: ModelToolContext) async throws -> ModelToolOutput {
+        guard let session = context.session, let row = context.row else {
+            assertionFailure("web search runs in a conversation")
+            throw ModelToolError.failure("Web search runs in a conversation only.")
+        }
+        guard let query = arguments.nonEmptyString("query") else {
+            throw ModelToolError.invalidArguments(String(localized: "Invalid input parameters"))
         }
 
-        var status = webSearchMessage.webSearchStatus
-        status.queries = [query]
-        webSearchMessage.assign(\.webSearchStatus, to: status)
+        do {
+            let documents = try await search(query: query, session: session, row: row)
+            guard !documents.isEmpty else {
+                return ModelToolOutput(text: String(localized: "Web search returned no results."))
+            }
+            let archives = documents.map { document in
+                session.formatAsWebArchive(
+                    document: document.textDocument,
+                    title: document.title,
+                    atIndex: session.requestLinkContentIndex(document.url),
+                )
+            }
+            return ModelToolOutput(text: archives.joined(separator: "\n"))
+        } catch {
+            row.markModified()
+            await session.requestUpdate()
+            throw error
+        }
+    }
 
+    private func search(
+        query: String,
+        session: ConversationSession,
+        row: Message,
+    ) async throws -> [Scrubber.Document] {
+        var status = row.webSearchStatus
+        status.queries = [query]
+        row.assign(\.webSearchStatus, to: status)
         await session.requestUpdate()
 
         var webSearchResults: [Scrubber.Document] = []
@@ -80,24 +98,24 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
                 .init(title: doc.title, url: doc.url)
             }
 
-            var status = webSearchMessage.webSearchStatus
+            var status = row.webSearchStatus
             status.searchResults.append(contentsOf: storableContent)
-            webSearchMessage.assign(\.webSearchStatus, to: status)
+            row.assign(\.webSearchStatus, to: status)
         }
 
-        for try await phase in await messageListView.session.gatheringWebContent(
+        for await phase in session.gatheringWebContent(
             searchQueries: [query],
             onSetWebDocumentResult: onSetWebContents,
         ) {
-            var status = webSearchMessage.webSearchStatus
+            var status = row.webSearchStatus
             status.currentSource = phase.currentSource
             status.numberOfSource = phase.numberOfSource
             status.numberOfWebsites = phase.numberOfWebsites
             status.currentQuery = phase.query
             status.currentQueryBeginDate = phase.queryBeginDate
             status.numberOfResults = phase.numberOfResults
-            status.proccessProgress = max(0.1, phase.proccessProgress)
-            webSearchMessage.assign(\.webSearchStatus, to: status)
+            status.proccessProgress = phase.proccessProgress
+            row.assign(\.webSearchStatus, to: status)
             await session.requestUpdate()
         }
 
@@ -105,9 +123,9 @@ class MTWebSearchTool: ModelTool, @unchecked Sendable {
         // finish, so it must not read as one that found nothing.
         try Task.checkCancellation()
 
-        var statusFinal = webSearchMessage.webSearchStatus
+        var statusFinal = row.webSearchStatus
         statusFinal.proccessProgress = 1.0
-        webSearchMessage.assign(\.webSearchStatus, to: statusFinal)
+        row.assign(\.webSearchStatus, to: statusFinal)
         await session.requestUpdate()
 
         return webSearchResults

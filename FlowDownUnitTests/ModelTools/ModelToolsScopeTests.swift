@@ -22,31 +22,22 @@ struct ModelToolsScopeTests {
         #expect(AttachmentDataParser.decodeData(from: "data:") == nil)
     }
 
-    @Test
-    func `web scraper tool repairs empty arguments into object payload`() {
+    @Test(arguments: [
+        ("scrape_web_page", MTWebScraperTool().definition, #"{"url":""}"#),
+        ("web_search", MTWebSearchTool().definition, #"{"query":""}"#),
+    ])
+    func `web tools repair empty arguments into object payload`(
+        row: (name: String, definition: ChatRequestBody.Tool, expected: String),
+    ) {
         let repaired = ToolCallArgumentRepair.normalize(
             request: ToolRequest(
-                id: "tool-1",
-                name: "scrape_web_page",
+                id: "tool",
+                name: row.name,
                 args: ""
             ),
-            using: [MTWebScraperTool().definition]
+            using: [row.definition]
         )
 
-        #expect(repaired.args == #"{"url":""}"#)
-    }
-
-    @Test
-    func `web search tool repairs empty arguments into object payload`() {
-        let repaired = ToolCallArgumentRepair.normalize(
-            request: ToolRequest(
-                id: "tool-2",
-                name: "web_search",
-                args: ""
-            ),
-            using: [MTWebSearchTool().definition]
-        )
-
-        #expect(repaired.args == #"{"query":""}"#)
+        #expect(repaired.args == row.expected)
     }
 }

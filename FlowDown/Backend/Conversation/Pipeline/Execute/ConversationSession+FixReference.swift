@@ -56,7 +56,7 @@ private let prevent: [MarkdownNodeType] = [
     .code,
     .html,
     .customInline,
-    .emphasis, // 强调
+    .emphasis,
     .strong,
     .link,
     .image,
@@ -76,7 +76,7 @@ extension ConversationSession {
         var duplicationTerminator: String.Index? = nil
 
         let reverseOrderedMatches = content.matches(of: regex)
-            .sorted { $0.range.lowerBound > $1.range.lowerBound } // going from end to start
+            .sorted { $0.range.lowerBound > $1.range.lowerBound }
             .filter { input in
                 if let duplicationTerminator {
                     guard input.range.lowerBound < duplicationTerminator,
@@ -91,7 +91,6 @@ extension ConversationSession {
                 return true
             }
 
-        // now going from back to forward
         for match in reverseOrderedMatches {
             let source = match.output.1
                 .replacingOccurrences(of: "^", with: "")
@@ -99,12 +98,11 @@ extension ConversationSession {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             let numbers = source.components(separatedBy: ",").compactMap { Int($0) }
             var replacedLink: [String] = []
-            for number in numbers where contentLink.keys.contains(number) {
+            for number in numbers {
                 guard let result = contentLink[number] else { continue }
                 replacedLink.append("[^\(number)](\(result))")
             }
             if replacedLink.isEmpty {
-                // No valid reference found, removing this section.
                 continue
             }
 
@@ -114,7 +112,6 @@ extension ConversationSession {
                 .type
 
             if let type, prevent.contains(type) {
-                // do not process content inside code block
                 Logger.model.debugFile("ignoring content inside block type: \(type)")
                 continue
             }

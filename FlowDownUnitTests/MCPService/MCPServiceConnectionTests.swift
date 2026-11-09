@@ -7,10 +7,12 @@ import Testing
 
 @Suite(.serialized)
 struct MCPServiceConnectionTests {
+    init() async throws {
+        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+    }
+
     @Test
     func `testConnection uses injected connection factory`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let service = MCPService.shared
         let originalFactory = service.connectionFactory
 
@@ -40,18 +42,17 @@ struct MCPServiceConnectionTests {
 
     @Test
     func `prepareForConversation connects enabled servers that never connected, sharing one flight`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let service = MCPService.shared
         let originalFactory = service.connectionFactory
+        let endpoint = "https://prepare.example.com/mcp"
         let connection = MCPConnectionSpy(toolNames: ["ping"])
 
         service.connectionFactory = { server in
-            server.endpoint == "https://prepare.example.com/mcp" ? connection : originalFactory(server)
+            server.endpoint == endpoint ? connection : originalFactory(server)
         }
         let server = service.create { server in
             server.update(\.name, to: "Prepare MCP")
-            server.update(\.endpoint, to: "https://prepare.example.com/mcp")
+            server.update(\.endpoint, to: endpoint)
             server.update(\.isEnabled, to: true)
         }
         defer {
@@ -70,21 +71,20 @@ struct MCPServiceConnectionTests {
 
     @Test
     func `hung server is abandoned after the wait timeout without blocking prepare`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let service = MCPService.shared
         let originalFactory = service.connectionFactory
         let originalTimeout = MCPService.conversationWaitTimeout
         MCPService.conversationWaitTimeout = .milliseconds(200)
 
+        let endpoint = "https://hung.example.com/mcp"
         let hungConnection = GatedConnectionSpy()
 
         service.connectionFactory = { server in
-            server.endpoint == "https://hung.example.com/mcp" ? hungConnection : originalFactory(server)
+            server.endpoint == endpoint ? hungConnection : originalFactory(server)
         }
         let server = service.create { server in
             server.update(\.name, to: "Hung MCP")
-            server.update(\.endpoint, to: "https://hung.example.com/mcp")
+            server.update(\.endpoint, to: endpoint)
             server.update(\.isEnabled, to: true)
         }
         defer {
@@ -106,18 +106,17 @@ struct MCPServiceConnectionTests {
 
     @Test
     func `late connection commit is dropped once the server is disabled`() async throws {
-        try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
-
         let service = MCPService.shared
         let originalFactory = service.connectionFactory
+        let endpoint = "https://late.example.com/mcp"
         let gatedConnection = GatedConnectionSpy()
 
         service.connectionFactory = { server in
-            server.endpoint == "https://late.example.com/mcp" ? gatedConnection : originalFactory(server)
+            server.endpoint == endpoint ? gatedConnection : originalFactory(server)
         }
         let server = service.create { server in
             server.update(\.name, to: "Late MCP")
-            server.update(\.endpoint, to: "https://late.example.com/mcp")
+            server.update(\.endpoint, to: endpoint)
             server.update(\.isEnabled, to: true)
         }
         defer {
