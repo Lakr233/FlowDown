@@ -49,14 +49,16 @@ final class ToolApprovalSection: EditorSectionView {
 
         var approveStyle = UIButton.Configuration.filled()
         approveStyle.baseBackgroundColor = .accent
-        // The accent is the same light teal in both appearances; black on it
-        // reads at about 9:1, where white would fall below 3:1.
-        approveStyle.baseForegroundColor = .black
+        // White on the accent, as on any filled iOS button, in both
+        // appearances; semibold at the headline size, for Dynamic Type, to
+        // hold the lighter contrast. The configuration dims it when pressed.
+        approveStyle.baseForegroundColor = .white
         approveStyle.cornerStyle = .medium
         approveStyle.titleLineBreakMode = .byTruncatingTail
         approveStyle.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes
-            attributes.font = .preferredFont(forTextStyle: .headline)
+            let size = UIFont.preferredFont(forTextStyle: .headline).pointSize
+            attributes.font = .systemFont(ofSize: size, weight: .semibold)
             return attributes
         }
         approveButton.configuration = approveStyle
@@ -66,7 +68,11 @@ final class ToolApprovalSection: EditorSectionView {
         denyStyle.baseForegroundColor = .label
         denyStyle.cornerStyle = .medium
         denyStyle.titleLineBreakMode = .byTruncatingTail
-        denyStyle.titleTextAttributesTransformer = approveStyle.titleTextAttributesTransformer
+        denyStyle.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = .preferredFont(forTextStyle: .headline)
+            return attributes
+        }
         denyButton.configuration = denyStyle
         denyButton.setTitle(String(localized: "Don’t Allow"), for: .normal)
 
