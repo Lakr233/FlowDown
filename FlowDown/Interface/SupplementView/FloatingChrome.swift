@@ -29,7 +29,25 @@ enum FloatingChrome {
     /// The top edge's height: from the top of the screen to the bottom of the
     /// header buttons, then `belowButtons` and the `tail`.
     static func topEdgeHeight(buttonBottom: CGFloat) -> CGFloat {
-        max(0, buttonBottom) + belowButtons + tail
+        max(0, buttonBottom) + fadeLength
+    }
+
+    /// How far an edge fades out, past the buttons on top and above the
+    /// input card at the bottom.
+    static let fadeLength: CGFloat = belowButtons + tail
+
+    /// The edges' numbers (designer, Colo, 2026-11-10). The vendored
+    /// `.standard` is tuned for a title in its own capsule; here the title
+    /// stands straight on the content, so the edge holds full strength from
+    /// the screen edge to the buttons (or the input card) and fades only
+    /// over the last `fadeLength`, with a stronger blur and frost.
+    static func edgeStyle(height: CGFloat) -> ProgressiveBlurStyle {
+        var style = ProgressiveBlurStyle.standard
+        style.radius = 6
+        style.frostRadius = 16
+        style.frostOpacity = 0.45
+        style.hold = height > fadeLength ? (height - fadeLength) / height : 0
+        return style
     }
 
     #if DEBUG
@@ -71,6 +89,16 @@ enum FloatingChrome {
                 scrollView.bottomEdgeEffect.isHidden = true
             }
         #endif
+    }
+}
+
+extension ProgressiveBlurView {
+    /// Places the edge and gives it `FloatingChrome.edgeStyle` for that
+    /// height, so the fade is always `fadeLength` long.
+    func layoutAsBarEdge(_ frame: CGRect) {
+        self.frame = frame
+        let style = FloatingChrome.edgeStyle(height: frame.height)
+        if self.style != style { self.style = style }
     }
 }
 

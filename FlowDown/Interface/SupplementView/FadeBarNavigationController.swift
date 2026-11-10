@@ -88,12 +88,12 @@ class FadeBarNavigationController: UINavigationController {
             // nothing stands over the top of the page then.
             let isVerticalBar = bar.height > bar.width
             topEdgeBlur.isHidden = navigationBar.isHidden || isVerticalBar
-            topEdgeBlur.frame = CGRect(
+            topEdgeBlur.layoutAsBarEdge(CGRect(
                 x: 0,
                 y: 0,
                 width: view.bounds.width,
                 height: FloatingChrome.topEdgeHeight(buttonBottom: buttonBottom),
-            )
+            ))
             for controller in viewControllers {
                 applyFloatingChrome(to: controller)
             }

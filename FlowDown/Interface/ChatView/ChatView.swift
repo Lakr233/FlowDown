@@ -36,7 +36,7 @@ class ChatView: UIView {
         /// the bottom of the header buttons, then 14 pt and a 28 pt tail.
         let topEdgeBlur = ProgressiveBlurView()
         /// The soft edge behind the input: from the bottom of the screen to
-        /// 28 pt above the input card.
+        /// the input card at full strength, fading out over 42 pt above it.
         let bottomEdgeBlur = ProgressiveBlurView().with {
             $0.edge = .bottom
         }
@@ -353,23 +353,23 @@ class ChatView: UIView {
         private func layoutEdgeBlurs() {
             // From the top of the screen, ignoring the safe area.
             let buttonBottom = escapeButton.convert(escapeButton.bounds, to: self).maxY
-            topEdgeBlur.frame = CGRect(
+            topEdgeBlur.layoutAsBarEdge(CGRect(
                 x: 0,
                 y: 0,
                 width: bounds.width,
                 height: FloatingChrome.topEdgeHeight(buttonBottom: buttonBottom),
-            )
+            ))
 
-            // To the bottom of the screen, from 28 pt above the input card
-            // (or the tool-approval card that stands in for it).
+            // To the bottom of the screen, full strength up to the input card
+            // (or the tool-approval card that stands in for it), then the fade.
             let cardTop = editor.convert(editor.shadowContainer.frame, to: self).minY
-            let edgeTop = max(0, cardTop - FloatingChrome.tail)
-            bottomEdgeBlur.frame = CGRect(
+            let edgeTop = max(0, cardTop - FloatingChrome.fadeLength)
+            bottomEdgeBlur.layoutAsBarEdge(CGRect(
                 x: 0,
                 y: edgeTop,
                 width: bounds.width,
                 height: max(0, bounds.height - edgeTop),
-            )
+            ))
         }
     #endif
 

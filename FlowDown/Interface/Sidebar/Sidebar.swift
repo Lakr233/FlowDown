@@ -141,12 +141,12 @@ class Sidebar: UIView {
                 }
             }
 
-            topEdgeBlur.frame = CGRect(
+            topEdgeBlur.layoutAsBarEdge(CGRect(
                 x: 0,
                 y: -overshoot,
                 width: bounds.width,
                 height: FloatingChrome.topEdgeHeight(buttonBottom: overshoot + buttonBottom),
-            )
+            ))
         }
     #endif
 }
