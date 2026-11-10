@@ -308,7 +308,13 @@ extension ModelManager {
             tools: tools,
             toolChoice: toolChoice,
         )
-        return try await client.chat(body: body)
+        let response = try await client.chat(body: body)
+        // Remote clients collect HTTP and provider errors instead of throwing
+        // them, so an empty response would otherwise leave no trace.
+        if let error = client.collectedErrors, !error.isEmpty {
+            Logger.model.errorFile("model \(modelID) inference collected errors: \(error)")
+        }
+        return response
     }
 
     /// Builds the client and the request body shared by the buffered and the
@@ -382,6 +388,13 @@ extension ModelManager {
 
                     for try await chunk in sequence {
                         switch chunk {
+                        case let .reasoning(string) where string.isEmpty,
+                             let .text(string) where string.isEmpty:
+                            // Some Chat Completions providers (Ollama among them) send
+                            // `"content": ""` beside every reasoning delta. Waiting on the
+                            // other emitter for such a chunk would drain it one character
+                            // per step, pacing the whole stream to about 30 characters a second.
+                            break
                         case let .reasoning(string):
                             await textEmitter.wait()
                             await reasoningEmitter.add(string)

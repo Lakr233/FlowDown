@@ -8250,52 +8250,6 @@
         }
       }
     },
-    "Collapse Reasoning Content" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Begründungsinhalt einklappen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collapse Reasoning Content"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contraer contenido de razonamiento"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Replier le contenu de raisonnement"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推論内容を折りたたむ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "추론 내용 접기"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "折叠思考过程"
-          }
-        }
-      }
-    },
     "Collected %d attachments from tool %@." : {
       "localizations" : {
         "de" : {
@@ -16402,52 +16356,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启用记忆工具"
-          }
-        }
-      }
-    },
-    "Enable this to automatically collapse reasoning content after the reasoning is completed. This is useful for keeping the chat interface clean and focused on the final response." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviere dies, um Begründungsinhalte nach Abschluss automatisch einzuklappen. Hilft, das Chat-Interface sauber zu halten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable this to automatically collapse reasoning content after the reasoning is completed. This is useful for keeping the chat interface clean and focused on the final response."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activa esto para contraer automáticamente el contenido de razonamiento después de completarlo. Es útil para mantener la interfaz limpia y centrada en la respuesta final."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez cette option pour replier automatiquement le contenu de raisonnement une fois terminé. Utile pour garder l’interface de chat claire et centrée sur la réponse finale."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推論完了後に推論内容を自動で折りたたみます。チャット画面をスッキリさせ、最終回答に集中するのに役立ちます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "추론이 완료된 후 자동으로 추론 내용을 접습니다. 채팅 화면을 깔끔하고 최종 응답에 집중할 수 있게 합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用这个选项将在推理结束时自动折叠思考内容。"
           }
         }
       }

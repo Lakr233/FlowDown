@@ -64,12 +64,6 @@ class ModelManager: NSObject {
         didSet { checkDefaultModels() }
     }
 
-    @TypedStorage(key: "Model.ChatInterface.CollapseReasoningSectionWhenComplete", defaultValue: false)
-    var collapseReasoningSectionWhenComplete: Bool
-    var collapseReasoningSectionWhenCompleteKey: String {
-        _collapseReasoningSectionWhenComplete.key
-    }
-
     @TypedStorage(key: "Model.ChatInterface.IncludeDynamicSystemInfo", defaultValue: true)
     var includeDynamicSystemInfo: Bool
     var includeDynamicSystemInfoKey: String {
