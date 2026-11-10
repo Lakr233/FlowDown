@@ -115,6 +115,7 @@ extension ConversationSession {
             reason: call.reason,
             summary: tool.approvalSummary(for: call.arguments),
             arguments: call.arguments.json,
+            argumentOrder: call.argumentOrder,
         )
         let decision = await toolApprovalGate.request(request)
         try checkCancellation()

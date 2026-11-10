@@ -16,6 +16,8 @@ struct ModelToolSet: @unchecked Sendable {
         let arguments: ModelToolArguments
         /// The reason the call gave, nil when it gave none.
         let reason: String?
+        /// The order to show the arguments in: the tool's, then the model's.
+        let argumentOrder: [String]
     }
 
     private struct Entry {
@@ -60,7 +62,12 @@ struct ModelToolSet: @unchecked Sendable {
     func resolve(_ request: ToolRequest) -> Call? {
         guard let entry = entry(named: request.name) else { return nil }
         let split = entry.carriesReason ? ModelToolReason.split(request.args) : (arguments: request.args, reason: nil)
-        return Call(tool: entry.tool, arguments: .init(json: split.arguments), reason: split.reason)
+        return Call(
+            tool: entry.tool,
+            arguments: .init(json: split.arguments),
+            reason: split.reason,
+            argumentOrder: ModelToolArgumentOrder.order(schema: entry.tool.argumentOrder, arguments: request.args),
+        )
     }
 
     /// An exact match first; models sometimes change the case of a name.

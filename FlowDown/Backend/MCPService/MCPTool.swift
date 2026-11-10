@@ -68,6 +68,12 @@ final class MCPTool: ModelTool, @unchecked Sendable {
 }
 
 extension MCPTool {
+    /// The server's order is lost when its schema is decoded, and the strict
+    /// `required` is sorted by name, so the card follows the model's order.
+    var argumentOrder: [String] {
+        []
+    }
+
     /// Decodes the model's arguments for the server. The strict schema makes
     /// optional parameters required but nullable, so the model sends null for
     /// every one it skips; those keys are dropped so the server sees them as
