@@ -308,7 +308,13 @@ extension ModelManager {
             tools: tools,
             toolChoice: toolChoice,
         )
-        return try await client.chat(body: body)
+        let response = try await client.chat(body: body)
+        // Remote clients collect HTTP and provider errors instead of throwing
+        // them, so an empty response would otherwise leave no trace.
+        if let error = client.collectedErrors, !error.isEmpty {
+            Logger.model.errorFile("model \(modelID) inference collected errors: \(error)")
+        }
+        return response
     }
 
     /// Builds the client and the request body shared by the buffered and the

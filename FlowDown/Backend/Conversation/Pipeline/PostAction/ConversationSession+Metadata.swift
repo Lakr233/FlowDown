@@ -20,6 +20,7 @@ struct ConversationMetadata: Equatable {
 
 enum ConversationMetadataToolCall {
     static let name = "save_conversation_metadata"
+    static let titleLengthLimit = 32
 
     static var definition: ChatRequestBody.Tool {
         .function(
@@ -72,10 +73,24 @@ enum ConversationMetadataToolCall {
             .trimmingMarkdownBold()
 
         guard !normalized.isEmpty else { return nil }
-        if normalized.count > 32 {
-            normalized = String(normalized.prefix(32))
+        if normalized.count > titleLengthLimit {
+            normalized = String(normalized.prefix(titleLengthLimit))
         }
         return normalized
+    }
+
+    /// The title used when none could be generated: the text on one line,
+    /// cut to the title limit with an ellipsis. Nil for blank text.
+    static func fallbackTitle(from text: String) -> String? {
+        let collapsed = text
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+        guard !collapsed.isEmpty else { return nil }
+        guard collapsed.count > titleLengthLimit else { return collapsed }
+        let cut = collapsed
+            .prefix(titleLengthLimit - 1)
+            .trimmingCharacters(in: .whitespaces)
+        return cut + "…"
     }
 
     static func normalizedIcon(_ icon: String?) -> String? {
@@ -95,12 +110,16 @@ enum ConversationMetadataToolCall {
 
 extension ConversationManager {
     /// Writes generated metadata onto the stored conversation. Automatic renames
-    /// also clear `shouldAutoRename` so a generated title is only ever chosen once.
+    /// also clear `shouldAutoRename` so a generated title is only ever chosen once,
+    /// and are dropped when the user renamed the conversation while they ran.
     func applyMetadata(
         _ metadata: ConversationMetadata,
         to identifier: Conversation.ID,
         disablingAutoRename: Bool,
     ) {
+        if disablingAutoRename, conversation(identifier: identifier)?.shouldAutoRename == false {
+            return
+        }
         editConversation(identifier: identifier) {
             if let title = metadata.title {
                 $0.update(\.title, to: title)
@@ -159,11 +178,31 @@ extension ConversationSessionManager.Session {
                 return nil
             }
 
-            return ConversationMetadataToolCall.parse(arguments: call.args)
+            guard let metadata = ConversationMetadataToolCall.parse(arguments: call.args) else {
+                Logger.model.errorFile("conversation metadata generation returned unparsable arguments")
+                return nil
+            }
+            return metadata
         } catch {
             Logger.model.errorFile("failed to generate conversation metadata: \(error)")
             return nil
         }
+    }
+}
+
+extension ConversationSessionManager.Session {
+    /// Metadata for when generation fails or is skipped: the first text the
+    /// user wrote as the title, and no icon, so the conversation keeps the one
+    /// it has (the default bubble unless a template set one). Nil while the
+    /// user has sent only attachments.
+    func fallbackConversationMetadata() -> ConversationMetadata? {
+        let firstText = messages
+            .lazy
+            .filter { $0.role == .user && !self.isAttachmentHolder($0) }
+            .compactMap { ConversationMetadataToolCall.fallbackTitle(from: $0.document) }
+            .first
+        guard let firstText else { return nil }
+        return ConversationMetadata(title: firstText, icon: nil)
     }
 }
 
