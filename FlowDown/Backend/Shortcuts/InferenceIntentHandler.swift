@@ -485,7 +485,6 @@ enum InferenceIntentHandler {
         let userContent = userMessage.isEmpty
             ? String(localized: "Attachment shared via Shortcut.")
             : userMessage
-        let collapseAfterReasoningComplete = ModelManager.shared.collapseReasoningSectionWhenComplete
 
         let userMessageObject = session.appendNewMessage(role: .user) {
             $0.update(\.document, to: userContent)
@@ -499,9 +498,6 @@ enum InferenceIntentHandler {
             $0.update(\.document, to: response)
             if !reasoning.isEmpty {
                 $0.update(\.reasoningContent, to: reasoning)
-                if collapseAfterReasoningComplete {
-                    $0.update(\.isThinkingFold, to: true)
-                }
             }
         }
 

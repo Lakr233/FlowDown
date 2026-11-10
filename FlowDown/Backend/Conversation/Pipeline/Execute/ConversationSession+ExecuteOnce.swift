@@ -74,8 +74,6 @@ extension ConversationSession {
 
         var pendingToolCalls: [ToolRequest] = []
         var generatedImages: [ImageContent] = []
-        let collapseAfterReasoningComplete = ModelManager.shared.collapseReasoningSectionWhenComplete
-        var didCollapseReasoning = false
 
         for try await resp in stream {
             switch resp {
@@ -123,10 +121,6 @@ extension ConversationSession {
 
             if !message.document.isEmpty {
                 stopThinking(for: message.objectId)
-                if collapseAfterReasoningComplete, !didCollapseReasoning {
-                    didCollapseReasoning = true
-                    message.update(\.isThinkingFold, to: true)
-                }
             } else if !message.reasoningContent.isEmpty {
                 startThinking(for: message.objectId)
             }
@@ -134,11 +128,6 @@ extension ConversationSession {
         }
         stopThinking(for: message.objectId)
         await requestUpdate()
-
-        if collapseAfterReasoningComplete {
-            message.update(\.isThinkingFold, to: true)
-            await requestUpdate()
-        }
 
         if !message.document.isEmpty {
             logger.infoFile("\(message.document)")

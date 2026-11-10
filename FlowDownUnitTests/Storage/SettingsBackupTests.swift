@@ -89,6 +89,7 @@ struct SettingsBackupTests {
                 ("InferenceController.defaultAuxiliaryModelAlignWithChatModel", encodedConfigurableValue(false)),
                 ("Model.Inference.Prompt.Temperature", encodedConfigurableValue(1.5)),
                 ("CONFKIT.Model.Inference.Temperature", encodedConfigurableValue(1.5)),
+                ("Model.ChatInterface.CollapseReasoningSectionWhenComplete", encodedConfigurableValue(true)),
             ]
             #expect(Set(retired.map(\.0)) == SettingsBackup.retiredKeys)
 
@@ -119,6 +120,11 @@ struct SettingsBackupTests {
             ConfigurableKit.set(value: true, forKey: LiveActivitySetting.storageKey, storage: storage)
             ConfigurableKit.set(value: "task-model", forKey: "Model.Default.Auxiliary", storage: storage)
             ConfigurableKit.set(value: 1.5, forKey: "CONFKIT.Model.Inference.Temperature", storage: storage)
+            ConfigurableKit.set(
+                value: true,
+                forKey: "Model.ChatInterface.CollapseReasoningSectionWhenComplete",
+                storage: storage
+            )
 
             let exportURL = try SettingsBackup.export(storage: storage)
             defer { try? FileManager.default.removeItem(at: exportURL) }
