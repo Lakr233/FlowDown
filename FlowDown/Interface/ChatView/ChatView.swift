@@ -124,6 +124,12 @@ class ChatView: UIView {
         #endif
 
         editor.handlerColor = handlerColor
+        #if !targetEnvironment(macCatalyst)
+            // The card is filled with the page's own background, so its
+            // top half (over the fading blur) and bottom half (over the solid
+            // edge) read as one surface (designer, Colo, 2026-11-10).
+            editor.cardFillColor = .background
+        #endif
         editor.delegate = self
         editor.toolApproval.onDecision = { [weak self] request, decision in
             guard let self, let conversationIdentifier else { return }
