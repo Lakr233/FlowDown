@@ -241,7 +241,7 @@ extension MessageListView {
             holder.shouldDismissWhenTappedAround = true
             holder.shouldDismissWhenEscapeKeyPressed = true
         #else
-            let holder = UINavigationController(rootViewController: controller)
+            let holder = FadeBarNavigationController(rootViewController: controller)
             controller.navigationItem.leftBarButtonItem = UIBarButtonItem(
                 image: UIImage(systemName: "xmark"),
                 primaryAction: UIAction { [weak holder] _ in holder?.dismiss(animated: true) },
@@ -412,7 +412,7 @@ extension MessageListView {
             holder.shouldDismissWhenTappedAround = true
             holder.shouldDismissWhenEscapeKeyPressed = true
         #else
-            let holder = UINavigationController(rootViewController: controller)
+            let holder = FadeBarNavigationController(rootViewController: controller)
             holder.preferredContentSize = .init(width: 555, height: 555 - holder.navigationBar.frame.height)
             holder.modalTransitionStyle = .coverVertical
             holder.modalPresentationStyle = .formSheet

@@ -253,7 +253,7 @@ extension ModelExchangeSelectionController {
         controller.onConfirm = onConfirm
         controller.preferredContentSize = .init(width: 500, height: 600)
 
-        let navigationController = UINavigationController(rootViewController: controller)
+        let navigationController = FadeBarNavigationController(rootViewController: controller)
         navigationController.navigationBar.prefersLargeTitles = false
         navigationController.view.backgroundColor = .systemGroupedBackground
         navigationController.view.tintColor = .accent

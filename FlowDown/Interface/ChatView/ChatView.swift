@@ -28,19 +28,47 @@ class ChatView: UIView {
     }
 
     #if !targetEnvironment(macCatalyst)
-        let escapeButton = EasyHitImageCircleButton(name: "sidebar.left", distinctStyle: .none)
+        let escapeButton = FloatingIconButton(systemName: "sidebar.left").with {
+            $0.accessibilityLabel = String(localized: "Toggle Sidebar")
+        }
+
+        /// The soft edge under the title row, from the top of the screen to
+        /// the bottom of the header buttons, then 14 pt and a 28 pt tail.
+        let topEdgeBlur = ProgressiveBlurView()
+        /// The soft edge above the input: full strength at the input card's
+        /// centre line, fading out 28 pt above the card.
+        let bottomEdgeBlur = ProgressiveBlurView().with {
+            $0.edge = .bottom
+        }
+        /// From the input card's centre line to the bottom of the screen, the
+        /// page's own background: what scrolls there is covered, not blurred
+        /// (designer, Colo, 2026-11-10).
+        let bottomEdgeFill = UIView().with {
+            $0.backgroundColor = .background
+            $0.isUserInteractionEnabled = false
+        }
     #endif
 
     let editor = RichEditorView()
-    let editorBackgroundView = UIView().with {
-        $0.backgroundColor = .background
-        let sep = SeparatorView()
-        $0.addSubview(sep)
-        sep.snp.makeConstraints { make in
-            make.left.top.right.equalToSuperview()
-            make.height.equalTo(1)
+    #if targetEnvironment(macCatalyst)
+        let editorBackgroundView = UIView().with {
+            $0.backgroundColor = .background
+            let sep = SeparatorView()
+            $0.addSubview(sep)
+            sep.snp.makeConstraints { make in
+                make.left.top.right.equalToSuperview()
+                make.height.equalTo(1)
+            }
         }
-    }
+    #else
+        /// No band or divider behind the input any more: the bottom edge
+        /// blurs what scrolls behind it, and the input card keeps its own
+        /// surface. Kept, clear, as the layout reference the insets read.
+        let editorBackgroundView = UIView().with {
+            $0.backgroundColor = .clear
+            $0.isUserInteractionEnabled = false
+        }
+    #endif
 
     let sessionManager = ConversationSessionManager.shared
     private var messageListViews: [Conversation.ID: MessageListView] = [:]
@@ -75,11 +103,17 @@ class ChatView: UIView {
     init() {
         super.init(frame: .zero)
 
+        #if !targetEnvironment(macCatalyst)
+            // Message lists go in below the bottom edge (`listAnchorView`).
+            addSubview(bottomEdgeBlur)
+            addSubview(bottomEdgeFill)
+        #endif
         addSubview(editorBackgroundView)
         addSubview(editor)
 
         #if !targetEnvironment(macCatalyst)
-            let escapeButtonGlass = escapeButton.wrappedInGlassEffect(cornerStyle: .capsule)
+            addSubview(topEdgeBlur)
+            let escapeButtonGlass = escapeButton.wrappedInFloatingButtonSurface()
             addSubview(escapeButtonGlass)
         #endif
 
@@ -90,6 +124,12 @@ class ChatView: UIView {
         #endif
 
         editor.handlerColor = handlerColor
+        #if !targetEnvironment(macCatalyst)
+            // The card is filled with the page's own background, so its
+            // top half (over the fading blur) and bottom half (over the solid
+            // edge) read as one surface (designer, Colo, 2026-11-10).
+            editor.cardFillColor = .background
+        #endif
         editor.delegate = self
         editor.toolApproval.onDecision = { [weak self] request, decision in
             guard let self, let conversationIdentifier else { return }
@@ -133,15 +173,16 @@ class ChatView: UIView {
             .store(in: &cancellables)
 
         #if !targetEnvironment(macCatalyst)
-            escapeButton.backgroundColor = .clear
+            // 44 pt, centred on the same line the 40 pt button was (safe
+            // area + 30), so the title row and the header keep their height.
             escapeButtonGlass.snp.makeConstraints { make in
-                make.top.equalTo(safeAreaLayoutGuide).inset(10)
-                make.leading.equalTo(safeAreaLayoutGuide).inset(10)
-                make.width.height.equalTo(40)
+                make.top.equalTo(safeAreaLayoutGuide).inset(8)
+                make.leading.equalTo(safeAreaLayoutGuide).inset(FloatingChrome.edgeInset)
+                make.width.height.equalTo(FloatingChrome.buttonSize)
             }
             title.snp.makeConstraints { make in
                 make.left.top.right.equalToSuperview()
-                make.bottom.equalTo(escapeButtonGlass).offset(10)
+                make.bottom.equalTo(escapeButtonGlass).offset(8)
             }
         #else
             setupTitleLayout()
@@ -256,9 +297,14 @@ class ChatView: UIView {
         // ConversationSessionManager.shared.resolvePendingRefresh(for: conversation)
 
         if let listView = currentMessageListView {
+            #if !targetEnvironment(macCatalyst)
+                // The soft edges replace the system's; both together band.
+                FloatingChrome.hideSystemTopEdge(of: listView.listView)
+                FloatingChrome.hideSystemBottomEdge(of: listView.listView)
+            #endif
             // A list view kept attached while hidden already has its constraints.
             if listView.superview !== self {
-                insertSubview(listView, belowSubview: editorBackgroundView)
+                insertSubview(listView, belowSubview: listAnchorView)
                 listView.snp.makeConstraints { make in
                     #if targetEnvironment(macCatalyst)
                         make.edges.equalToSuperview()
@@ -299,10 +345,59 @@ class ChatView: UIView {
         }
     }
 
+    /// The view message lists are inserted below: under both soft edges on
+    /// iOS, under the editor's band on the Mac.
+    private var listAnchorView: UIView {
+        #if targetEnvironment(macCatalyst)
+            editorBackgroundView
+        #else
+            bottomEdgeBlur
+        #endif
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         updateCurrentMessageListInsets()
+        #if !targetEnvironment(macCatalyst)
+            layoutEdgeBlurs()
+        #endif
     }
+
+    #if !targetEnvironment(macCatalyst)
+        private func layoutEdgeBlurs() {
+            // From the top of the screen, ignoring the safe area.
+            let buttonBottom = escapeButton.convert(escapeButton.bounds, to: self).maxY
+            topEdgeBlur.layoutAsBarEdge(CGRect(
+                x: 0,
+                y: 0,
+                width: bounds.width,
+                height: FloatingChrome.topEdgeHeight(buttonBottom: buttonBottom),
+            ))
+
+            // The input card (or the tool-approval card that stands in for
+            // it): solid page background from its centre line down, and above
+            // that a blur fading from full at the centre line to nothing
+            // `tail` above the card.
+            let card = editor.convert(editor.shadowContainer.frame, to: self)
+            let edgeTop = max(0, card.minY - FloatingChrome.tail)
+            let fillTop = max(edgeTop, card.midY)
+            bottomEdgeBlur.frame = CGRect(
+                x: 0,
+                y: edgeTop,
+                width: bounds.width,
+                height: fillTop - edgeTop,
+            )
+            if bottomEdgeBlur.style != FloatingChrome.fullFadeEdgeStyle {
+                bottomEdgeBlur.style = FloatingChrome.fullFadeEdgeStyle
+            }
+            bottomEdgeFill.frame = CGRect(
+                x: 0,
+                y: fillTop,
+                width: bounds.width,
+                height: max(0, bounds.height - fillTop),
+            )
+        }
+    #endif
 
     private func updateCurrentMessageListInsets() {
         guard let currentMessageListView else { return }
@@ -335,7 +430,12 @@ class ChatView: UIView {
 extension ChatView {
     class TitleBar: UIView {
         let textLabel: GlyphixTextLabel = .init().with {
-            $0.font = .preferredFont(forTextStyle: .body).bold
+            #if targetEnvironment(macCatalyst)
+                $0.font = .preferredFont(forTextStyle: .body).bold
+            #else
+                // Plain title: 17 pt semibold, primary colour.
+                $0.font = .systemFont(ofSize: 17, weight: .semibold)
+            #endif
             $0.isBlurEffectEnabled = false
             $0.textColor = .label
             $0.textAlignment = .center
@@ -351,10 +451,18 @@ extension ChatView {
 
         let menuButton = EasyMenuButton().with {
             var config = UIButton.Configuration.plain()
-            config.image = UIImage(systemName: "chevron.down")
+            #if targetEnvironment(macCatalyst)
+                config.image = UIImage(systemName: "chevron.down")
+                $0.tintColor = .gray.withAlphaComponent(0.5)
+            #else
+                // A floating button: 17 pt medium symbol, primary colour.
+                config.image = UIImage(systemName: "chevron.down", withConfiguration: FloatingChrome.iconConfiguration)
+                config.baseForegroundColor = .label
+                config.contentInsets = .zero
+                $0.tintColor = .label
+            #endif
             $0.imageView?.contentMode = .scaleAspectFit
             $0.configuration = config
-            $0.tintColor = .gray.withAlphaComponent(0.5)
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.showsMenuAsPrimaryAction = true
         }
@@ -363,8 +471,8 @@ extension ChatView {
             let bg = UIView().with { $0.backgroundColor = .background }
             let sep = SeparatorView()
         #else
-            let bg = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-            let sep = SeparatorView()
+            // No background band and no divider: the chat's top soft edge
+            // (`ChatView.topEdgeBlur`) sits under this bar instead.
             let backgroundContainer = ChatHeaderGlassBackgroundContainerView()
         #endif
 
@@ -418,29 +526,18 @@ extension ChatView {
             #else
                 clipsToBounds = false
 
-                addSubview(bg)
-                bg.snp.makeConstraints { make in
-                    make.left.bottom.right.equalToSuperview()
-                    make.top.equalToSuperview().offset(-128)
-                }
-                addSubview(sep)
-                sep.snp.makeConstraints { make in
-                    make.left.right.equalToSuperview()
-                    make.bottom.equalToSuperview()
-                    make.height.equalTo(1)
-                }
                 addSubview(backgroundContainer)
 
                 backgroundContainer.contentView.addSubview(icon)
                 backgroundContainer.contentView.addSubview(textLabel)
 
-                let menuButtonGlass = menuButton.wrappedInGlassEffect(cornerStyle: .capsule)
+                let menuButtonGlass = menuButton.wrappedInFloatingButtonSurface()
                 backgroundContainer.contentView.addSubview(menuButtonGlass)
 
                 menuButtonGlass.snp.makeConstraints { make in
                     make.centerY.equalToSuperview()
-                    make.right.equalToSuperview().inset(12)
-                    make.width.height.equalTo(34)
+                    make.right.equalToSuperview().inset(FloatingChrome.edgeInset)
+                    make.width.height.equalTo(FloatingChrome.buttonSize)
                 }
 
                 icon.snp.makeConstraints { make in
@@ -453,7 +550,11 @@ extension ChatView {
                     make.centerY.equalToSuperview()
                     make.top.greaterThanOrEqualToSuperview()
                     make.bottom.lessThanOrEqualToSuperview()
+                    // 8 pt clear of the buttons on both sides: the sidebar
+                    // button's 44 pt circle stands 16 pt in on the left.
                     make.left.greaterThanOrEqualTo(icon.snp.right).offset(8)
+                    make.left.greaterThanOrEqualToSuperview()
+                        .inset(FloatingChrome.edgeInset + FloatingChrome.buttonSize + 8)
                     make.right.lessThanOrEqualTo(menuButtonGlass.snp.left).offset(-8)
                 }
 
@@ -526,10 +627,11 @@ extension ChatView {
                 backgroundContainer.update(isDark: traitCollection.userInterfaceStyle == .dark)
             }
 
+            /// The export renders this bar on its own plain ground
+            /// (`ConversationCaptureView`); the bar itself has no band left
+            /// to hide, only the glass container.
             func setDecorativeBackgroundHidden(_ isHidden: Bool) {
                 backgroundContainer.setVisualEffectEnabled(!isHidden)
-                bg.isHidden = isHidden
-                sep.isHidden = isHidden
             }
         #else
             func setDecorativeBackgroundHidden(_ isHidden: Bool) {

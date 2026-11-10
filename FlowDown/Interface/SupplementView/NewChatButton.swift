@@ -14,9 +14,17 @@ class NewChatButton: UIButton {
 
     init() {
         super.init(frame: .zero)
-        setImage(UIImage(systemName: "plus"), for: .normal)
+        #if targetEnvironment(macCatalyst)
+            setImage(UIImage(systemName: "plus"), for: .normal)
+        #else
+            // A floating button on iOS: 17 pt medium, primary colour.
+            setImage(UIImage(systemName: "plus", withConfiguration: FloatingChrome.iconConfiguration), for: .normal)
+            imageView?.contentMode = .center
+        #endif
         tintColor = .label
-        imageView?.contentMode = .scaleAspectFit
+        #if targetEnvironment(macCatalyst)
+            imageView?.contentMode = .scaleAspectFit
+        #endif
         updateMenu()
 
         ChatTemplateManager.shared.$templates

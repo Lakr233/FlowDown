@@ -11,7 +11,7 @@ import UIKit
 #if targetEnvironment(macCatalyst)
     typealias ContentHolderController = AlertBaseController
 #else
-    typealias ContentHolderController = UINavigationController
+    typealias ContentHolderController = FadeBarNavigationController
 #endif
 
 class TextEditorController: ContentHolderController {

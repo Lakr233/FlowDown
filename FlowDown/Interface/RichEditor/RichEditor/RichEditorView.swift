@@ -17,14 +17,15 @@ private enum RichEditorShadowStyle {
         to shadowContainer: UIView,
         colorfulShadow: ColorfulShadowView,
         glassEffectView: UIVisualEffectView?,
+        cardFill: UIColor?,
     ) {
         switch self {
         case .glass:
-            shadowContainer.backgroundColor = .clear
+            shadowContainer.backgroundColor = cardFill ?? .clear
             colorfulShadow.isHidden = true
             glassEffectView?.isHidden = false
         case let .legacy(color):
-            shadowContainer.backgroundColor = color
+            shadowContainer.backgroundColor = cardFill ?? color
             colorfulShadow.isHidden = false
             glassEffectView?.isHidden = true
         }
@@ -95,6 +96,13 @@ class RichEditorView: EditorSectionView {
     let toolApproval = ToolApprovalSection()
 
     let shadowContainer = UIView()
+    /// An opaque fill under the card's surface, so nothing scrolling behind
+    /// the card tints through it. The glass (or the legacy shadow) keeps the
+    /// border and shadow. `nil` leaves the card see-through.
+    var cardFillColor: UIColor? {
+        didSet { applyShadowStyle() }
+    }
+
     let colorfulShadow = ColorfulShadowView()
     private var glassEffectView: UIVisualEffectView?
     let dropContainer = DropView()
@@ -345,6 +353,7 @@ class RichEditorView: EditorSectionView {
             to: shadowContainer,
             colorfulShadow: colorfulShadow,
             glassEffectView: glassEffectView,
+            cardFill: cardFillColor,
         )
     }
 

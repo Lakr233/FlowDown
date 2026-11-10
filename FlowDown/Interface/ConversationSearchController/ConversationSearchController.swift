@@ -41,7 +41,7 @@ import UIKit
         }
     }
 #else
-    class ConversationSearchController: UINavigationController {
+    class ConversationSearchController: FadeBarNavigationController {
         init(callback: @escaping SearchCallback) {
             super.init(rootViewController: SearchContentController(callback: callback))
             navigationBar.prefersLargeTitles = false
