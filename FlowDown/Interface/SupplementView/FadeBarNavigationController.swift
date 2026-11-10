@@ -85,8 +85,15 @@ class FadeBarNavigationController: UINavigationController {
             let bar = navigationBar.frame
             let buttonBottom = navigationBar.isHidden ? view.safeAreaInsets.top : bar.maxY
             // On iPhone Duo the bar can stand vertically along a side edge;
-            // nothing stands over the top of the page then.
-            let isVerticalBar = bar.height > bar.width
+            // nothing stands over the top of the page then. The bar's frame
+            // does not always say so, the trait does (read here, in layout,
+            // so a change of edge lays the controller out again).
+            var isVerticalBar = bar.height > bar.width
+            #if !targetEnvironment(macCatalyst)
+                if #available(iOS 27.1, *), traitCollection.verticalBarEdge != .unspecified {
+                    isVerticalBar = true
+                }
+            #endif
             topEdgeBlur.isHidden = navigationBar.isHidden || isVerticalBar
             topEdgeBlur.layoutAsBarEdge(CGRect(
                 x: 0,

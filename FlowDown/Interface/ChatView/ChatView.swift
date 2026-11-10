@@ -35,10 +35,17 @@ class ChatView: UIView {
         /// The soft edge under the title row, from the top of the screen to
         /// the bottom of the header buttons, then 14 pt and a 28 pt tail.
         let topEdgeBlur = ProgressiveBlurView()
-        /// The soft edge behind the input: from the bottom of the screen to
-        /// the input card at full strength, fading out over 42 pt above it.
+        /// The soft edge above the input: full strength at the input card's
+        /// centre line, fading out 28 pt above the card.
         let bottomEdgeBlur = ProgressiveBlurView().with {
             $0.edge = .bottom
+        }
+        /// From the input card's centre line to the bottom of the screen, the
+        /// page's own background: what scrolls there is covered, not blurred
+        /// (designer, Colo, 2026-11-10).
+        let bottomEdgeFill = UIView().with {
+            $0.backgroundColor = .background
+            $0.isUserInteractionEnabled = false
         }
     #endif
 
@@ -99,6 +106,7 @@ class ChatView: UIView {
         #if !targetEnvironment(macCatalyst)
             // Message lists go in below the bottom edge (`listAnchorView`).
             addSubview(bottomEdgeBlur)
+            addSubview(bottomEdgeFill)
         #endif
         addSubview(editorBackgroundView)
         addSubview(editor)
@@ -360,16 +368,28 @@ class ChatView: UIView {
                 height: FloatingChrome.topEdgeHeight(buttonBottom: buttonBottom),
             ))
 
-            // To the bottom of the screen, full strength up to the input card
-            // (or the tool-approval card that stands in for it), then the fade.
-            let cardTop = editor.convert(editor.shadowContainer.frame, to: self).minY
-            let edgeTop = max(0, cardTop - FloatingChrome.fadeLength)
-            bottomEdgeBlur.layoutAsBarEdge(CGRect(
+            // The input card (or the tool-approval card that stands in for
+            // it): solid page background from its centre line down, and above
+            // that a blur fading from full at the centre line to nothing
+            // `tail` above the card.
+            let card = editor.convert(editor.shadowContainer.frame, to: self)
+            let edgeTop = max(0, card.minY - FloatingChrome.tail)
+            let fillTop = max(edgeTop, card.midY)
+            bottomEdgeBlur.frame = CGRect(
                 x: 0,
                 y: edgeTop,
                 width: bounds.width,
-                height: max(0, bounds.height - edgeTop),
-            ))
+                height: fillTop - edgeTop,
+            )
+            if bottomEdgeBlur.style != FloatingChrome.fullFadeEdgeStyle {
+                bottomEdgeBlur.style = FloatingChrome.fullFadeEdgeStyle
+            }
+            bottomEdgeFill.frame = CGRect(
+                x: 0,
+                y: fillTop,
+                width: bounds.width,
+                height: max(0, bounds.height - fillTop),
+            )
         }
     #endif
 

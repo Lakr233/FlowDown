@@ -50,6 +50,15 @@ enum FloatingChrome {
         return style
     }
 
+    /// The same numbers fading over the whole height: full at the edge,
+    /// nothing at the far end. Above the input card, where the page's own
+    /// background takes over below the card's centre line.
+    static var fullFadeEdgeStyle: ProgressiveBlurStyle {
+        var style = edgeStyle(height: 0)
+        style.hold = 0
+        return style
+    }
+
     #if DEBUG
         /// Launch with `FD_FORCE_LEGACY_CHROME=1` to draw the buttons the way
         /// iOS 17–25 does on a newer system — the Team has no simulator older
