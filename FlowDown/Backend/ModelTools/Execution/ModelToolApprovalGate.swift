@@ -19,6 +19,8 @@ struct ModelToolApprovalRequest: Equatable, Sendable {
     let summary: String?
     /// The arguments as the tool reads them, as JSON.
     let arguments: String
+    /// The order to show the arguments in; any other comes after, by name.
+    var argumentOrder: [String] = []
 }
 
 enum ModelToolApprovalDecision: Sendable, Equatable {

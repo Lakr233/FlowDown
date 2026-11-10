@@ -39,7 +39,7 @@ final class MTQueryCalendarTool: ConfigurableModelTool, @unchecked Sendable {
                         "description": "Include all-day events.",
                     ],
                 ],
-                "required": ["start_date", "include_all_day_events", "end_date"],
+                "required": ["start_date", "end_date", "include_all_day_events"],
                 "additionalProperties": false,
             ],
             strict: true,

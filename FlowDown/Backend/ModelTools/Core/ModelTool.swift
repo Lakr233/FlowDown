@@ -46,6 +46,11 @@ protocol ModelTool: AnyObject, Sendable {
     /// such as the event it adds. Nil shows the arguments by name.
     func approvalSummary(for arguments: ModelToolArguments) async -> String?
 
+    /// The arguments in the order the schema declares them, for the approval
+    /// card; empty when the tool cannot tell, and the card follows the order
+    /// the model sent them in.
+    var argumentOrder: [String] { get }
+
     func execute(
         _ arguments: ModelToolArguments,
         context: ModelToolContext,
@@ -69,6 +74,21 @@ extension ModelTool {
 
     func approvalSummary(for _: ModelToolArguments) async -> String? {
         nil
+    }
+
+    /// A built-in tool's schema is strict, so its `required` lists every
+    /// parameter, written in the order they are declared. A list that leaves
+    /// one out says nothing about the order.
+    var argumentOrder: [String] {
+        guard case let .function(_, _, parameters, _) = definition,
+              case let .object(properties)? = parameters?["properties"],
+              case let .array(required)? = parameters?["required"]
+        else { return [] }
+        let keys = required.compactMap { value -> String? in
+            if case let .string(key) = value { return key }
+            return nil
+        }
+        return Set(keys) == Set(properties.keys) && keys.count == properties.count ? keys : []
     }
 }
 

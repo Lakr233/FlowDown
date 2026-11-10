@@ -48,7 +48,7 @@ struct ToolCallDetail: Equatable {
     }
 
     /// A string as itself, anything else as compact JSON.
-    private static func text(of value: Any) -> String {
+    static func text(of value: Any) -> String {
         if let string = value as? String {
             return string
         }

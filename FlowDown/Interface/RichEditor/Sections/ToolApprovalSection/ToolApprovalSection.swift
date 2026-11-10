@@ -48,8 +48,10 @@ final class ToolApprovalSection: EditorSectionView {
         sourceLabel.numberOfLines = 0
 
         var approveStyle = UIButton.Configuration.filled()
-        approveStyle.baseBackgroundColor = .label
-        approveStyle.baseForegroundColor = .systemBackground
+        approveStyle.baseBackgroundColor = .accent
+        // The accent is the same light teal in both appearances; black on it
+        // reads at about 9:1, where white would fall below 3:1.
+        approveStyle.baseForegroundColor = .black
         approveStyle.cornerStyle = .medium
         approveStyle.titleLineBreakMode = .byTruncatingTail
         approveStyle.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
@@ -121,14 +123,14 @@ final class ToolApprovalSection: EditorSectionView {
         if let summary = request.summary {
             detailViews.append(makeLabel(summary, style: .callout, color: .secondaryLabel))
         } else {
-            let detail = ToolCallDetail(arguments: request.arguments, result: "", title: request.toolName)
-            for section in detail.sections where !section.value.isEmpty {
-                if let name = section.name {
-                    let header = makeLabel(name, style: .footnote, color: .secondaryLabel)
+            let rows = ToolArgumentLabel.rows(of: request.arguments, order: request.argumentOrder, title: request.toolName)
+            for row in rows {
+                if let label = row.label {
+                    let header = makeLabel(label, style: .footnote, color: .secondaryLabel)
                     header.accessibilityTraits.insert(.header)
                     detailViews.append(header)
                 }
-                detailViews.append(makeLabel(section.value, style: .callout, color: .label))
+                detailViews.append(makeLabel(row.value, style: .callout, color: .label))
             }
         }
         detailViews.forEach { textScroll.addSubview($0) }
