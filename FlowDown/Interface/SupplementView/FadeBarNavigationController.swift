@@ -89,7 +89,11 @@ class FadeBarNavigationController: UINavigationController {
             // does not always say so, the trait does (read here, in layout,
             // so a change of edge lays the controller out again).
             var isVerticalBar = bar.height > bar.width
-            #if !targetEnvironment(macCatalyst)
+            // `verticalBarEdge` exists only in the iOS 27.1 SDK and later, so
+            // `#available` alone does not compile with older Xcode (CI runs
+            // Xcode 26). Swift 6.4.2 is Xcode 27.2's compiler; older
+            // toolchains keep the frame check alone.
+            #if !targetEnvironment(macCatalyst) && compiler(>=6.4.2)
                 if #available(iOS 27.1, *), traitCollection.verticalBarEdge != .unspecified {
                     isVerticalBar = true
                 }
