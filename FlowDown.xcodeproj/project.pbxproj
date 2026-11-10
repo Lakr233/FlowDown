@@ -1271,7 +1271,7 @@
 			repositoryURL = "https://github.com/Lakr233/ListViewKit";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 4.6.0;
+				minimumVersion = 4.6.1;
 			};
 		};
 		50E3FA072D6D7F6A000405BD /* XCRemoteSwiftPackageReference "GPTEncoder" */ = {
