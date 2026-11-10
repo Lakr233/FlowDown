@@ -388,6 +388,13 @@ extension ModelManager {
 
                     for try await chunk in sequence {
                         switch chunk {
+                        case let .reasoning(string) where string.isEmpty,
+                             let .text(string) where string.isEmpty:
+                            // Some Chat Completions providers (Ollama among them) send
+                            // `"content": ""` beside every reasoning delta. Waiting on the
+                            // other emitter for such a chunk would drain it one character
+                            // per step, pacing the whole stream to about 30 characters a second.
+                            break
                         case let .reasoning(string):
                             await textEmitter.wait()
                             await reasoningEmitter.add(string)
