@@ -4,6 +4,7 @@
 //  Origin: Figson's standalone ProgressiveBlur.swift (AirBuild chat
 //  attachment d993aa14, 2026-11-10), copied verbatim; only this origin note
 //  is added. The numbers and the math are the owner's — do not tune here.
+//  Since added: `curve` (`.linear` option for the fade; default unchanged).
 //
 //  PRIVATE API: `CABackdropLayer` and `CAFilter` (variableBlur, gaussianBlur,
 //  colorMatrix) are looked up at runtime with NSClassFromString. If either is
@@ -26,6 +27,8 @@ import UIKit
 // MARK: - Numbers
 
 struct ProgressiveBlurStyle: Equatable {
+    enum Curve: Equatable { case smootherstep, linear }
+
     /// Variable blur radius at the edge — light; the frost does the work.
     var radius: CGFloat = 1.1
     /// Fraction of the height, from the edge, held at full strength.
@@ -34,14 +37,18 @@ struct ProgressiveBlurStyle: Equatable {
     /// (system pocket is 16 pt / 0.6; this is a third of the opacity).
     var frostRadius: CGFloat = 16
     var frostOpacity: Double = 0.2
+    /// How the strength falls from the edge to the far end.
+    var curve: Curve = .smootherstep
 
     static let standard = Self()
 
-    /// Smootherstep from 1 at `edge` (through `hold`) to 0 at the far end.
+    /// Smootherstep (or a straight line, with `.linear`) from 1 at `edge`
+    /// (through `hold`) to 0 at the far end.
     /// `fraction` = 0 at the top, 1 at the bottom.
     func strength(at fraction: CGFloat, edge: VerticalEdge) -> CGFloat {
         let fromFar = edge == .top ? 1 - fraction : fraction
         let t = min(max(fromFar / max(1 - hold, 0.01), 0), 1)
+        if curve == .linear { return t }
         return t * t * t * (t * (6 * t - 15) + 10)
     }
 
