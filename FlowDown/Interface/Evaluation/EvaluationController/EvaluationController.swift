@@ -7,7 +7,7 @@
 
 import UIKit
 
-class EvaluationController: UINavigationController {
+class EvaluationController: FadeBarNavigationController {
     init(identifier: ModelManager.ModelIdentifier) {
         super.init(rootViewController: EvaluationContentController(identifier: identifier))
         modalTransitionStyle = .coverVertical

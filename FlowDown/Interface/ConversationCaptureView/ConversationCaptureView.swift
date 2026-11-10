@@ -52,6 +52,9 @@ class ConversationCaptureView: UIView {
 
         titleBar.textLabel.textColor = .label
         titleBar.setDecorativeBackgroundHidden(true)
+        // The bar has no band of its own any more; the export gives it the
+        // image's plain ground.
+        titleBar.backgroundColor = .white
         titleBar.icon.alpha = 1
         titleBar.overrideUserInterfaceStyle = .light
         titleBar.use(identifier: session.id)

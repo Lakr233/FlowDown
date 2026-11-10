@@ -16,7 +16,13 @@ extension MainController {
             make.edges.equalToSuperview()
         }
 
-        sidebarLayoutView.clipsToBounds = true
+        #if targetEnvironment(macCatalyst)
+            sidebarLayoutView.clipsToBounds = true
+        #else
+            // The conversation list runs up past the column's top inset to
+            // the top of the screen, under the sidebar's soft top edge.
+            sidebarLayoutView.clipsToBounds = false
+        #endif
         contentView.layer.cornerRadius = 12
         contentView.layer.cornerCurve = .continuous
 
@@ -67,11 +73,12 @@ extension MainController {
         }
 
         #if !targetEnvironment(macCatalyst)
-            chatView.escapeButton.actionBlock = { [weak self] in
+            chatView.escapeButton.addAction(UIAction { [weak self] _ in
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 self?.view.doWithAnimation {
                     self?.isSidebarCollapsed.toggle()
                 }
-            }
+            }, for: .touchUpInside)
         #endif
     }
 
