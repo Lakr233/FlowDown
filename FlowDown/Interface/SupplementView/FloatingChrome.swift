@@ -36,17 +36,16 @@ enum FloatingChrome {
     /// input card at the bottom.
     static let fadeLength: CGFloat = belowButtons + tail
 
-    /// The edges' numbers (designer, Colo, 2026-11-10). The vendored
-    /// `.standard` is tuned for a title in its own capsule; here the title
-    /// stands straight on the content, so the edge holds full strength from
-    /// the screen edge to the buttons (or the input card) and fades only
-    /// over the last `fadeLength`, with a stronger blur and frost.
-    static func edgeStyle(height: CGFloat) -> ProgressiveBlurStyle {
+    /// The edges' numbers (designer Colo + owner, 2026-11-10): full strength
+    /// at the screen edge, falling in a straight line to nothing at the far
+    /// end — a 4 pt blur and a light frost, no hold.
+    static func edgeStyle(height _: CGFloat) -> ProgressiveBlurStyle {
         var style = ProgressiveBlurStyle.standard
-        style.radius = 6
+        style.radius = 4
         style.frostRadius = 16
-        style.frostOpacity = 0.45
-        style.hold = height > fadeLength ? (height - fadeLength) / height : 0
+        style.frostOpacity = 0.2
+        style.hold = 0
+        style.curve = .linear
         return style
     }
 
