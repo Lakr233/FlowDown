@@ -50,7 +50,7 @@ struct TraceStep: Hashable {
         case let .webSearch(_, status, isInterrupted):
             let line = status.statusText(isInterrupted: isInterrupted)
             title = String(localized: "Web Search")
-            subtitle = Self.excerpt((status.queries + [line]).joined(separator: " · "))
+            subtitle = Self.excerpt(status.traceLine(isInterrupted: isInterrupted))
             body = nil
             search = status.queries.isEmpty && status.searchResults.isEmpty
                 ? nil

@@ -111,8 +111,8 @@ extension MessageListView {
         }
 
         /// Every step in order, empty unless `showsSteps`: a thought's text;
-        /// a call's reason, else its name; a search's progress, or how it
-        /// went.
+        /// a call's reason, else its name; a search's queries and its
+        /// progress, or how it went, as its trace shows them.
         var inlineSteps: [InlineStep] {
             guard showsSteps else { return [] }
             return steps.map { step in
@@ -122,7 +122,7 @@ extension MessageListView {
                 case let .tool(messageID, status):
                     InlineStep(id: step.id, kind: .call, text: Self.line(reasons[messageID] ?? status.name))
                 case let .webSearch(_, status, isInterrupted):
-                    InlineStep(id: step.id, kind: .call, text: Self.line(status.statusText(isInterrupted: isInterrupted)))
+                    InlineStep(id: step.id, kind: .call, text: Self.line(status.traceLine(isInterrupted: isInterrupted)))
                 }
             }
         }
@@ -177,6 +177,12 @@ extension Message.WebSearchStatus {
     /// Neither done (1) nor failed (negative).
     var isUnfinished: Bool {
         (0 ..< 1).contains(proccessProgress)
+    }
+
+    /// Its queries, then what it is at or how it ended, as its trace and a
+    /// summary that lists its steps show it: "query · Browsed 6 website(s)".
+    func traceLine(isInterrupted: Bool = false) -> String {
+        (queries + [statusText(isInterrupted: isInterrupted)]).joined(separator: " · ")
     }
 
     /// What the search is at, or how it ended, on one line.

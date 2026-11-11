@@ -55,7 +55,7 @@ struct MessageListInlineStepsTests {
             #expect(summary.isRunning)
             #expect(summary.title == String(localized: "Executing tool…"))
             #expect(summary.banner == nil)
-            let searched = String(localized: "Browsed \(2) website(s)")
+            let searched = "launch date · " + String(localized: "Browsed \(2) website(s)")
             #expect(summary.inlineSteps.map(\.kind) == [.thought, .call, .call, .thought, .call])
             #expect(summary.inlineSteps.map(\.text) == [
                 "Look the dates up first.\n\nThen compare.",
@@ -85,6 +85,88 @@ struct MessageListInlineStepsTests {
             let summary = try #require(summaries(in: listView.entries(from: session.messages, isExecuting: false, showsSteps: true)).first)
             #expect(summary.inlineSteps.map(\.text) == ["Fetch Page"])
         }
+    }
+
+    @Test
+    func `a search is listed by its queries and how it went as its trace shows it`() {
+        func line(_ status: Message.WebSearchStatus, isInterrupted: Bool = false) -> String? {
+            var summary = MessageListView.ActivitySummary(startingWith: "s")
+            summary.steps = [.webSearch("s", status: status, isInterrupted: isInterrupted)]
+            summary.showsSteps = true
+            let text = summary.inlineSteps.first?.text
+            // The line the trace sheet shows under "Web Search".
+            let trace = TraceStep(summary.steps[0], arguments: nil).subtitle
+            #expect(text == trace)
+            #expect(summary.inlineSteps.first?.kind == .call)
+            return text
+        }
+
+        var browsed = Message.WebSearchStatus()
+        browsed.queries = ["科技新闻 2026年11月11日 今日头条"]
+        browsed.numberOfResults = 6
+        browsed.proccessProgress = 1
+        #expect(line(browsed) == "科技新闻 2026年11月11日 今日头条 · " + String(localized: "Browsed \(6) website(s)"))
+
+        var running = Message.WebSearchStatus()
+        running.queries = ["科技新闻 今日", "AI news"]
+        running.currentQuery = 1
+        running.proccessProgress = 0
+        let current = "AI news"
+        #expect(line(running) == "科技新闻 今日 · AI news · " + String(localized: "Browsing \(current)") + "...")
+
+        var interrupted = Message.WebSearchStatus()
+        interrupted.queries = ["weather"]
+        #expect(line(interrupted, isInterrupted: true) == "weather · " + String(localized: "Tool call was interrupted."))
+
+        var failed = Message.WebSearchStatus()
+        failed.queries = ["weather"]
+        failed.proccessProgress = -1
+        #expect(line(failed) == "weather · " + String(localized: "Failed to search"))
+
+        // Before it has a query, only how it is going.
+        #expect(line(Message.WebSearchStatus()) == String(localized: "Determining search keywords") + "...")
+
+        // A query over several lines still lists on one.
+        var multiline = browsed
+        multiline.queries = ["first\n  second"]
+        #expect(line(multiline) == "first second · " + String(localized: "Browsed \(6) website(s)"))
+    }
+
+    @Test
+    @MainActor
+    func `a search with a long query is one line cut at its end`() throws {
+        var status = Message.WebSearchStatus()
+        status.queries = [String(repeating: "a very long search query ", count: 20)]
+        status.numberOfResults = 8
+        status.proccessProgress = 1
+        var summary = MessageListView.ActivitySummary(startingWith: "s")
+        summary.steps = [.webSearch("s", status: status, isInterrupted: false)]
+        summary.showsSteps = true
+
+        let theme = MessageListView().theme
+        let width: CGFloat = 300
+        let font = theme.fonts.footnote
+        let step = try #require(summary.inlineSteps.first)
+        let stepHeight = ActivityStepText.height(of: step, font: font, width: width)
+        let oneLine = ActivityStepText.height(of: "a", wraps: false, font: font, width: width)
+        #expect(stepHeight == oneLine)
+
+        let row = ActivitySummaryView(frame: .zero)
+        row.theme = theme
+        row.show(summary)
+        let height = ActivitySummaryView.height(for: summary, font: theme.fonts.body, stepFont: font, width: width)
+        row.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        row.layoutIfNeeded()
+        let labels = row.contentView.subviews
+            .filter { !($0 is ThinkingStatusLabel) }
+            .compactMap { $0 as? UILabel }
+            .filter { !$0.isHidden }
+        #expect(labels.count == 1)
+        let label = labels.first
+        #expect(label?.numberOfLines == 1)
+        #expect(label?.lineBreakMode == .byTruncatingTail)
+        #expect(label?.frame.height == oneLine)
+        #expect(label?.text?.hasPrefix("a very long search query") == true)
     }
 
     @Test
