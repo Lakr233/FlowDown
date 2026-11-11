@@ -43,12 +43,12 @@ struct PromptCacheStabilityTests {
         let evening = try await serializedBody(api, userText: "What should I pack?", date: Self.evening)
         #expect(morning != evening)
 
-        let contextStart = try #require(morning.range(of: Data(Self.finalMessageOpening.utf8))).lowerBound
+        let contextStart = try #require(morning.range(of: Data(Self.finalMessageOpening(api).utf8))).lowerBound
         let contextEnd = try #require(
             morning.range(of: Data(ConversationSystemPromptBuilder.contextSectionClosing.utf8)),
         ).upperBound
         // Every byte before the final user message matches, and so does
-        // everything after its context part (Responses sorts `instructions`
+        // everything after its context block (Responses sorts `instructions`
         // and `tools` after `input`).
         #expect(commonPrefixLength(morning, evening) > contextStart)
         #expect(commonSuffixLength(morning, evening) >= morning.count - contextEnd)
@@ -78,7 +78,7 @@ struct PromptCacheStabilityTests {
             date: Self.evening,
         )
 
-        let finalMessageStart = try #require(firstTurn.range(of: Data(Self.finalMessageOpening.utf8))).lowerBound
+        let finalMessageStart = try #require(firstTurn.range(of: Data(Self.finalMessageOpening(api).utf8))).lowerBound
         #expect(commonPrefixLength(firstTurn, secondTurn) >= finalMessageStart)
     }
 
@@ -97,16 +97,25 @@ struct PromptCacheStabilityTests {
         for variable in [Self.morning, "Proactive Memory Context", "Recent conversation context", "Web Search Mode:"] {
             #expect(!system.contains(variable))
         }
-        let finalParts = try #require(messages.last?["content"] as? [[String: Any]])
-        #expect(finalParts.count == 2)
-        #expect((finalParts[0]["text"] as? String)?.contains(Self.morning) == true)
-        #expect(finalParts[1]["text"] as? String == "What should I pack?")
+        // Text-only user messages, the final one included, go out as plain
+        // strings: context block, blank line, the user's text.
+        let userMessages = messages.filter { $0["role"] as? String == "user" }
+        #expect(userMessages.count == 2)
+        #expect(userMessages.allSatisfy { $0["content"] is String })
+        let finalText = try #require(messages.last?["content"] as? String)
+        #expect(finalText.hasPrefix(ConversationSystemPromptBuilder.contextSectionOpening + "\n"))
+        #expect(finalText.contains(Self.morning))
+        #expect(finalText.hasSuffix(ConversationSystemPromptBuilder.contextSectionClosing + "\n\nWhat should I pack?"))
 
         let responses = try jsonObject(
             await serializedBody(.responses, userText: "What should I pack?", date: Self.morning),
         )
         let instructions = try #require(responses["instructions"] as? String)
         #expect(instructions == system)
+        let input = try #require(responses["input"] as? [[String: Any]])
+        let finalContent = try #require(input.last?["content"] as? [[String: Any]])
+        #expect(finalContent.count == 1)
+        #expect(finalContent.first?["text"] as? String == finalText)
     }
 
     @Test(arguments: API.allCases)
@@ -149,10 +158,16 @@ private extension PromptCacheStabilityTests {
     static let evening = "2026-11-12 Thursday (Asia/Shanghai, GMT+08:00)"
     static let storedPrompt = "You are a helpful assistant. Chat was created at 2026-11-11 09:41 Wednesday GMT+08:00."
 
-    /// How a final user message carrying context starts once encoded with
-    /// sorted keys, in both APIs.
-    static let finalMessageOpening = "{\"content\":[{\"text\":\""
-        + ConversationSystemPromptBuilder.contextSectionOpening
+    /// How the final user message, carrying context, starts once encoded
+    /// with sorted keys: a plain string for Chat Completions, a single
+    /// `input_text` part for Responses.
+    static func finalMessageOpening(_ api: API) -> String {
+        let opening = switch api {
+        case .completions: "{\"content\":\""
+        case .responses: "{\"content\":[{\"text\":\""
+        }
+        return opening + ConversationSystemPromptBuilder.contextSectionOpening
+    }
 
     static var history: [ChatRequestBody.Message] { [
         .system(content: .text(storedPrompt)),

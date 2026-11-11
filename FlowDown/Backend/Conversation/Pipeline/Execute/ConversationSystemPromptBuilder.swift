@@ -18,15 +18,16 @@ import Foundation
 ///    leading system messages, ahead of the history.
 /// 2. Variable: runtime info (model name, day-precision date, locale),
 ///    proactive memory, recent conversations and the web search mode. They
-///    travel as a `<context>` text part leading the current user message,
-///    which is never stored, so the history replays byte-identical next turn.
+///    travel as a `<context>` block leading the current user message's
+///    text, which is never stored, so the history replays byte-identical
+///    next turn.
 ///
 /// Apple Intelligence rebuilds its session for every request and folds all
 /// system messages into its instructions, so it gets the variable parts as
 /// system messages instead (``ContextPlacement/systemMessages``).
 enum ConversationSystemPromptBuilder {
     enum ContextPlacement {
-        /// Leading text part of the final user message.
+        /// Leading block of the final user message's text.
         case finalUserMessage
         /// Separate system messages after the fixed ones.
         case systemMessages
@@ -155,13 +156,15 @@ enum ConversationSystemPromptBuilder {
             systemMessages += contextBlocks.map { .system(content: .text($0)) }
             userMessage = .user(content: .text(input.userText))
         case .finalUserMessage:
+            // Attachments travel as their own messages before this one, so
+            // the final message is text only. A single string keeps it
+            // acceptable to servers that reject array content for text.
             if contextBlocks.isEmpty {
                 userMessage = .user(content: .text(input.userText))
             } else {
-                userMessage = .user(content: .parts([
-                    .text(contextSection(contextBlocks)),
-                    .text(input.userText),
-                ]))
+                userMessage = .user(content: .text(
+                    contextSection(contextBlocks) + "\n\n" + input.userText,
+                ))
             }
         }
 

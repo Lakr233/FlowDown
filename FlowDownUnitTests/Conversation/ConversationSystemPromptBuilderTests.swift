@@ -377,11 +377,12 @@ struct ConversationSystemPromptBuilderTests {
     #expect(messages[2].plainUserText == "earlier question")
     #expect(systemTexts(in: messages).count == 2)
 
-    // Variable: one delimited context part leading the final user message.
-    let parts = try #require(messages.last?.userTextParts)
-    #expect(parts.count == 2)
-    #expect(parts[1] == "final user message")
-    let context = parts[0]
+    // Variable: one delimited context block leading the final user message,
+    // sent as a single string, then a blank line and the user's text.
+    let finalText = try #require(messages.last?.userStringContent)
+    #expect(finalText.hasSuffix(ConversationSystemPromptBuilder.contextSectionClosing + "\n\nfinal user message"))
+    #expect(messages.last?.plainUserText == "final user message")
+    let context = try #require(contextText(in: messages))
     #expect(context.hasPrefix(ConversationSystemPromptBuilder.contextSectionOpening + "\n"))
     #expect(context.hasSuffix("\n" + ConversationSystemPromptBuilder.contextSectionClosing))
     let runtime = try #require(context.range(of: "runtime info for test-model"))
@@ -537,10 +538,9 @@ struct ConversationSystemPromptBuilderTests {
     messages.compactMap(\.systemText)
   }
 
-  /// The context part leading the final user message, nil when it has none.
+  /// The context block leading the final user message, nil when it has none.
   private func contextText(in messages: [ChatRequestBody.Message]) -> String? {
-    guard let parts = messages.last?.userTextParts, parts.count > 1 else { return nil }
-    return parts.first
+    messages.last?.userTextSplit.context
   }
 
   /// Everything the builder adds as prompt text: system messages and the
@@ -592,25 +592,27 @@ extension ChatRequestBody.Message {
     }
   }
 
-  /// The text the user typed: the whole text, or the last text part.
+  /// The text the user typed, without any leading context block.
   fileprivate var plainUserText: String? {
-    userTextParts?.last
+    userTextSplit.text
   }
 
-  fileprivate var userTextParts: [String]? {
-    switch self {
-    case .user(let content, _):
-      switch content {
-      case .text(let text):
-        return [text]
-      case .parts(let parts):
-        return parts.compactMap { part in
-          if case .text(let text) = part { return text }
-          return nil
-        }
-      }
-    default:
-      return nil
-    }
+  /// The whole content of a user message sent as a single string.
+  fileprivate var userStringContent: String? {
+    if case .user(.text(let text), _) = self { return text }
+    return nil
+  }
+
+  /// A user string split into its leading `<context>` block and the text
+  /// after the blank line that follows it.
+  fileprivate var userTextSplit: (context: String?, text: String?) {
+    guard let text = userStringContent else { return (nil, nil) }
+    let opening = ConversationSystemPromptBuilder.contextSectionOpening
+    let closing = ConversationSystemPromptBuilder.contextSectionClosing + "\n\n"
+    guard text.hasPrefix(opening), let end = text.range(of: closing) else { return (nil, text) }
+    return (
+      String(text[..<end.lowerBound]) + ConversationSystemPromptBuilder.contextSectionClosing,
+      String(text[end.upperBound...])
+    )
   }
 }
