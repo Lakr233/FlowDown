@@ -141,10 +141,21 @@ class Sidebar: UIView {
                 }
             }
 
+            // The column sits inset from the screen's sides; the edge spans
+            // the whole width so no unblurred strip shows beside it (the
+            // part to the right lies under the chat card).
+            var leading: CGFloat = 0
+            var trailing: CGFloat = 0
+            if let window {
+                let frameInWindow = convert(bounds, to: window)
+                leading = max(0, frameInWindow.minX)
+                trailing = max(0, window.bounds.width - frameInWindow.maxX)
+            }
+
             topEdgeBlur.layoutAsBarEdge(CGRect(
-                x: 0,
+                x: -leading,
                 y: -overshoot,
-                width: bounds.width,
+                width: leading + bounds.width + trailing,
                 height: FloatingChrome.topEdgeHeight(buttonBottom: overshoot + buttonBottom),
             ))
         }
