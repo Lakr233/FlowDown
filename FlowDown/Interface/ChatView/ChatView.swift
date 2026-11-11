@@ -328,6 +328,14 @@ class ChatView: UIView {
         editor.use(identifier: conversation)
         title.use(identifier: conversation)
 
+        // Conversations left on the default name (from before titles fell back
+        // to the first message) take it on when opened. Deferred: the write
+        // republishes the conversation list while this view is mid-switch.
+        let openedSession = sessionManager.session(for: conversation)
+        DispatchQueue.main.async {
+            openedSession.applyFallbackTitleIfNeeded()
+        }
+
         let isExecuting = sessionManager.isSessionExecuting(conversation)
         editor.setProcessingMode(isExecuting)
         updateCurrentMessageListInsets()

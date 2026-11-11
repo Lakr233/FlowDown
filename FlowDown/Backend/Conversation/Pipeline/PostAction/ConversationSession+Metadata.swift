@@ -79,20 +79,6 @@ enum ConversationMetadataToolCall {
         return normalized
     }
 
-    /// The title used when none could be generated: the text on one line,
-    /// cut to the title limit with an ellipsis. Nil for blank text.
-    static func fallbackTitle(from text: String) -> String? {
-        let collapsed = text
-            .split(whereSeparator: \.isWhitespace)
-            .joined(separator: " ")
-        guard !collapsed.isEmpty else { return nil }
-        guard collapsed.count > titleLengthLimit else { return collapsed }
-        let cut = collapsed
-            .prefix(titleLengthLimit - 1)
-            .trimmingCharacters(in: .whitespaces)
-        return cut + "…"
-    }
-
     static func normalizedIcon(_ icon: String?) -> String? {
         guard let icon else { return nil }
 
@@ -109,15 +95,18 @@ enum ConversationMetadataToolCall {
 }
 
 extension ConversationManager {
-    /// Writes generated metadata onto the stored conversation. Automatic renames
-    /// also clear `shouldAutoRename` so a generated title is only ever chosen once,
-    /// and are dropped when the user renamed the conversation while they ran.
+    /// Writes generated metadata onto the stored conversation and clears
+    /// `shouldAutoRename`: the conversation now has a title of its own, which
+    /// later turns and the first-message fallback leave alone. Automatic runs
+    /// are dropped when auto-rename was turned off while they ran (the user
+    /// renamed the conversation); Generate New Title is the user's own request
+    /// and always applies.
     func applyMetadata(
         _ metadata: ConversationMetadata,
         to identifier: Conversation.ID,
-        disablingAutoRename: Bool,
+        isAutomatic: Bool,
     ) {
-        if disablingAutoRename, conversation(identifier: identifier)?.shouldAutoRename == false {
+        if isAutomatic, conversation(identifier: identifier)?.shouldAutoRename == false {
             return
         }
         editConversation(identifier: identifier) {
@@ -128,9 +117,7 @@ extension ConversationManager {
                 let iconData = icon.textToImage(size: 128)?.pngData() ?? .init()
                 $0.update(\.icon, to: iconData)
             }
-            if disablingAutoRename {
-                $0.update(\.shouldAutoRename, to: false)
-            }
+            $0.update(\.shouldAutoRename, to: false)
         }
     }
 }
@@ -187,22 +174,6 @@ extension ConversationSessionManager.Session {
             Logger.model.errorFile("failed to generate conversation metadata: \(error)")
             return nil
         }
-    }
-}
-
-extension ConversationSessionManager.Session {
-    /// Metadata for when generation fails or is skipped: the first text the
-    /// user wrote as the title, and no icon, so the conversation keeps the one
-    /// it has (the default bubble unless a template set one). Nil while the
-    /// user has sent only attachments.
-    func fallbackConversationMetadata() -> ConversationMetadata? {
-        let firstText = messages
-            .lazy
-            .filter { $0.role == .user && !self.isAttachmentHolder($0) }
-            .compactMap { ConversationMetadataToolCall.fallbackTitle(from: $0.document) }
-            .first
-        guard let firstText else { return nil }
-        return ConversationMetadata(title: firstText, icon: nil)
     }
 }
 
