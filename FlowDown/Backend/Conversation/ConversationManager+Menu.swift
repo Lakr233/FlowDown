@@ -194,7 +194,7 @@ extension ConversationManager {
                                 ConversationManager.shared.applyMetadata(
                                     metadata,
                                     to: conv.id,
-                                    disablingAutoRename: false,
+                                    isAutomatic: false,
                                 )
                             } else {
                                 Indicator.present(

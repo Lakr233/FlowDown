@@ -169,6 +169,9 @@ extension ConversationSession {
 
         updateAttachments(object.attachments, for: userMessage)
         save()
+        // The first message is the title until a generated one replaces it
+        // after the turn, so the sidebar never shows the default name.
+        applyFallbackTitleIfNeeded()
 
         try checkCancellation()
         await noteImagesRequiringVisualInput(
