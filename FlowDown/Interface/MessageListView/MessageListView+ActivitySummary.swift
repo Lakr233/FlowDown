@@ -38,8 +38,12 @@ extension MessageListView {
         var thinkingDuration: TimeInterval = 0
         /// The turn is still at work on this summary: nothing has come after it.
         var isRunning = false
-        /// The reason each running call gave, by its row.
+        /// The reason each running call gave, by its row; with `showsSteps`,
+        /// every call's.
         var reasons: [Message.ID: String] = [:]
+        /// Every step is listed under the title (`InlineActivityStepsSetting`),
+        /// so the newest call's banner is not shown on top of them.
+        var showsSteps = false
 
         init(startingWith messageID: Message.ID) {
             id = "Activity.\(messageID)"
@@ -78,7 +82,7 @@ extension MessageListView {
         /// search's progress, shown under a running summary. Once the calls
         /// are done the model is thinking again and it goes away.
         var banner: String? {
-            guard isRunning else { return nil }
+            guard isRunning, !showsSteps else { return nil }
             for step in steps.reversed() {
                 switch step {
                 case let .tool(messageID, status) where status.state == 0:
@@ -90,6 +94,42 @@ extension MessageListView {
                 }
             }
             return nil
+        }
+
+        /// A step as the row lists it under the title with `showsSteps`.
+        struct InlineStep: Hashable {
+            enum Kind: Hashable {
+                /// Its whole text, wrapped.
+                case thought
+                /// One line, what the banner says for it while it runs.
+                case call
+            }
+
+            let id: String
+            let kind: Kind
+            let text: String
+        }
+
+        /// Every step in order, empty unless `showsSteps`: a thought's text;
+        /// a call's reason, else its name; a search's queries and its
+        /// progress, or how it went, as its trace shows them.
+        var inlineSteps: [InlineStep] {
+            guard showsSteps else { return [] }
+            return steps.map { step in
+                switch step {
+                case let .thought(_, text):
+                    InlineStep(id: step.id, kind: .thought, text: text)
+                case let .tool(messageID, status):
+                    InlineStep(id: step.id, kind: .call, text: Self.line(reasons[messageID] ?? status.name))
+                case let .webSearch(_, status, isInterrupted):
+                    InlineStep(id: step.id, kind: .call, text: Self.line(status.traceLine(isInterrupted: isInterrupted)))
+                }
+            }
+        }
+
+        /// `text` on one line, as the banner shows it.
+        private static func line(_ text: String) -> String {
+            text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
         }
 
         /// A search still unfinished once nothing is at work on the summary
@@ -137,6 +177,12 @@ extension Message.WebSearchStatus {
     /// Neither done (1) nor failed (negative).
     var isUnfinished: Bool {
         (0 ..< 1).contains(proccessProgress)
+    }
+
+    /// Its queries, then what it is at or how it ended, as its trace and a
+    /// summary that lists its steps show it: "query · Browsed 6 website(s)".
+    func traceLine(isInterrupted: Bool = false) -> String {
+        (queries + [statusText(isInterrupted: isInterrupted)]).joined(separator: " · ")
     }
 
     /// What the search is at, or how it ended, on one line.

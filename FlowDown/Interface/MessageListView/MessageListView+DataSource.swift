@@ -98,7 +98,9 @@ extension MessageListView {
 
     /// Converts messages to entries. While the session is executing, its last
     /// assistant reply is the one still being written and is marked streaming.
-    func entries(from messages: [Message], isExecuting: Bool) -> [Entry] {
+    /// `showsSteps`: summaries list every step under their title
+    /// (`InlineActivityStepsSetting`); without it they are as they always were.
+    func entries(from messages: [Message], isExecuting: Bool, showsSteps: Bool = false) -> [Entry] {
         let streamingMessageID = isExecuting
             ? messages.last(where: { $0.role == .assistant })?.objectId
             : nil
@@ -131,6 +133,9 @@ extension MessageListView {
             if summary == nil {
                 checkAddDateHint(message.creation)
                 summary = .init(startingWith: message.objectId)
+                if showsSteps {
+                    summary?.showsSteps = true
+                }
             }
             summary?.steps.append(step)
             summary?.thinkingDuration += thinkingDuration
@@ -219,7 +224,14 @@ extension MessageListView {
 
             case .toolHint:
                 fold(.tool(message.objectId, status: message.toolStatus), of: message)
-                if message.toolStatus.state == ToolCallState.running,
+                if showsSteps {
+                    // Every call is listed with its reason, decoded once per row.
+                    if let reason = toolReasons.reason(for: message, decode: {
+                        session.decodeToolRequestFromToolMessage($0)?.args
+                    }) {
+                        summary?.reasons[message.objectId] = reason
+                    }
+                } else if message.toolStatus.state == ToolCallState.running,
                    let arguments = session.decodeToolRequestFromToolMessage(message)?.args,
                    let reason = ModelToolReason.reason(in: arguments)
                 {

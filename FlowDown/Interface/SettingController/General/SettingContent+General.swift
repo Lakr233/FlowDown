@@ -114,6 +114,9 @@ extension SettingController.SettingContent {
             ) { $0.bottom /= 2 }
             stackView.addArrangedSubview(SeparatorView())
 
+            stackView.addArrangedSubviewWithMargin(InlineActivityStepsSetting.configurableObject.createView())
+            stackView.addArrangedSubview(SeparatorView())
+
             stackView.addArrangedSubviewWithMargin(StreamAudioEffectSetting.configurableObject.createView())
             stackView.addArrangedSubview(SeparatorView())
 
