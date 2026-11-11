@@ -96,4 +96,52 @@ extension MessageListView {
             return wait
         }
     }
+
+    /// The list as the update queue last built it with listed steps, kept
+    /// to show a held-back thought's text once it may (`InlineThoughtThrottle`).
+    ///
+    /// It holds the entries built when the notification came, which are
+    /// values, never the `Message` objects they were built from: those are
+    /// still being written by the turn's stream, so a flush that read them
+    /// later would read them outside any notification. A flush shows what
+    /// the last notification brought; anything newer comes with the next.
+    /// Confined to the update queue.
+    struct InlineStepsUpstream {
+        struct Snapshot {
+            /// As built from the messages, before the throttle.
+            let entries: [Entry]
+            let scrolling: Bool
+            let isLoading: String?
+        }
+
+        private var throttle = InlineThoughtThrottle()
+        private(set) var last: Snapshot?
+
+        /// A notification's entries, captured: what to show of them, and
+        /// how long until a held-back thought may show.
+        mutating func receive(_ snapshot: Snapshot, now: TimeInterval) -> (entries: [Entry], wait: TimeInterval?) {
+            last = snapshot
+            var entries = snapshot.entries
+            let wait = throttle.apply(to: &entries, now: now)
+            return (entries, wait)
+        }
+
+        /// The last notification's entries once more, for a flush; nil when
+        /// there are none to show.
+        mutating func flush(now: TimeInterval) -> (snapshot: Snapshot, entries: [Entry], wait: TimeInterval?)? {
+            guard let last else { return nil }
+            let shown = receive(last, now: now)
+            return (last, shown.entries, shown.wait)
+        }
+
+        /// With the setting off: nothing to flush.
+        mutating func clear() {
+            last = nil
+        }
+
+        /// A new session: nothing held back from the last one.
+        mutating func reset() {
+            self = .init()
+        }
+    }
 }

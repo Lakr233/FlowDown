@@ -41,8 +41,7 @@ final class MessageListView: UIView {
                 guard let self else { return }
                 pendingThoughtFlush?.cancel()
                 pendingThoughtFlush = nil
-                lastUpstreamState = nil
-                thoughtThrottle = .init()
+                inlineStepsUpstream.reset()
             }
             let sessionID = session.id
             Publishers.CombineLatest4(
@@ -127,19 +126,8 @@ final class MessageListView: UIView {
     /// Every call's reason, for summaries that list their steps.
     let toolReasons = ToolReasonCache()
 
-    /// What the update queue last built the list from, to build it again
-    /// once a thought's held-back text may show (`InlineThoughtThrottle`).
-    private struct UpstreamState {
-        let messages: [Message]
-        let scrolling: Bool
-        let isLoading: String?
-        let isExecuting: Bool
-        let showsSteps: Bool
-    }
-
     /// Confined to the update queue, like everything below it.
-    private var thoughtThrottle = InlineThoughtThrottle()
-    private var lastUpstreamState: UpstreamState?
+    private var inlineStepsUpstream = InlineStepsUpstream()
     private var pendingThoughtFlush: DispatchWorkItem?
 
     #if DEBUG
@@ -337,20 +325,25 @@ final class MessageListView: UIView {
         #endif
         var entries = entries(from: messages, isExecuting: isExecuting, showsSteps: showsSteps)
         if showsSteps {
-            lastUpstreamState = .init(
-                messages: messages,
-                scrolling: scrolling,
-                isLoading: isLoading,
-                isExecuting: isExecuting,
-                showsSteps: showsSteps,
+            let shown = inlineStepsUpstream.receive(
+                .init(entries: entries, scrolling: scrolling, isLoading: isLoading),
+                now: CACurrentMediaTime(),
             )
-            if let wait = thoughtThrottle.apply(to: &entries, now: CACurrentMediaTime()) {
+            entries = shown.entries
+            if let wait = shown.wait {
                 scheduleThoughtFlush(after: wait)
             }
         } else {
-            lastUpstreamState = nil
+            inlineStepsUpstream.clear()
         }
+        present(entries, scrolling: scrolling, isLoading: isLoading)
+    }
 
+    /// Shows entries built on the update queue: from a notification, or a
+    /// flush of the last one.
+    private func present(_ entries: [Entry], scrolling: Bool, isLoading: String?) {
+        assert(!Thread.isMainThread)
+        var entries = entries
         for entry in entries {
             switch entry {
             case let .aiContent(_, messageRepresentation):
@@ -393,21 +386,20 @@ final class MessageListView: UIView {
         }
     }
 
-    /// Builds the list again once a held-back thought may show, so its last
-    /// text appears even when nothing else arrives after it.
+    /// Shows the last notification's entries again once a held-back thought
+    /// may show, so its last text appears even when nothing else arrives
+    /// after it. Built from the entries captured then, never from the
+    /// messages, which the stream may be writing (`InlineStepsUpstream`).
     private func scheduleThoughtFlush(after wait: TimeInterval) {
         guard pendingThoughtFlush == nil else { return }
         let item = DispatchWorkItem { [weak self] in
             guard let self else { return }
             pendingThoughtFlush = nil
-            guard let state = lastUpstreamState, state.showsSteps else { return }
-            updateFromUpstreamPublisher(
-                state.messages,
-                state.scrolling,
-                isLoading: state.isLoading,
-                isExecuting: state.isExecuting,
-                showsSteps: state.showsSteps,
-            )
+            guard let flushed = inlineStepsUpstream.flush(now: CACurrentMediaTime()) else { return }
+            if let wait = flushed.wait {
+                scheduleThoughtFlush(after: wait)
+            }
+            present(flushed.entries, scrolling: flushed.snapshot.scrolling, isLoading: flushed.snapshot.isLoading)
         }
         pendingThoughtFlush = item
         updateQueue.asyncAfter(deadline: .now() + wait, execute: item)

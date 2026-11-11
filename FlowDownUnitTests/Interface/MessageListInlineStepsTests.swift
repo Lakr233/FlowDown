@@ -271,6 +271,74 @@ struct MessageListInlineStepsTests {
     }
 
     @Test
+    @MainActor
+    func `a flush shows what the last notification brought and never reads the messages again`() async throws {
+        try await withTemporarySession { session in
+            _ = session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "Think")
+            }
+            let thought = session.appendNewMessage(role: .assistant) {
+                $0.update(\.reasoningContent, to: "First")
+            }
+            let listView = MessageListView()
+            listView.session = session
+            // A notification: the entries are built from the messages then.
+            func notification() -> MessageListView.InlineStepsUpstream.Snapshot {
+                .init(
+                    entries: listView.entries(from: session.messages, isExecuting: true, showsSteps: true),
+                    scrolling: true,
+                    isLoading: "Loading",
+                )
+            }
+            func thoughtText(_ entries: [MessageListView.Entry]) -> String? {
+                guard let summary = summaries(in: entries).first,
+                      case let .thought(_, text)? = summary.steps.first
+                else { return nil }
+                return text
+            }
+            let interval = MessageListView.InlineThoughtThrottle.interval
+            var upstream = MessageListView.InlineStepsUpstream()
+            let none = upstream.flush(now: 0) == nil
+            #expect(none)
+
+            let first = notification()
+            #expect(summaries(in: first.entries).first?.isRunning == true)
+            let shownFirst = upstream.receive(first, now: 10)
+            #expect(thoughtText(shownFirst.entries) == "First")
+
+            // Grown within the interval: held back, a flush due.
+            thought.update(\.reasoningContent, to: "First, then")
+            let held = upstream.receive(notification(), now: 10 + interval / 2)
+            #expect(thoughtText(held.entries) == "First")
+            #expect(held.wait != nil)
+
+            // The stream writes on after the notification was taken.
+            thought.update(\.reasoningContent, to: "First, then more")
+            let flush = upstream.flush(now: 10 + interval + 0.01)
+            let flushed = try #require(flush)
+            #expect(thoughtText(flushed.entries) == "First, then")
+            #expect(flushed.wait == nil)
+            #expect(flushed.snapshot.scrolling)
+            #expect(flushed.snapshot.isLoading == "Loading")
+            // The flush's entries are the captured ones, held text released.
+            #expect(flushed.entries == flushed.snapshot.entries)
+
+            // The next notification brings the rest.
+            let next = upstream.receive(notification(), now: 10 + 2 * interval + 0.02)
+            #expect(thoughtText(next.entries) == "First, then more")
+
+            // With the setting off there is nothing to flush.
+            upstream.clear()
+            let afterClear = upstream.flush(now: 20) == nil
+            #expect(afterClear)
+            _ = upstream.receive(notification(), now: 30)
+            upstream.reset()
+            let afterReset = upstream.flush(now: 31) == nil
+            #expect(afterReset)
+        }
+    }
+
+    @Test
     func `a long thought is set in pieces that stay put as it grows`() {
         let paragraph = String(repeating: "word ", count: 120) // 600 bytes
         var text = (0 ..< 6).map { "\(paragraph)\($0)" }.joined(separator: "\n\n")
