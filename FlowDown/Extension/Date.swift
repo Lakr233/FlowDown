@@ -19,4 +19,18 @@ extension Date {
     var promptTimestamp: String {
         promptTimestampFormatter.string(from: self)
     }
+
+    /// Day-precision date for per-request model context, eg:
+    /// `2026-08-19 Wednesday (Asia/Shanghai, GMT+08:00)`. It changes once a
+    /// day, so requests within a day stay byte-identical.
+    func promptDay(in timeZone: TimeZone = .current) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "yyyy-MM-dd EEEE"
+        let day = formatter.string(from: self)
+        formatter.dateFormat = "'GMT'xxx"
+        let offset = formatter.string(from: self)
+        return "\(day) (\(timeZone.identifier), \(offset))"
+    }
 }
