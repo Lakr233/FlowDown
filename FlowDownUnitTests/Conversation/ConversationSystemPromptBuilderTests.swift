@@ -430,7 +430,7 @@ struct ConversationSystemPromptBuilderTests {
     #expect(instructions.contains("runtime info for test-model"))
     #expect(instructions.contains("Proactive Memory Context"))
     #expect(instructions.contains("Web Search Mode:"))
-    #expect(AppleIntelligencePromptBuilder.makePrompt(from: messages) == "User: final user message")
+    #expect(AppleIntelligencePromptBuilder.makePrompt(from: messages) == "final user message")
   }
 
   @Test
