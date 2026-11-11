@@ -208,6 +208,7 @@ extension ConversationSession {
                 modelName: modelName,
                 modelWillExecuteTools: modelWillExecuteTools,
                 webSearchEnabled: webSearchEnabled,
+                contextPlacement: ConversationSystemPromptBuilder.contextPlacement(for: modelID),
             ),
             dependencies: .live(),
         )

@@ -5,7 +5,8 @@
 //  Created by GPT-5 Codex on 4/12/26.
 //
 
-import ChatClientKit
+@testable import ChatClientKit
+import Foundation
 import Testing
 
 @testable import FlowDown
@@ -71,17 +72,17 @@ struct ConversationSystemPromptBuilderTests {
       ),
     )
 
-    let systemTexts = systemTexts(in: messages)
+    let promptTexts = promptTexts(in: messages)
     let recorderSnapshot = await recorder.snapshot()
 
-    #expect(systemTexts.allSatisfy { !$0.contains("Proactive Memory Context") })
+    #expect(promptTexts.allSatisfy { !$0.contains("Proactive Memory Context") })
     #expect(
-      systemTexts.allSatisfy {
+      promptTexts.allSatisfy {
         !$0.contains("Recent conversation context (for background awareness only):")
       })
     #expect(recorderSnapshot.proactiveRequests == 0)
     #expect(recorderSnapshot.recentRequests == 0)
-    #expect(messages.last?.userText == "continue")
+    #expect(messages.last?.plainUserText == "continue")
   }
 
   @Test(arguments: [
@@ -120,7 +121,7 @@ struct ConversationSystemPromptBuilderTests {
 
     let recorderSnapshot = await recorder.snapshot()
 
-    #expect(systemTexts(in: messages).contains(recentConversationContext))
+    #expect(contextText(in: messages)?.contains(recentConversationContext) == true)
     #expect(recorderSnapshot.recentRequests == 1)
   }
 
@@ -177,7 +178,7 @@ struct ConversationSystemPromptBuilderTests {
       ),
     )
 
-    let hasProactiveMemory = systemTexts(in: messages).contains {
+    let hasProactiveMemory = promptTexts(in: messages).contains {
       $0.contains("Proactive Memory Context")
     }
     let recorderSnapshot = await recorder.snapshot()
@@ -208,10 +209,10 @@ struct ConversationSystemPromptBuilderTests {
     let guidance = try #require(lastSystemText(in: messages))
 
     #expect(guidance.contains("store_memory"))
-    #expect(!guidance.contains("A proactive memory summary has been provided above"))
-    #expect(systemTexts(in: messages).allSatisfy { !$0.contains("Proactive Memory Context") })
+    #expect(!guidance.contains(ConversationSystemPromptBuilder.proactiveMemoryNote))
+    #expect(promptTexts(in: messages).allSatisfy { !$0.contains("Proactive Memory Context") })
     #expect(
-      systemTexts(in: messages).allSatisfy {
+      promptTexts(in: messages).allSatisfy {
         !$0.contains("Recent conversation context (for background awareness only):")
       })
   }
@@ -299,11 +300,11 @@ struct ConversationSystemPromptBuilderTests {
     )
 
     #expect(
-      systemTexts(in: webSearchMessages).contains {
+      promptTexts(in: webSearchMessages).contains {
         $0.contains("Web Search Mode:")
       })
     #expect(
-      systemTexts(in: defaultMessages).allSatisfy {
+      promptTexts(in: defaultMessages).allSatisfy {
         !$0.contains("Web Search Mode:")
       })
   }
@@ -339,44 +340,146 @@ struct ConversationSystemPromptBuilderTests {
       ),
     )
 
-    #expect(systemTexts(in: enabledMessages).contains("runtime info for test-model"))
+    #expect(contextText(in: enabledMessages)?.contains("runtime info for test-model") == true)
     #expect(
-      systemTexts(in: disabledMessages).allSatisfy {
+      promptTexts(in: disabledMessages).allSatisfy {
         !$0.contains("runtime info for")
       })
+    // Nothing variable left: the user message goes out exactly as stored.
+    #expect(contextText(in: disabledMessages) == nil)
+    #expect(disabledMessages.last?.plainUserText == "hello")
   }
 
   @Test
-  func `user text remains the final message after all system context`() async {
-    let messages = await buildMessages(
+  func `fixed parts lead and variable context rides on the final user message`() async throws {
+    var messages: [ChatRequestBody.Message] = [
+      .system(content: .text("stored prompt")),
+      .user(content: .text("earlier question")),
+      .assistant(content: .text("earlier answer")),
+    ]
+    await ConversationSystemPromptBuilder.appendMessages(
+      to: &messages,
       input: .init(
         userText: "final user message",
         modelName: "test-model",
         modelWillExecuteTools: true,
         webSearchEnabled: true,
       ),
-      dependencies: makeDependencies(
-        proactiveMemoryScope: .recent30,
-        enabledTools: [MTRecallMemoryTool()],
-        runtimeSystemInfoProvider: { modelName in
-          "runtime info for \(modelName)"
-        },
-        proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
-        recentConversationContext:
-          "Recent conversation context (for background awareness only):\n1. previous chat",
+      dependencies: makeFullDependencies(),
+    )
+
+    // Fixed: stored prompt, then tool guidance, both ahead of the history.
+    #expect(messages.count == 5)
+    #expect(messages[0].systemText == "stored prompt")
+    let guidance = try #require(messages[1].systemText)
+    #expect(guidance.contains("store_memory"))
+    #expect(!guidance.contains(ConversationSystemPromptBuilder.proactiveMemoryNote))
+    #expect(messages[2].plainUserText == "earlier question")
+    #expect(systemTexts(in: messages).count == 2)
+
+    // Variable: one delimited context part leading the final user message.
+    let parts = try #require(messages.last?.userTextParts)
+    #expect(parts.count == 2)
+    #expect(parts[1] == "final user message")
+    let context = parts[0]
+    #expect(context.hasPrefix(ConversationSystemPromptBuilder.contextSectionOpening + "\n"))
+    #expect(context.hasSuffix("\n" + ConversationSystemPromptBuilder.contextSectionClosing))
+    let runtime = try #require(context.range(of: "runtime info for test-model"))
+    let memory = try #require(context.range(of: "Proactive Memory Context"))
+    let note = try #require(context.range(of: ConversationSystemPromptBuilder.proactiveMemoryNote))
+    let recent = try #require(context.range(of: "Recent conversation context"))
+    let search = try #require(context.range(of: "Web Search Mode:"))
+    #expect(runtime.lowerBound < memory.lowerBound)
+    #expect(memory.lowerBound < note.lowerBound)
+    #expect(note.lowerBound < recent.lowerBound)
+    #expect(recent.lowerBound < search.lowerBound)
+  }
+
+  @Test
+  func `apple intelligence placement keeps the context in its instructions`() async throws {
+    var messages: [ChatRequestBody.Message] = [.system(content: .text("stored prompt"))]
+    await ConversationSystemPromptBuilder.appendMessages(
+      to: &messages,
+      input: .init(
+        userText: "final user message",
+        modelName: "test-model",
+        modelWillExecuteTools: true,
+        webSearchEnabled: true,
+        contextPlacement: .systemMessages,
       ),
+      dependencies: makeFullDependencies(),
     )
 
     let systemTexts = systemTexts(in: messages)
+    #expect(systemTexts.count == 6)
+    #expect(systemTexts[0] == "stored prompt")
+    #expect(systemTexts[1].contains("store_memory"))
+    #expect(systemTexts[2] == "runtime info for test-model")
+    #expect(systemTexts[3].hasPrefix("Proactive Memory Context"))
+    #expect(systemTexts[3].hasSuffix(ConversationSystemPromptBuilder.proactiveMemoryNote))
+    #expect(systemTexts[4].contains("Recent conversation context"))
+    #expect(systemTexts[5].contains("Web Search Mode:"))
+    #expect(messages.last?.plainUserText == "final user message")
 
-    #expect(systemTexts.count == 5)
-    #expect(systemTexts[0] == "runtime info for test-model")
-    #expect(systemTexts[1].contains("Proactive Memory Context"))
-    #expect(systemTexts[2].contains("Recent conversation context (for background awareness only):"))
-    #expect(systemTexts[3].contains("Web Search Mode:"))
-    #expect(!systemTexts[4].isEmpty)
-    #expect(messages.dropLast().allSatisfy { $0.systemText != nil })
-    #expect(messages.last?.userText == "final user message")
+    let instructions = AppleIntelligencePromptBuilder.makeInstructions(
+      persona: "",
+      messages: messages,
+      additionalDirectives: [],
+    )
+    #expect(instructions.contains("runtime info for test-model"))
+    #expect(instructions.contains("Proactive Memory Context"))
+    #expect(instructions.contains("Web Search Mode:"))
+    #expect(AppleIntelligencePromptBuilder.makePrompt(from: messages) == "User: final user message")
+  }
+
+  @Test
+  func `only apple intelligence takes the context as system messages`() {
+    #expect(ConversationSystemPromptBuilder.contextPlacement(for: "cloud-model") == .finalUserMessage)
+    if #available(iOS 26.0, macCatalyst 26.0, *) {
+      #expect(
+        ConversationSystemPromptBuilder.contextPlacement(
+          for: AppleIntelligenceModel.shared.modelIdentifier) == .systemMessages)
+    }
+  }
+
+  @Test
+  func `runtime date has day precision with the time zone`() throws {
+    let timeZone = try #require(TimeZone(identifier: "Asia/Shanghai"))
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = timeZone
+    let morning = try #require(
+      calendar.date(from: DateComponents(year: 2026, month: 11, day: 11, hour: 0, minute: 5)))
+    let night = try #require(
+      calendar.date(from: DateComponents(year: 2026, month: 11, day: 11, hour: 23, minute: 55)))
+
+    #expect(morning.promptDay(in: timeZone) == "2026-11-11 Wednesday (Asia/Shanghai, GMT+08:00)")
+    #expect(night.promptDay(in: timeZone) == morning.promptDay(in: timeZone))
+
+    let info = ConversationSystemPromptBuilder.runtimeSystemInfo(
+      modelName: "test-model",
+      date: morning.promptDay(in: timeZone),
+    )
+    #expect(info.contains("test-model"))
+    #expect(info.contains("2026-11-11 Wednesday (Asia/Shanghai, GMT+08:00)"))
+    #expect(!info.contains("00:05"))
+  }
+
+  @Test
+  func `live dependencies follow the runtime system prompt setting`() async throws {
+    try await FlowDownTestContext.shared.ensureBootstrappedEnvironment()
+    let manager = ModelManager.shared
+    let original = manager.includeDynamicSystemInfo
+    defer { manager.includeDynamicSystemInfo = original }
+
+    manager.includeDynamicSystemInfo = false
+    #expect(ConversationSystemPromptBuilder.Dependencies.live().runtimeSystemInfoProvider == nil)
+
+    manager.includeDynamicSystemInfo = true
+    let provider = try #require(
+      ConversationSystemPromptBuilder.Dependencies.live().runtimeSystemInfoProvider)
+    let info = provider("test-model")
+    #expect(info.contains("test-model"))
+    #expect(info.contains(Date().promptDay()))
   }
 
   private func buildMessages(
@@ -417,8 +520,33 @@ struct ConversationSystemPromptBuilderTests {
     )
   }
 
+  private func makeFullDependencies() -> ConversationSystemPromptBuilder.Dependencies {
+    makeDependencies(
+      proactiveMemoryScope: .recent30,
+      enabledTools: [MTRecallMemoryTool()],
+      runtimeSystemInfoProvider: { modelName in
+        "runtime info for \(modelName)"
+      },
+      proactiveMemoryContext: "Proactive Memory Context\n1. user preference",
+      recentConversationContext:
+        "Recent conversation context (for background awareness only):\n1. previous chat",
+    )
+  }
+
   private func systemTexts(in messages: [ChatRequestBody.Message]) -> [String] {
     messages.compactMap(\.systemText)
+  }
+
+  /// The context part leading the final user message, nil when it has none.
+  private func contextText(in messages: [ChatRequestBody.Message]) -> String? {
+    guard let parts = messages.last?.userTextParts, parts.count > 1 else { return nil }
+    return parts.first
+  }
+
+  /// Everything the builder adds as prompt text: system messages and the
+  /// final user message's context part.
+  private func promptTexts(in messages: [ChatRequestBody.Message]) -> [String] {
+    systemTexts(in: messages) + [contextText(in: messages)].compactMap { $0 }
   }
 
   private func lastSystemText(in messages: [ChatRequestBody.Message]) -> String? {
@@ -464,13 +592,23 @@ extension ChatRequestBody.Message {
     }
   }
 
-  fileprivate var userText: String? {
+  /// The text the user typed: the whole text, or the last text part.
+  fileprivate var plainUserText: String? {
+    userTextParts?.last
+  }
+
+  fileprivate var userTextParts: [String]? {
     switch self {
     case .user(let content, _):
-      if case .text(let text) = content {
-        return text
+      switch content {
+      case .text(let text):
+        return [text]
+      case .parts(let parts):
+        return parts.compactMap { part in
+          if case .text(let text) = part { return text }
+          return nil
+        }
       }
-      return nil
     default:
       return nil
     }
