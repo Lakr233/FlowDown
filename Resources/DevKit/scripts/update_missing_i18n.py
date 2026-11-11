@@ -76,6 +76,22 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "허용 안 함",
         "zh-Hans": "不允许",
     },
+    "Show Thinking and Tool Calls": {
+        "de": "Denkprozess und Tool-Calls anzeigen",
+        "es": "Mostrar razonamiento y llamadas de herramienta",
+        "fr": "Afficher la réflexion et les appels d’outil",
+        "ja": "思考過程とツールコールを表示",
+        "ko": "생각 과정과 도구 호출 표시",
+        "zh-Hans": "显示思考过程和工具调用",
+    },
+    "Show the model's thinking and each tool call as text in the chat while it replies. Trace is still available.": {
+        "de": "Zeigt den Denkprozess des Modells und jeden Tool-Call während der Antwort als Text im Chat an. Der Ablauf bleibt weiterhin verfügbar.",
+        "es": "Muestra como texto en el chat el razonamiento del modelo y cada llamada de herramienta mientras responde. Proceso sigue disponible.",
+        "fr": "Affiche en texte dans la conversation la réflexion du modèle et chaque appel d’outil pendant la réponse. Le Déroulement reste accessible.",
+        "ja": "応答中、モデルの思考過程と各ツールコールを会話内にテキストで表示します。トレースも引き続き開けます。",
+        "ko": "응답하는 동안 모델의 생각 과정과 각 도구 호출을 대화에 텍스트로 표시합니다. 실행 기록도 그대로 열 수 있습니다.",
+        "zh-Hans": "回复时直接在对话里用文字显示模型的思考过程和每次工具调用。过程记录照常可以打开。",
+    },
     "Tool call denied.": {
         "de": "Tool-Call abgelehnt.",
         "es": "Llamada de herramienta denegada.",

@@ -35,18 +35,35 @@ final class MessageListView: UIView {
             alpha = 0
             sessionScopedCancellables.forEach { $0.cancel() }
             sessionScopedCancellables.removeAll()
+            // Ahead of the new session's first update on the queue: nothing
+            // held back from the last one is built again.
+            updateQueue.async { [weak self] in
+                guard let self else { return }
+                pendingThoughtFlush?.cancel()
+                pendingThoughtFlush = nil
+                lastUpstreamState = nil
+                thoughtThrottle = .init()
+            }
             let sessionID = session.id
-            Publishers.CombineLatest3(
+            Publishers.CombineLatest4(
                 session.messagesDidChange,
                 session.activityText.removeDuplicates(),
                 ConversationSessionManager.shared.executingSessionsPublisher
                     .map { $0.contains(sessionID) }
                     .removeDuplicates(),
+                // Turning it on or off rebuilds the rows on screen.
+                InlineActivityStepsSetting.publisher,
             )
             .receive(on: updateQueue)
-            .sink { [weak self] v1, v2, isExecuting in
+            .sink { [weak self] v1, v2, isExecuting, showsSteps in
                 guard let self else { return }
-                updateFromUpstreamPublisher(v1.0, v1.1, isLoading: v2, isExecuting: isExecuting)
+                updateFromUpstreamPublisher(
+                    v1.0,
+                    v1.1,
+                    isLoading: v2,
+                    isExecuting: isExecuting,
+                    showsSteps: showsSteps,
+                )
             }
             .store(in: &sessionScopedCancellables)
             session.userDidSendMessage.sink { [unowned self] _ in
@@ -107,6 +124,23 @@ final class MessageListView: UIView {
     weak var openTrace: TraceController?
     private(set) lazy var markdownSizingViewPool: MarkdownSizingViewPool = .init()
     private(set) lazy var markdownPackageCache: MarkdownPackageCache = .init()
+    /// Every call's reason, for summaries that list their steps.
+    let toolReasons = ToolReasonCache()
+
+    /// What the update queue last built the list from, to build it again
+    /// once a thought's held-back text may show (`InlineThoughtThrottle`).
+    private struct UpstreamState {
+        let messages: [Message]
+        let scrolling: Bool
+        let isLoading: String?
+        let isExecuting: Bool
+        let showsSteps: Bool
+    }
+
+    /// Confined to the update queue, like everything below it.
+    private var thoughtThrottle = InlineThoughtThrottle()
+    private var lastUpstreamState: UpstreamState?
+    private var pendingThoughtFlush: DispatchWorkItem?
 
     #if DEBUG
         // TEMP scroll-diag: remove after #2.
@@ -281,7 +315,12 @@ final class MessageListView: UIView {
 
     func updateList(animated: Bool = false) {
         let isExecuting = ConversationSessionManager.shared.isSessionExecuting(session.id)
-        listView.apply(entries(from: session.messages, isExecuting: isExecuting), animated: animated)
+        let entries = entries(
+            from: session.messages,
+            isExecuting: isExecuting,
+            showsSteps: InlineActivityStepsSetting.isEnabled(),
+        )
+        listView.apply(entries, animated: animated)
     }
 
     func updateFromUpstreamPublisher(
@@ -289,13 +328,28 @@ final class MessageListView: UIView {
         _ scrolling: Bool,
         isLoading: String?,
         isExecuting: Bool,
+        showsSteps: Bool = false,
     ) {
         assert(!Thread.isMainThread)
         #if DEBUG
             // TEMP scroll-diag: remove after #2.
             Logger.ui.infoFile("[scroll-diag] upstream scrolling=\(scrolling) auto=\(isAutoScrollingToBottom) loading=\(isLoading ?? "nil")")
         #endif
-        var entries = entries(from: messages, isExecuting: isExecuting)
+        var entries = entries(from: messages, isExecuting: isExecuting, showsSteps: showsSteps)
+        if showsSteps {
+            lastUpstreamState = .init(
+                messages: messages,
+                scrolling: scrolling,
+                isLoading: isLoading,
+                isExecuting: isExecuting,
+                showsSteps: showsSteps,
+            )
+            if let wait = thoughtThrottle.apply(to: &entries, now: CACurrentMediaTime()) {
+                scheduleThoughtFlush(after: wait)
+            }
+        } else {
+            lastUpstreamState = nil
+        }
 
         for entry in entries {
             switch entry {
@@ -337,6 +391,26 @@ final class MessageListView: UIView {
                 }
             }
         }
+    }
+
+    /// Builds the list again once a held-back thought may show, so its last
+    /// text appears even when nothing else arrives after it.
+    private func scheduleThoughtFlush(after wait: TimeInterval) {
+        guard pendingThoughtFlush == nil else { return }
+        let item = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            pendingThoughtFlush = nil
+            guard let state = lastUpstreamState, state.showsSteps else { return }
+            updateFromUpstreamPublisher(
+                state.messages,
+                state.scrolling,
+                isLoading: state.isLoading,
+                isExecuting: state.isExecuting,
+                showsSteps: state.showsSteps,
+            )
+        }
+        pendingThoughtFlush = item
+        updateQueue.asyncAfter(deadline: .now() + wait, execute: item)
     }
 }
 

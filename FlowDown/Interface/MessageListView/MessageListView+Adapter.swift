@@ -42,8 +42,13 @@ extension MessageListView {
                 .when { if case .activity = $0 { true } else { false } }
                 .height { [weak self] entry, context in
                     guard let self, case let .activity(summary) = entry else { return 0 }
-                    return rowHeight(inListWidth: context.width) { _ in
-                        ActivitySummaryView.height(for: summary, font: self.theme.fonts.body)
+                    return rowHeight(inListWidth: context.width) { containerWidth in
+                        ActivitySummaryView.height(
+                            for: summary,
+                            font: self.theme.fonts.body,
+                            stepFont: self.theme.fonts.footnote,
+                            width: containerWidth,
+                        )
                     }
                 }
                 .configure { [weak self] row, entry, _ in
