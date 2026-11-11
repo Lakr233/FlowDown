@@ -224,6 +224,7 @@ extension ModelManager {
                     apiKey: model.token,
                     additionalHeaders: model.headers,
                     additionalBodyField: additionalBodyField,
+                    dependencies: Self.remoteChatClientDependencies,
                 )
             case .responses:
                 return RemoteResponsesChatClient(
@@ -233,6 +234,7 @@ extension ModelManager {
                     apiKey: model.token,
                     additionalHeaders: model.headers,
                     additionalBodyField: additionalBodyField,
+                    dependencies: Self.remoteChatClientDependencies,
                 )
             }
         } else if let model = localModel(identifier: identifier) {
