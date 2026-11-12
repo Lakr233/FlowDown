@@ -44,7 +44,7 @@ struct ConversationReferenceFixTests {
 
     @Test
     func `multiple invented markers in one reply are all removed`() {
-        let reply = "今天是星期四[^Date_001]，天气晴[^Weather]。\n\nIt is sunny [^Weather_002] [^3]. Enjoy[^Source 1]!"
+        let reply = "今天是星期四[^Date_001]，天气晴[^Weather_1]。\n\nIt is sunny [^Weather_002] [^3]. Enjoy[^Source1]!"
 
         #expect(resolve(reply) == "今天是星期四，天气晴。\n\nIt is sunny. Enjoy!")
     }
@@ -137,6 +137,60 @@ struct ConversationReferenceFixTests {
         let expected = "The sky is blue[^note], today.\n\n[^note]: Rayleigh scattering."
 
         #expect(resolve(reply) == expected)
+    }
+
+    @Test
+    func `marker with a non latin identifier is removed`() {
+        #expect(resolve("今天是星期四[^来源1]。") == "今天是星期四。")
+        #expect(resolve("Today is Thursday [^doc1].") == "Today is Thursday.")
+    }
+
+    // MARK: - Character classes and math
+
+    @Test
+    func `regex character classes in prose are unchanged byte for byte`() {
+        let replies = [
+            "Use [^a-z] to match anything but lowercase letters.",
+            "Then [^0-9] skips the digits.",
+            "A quoted string is \"[^\"]*\" in most engines.",
+            "Split the path with [^/]+ and join it again.",
+            "Also [^a-z0-9_.-], [^\\s], [^ ], [^Source 1] and [^a b] stay.",
+            "Anything but [^abc] works, and x[^n] is the n-th power.",
+            "Words such as [^note], [^Weather], [^x], [^来源] and [^Date_] stay too.",
+        ]
+
+        for reply in replies {
+            #expect(Array(resolve(reply).utf8) == Array(reply.utf8))
+            #expect(Array(resolve(reply, links: [1: "https://example.com/1"]).utf8) == Array(reply.utf8))
+        }
+    }
+
+    @Test
+    func `marker inside inline math is kept`() {
+        let reply = "The angle is \\( x[^k1] + y[^2] \\) and the cost is $a[^2]$ here."
+
+        #expect(resolve(reply) == reply)
+    }
+
+    @Test
+    func `marker inside display math is kept`() {
+        let dollars = "Therefore:\n\n$$\nx[^2] + y[^k1]\n$$\n\nDone."
+        let brackets = "Therefore:\n\n\\[\nx[^2] + y[^k1]\n\\]\n\nDone."
+
+        #expect(resolve(dollars) == dollars)
+        #expect(resolve(brackets) == brackets)
+    }
+
+    @Test
+    func `marker next to math is still removed`() {
+        let reply = "We have \\( x^2 \\) here[^Date_001] and $y$ there [^7]."
+
+        #expect(resolve(reply) == "We have \\( x^2 \\) here and $y$ there.")
+    }
+
+    @Test
+    func `dollar amounts are not math`() {
+        #expect(resolve("It costs $5 today[^Date_001] and $6 tomorrow.") == "It costs $5 today and $6 tomorrow.")
     }
 
     // MARK: - Untouched text

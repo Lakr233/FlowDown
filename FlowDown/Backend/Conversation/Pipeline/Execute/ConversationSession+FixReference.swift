@@ -48,6 +48,7 @@ private let regex = Regex {
 }
 
 /// Any footnote style marker, e.g. `[^1]`, `[^1, 2]` or `[^Date_001]`.
+/// The label shape is checked afterwards, see `isCitationShaped(label:)`.
 /// An already linked citation `[^1](https://…)` is not a match.
 private let markerRegex = Regex {
     "[^"
@@ -170,12 +171,16 @@ extension ConversationSession {
         let map = MarkdownParser().parseBlockRange(content)
         let definedLabels = footnoteDefinitionLabels(in: content)
         var codeSpanCache: [String.Index: [Range<String.Index>]] = [:]
+        var mathSpans: [Range<String.Index>]?
 
         var removals: [Range<String.Index>] = []
         for match in matches {
             let range = match.range
             let label = String(match.output.1)
             if label.contains(where: \.isNewline) { continue }
+
+            // `[^a-z]` or `[^"]*` is a character class, not a citation
+            guard isCitationShaped(label: label) else { continue }
 
             // `[^label]:` at the beginning of a line is a footnote definition.
             if content[range.upperBound...].first == ":",
@@ -215,6 +220,18 @@ extension ConversationSession {
                 continue
             }
 
+            // `\( x[^2] \)` is math, not a citation
+            let math: [Range<String.Index>]
+            if let mathSpans {
+                math = mathSpans
+            } else {
+                math = mathRanges(in: content)
+                mathSpans = math
+            }
+            if math.contains(where: { $0.lowerBound <= range.lowerBound && $0.upperBound >= range.upperBound }) {
+                continue
+            }
+
             // take one leading space with it when the marker hangs before punctuation
             var lowerBound = range.lowerBound
             if lowerBound > content.startIndex {
@@ -243,6 +260,93 @@ extension ConversationSession {
 
     private static func normalize(label: String) -> String {
         label.trimmingCharacters(in: .whitespaces).lowercased()
+    }
+
+    /// A numeric list such as `1`, `1, 2` or `1, ^2`, or a single identifier
+    /// made of letters, digits and underscore that ends with a digit, such as
+    /// `Date_001`. A plain word such as `[^abc]` is more likely a character class.
+    private static func isCitationShaped(label: String) -> Bool {
+        if label.last?.isNumber == true,
+           label.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "_" })
+        { return true }
+
+        let parts = label.components(separatedBy: ",")
+        for (offset, part) in parts.enumerated() {
+            var digits = Substring(part.trimmingCharacters(in: .whitespaces))
+            if offset > 0, digits.first == "^" { digits = digits.dropFirst() }
+            guard !digits.isEmpty, digits.allSatisfy({ $0.isASCII && $0.isNumber }) else { return false }
+        }
+        return true
+    }
+
+    /// Ranges of LaTeX math: `\( … \)`, `\[ … \]`, `$$ … $$` and a `$ … $`
+    /// that opens and closes on the same line.
+    private static func mathRanges(in content: String) -> [Range<String.Index>] {
+        var spans: [Range<String.Index>] = []
+        let end = content.endIndex
+        var index = content.startIndex
+        while index < end {
+            let character = content[index]
+            let next = content.index(after: index)
+            guard character == "\\" || character == "$" else {
+                index = next
+                continue
+            }
+            guard next < end else { break }
+            let after = content.index(after: next)
+
+            let closingToken: String? = switch (character, content[next]) {
+            case ("\\", "("): "\\)"
+            case ("\\", "["): "\\]"
+            case ("$", "$"): "$$"
+            default: nil
+            }
+            if let closingToken {
+                if let closing = content.range(of: closingToken, options: .literal, range: after ..< end) {
+                    spans.append(index ..< closing.upperBound)
+                    index = closing.upperBound
+                } else {
+                    index = after
+                }
+                continue
+            }
+            if character == "\\" {
+                // an escaped character, `\$` does not open math
+                index = after
+                continue
+            }
+
+            // `$ … $` on one line: no space after the opening one, no space
+            // before and no digit after the closing one, so `$5 and $6` is not math
+            guard !content[next].isWhitespace else {
+                index = next
+                continue
+            }
+            var closing: String.Index?
+            var previous = content[next]
+            var cursor = after
+            while cursor < end {
+                let current = content[cursor]
+                if current.isNewline { break }
+                if current == "$", !previous.isWhitespace, previous != "\\" {
+                    let following = content.index(after: cursor)
+                    if following == end || !content[following].isNumber {
+                        closing = cursor
+                        break
+                    }
+                }
+                previous = current
+                cursor = content.index(after: cursor)
+            }
+            if let closing {
+                let upperBound = content.index(after: closing)
+                spans.append(index ..< upperBound)
+                index = upperBound
+            } else {
+                index = next
+            }
+        }
+        return spans
     }
 
     /// Whether `index` is preceded only by up to three spaces on its line.
