@@ -444,9 +444,10 @@ public extension Storage {
     }
 }
 
-// A removed row stays in the export so that importing it deletes the record from iCloud
-// instead of fetching it back. Only its identity, removed flag and dates are read again,
-// so the content is left out of the exported copy.
+// The export leaves out the content of removed Message and Attachment rows. Every other row,
+// including the removed rows of the other tables, is exported whole. A removed row itself stays,
+// with its identity, removed flag and dates, so that importing the export deletes the record
+// from iCloud instead of fetching it back.
 
 private extension Message {
     func clearContentForExport() {
