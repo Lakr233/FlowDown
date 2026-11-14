@@ -81,17 +81,20 @@ class FadeBarNavigationController: UINavigationController {
             {
                 view.insertSubview(topEdgeBlur, belowSubview: navigationBar)
             }
-            // The bar's buttons sit in its standard row; whatever the bar
-            // stacks below that row (a search field) is chrome too. The bar
-            // pads below a search field, so the field's own bottom counts.
+            // The bar's buttons sit in its standard row, at its top; whatever
+            // the bar stacks below that row (a search field) is chrome too.
+            // The bar itself runs past its lowest control (10 pt on iOS 26),
+            // so the edge is measured from the control, not the bar's frame.
             let bar = navigationBar.frame
-            var buttonBottom = navigationBar.isHidden ? view.safeAreaInsets.top : bar.maxY
-            if !navigationBar.isHidden,
-               let field = topViewController?.navigationItem.searchController?.searchBar.searchTextField,
-               field.window != nil, !field.isHidden, field.isDescendant(of: navigationBar)
-            {
-                let fieldBottom = field.convert(field.bounds, to: view).maxY
-                if fieldBottom > bar.minY { buttonBottom = min(buttonBottom, fieldBottom) }
+            var buttonBottom = view.safeAreaInsets.top
+            if !navigationBar.isHidden {
+                buttonBottom = min(bar.maxY, bar.minY + FloatingChrome.buttonSize)
+                if let field = topViewController?.navigationItem.searchController?.searchBar.searchTextField,
+                   field.window != nil, !field.isHidden, field.isDescendant(of: navigationBar)
+                {
+                    let fieldBottom = field.convert(field.bounds, to: view).maxY
+                    if fieldBottom > buttonBottom { buttonBottom = min(bar.maxY, fieldBottom) }
+                }
             }
             // On iPhone Duo the bar can stand vertically along a side edge;
             // nothing stands over the top of the page then. The bar's frame
