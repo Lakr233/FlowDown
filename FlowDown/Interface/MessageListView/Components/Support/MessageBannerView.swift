@@ -5,6 +5,9 @@ import UIKit
 /// at once under Reduce Motion.
 final class MessageBannerView: UIView {
     static let height: CGFloat = 32
+    /// How long new text takes to fade in. A listed step comes and goes in
+    /// the same time (`ActivitySummaryView`).
+    static let textFadeDuration: TimeInterval = 0.2
 
     private let label = UILabel()
     /// The grey ground and its hairlines, drawn past the view's own edges to
@@ -71,7 +74,7 @@ final class MessageBannerView: UIView {
         if animated, previous != nil, window != nil, !UIAccessibility.isReduceMotionEnabled {
             let fadeIn = CATransition()
             fadeIn.type = .fade
-            fadeIn.duration = 0.2
+            fadeIn.duration = Self.textFadeDuration
             label.layer.add(fadeIn, forKey: "content")
         }
     }

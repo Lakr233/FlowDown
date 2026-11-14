@@ -21,7 +21,8 @@ final class ChatMarkdownView: MarkdownStreamView {
     /// and shortens its own sweep to end within 0.25 s of arriving; units start
     /// 20 ms apart at most, less than the 33 ms between rebuilds, so the text
     /// is never more than `revealDuration` + 0.25 s behind the stream.
-    private static let reveal = LTXFadeInAnimator.Configuration(
+    /// A listed thought fades in the same way (`ActivityStepText`).
+    static let reveal = LTXFadeInAnimator.Configuration(
         duration: revealDuration,
         stagger: LTXStaggerSchedule(interval: 0.02, maxTotalDelay: 0.25),
         curve: .linear,
