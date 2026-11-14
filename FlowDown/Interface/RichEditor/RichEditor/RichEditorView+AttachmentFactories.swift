@@ -25,7 +25,7 @@ extension RichEditorView.Object.Attachment {
         self.init(
             type: .image,
             name: "Image",
-            previewImage: image.jpeg(.medium) ?? .init(),
+            previewImage: image.prepareAttachmentPreview() ?? .init(),
             imageRepresentation: compressed,
             textRepresentation: "",
             storageSuffix: suffix,
