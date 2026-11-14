@@ -15,9 +15,9 @@ import UIKit
 
 class FadeBarNavigationController: UINavigationController {
     #if !targetEnvironment(macCatalyst)
-        /// The soft edge under the bar: full from the top of the view to the
-        /// bottom of the bar's buttons (or its search field), then a 16 pt
-        /// tail, so a page's first line rests below it.
+        /// The soft edge under the bar: from the top of the view to 16 pt
+        /// below the bar's buttons (or its search field), so a page's first
+        /// line rests below it.
         private let topEdgeBlur = ProgressiveBlurView()
         /// Bar items this controller made, so they are not wrapped twice.
         private var floatingItems: Set<ObjectIdentifier> = []
@@ -108,7 +108,7 @@ class FadeBarNavigationController: UINavigationController {
                 }
             #endif
             topEdgeBlur.isHidden = navigationBar.isHidden || isVerticalBar
-            topEdgeBlur.layoutAsPageEdge(CGRect(
+            topEdgeBlur.layoutAsBarEdge(CGRect(
                 x: 0,
                 y: 0,
                 width: view.bounds.width,
