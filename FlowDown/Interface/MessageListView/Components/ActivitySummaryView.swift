@@ -274,7 +274,10 @@ final class ActivitySummaryView: MessageListRowView {
                 y += Self.bannerSpacing
             }
             let height = ActivityStepText.height(of: piece.text, wraps: piece.wraps, font: font, width: width)
-            let frame = CGRect(x: 0, y: y, width: width, height: height)
+            // a thought's label sits a little lower, to draw its lines
+            // where the label thoughts had before drew them
+            let drop = piece.wraps ? ActivityStepText.thoughtSetting(for: font).drop : 0
+            let frame = CGRect(x: 0, y: y + drop, width: width, height: height)
             y += height
             guard let label = pieceLabels[piece.key] else { continue }
             let slides = animated && !unplacedPieces.contains(piece.key) && label.frame.origin != frame.origin

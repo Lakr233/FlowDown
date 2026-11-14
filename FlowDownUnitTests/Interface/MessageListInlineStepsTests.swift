@@ -392,11 +392,15 @@ struct MessageListInlineStepsTests {
             #expect(labels.compactMap { $0 as? UILabel }.allSatisfy { $0.font == theme.fonts.footnote })
             #expect(labels.allSatisfy { $0.frame.minX == 0 && $0.frame.width == width })
             let header = ActivitySummaryView.headerHeight(font: theme.fonts.body)
-            #expect(labels.first?.frame.minY == header + ActivitySummaryView.bannerSpacing)
-            for (above, below) in zip(labels, labels.dropFirst()) {
-                #expect(below.frame.minY == above.frame.maxY + ActivitySummaryView.bannerSpacing)
+            // A thought's label sits a little below its place, to draw its
+            // lines where a `UILabel` there would.
+            let places = labels.map { stepPlace(of: $0, font: theme.fonts.footnote) }
+            #expect(ActivityStepText.thoughtSetting(for: theme.fonts.footnote).drop < 1)
+            #expect(abs((places.first?.minY ?? 0) - (header + ActivitySummaryView.bannerSpacing)) < 0.01)
+            for (above, below) in zip(places, places.dropFirst()) {
+                #expect(abs(below.minY - (above.maxY + ActivitySummaryView.bannerSpacing)) < 0.01)
             }
-            #expect(labels.last?.frame.maxY == height)
+            #expect(abs((places.last?.maxY ?? 0) - height) < 0.01)
 
             // Taken for a summary without steps, the row lists none.
             var plain = summary
@@ -497,7 +501,8 @@ struct MessageListInlineStepsTests {
         let call = try #require(stepLabels(in: row).first { !$0.isHidden && $0 is UILabel })
         #expect(fade(call)?.type == .fade)
         #expect(fade(call)?.duration == MessageBannerView.textFadeDuration)
-        #expect(call.frame.minY == thought.frame.maxY + ActivitySummaryView.bannerSpacing)
+        let font = row.theme.fonts.footnote
+        #expect(abs(call.frame.minY - (stepPlace(of: thought, font: font).maxY + ActivitySummaryView.bannerSpacing)) < 0.01)
 
         // Turned off, the steps fade out in the same time.
         summary.showsSteps = false
@@ -535,6 +540,14 @@ private extension MessageListInlineStepsTests {
         row.contentView.subviews
             .filter { !($0 is ThinkingStatusLabel) && ($0 is UILabel || $0 is LTXAnimatableLabel) }
             .sorted { $0.frame.minY < $1.frame.minY }
+    }
+
+    /// The place the row gave a step's label: a thought's label sits
+    /// `ActivityStepText.ThoughtSetting.drop` below it.
+    @MainActor
+    func stepPlace(of label: UIView, font: UIFont) -> CGRect {
+        let drop = label is LTXAnimatableLabel ? ActivityStepText.thoughtSetting(for: font).drop : 0
+        return label.frame.offsetBy(dx: 0, dy: -drop)
     }
 
     @MainActor

@@ -138,9 +138,61 @@ enum ActivityStepText {
         return label
     }
 
+    /// What sets a thought in its label as a `UILabel` set it, which listed
+    /// thoughts before their text faded in: the lines that far apart, the
+    /// first that far down.
+    struct ThoughtSetting: Equatable {
+        /// Added between lines: a `UILabel` gives each the font's leading,
+        /// which the thought's label leaves out.
+        let lineSpacing: CGFloat
+        /// How far below the row's place for it the label sits, so its
+        /// first line is drawn where a `UILabel` there drew it.
+        let drop: CGFloat
+    }
+
+    private static var thoughtSettings: [UIFont: ThoughtSetting] = [:]
+
+    /// Measured once a font: two lines in each label.
+    static func thoughtSetting(for font: UIFont) -> ThoughtSetting {
+        if let setting = thoughtSettings[font] {
+            return setting
+        }
+        let fitting = CGSize(width: 1024, height: CGFloat.greatestFiniteMagnitude)
+        configure(sizing, wraps: true, font: font)
+        sizing.text = "A"
+        let oneLine = sizing.sizeThatFits(fitting).height
+        sizing.text = "A\nA"
+        let twoLines = sizing.sizeThatFits(fitting).height
+        // a label centres its text in the whole points it is given
+        let baseline = font.ascender + (ceil(oneLine) - oneLine) / 2
+
+        thoughtSizing.attributedText = NSAttributedString(string: "A\nA", attributes: [.font: font])
+        thoughtSizing.frame = CGRect(origin: .zero, size: thoughtSizing.sizeThatFits(fitting))
+        thoughtSizing.layoutIfNeeded()
+        let baselines = thoughtSizing.layoutLines.map {
+            thoughtSizing.viewRect(fromLayoutRect: CGRect(origin: $0.baselineOrigin, size: .zero)).minY
+        }
+        var setting = ThoughtSetting(lineSpacing: 0, drop: 0)
+        if baselines.count == 2 {
+            let scale = max(sizing.traitCollection.displayScale, 1)
+            setting = ThoughtSetting(
+                lineSpacing: max(0, twoLines - oneLine - (baselines[1] - baselines[0])),
+                drop: (max(0, baseline - baselines[0]) * scale).rounded() / scale,
+            )
+        }
+        thoughtSettings[font] = setting
+        return setting
+    }
+
     /// A thought's text as its label draws it.
     static func thoughtText(_ text: String, font: UIFont) -> NSAttributedString {
-        NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: UIColor.secondaryLabel])
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineSpacing = thoughtSetting(for: font).lineSpacing
+        return NSAttributedString(string: text, attributes: [
+            .font: font,
+            .foregroundColor: UIColor.secondaryLabel,
+            .paragraphStyle: paragraph,
+        ])
     }
 
     /// The height its label draws `text` in at `width`: a thought's
