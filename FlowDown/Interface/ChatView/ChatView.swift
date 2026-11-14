@@ -32,9 +32,16 @@ class ChatView: UIView {
             $0.accessibilityLabel = String(localized: "Toggle Sidebar")
         }
 
-        /// The soft edge under the title row, from the top of the screen to
-        /// the bottom of the header buttons, then 14 pt and a 28 pt tail.
-        let topEdgeBlur = ProgressiveBlurView()
+        /// The soft edge under the title row before iOS 26, from the top of
+        /// the screen to the bottom of the header buttons, then 14 pt and a
+        /// 28 pt tail. Absent on iOS 26 and later, where the message list's
+        /// own scroll edge effect is the edge (`topEdgeElements`).
+        let topEdgeBlur: ProgressiveBlurView? = FloatingChrome.usesSystemScrollEdge ? nil : ProgressiveBlurView()
+        /// On iOS 26 and later: holds the sidebar button and the title bar,
+        /// so the system runs the list's soft top edge under them.
+        private let topEdgeElements: FloatingChromeElementContainer? =
+            FloatingChrome.usesSystemScrollEdge ? FloatingChromeElementContainer() : nil
+        private var topEdgeInteraction: UIInteraction?
         /// The soft edge above the input: full strength at the input card's
         /// centre line, fading out 28 pt above the card.
         let bottomEdgeBlur = ProgressiveBlurView().with {
@@ -112,15 +119,22 @@ class ChatView: UIView {
         addSubview(editor)
 
         #if !targetEnvironment(macCatalyst)
-            addSubview(topEdgeBlur)
             let escapeButtonGlass = escapeButton.wrappedInFloatingButtonSurface()
-            addSubview(escapeButtonGlass)
-        #endif
-
-        addSubview(title)
-
-        #if !targetEnvironment(macCatalyst)
-            bringSubviewToFront(escapeButtonGlass)
+            if let topEdgeElements {
+                addSubview(topEdgeElements)
+                topEdgeElements.addSubview(title)
+                topEdgeElements.addSubview(escapeButtonGlass)
+                topEdgeInteraction = FloatingChrome.addTopEdgeElements(in: topEdgeElements, over: nil)
+            } else {
+                if let topEdgeBlur {
+                    addSubview(topEdgeBlur)
+                }
+                addSubview(escapeButtonGlass)
+                addSubview(title)
+                bringSubviewToFront(escapeButtonGlass)
+            }
+        #else
+            addSubview(title)
         #endif
 
         editor.handlerColor = handlerColor
@@ -179,6 +193,11 @@ class ChatView: UIView {
                 make.top.equalTo(safeAreaLayoutGuide).inset(8)
                 make.leading.equalTo(safeAreaLayoutGuide).inset(FloatingChrome.edgeInset)
                 make.width.height.equalTo(FloatingChrome.buttonSize)
+            }
+            // The title bar's frame, with or without the container.
+            topEdgeElements?.snp.makeConstraints { make in
+                make.left.top.right.equalToSuperview()
+                make.bottom.equalTo(escapeButtonGlass).offset(8)
             }
             title.snp.makeConstraints { make in
                 make.left.top.right.equalToSuperview()
@@ -298,8 +317,11 @@ class ChatView: UIView {
 
         if let listView = currentMessageListView {
             #if !targetEnvironment(macCatalyst)
-                // The soft edges replace the system's; both together band.
-                FloatingChrome.hideSystemTopEdge(of: listView.listView)
+                // Top: the system's soft edge under the header on iOS 26
+                // and later, ours before. Bottom: always ours, so the
+                // system's is off there; both together band.
+                FloatingChrome.configureTopEdge(of: listView.listView)
+                FloatingChrome.retarget(topEdgeInteraction, to: listView.listView)
                 FloatingChrome.hideSystemBottomEdge(of: listView.listView)
             #endif
             // A list view kept attached while hidden already has its constraints.
@@ -353,8 +375,8 @@ class ChatView: UIView {
         }
     }
 
-    /// The view message lists are inserted below: under both soft edges on
-    /// iOS, under the editor's band on the Mac.
+    /// The view message lists are inserted below: under the soft edges and
+    /// the header on iOS, under the editor's band on the Mac.
     private var listAnchorView: UIView {
         #if targetEnvironment(macCatalyst)
             editorBackgroundView
@@ -365,6 +387,11 @@ class ChatView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        #if !targetEnvironment(macCatalyst)
+            // The title bar is one level down on iOS 26 and later; its frame
+            // is read below, so it is laid out first.
+            topEdgeElements?.layoutIfNeeded()
+        #endif
         updateCurrentMessageListInsets()
         #if !targetEnvironment(macCatalyst)
             layoutEdgeBlurs()
@@ -375,7 +402,7 @@ class ChatView: UIView {
         private func layoutEdgeBlurs() {
             // From the top of the screen, ignoring the safe area.
             let buttonBottom = escapeButton.convert(escapeButton.bounds, to: self).maxY
-            topEdgeBlur.layoutAsBarEdge(CGRect(
+            topEdgeBlur?.layoutAsBarEdge(CGRect(
                 x: 0,
                 y: 0,
                 width: bounds.width,
@@ -480,7 +507,8 @@ extension ChatView {
             let sep = SeparatorView()
         #else
             // No background band and no divider: the chat's top soft edge
-            // (`ChatView.topEdgeBlur`) sits under this bar instead.
+            // (the list's scroll edge effect on iOS 26 and later,
+            // `ChatView.topEdgeBlur` before) sits under this bar instead.
             let backgroundContainer = ChatHeaderGlassBackgroundContainerView()
         #endif
 

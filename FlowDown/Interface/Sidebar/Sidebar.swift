@@ -18,10 +18,16 @@ class Sidebar: UIView {
     let syncIndicator = SidebarSyncLabel()
 
     #if !targetEnvironment(macCatalyst)
-        /// The soft edge under the header: from the top of the screen to the
-        /// bottom of the new-chat button, then 14 pt and a 28 pt tail. The
-        /// list runs up under it instead of stopping hard below the header.
-        let topEdgeBlur = ProgressiveBlurView()
+        /// The soft edge under the header before iOS 26: from the top of
+        /// the screen to 16 pt below the new-chat button, clear of the first
+        /// row at rest. The list runs up under it instead of stopping hard
+        /// below the header. Absent on iOS 26 and later, where the list's
+        /// own scroll edge effect is the edge (`topEdgeElements`).
+        let topEdgeBlur: ProgressiveBlurView? = FloatingChrome.usesSystemScrollEdge ? nil : ProgressiveBlurView()
+        /// On iOS 26 and later: holds the branding label and the new-chat
+        /// button, so the system runs the list's soft top edge under them.
+        private let topEdgeElements: FloatingChromeElementContainer? =
+            FloatingChrome.usesSystemScrollEdge ? FloatingChromeElementContainer() : nil
         private var listTopConstraint: Constraint?
         private let spacing: CGFloat = 16
     #endif
@@ -34,15 +40,24 @@ class Sidebar: UIView {
         #if !targetEnvironment(macCatalyst)
             // Under the header: the list, then the soft edge over it.
             addSubview(conversationSelectionView)
-            addSubview(topEdgeBlur)
+            if let topEdgeBlur {
+                addSubview(topEdgeBlur)
+            }
         #endif
 
-        addSubview(brandingLabel)
         #if targetEnvironment(macCatalyst)
+            addSubview(brandingLabel)
             addSubview(newChatButton)
         #else
             let newChatButtonSurface = newChatButton.wrappedInFloatingButtonSurface()
-            addSubview(newChatButtonSurface)
+            if let topEdgeElements {
+                addSubview(topEdgeElements)
+                topEdgeElements.addSubview(brandingLabel)
+                topEdgeElements.addSubview(newChatButtonSurface)
+            } else {
+                addSubview(brandingLabel)
+                addSubview(newChatButtonSurface)
+            }
         #endif
         addSubview(settingButton)
         addSubview(searchButton)
@@ -66,6 +81,14 @@ class Sidebar: UIView {
                 make.right.equalToSuperview()
                 make.width.height.equalTo(FloatingChrome.buttonSize)
                 make.centerY.equalTo(brandingLabel.snp.centerY)
+            }
+            // The header row's frame, in the sidebar: the container changes
+            // nothing about where the label and the button stand.
+            topEdgeElements?.snp.makeConstraints { make in
+                make.left.top.right.equalToSuperview()
+                make.bottom.greaterThanOrEqualTo(brandingLabel)
+                make.bottom.greaterThanOrEqualTo(newChatButtonSurface)
+                make.bottom.equalTo(newChatButtonSurface).priority(.high)
             }
             brandingLabel.snp.makeConstraints { make in
                 make.left.top.equalToSuperview()
@@ -93,7 +116,10 @@ class Sidebar: UIView {
             }
         #else
             conversationSelectionView.tableView.contentInsetAdjustmentBehavior = .never
-            FloatingChrome.hideSystemTopEdge(of: conversationSelectionView.tableView)
+            FloatingChrome.configureTopEdge(of: conversationSelectionView.tableView)
+            if let topEdgeElements {
+                FloatingChrome.addTopEdgeElements(in: topEdgeElements, over: conversationSelectionView.tableView)
+            }
             conversationSelectionView.snp.makeConstraints { make in
                 listTopConstraint = make.top.equalToSuperview().constraint
                 make.bottom.equalTo(settingButton.snp.top).offset(-spacing)
@@ -117,6 +143,9 @@ class Sidebar: UIView {
     #if !targetEnvironment(macCatalyst)
         override func layoutSubviews() {
             super.layoutSubviews()
+            // The header is one level down on iOS 26 and later; its frames
+            // are read below, so it is laid out first.
+            topEdgeElements?.layoutIfNeeded()
 
             // The list and the edge reach up to the top of the screen, past
             // the column's own top inset (the column does not clip them).
@@ -141,6 +170,8 @@ class Sidebar: UIView {
                 }
             }
 
+            guard let topEdgeBlur else { return }
+
             // The column sits inset from the screen's sides; the edge spans
             // the whole width so no unblurred strip shows beside it (the
             // part to the right lies under the chat card).
@@ -156,7 +187,7 @@ class Sidebar: UIView {
                 x: -leading,
                 y: -overshoot,
                 width: leading + bounds.width + trailing,
-                height: FloatingChrome.topEdgeHeight(buttonBottom: overshoot + buttonBottom),
+                height: FloatingChrome.pageEdgeHeight(controlBottom: overshoot + buttonBottom),
             ))
         }
     #endif
