@@ -2,9 +2,10 @@
 //  FloatingChrome.swift
 //  FlowDown
 //
-//  The bars' chrome without a bar background: a soft progressive edge
-//  (`ProgressiveBlurView`) under the title row, and buttons that carry their
-//  own surface — system glass on iOS 26 and later, a material circle before.
+//  The bars' chrome without a bar background: a soft edge under the title
+//  row — the system's scroll edge effect on iOS 26 and later, our own
+//  `ProgressiveBlurView` before — and buttons that carry their own surface:
+//  system glass on iOS 26 and later, a material circle before.
 //  Designer spec v2 (Colo, header-fade-blur.md).
 //
 
@@ -93,17 +94,80 @@ enum FloatingChrome {
         #endif
     }
 
-    /// Turns off the system's own top scroll edge on iOS 26 and later: under
-    /// the progressive edge the two stack into a band again.
-    static func hideSystemTopEdge(of scrollView: UIScrollView) {
+    #if DEBUG
+        /// Launch with `FD_FORCE_LEGACY_EDGE=1` to draw the top edges the way
+        /// iOS 17–25 does (`ProgressiveBlurView`) on a newer system, for the
+        /// same reason as `forcesLegacyButtons`. Debug builds only.
+        static let forcesLegacyEdge = ProcessInfo.processInfo.environment["FD_FORCE_LEGACY_EDGE"] == "1"
+    #else
+        static let forcesLegacyEdge = false
+    #endif
+
+    /// Whether the top edge of every page is the system's soft scroll edge
+    /// effect (iOS 26 and later) or our own `ProgressiveBlurView` (before).
+    /// Never both: where this is true no top `ProgressiveBlurView` exists.
+    /// The Mac has neither a soft edge of ours nor floating chrome, and
+    /// keeps the system's defaults.
+    static var usesSystemScrollEdge: Bool {
+        #if targetEnvironment(macCatalyst)
+            return false
+        #else
+            if forcesLegacyEdge { return false }
+            if #available(iOS 26, *) { return true }
+            return false
+        #endif
+    }
+
+    /// The top edge of a scroll view under a bar or floating header: the
+    /// system's soft scroll edge effect where `usesSystemScrollEdge`, and
+    /// otherwise the system's effect off, so it does not stack with the
+    /// `ProgressiveBlurView` standing over the scroll view.
+    static func configureTopEdge(of scrollView: UIScrollView) {
         #if !targetEnvironment(macCatalyst)
             if #available(iOS 26, *) {
-                scrollView.topEdgeEffect.isHidden = true
+                if usesSystemScrollEdge {
+                    scrollView.topEdgeEffect.style = .soft
+                    scrollView.topEdgeEffect.isHidden = false
+                } else {
+                    scrollView.topEdgeEffect.isHidden = true
+                }
             }
         #endif
     }
 
-    /// The same for the bottom edge, where the input bar wears its own.
+    /// Tells the system that `container` holds controls floating over the
+    /// top of `scrollView` (a header that is not a `UINavigationBar`), so
+    /// the scroll view's top edge effect reaches down under them. The
+    /// system sizes the effect from the container's descendants; no height
+    /// is set here. Returns the interaction (to retarget its scroll view
+    /// later), or nil where `usesSystemScrollEdge` is false.
+    @discardableResult
+    static func addTopEdgeElements(in container: UIView, over scrollView: UIScrollView?) -> UIInteraction? {
+        #if !targetEnvironment(macCatalyst)
+            if usesSystemScrollEdge, #available(iOS 26, *) {
+                let interaction = UIScrollEdgeElementContainerInteraction()
+                interaction.scrollView = scrollView
+                interaction.edge = .top
+                container.addInteraction(interaction)
+                return interaction
+            }
+        #endif
+        return nil
+    }
+
+    /// Points a top edge element interaction at another scroll view.
+    static func retarget(_ interaction: UIInteraction?, to scrollView: UIScrollView?) {
+        #if !targetEnvironment(macCatalyst)
+            if #available(iOS 26, *), let interaction = interaction as? UIScrollEdgeElementContainerInteraction,
+               interaction.scrollView !== scrollView
+            {
+                interaction.scrollView = scrollView
+            }
+        #endif
+    }
+
+    /// Turns off the system's bottom scroll edge on iOS 26 and later, where
+    /// the input bar wears its own (`ChatView.bottomEdgeBlur`).
     static func hideSystemBottomEdge(of scrollView: UIScrollView) {
         #if !targetEnvironment(macCatalyst)
             if #available(iOS 26, *) {
@@ -120,6 +184,25 @@ extension ProgressiveBlurView {
         self.frame = frame
         let style = FloatingChrome.edgeStyle(height: frame.height)
         if self.style != style { self.style = style }
+    }
+}
+
+// MARK: - Edge elements
+
+/// Groups a custom header's controls (not a `UINavigationBar`) for
+/// `FloatingChrome.addTopEdgeElements(in:over:)`. It draws nothing and takes
+/// no touches itself: a touch goes to whichever control it lands on, even
+/// outside this view's bounds, or on to what lies behind — as if the
+/// controls stood in this view's superview.
+final class FloatingChromeElementContainer: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard isUserInteractionEnabled, !isHidden, alpha > 0.01 else { return nil }
+        for subview in subviews.reversed() {
+            if let hit = subview.hitTest(convert(point, to: subview), with: event) {
+                return hit
+            }
+        }
+        return nil
     }
 }
 
