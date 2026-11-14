@@ -585,9 +585,11 @@ private extension StorageExportRemovedContentTests {
         return destination
     }
 
-    /// The columns Storage writes as JSON. The export reads each row and writes it again, and the JSON
-    /// encoder does not keep the order of the keys, so these are compared by value. Every other column
-    /// is compared byte for byte.
+    /// The columns Storage writes as JSON. The export reads each row and writes it again, and JSONEncoder
+    /// writes the keys of an object in no fixed order, so the same value can be stored as different bytes:
+    /// {"queries":["query"],"id":"A"} in one database and {"id":"A","queries":["query"]} in the other.
+    /// The key order is the only difference, so these columns are compared with their keys sorted.
+    /// Every other column is compared byte for byte.
     static let jsonColumns: Set<String> = ["documentNodes", "webSearchStatus", "toolStatus"]
 
     /// The cells the query reads differently from the two databases, as "row column", and the row counts
@@ -606,16 +608,22 @@ private extension StorageExportRemovedContentTests {
 
         var result: [String] = []
         for (row, (firstRow, secondRow)) in zip(firstRows, secondRows).enumerated() {
-            for (column, name) in firstColumns.enumerated() where firstRow[column] != secondRow[column] {
-                if Self.jsonColumns.contains(name),
-                   let firstValue = try? JSONSerialization.jsonObject(with: firstRow[column], options: .fragmentsAllowed),
-                   let secondValue = try? JSONSerialization.jsonObject(with: secondRow[column], options: .fragmentsAllowed),
-                   (firstValue as? NSObject)?.isEqual(secondValue) == true
-                { continue }
-                result.append("\(row) \(name)")
+            for (column, name) in firstColumns.enumerated() {
+                let isJSON = Self.jsonColumns.contains(name)
+                let firstCell = isJSON ? try sortedKeys(firstRow[column]) : firstRow[column]
+                let secondCell = isJSON ? try sortedKeys(secondRow[column]) : secondRow[column]
+                if firstCell != secondCell {
+                    result.append("\(row) \(name)")
+                }
             }
         }
         return result
+    }
+
+    /// The same JSON with the keys of every object in order.
+    func sortedKeys(_ json: Data) throws -> Data {
+        let value = try JSONSerialization.jsonObject(with: json, options: .fragmentsAllowed)
+        return try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys, .fragmentsAllowed])
     }
 
     /// The names of the columns a query reads.
