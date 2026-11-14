@@ -105,6 +105,8 @@ extension MessageListView {
                 case call
             }
 
+            /// The same for as long as the step is listed, which a call's
+            /// `Step.id` is not: it changes with the call's status.
             let id: String
             let kind: Kind
             let text: String
@@ -120,7 +122,7 @@ extension MessageListView {
                 case let .thought(_, text):
                     InlineStep(id: step.id, kind: .thought, text: text)
                 case let .tool(messageID, status):
-                    InlineStep(id: step.id, kind: .call, text: Self.line(reasons[messageID] ?? status.name))
+                    InlineStep(id: "Tool.\(messageID)", kind: .call, text: Self.line(reasons[messageID] ?? status.name))
                 case let .webSearch(_, status, isInterrupted):
                     InlineStep(id: step.id, kind: .call, text: Self.line(status.traceLine(isInterrupted: isInterrupted)))
                 }

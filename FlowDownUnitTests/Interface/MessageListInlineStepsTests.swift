@@ -6,6 +6,7 @@
 @testable import ChatClientKit
 @preconcurrency @testable import FlowDown
 import Foundation
+import LitextAnimation
 import MarkdownView
 import Storage
 import Testing
@@ -64,7 +65,10 @@ struct MessageListInlineStepsTests {
                 "One more page.",
                 "Read the second page",
             ])
-            #expect(summary.inlineSteps.map(\.id) == summary.steps.map(\.id))
+            // A call keeps its id whatever its status; the rest keep the step's.
+            #expect(summary.inlineSteps.map(\.id) == summary.steps.map { step in
+                if case let .tool(messageID, _) = step { "Tool.\(messageID)" } else { step.id }
+            })
             #expect(summary.reasons[ids.finishedCall] == "Find the dates")
         }
     }
@@ -157,12 +161,9 @@ struct MessageListInlineStepsTests {
         let height = ActivitySummaryView.height(for: summary, font: theme.fonts.body, stepFont: font, width: width)
         row.frame = CGRect(x: 0, y: 0, width: width, height: height)
         row.layoutIfNeeded()
-        let labels = row.contentView.subviews
-            .filter { !($0 is ThinkingStatusLabel) }
-            .compactMap { $0 as? UILabel }
-            .filter { !$0.isHidden }
+        let labels = stepLabels(in: row).filter { !$0.isHidden }
         #expect(labels.count == 1)
-        let label = labels.first
+        let label = labels.first as? UILabel
         #expect(label?.numberOfLines == 1)
         #expect(label?.lineBreakMode == .byTruncatingTail)
         #expect(label?.frame.height == oneLine)
@@ -383,31 +384,147 @@ struct MessageListInlineStepsTests {
             row.frame = CGRect(x: 0, y: 0, width: listWidth, height: height + insets.bottom)
             row.layoutIfNeeded()
 
-            func stepLabels() -> [UILabel] {
-                row.contentView.subviews
-                    .filter { !($0 is ThinkingStatusLabel) }
-                    .compactMap { $0 as? UILabel }
-            }
-            let labels = stepLabels().filter { !$0.isHidden }
+            let labels = stepLabels(in: row).filter { !$0.isHidden }
             #expect(labels.count == 5)
-            #expect(labels.map { $0.text ?? "" } == summary.inlineSteps.map(\.text))
-            #expect(labels.allSatisfy { $0.font == theme.fonts.footnote })
+            #expect(labels.map(stepText) == summary.inlineSteps.map(\.text))
+            // A thought is drawn by the reply's label, a call by a plain one.
+            #expect(labels.map { $0 is LTXAnimatableLabel } == summary.inlineSteps.map { $0.kind == .thought })
+            #expect(labels.compactMap { $0 as? UILabel }.allSatisfy { $0.font == theme.fonts.footnote })
             #expect(labels.allSatisfy { $0.frame.minX == 0 && $0.frame.width == width })
             let header = ActivitySummaryView.headerHeight(font: theme.fonts.body)
-            #expect(labels.first?.frame.minY == header + ActivitySummaryView.bannerSpacing)
-            for (above, below) in zip(labels, labels.dropFirst()) {
-                #expect(below.frame.minY == above.frame.maxY + ActivitySummaryView.bannerSpacing)
+            // A thought's label sits a little below its place, to draw its
+            // lines where a `UILabel` there would.
+            let places = labels.map { stepPlace(of: $0, font: theme.fonts.footnote) }
+            #expect(ActivityStepText.thoughtSetting(for: theme.fonts.footnote).drop < 1)
+            #expect(abs((places.first?.minY ?? 0) - (header + ActivitySummaryView.bannerSpacing)) < 0.01)
+            for (above, below) in zip(places, places.dropFirst()) {
+                #expect(abs(below.minY - (above.maxY + ActivitySummaryView.bannerSpacing)) < 0.01)
             }
-            #expect(labels.last?.frame.maxY == height)
+            #expect(abs((places.last?.maxY ?? 0) - height) < 0.01)
 
             // Taken for a summary without steps, the row lists none.
             var plain = summary
             plain.showsSteps = false
             row.show(plain)
             row.layoutIfNeeded()
-            let allHidden = stepLabels().allSatisfy { $0.isHidden }
+            let allHidden = stepLabels(in: row).allSatisfy(\.isHidden)
             #expect(allHidden)
         }
+    }
+
+    // MARK: - Animation
+
+    @Test
+    func `a new step arrives whole and a thought grown into another piece continues`() {
+        typealias Step = MessageListView.ActivitySummary.InlineStep
+        let paragraph = String(repeating: "word ", count: 250) // 1250 bytes
+        let thought = Step(id: "Thought.1", kind: .thought, text: paragraph + "0")
+        let call = Step(id: "Tool.2", kind: .call, text: "Find the dates")
+        let old = ActivityStepText.pieces(of: [thought])
+        #expect(old.map(\.key) == ["Thought.1#0"])
+
+        // The thought grows past a break and a call follows it.
+        let grownThought = Step(id: "Thought.1", kind: .thought, text: paragraph + "0\n\nmore")
+        let new = ActivityStepText.pieces(of: [grownThought, call])
+        #expect(new.map(\.key) == ["Thought.1#0", "Thought.1#1", "Tool.2#0"])
+        #expect(new.map(\.wraps) == [true, true, false])
+        let change = ActivityStepText.Change(from: old, to: new)
+        #expect(change.continued == ["Thought.1#1"])
+        #expect(change.arrived == ["Tool.2#0"])
+        #expect(change.departed.isEmpty)
+
+        // Text that only grew changes no piece on screen.
+        #expect(ActivityStepText.Change(from: new, to: new) == ActivityStepText.Change(from: [], to: []))
+
+        // With the setting turned off every piece goes.
+        let gone = ActivityStepText.Change(from: new, to: [])
+        #expect(gone.departed == Set(new.map(\.key)))
+        #expect(gone.arrived.isEmpty && gone.continued.isEmpty)
+    }
+
+    @Test
+    @MainActor
+    func `steps animate only on screen in the same summary and never under Reduce Motion`() {
+        #expect(ActivitySummaryView.animatesSteps(isSameSummary: true, isInWindow: true, reduceMotion: false))
+        #expect(!ActivitySummaryView.animatesSteps(isSameSummary: true, isInWindow: true, reduceMotion: true))
+        #expect(!ActivitySummaryView.animatesSteps(isSameSummary: false, isInWindow: true, reduceMotion: false))
+        #expect(!ActivitySummaryView.animatesSteps(isSameSummary: true, isInWindow: false, reduceMotion: false))
+        // The step fade is the banner's text fade; a thought's text is the reply's.
+        #expect(MessageBannerView.textFadeDuration == 0.2)
+        #expect(ChatMarkdownView.reveal.duration == ChatMarkdownView.revealDuration)
+    }
+
+    @Test
+    @MainActor
+    func `a step coming or going fades and a growing thought fades its text in`() throws {
+        // Reduce Motion is the system's to set; with it on nothing here animates.
+        guard !UIAccessibility.isReduceMotionEnabled else { return }
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 400, height: 800))
+        window.rootViewController = UIViewController()
+        window.isHidden = false
+        defer { window.isHidden = true }
+        let container = try #require(window.rootViewController?.view)
+
+        let theme = MessageListView().theme
+        let first = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000001"))
+        let second = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000002"))
+        var summary = MessageListView.ActivitySummary(startingWith: first.uuidString)
+        summary.showsSteps = true
+        summary.isRunning = true
+        summary.steps = [.thought(first.uuidString, text: "Look the dates up")]
+
+        let row = ActivitySummaryView(frame: CGRect(x: 0, y: 0, width: 390, height: 400))
+        row.theme = theme
+        container.addSubview(row)
+        func fade(_ label: UIView) -> CATransition? {
+            label.layer.animation(forKey: kCATransition) as? CATransition
+        }
+
+        // The row taking the summary shows its steps at once.
+        row.show(summary)
+        row.layoutIfNeeded()
+        let thought = try #require(stepLabels(in: row).first { !$0.isHidden } as? LTXAnimatableLabel)
+        #expect(fade(thought) == nil)
+        #expect(!thought.isAnimating)
+
+        // More of the thought fades in as the reply's text does; a call
+        // that follows comes in whole, in the banner's time.
+        summary.steps = [
+            .thought(first.uuidString, text: "Look the dates up first.\n\nThen compare."),
+            .tool(second.uuidString, status: .init(name: "Fetch Page", state: 0, message: "")),
+        ]
+        row.show(summary)
+        row.layoutIfNeeded()
+        #expect(thought.isAnimating)
+        #expect(fade(thought) == nil)
+        #expect(stepText(thought) == "Look the dates up first.\n\nThen compare.")
+        let call = try #require(stepLabels(in: row).first { !$0.isHidden && $0 is UILabel })
+        #expect(fade(call)?.type == .fade)
+        #expect(fade(call)?.duration == MessageBannerView.textFadeDuration)
+        let font = row.theme.fonts.footnote
+        #expect(abs(call.frame.minY - (stepPlace(of: thought, font: font).maxY + ActivitySummaryView.bannerSpacing)) < 0.01)
+
+        // Turned off, the steps fade out in the same time.
+        summary.showsSteps = false
+        row.show(summary)
+        row.layoutIfNeeded()
+        let allHidden = stepLabels(in: row).allSatisfy(\.isHidden)
+        #expect(allHidden)
+        #expect(fade(thought)?.duration == MessageBannerView.textFadeDuration)
+        #expect(fade(call)?.duration == MessageBannerView.textFadeDuration)
+        #expect(!thought.isAnimating)
+
+        // Another summary taking the row shows its steps at once.
+        row.prepareForReuse()
+        var other = MessageListView.ActivitySummary(startingWith: second.uuidString)
+        other.showsSteps = true
+        other.steps = [.thought(second.uuidString, text: "One more page.")]
+        row.show(other)
+        row.layoutIfNeeded()
+        let shown = stepLabels(in: row).filter { !$0.isHidden }
+        #expect(shown.count == 1)
+        let noneFades = shown.allSatisfy { fade($0) == nil }
+        #expect(noneFades)
     }
 }
 
@@ -415,6 +532,27 @@ private extension MessageListInlineStepsTests {
     struct TurnIDs {
         let finishedCall: Message.ID
         let runningCall: Message.ID
+    }
+
+    /// The labels a row lists its steps in, top to bottom, spares included.
+    @MainActor
+    func stepLabels(in row: ActivitySummaryView) -> [UIView] {
+        row.contentView.subviews
+            .filter { !($0 is ThinkingStatusLabel) && ($0 is UILabel || $0 is LTXAnimatableLabel) }
+            .sorted { $0.frame.minY < $1.frame.minY }
+    }
+
+    /// The place the row gave a step's label: a thought's label sits
+    /// `ActivityStepText.ThoughtSetting.drop` below it.
+    @MainActor
+    func stepPlace(of label: UIView, font: UIFont) -> CGRect {
+        let drop = label is LTXAnimatableLabel ? ActivityStepText.thoughtSetting(for: font).drop : 0
+        return label.frame.offsetBy(dx: 0, dy: -drop)
+    }
+
+    @MainActor
+    func stepText(_ label: UIView) -> String {
+        (label as? UILabel)?.text ?? (label as? LTXAnimatableLabel)?.attributedText.string ?? ""
     }
 
     func summaries(in entries: [MessageListView.Entry]) -> [MessageListView.ActivitySummary] {
