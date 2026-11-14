@@ -18,9 +18,10 @@ class Sidebar: UIView {
     let syncIndicator = SidebarSyncLabel()
 
     #if !targetEnvironment(macCatalyst)
-        /// The soft edge under the header: from the top of the screen to the
-        /// bottom of the new-chat button, then 14 pt and a 28 pt tail. The
-        /// list runs up under it instead of stopping hard below the header.
+        /// The soft edge under the header: full from the top of the screen to
+        /// the bottom of the new-chat button, then a 16 pt tail, clear of the
+        /// first row at rest. The list runs up under it instead of stopping
+        /// hard below the header.
         let topEdgeBlur = ProgressiveBlurView()
         private var listTopConstraint: Constraint?
         private let spacing: CGFloat = 16
@@ -152,11 +153,11 @@ class Sidebar: UIView {
                 trailing = max(0, window.bounds.width - frameInWindow.maxX)
             }
 
-            topEdgeBlur.layoutAsBarEdge(CGRect(
+            topEdgeBlur.layoutAsPageEdge(CGRect(
                 x: -leading,
                 y: -overshoot,
                 width: leading + bounds.width + trailing,
-                height: FloatingChrome.topEdgeHeight(buttonBottom: overshoot + buttonBottom),
+                height: FloatingChrome.pageEdgeHeight(controlBottom: overshoot + buttonBottom),
             ))
         }
     #endif

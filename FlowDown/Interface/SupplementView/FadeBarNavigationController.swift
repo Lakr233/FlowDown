@@ -15,8 +15,9 @@ import UIKit
 
 class FadeBarNavigationController: UINavigationController {
     #if !targetEnvironment(macCatalyst)
-        /// The soft edge under the bar, from the top of the view to the
-        /// bottom of the bar's buttons, then 14 pt and a 28 pt tail.
+        /// The soft edge under the bar: full from the top of the view to the
+        /// bottom of the bar's buttons (or its search field), then a 16 pt
+        /// tail, so a page's first line rests below it.
         private let topEdgeBlur = ProgressiveBlurView()
         /// Bar items this controller made, so they are not wrapped twice.
         private var floatingItems: Set<ObjectIdentifier> = []
@@ -81,9 +82,17 @@ class FadeBarNavigationController: UINavigationController {
                 view.insertSubview(topEdgeBlur, belowSubview: navigationBar)
             }
             // The bar's buttons sit in its standard row; whatever the bar
-            // stacks below that row (a search field) is chrome too.
+            // stacks below that row (a search field) is chrome too. The bar
+            // pads below a search field, so the field's own bottom counts.
             let bar = navigationBar.frame
-            let buttonBottom = navigationBar.isHidden ? view.safeAreaInsets.top : bar.maxY
+            var buttonBottom = navigationBar.isHidden ? view.safeAreaInsets.top : bar.maxY
+            if !navigationBar.isHidden,
+               let field = topViewController?.navigationItem.searchController?.searchBar.searchTextField,
+               field.window != nil, !field.isHidden, field.isDescendant(of: navigationBar)
+            {
+                let fieldBottom = field.convert(field.bounds, to: view).maxY
+                if fieldBottom > bar.minY { buttonBottom = min(buttonBottom, fieldBottom) }
+            }
             // On iPhone Duo the bar can stand vertically along a side edge;
             // nothing stands over the top of the page then. The bar's frame
             // does not always say so, the trait does (read here, in layout,
@@ -99,11 +108,11 @@ class FadeBarNavigationController: UINavigationController {
                 }
             #endif
             topEdgeBlur.isHidden = navigationBar.isHidden || isVerticalBar
-            topEdgeBlur.layoutAsBarEdge(CGRect(
+            topEdgeBlur.layoutAsPageEdge(CGRect(
                 x: 0,
                 y: 0,
                 width: view.bounds.width,
-                height: FloatingChrome.topEdgeHeight(buttonBottom: buttonBottom),
+                height: FloatingChrome.pageEdgeHeight(controlBottom: buttonBottom),
             ))
             for controller in viewControllers {
                 applyFloatingChrome(to: controller)

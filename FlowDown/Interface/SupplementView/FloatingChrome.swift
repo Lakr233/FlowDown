@@ -36,6 +36,27 @@ enum FloatingChrome {
     /// input card at the bottom.
     static let fadeLength: CGFloat = belowButtons + tail
 
+    /// How far the edge of a pushed page or the sidebar runs past the bottom
+    /// of its top control (the bar's buttons, or the search field below
+    /// them): the whole of its fade. A page's first line rests about 30 pt
+    /// below the control, clear of it.
+    static let pageTail: CGFloat = 16
+
+    /// A page's top edge: from the top of the screen to the bottom of its
+    /// top control, then the `pageTail`.
+    static func pageEdgeHeight(controlBottom: CGFloat) -> CGFloat {
+        max(0, controlBottom) + pageTail
+    }
+
+    /// The same blur and frost as `edgeStyle`, held at full strength down to
+    /// the bottom of the top control and falling in a straight line over the
+    /// `pageTail`.
+    static func pageEdgeStyle(height: CGFloat) -> ProgressiveBlurStyle {
+        var style = edgeStyle(height: height)
+        style.hold = height > pageTail ? (height - pageTail) / height : 0
+        return style
+    }
+
     /// The edges' numbers (designer Colo + owner, 2026-11-10): full strength
     /// at the screen edge, falling in a straight line to nothing at the far
     /// end — a 4 pt blur and a light frost, no hold.
@@ -106,6 +127,15 @@ extension ProgressiveBlurView {
     func layoutAsBarEdge(_ frame: CGRect) {
         self.frame = frame
         let style = FloatingChrome.edgeStyle(height: frame.height)
+        if self.style != style { self.style = style }
+    }
+
+    /// Places the edge of a pushed page or the sidebar: `frame` ends
+    /// `FloatingChrome.pageTail` below the page's top control, and only that
+    /// tail fades.
+    func layoutAsPageEdge(_ frame: CGRect) {
+        self.frame = frame
+        let style = FloatingChrome.pageEdgeStyle(height: frame.height)
         if self.style != style { self.style = style }
     }
 }
