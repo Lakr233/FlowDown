@@ -316,8 +316,10 @@ public extension Storage {
                     let cons: [Conversation] = try db.getObjects(fromTable: Conversation.tableName)
                     try expdb.insert(cons, intoTable: Conversation.tableName)
                     let msgs: [Message] = try db.getObjects(fromTable: Message.tableName)
+                    msgs.filter(\.removed).forEach { $0.clearContentForExport() }
                     try expdb.insert(msgs, intoTable: Message.tableName)
                     let atts: [Attachment] = try db.getObjects(fromTable: Attachment.tableName)
+                    atts.filter(\.removed).forEach { $0.clearContentForExport() }
                     try expdb.insert(atts, intoTable: Attachment.tableName)
                     let mems: [Memory] = try db.getObjects(fromTable: Memory.tableName)
                     try expdb.insert(mems, intoTable: Memory.tableName)
@@ -439,5 +441,30 @@ public extension Storage {
                 completeHandler(.failure(error))
             }
         }
+    }
+}
+
+// The export leaves out the content of removed Message and Attachment rows. Every other row,
+// including the removed rows of the other tables, is exported whole. A removed row itself stays,
+// with its identity, removed flag and dates, so that importing the export deletes the record
+// from iCloud instead of fetching it back.
+
+private extension Message {
+    func clearContentForExport() {
+        document = ""
+        documentNodes = []
+        reasoningContent = ""
+        webSearchStatus = .init()
+        toolStatus = .init()
+        metadata = nil
+    }
+}
+
+private extension Attachment {
+    func clearContentForExport() {
+        data = .init()
+        previewImageData = .init()
+        imageRepresentation = .init()
+        representedDocument = ""
     }
 }

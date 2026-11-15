@@ -31,6 +31,27 @@ extension UIImage {
 }
 
 extension UIImage {
+    /// Longest side of an attachment preview in pixels: the 80 pt attachment cell fills at 3x from 240.
+    static let attachmentPreviewPixelLimit: CGFloat = 480
+
+    /// A small JPEG for the attachment bar. The picture itself is kept by `prepareAttachment`.
+    func prepareAttachmentPreview() -> Data? {
+        var image = self
+        let ratio = UIImage.attachmentPreviewPixelLimit / (max(size.width, size.height) * scale)
+        if ratio < 1 {
+            if let scaled = resize(
+                withSize: CGSize(
+                    width: max(1, (size.width * ratio).rounded()),
+                    height: max(1, (size.height * ratio).rounded()),
+                ),
+                contentMode: .contentFill,
+            ) { image = scaled }
+        }
+        return image.jpeg(.medium)
+    }
+}
+
+extension UIImage {
     enum JPEGQuality: CGFloat {
         case lowest = 0
         case low = 0.25
