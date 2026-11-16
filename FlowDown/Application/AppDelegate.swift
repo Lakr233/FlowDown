@@ -71,6 +71,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         sdb.clearDeletedRecords()
+        DatabaseShrinkScheduler.install()
 
         return true
     }
