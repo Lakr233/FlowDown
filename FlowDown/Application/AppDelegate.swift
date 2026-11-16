@@ -71,6 +71,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         sdb.clearDeletedRecords()
+        DatabaseShrinkScheduler.install()
 
         if let firstSeenTicketURL = FileManager.default
             .urls(for: .documentDirectory, in: .userDomainMask)
