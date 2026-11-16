@@ -206,7 +206,16 @@ class RichEditorView: EditorSectionView {
         // A waiting call covers the sections. They keep their own heights
         // while they fade, so nothing inside them is squeezed.
         for subview in sectionSubviews {
-            let visible = subview === visualInputHint ? visualInputHint.isActive : true
+            // Sections hidden by their own state stay hidden: the quick settings
+            // collapse to zero height while the attachment menu is open, and
+            // their unclipped pills would otherwise draw over its buttons.
+            let visible = if subview === visualInputHint {
+                visualInputHint.isActive
+            } else if subview === quickSettingBar {
+                quickSettingBar.isOpen
+            } else {
+                true
+            }
             subview.alpha = presentingApproval || !visible ? 0 : 1
             subview.isUserInteractionEnabled = !presentingApproval
             subview.accessibilityElementsHidden = presentingApproval
