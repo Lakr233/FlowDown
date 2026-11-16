@@ -28,6 +28,9 @@ public class Storage {
     package typealias UploadQueueEnqueueHandler = () -> Void
     package var uploadQueueEnqueueHandler: UploadQueueEnqueueHandler?
 
+    /// Keeps a shrink of the database file apart from an export and an import.
+    let maintenanceGate = MaintenanceGate()
+
     private let existsDatabaseFile: Bool
     private let migrations: [DBMigration]
     private static var _deviceId: String?
@@ -204,7 +207,8 @@ private extension Storage {
 
 public extension Storage {
     /// 清理无效数据
-    func clearDeletedRecords() {
+    @discardableResult
+    func clearDeletedRecords() -> Task<Void, Never> {
         Task.detached(priority: .utility) { [weak self] in
             guard let self else { return }
 
@@ -281,6 +285,8 @@ public extension Storage {
                                     && UploadQueue.Properties.failCount >= UploadQueue.maxFailCount)),
                     )
 
+                    // The removed messages and attachments that stay for now give up their content.
+                    try self.clearRemovedContent(modifiedAfter: deleteAt, handle: $0)
                 })
 
                 let elapsed = Date.now.timeIntervalSince(nowDate) * 1000.0
@@ -295,6 +301,9 @@ public extension Storage {
     /// 导出数据库
     /// - Returns: 导出结果
     func exportDatabase() -> Result<URL, Error> {
+        maintenanceGate.beginBlocking()
+        defer { maintenanceGate.endBlocking() }
+
         let exportDir = FileManager.default
             .temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
@@ -353,6 +362,10 @@ public extension Storage {
     ///   - url: 待导入的数据库文件路径
     ///   - completeHandler: 导入完成回调
     func importDatabase(from url: URL, completeHandler: @escaping (Result<Void, Error>) -> Void) {
+        // The files are replaced below and the app restarts after that, so no shrink starts from here
+        // on unless the import fails.
+        maintenanceGate.beginBlocking()
+
         let fm = FileManager.default
 
         let tempDir = fm
@@ -422,6 +435,7 @@ public extension Storage {
                     if fm.fileExists(atPath: backupDatabaseDir.path) {
                         try? fm.moveItem(at: backupDatabaseDir, to: databaseDir)
                     }
+                    maintenanceGate.endBlocking()
                     Task { @MainActor in
                         completeHandler(.failure(error))
                     }
@@ -437,6 +451,7 @@ public extension Storage {
             Logger.database.infoFile("clear import database tempDir \(tempDir)")
             try? fm.removeItem(at: tempDir)
 
+            maintenanceGate.endBlocking()
             Task { @MainActor in
                 completeHandler(.failure(error))
             }
