@@ -171,9 +171,12 @@ public extension Storage {
             (conv, .insert),
         ]
 
+        // Removed rows are left out: a copy of one would be uploaded as an insert
+        // that no later delete ever follows.
         let messages: [Message] = try handle.getObjects(
             fromTable: Message.tableName,
-            where: Message.Properties.conversationId == identifier,
+            where: Message.Properties.conversationId == identifier
+                && Message.Properties.removed == false,
             orderBy: [
                 Message.Properties.creation.order(.ascending),
             ],
@@ -197,7 +200,8 @@ public extension Storage {
             var oldAttachmentIdentifierSet = Set<String>()
             let attachments: [Attachment] = try handle.getObjects(
                 fromTable: Attachment.tableName,
-                where: Attachment.Properties.messageId == oldMessageId,
+                where: Attachment.Properties.messageId == oldMessageId
+                    && Attachment.Properties.removed == false,
             )
             for attachment in attachments {
                 oldAttachmentIdentifierSet.insert(attachment.id)
