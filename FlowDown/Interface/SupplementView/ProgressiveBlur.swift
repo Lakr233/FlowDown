@@ -217,12 +217,12 @@ struct BottomProgressiveBlur: View {
 
 // MARK: - Usage
 //
-// In FlowDown (since the move to the system's scroll edge effect): top edges
-// use this view only before iOS 26; on iOS 26 and later the scroll views'
-// own `topEdgeEffect` (soft) is the edge and no top `ProgressiveBlurView` is
-// created (`FloatingChrome.usesSystemScrollEdge`). The chat's bottom edge
-// above the input card uses this view on every system. The notes below are
-// the original's, for the places that still use it.
+// In FlowDown: top edges use this view on every iOS version, with the
+// scroll views' own `topEdgeEffect` turned off on iOS 26 and later so the
+// two do not stack (`FloatingChrome.configureTopEdge(of:)`). The system's
+// soft edge drew as an opaque bar with a hairline on iOS 26 and 27 devices;
+// `FloatingChrome.usesSystemScrollEdge` keeps that path, switched off. The
+// chat's bottom edge above the input card uses this view on every system.
 //
 // 1. Turn off the system's own top edge, and hide the bar background:
 //

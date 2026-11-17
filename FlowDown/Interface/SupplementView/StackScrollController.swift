@@ -12,8 +12,8 @@ open class StackScrollController: UIViewController {
     public let contentView = UIView()
     public let stackView = UIStackView()
 
-    /// On iOS 26 and later the scroll view runs up under the bar (to the top
-    /// of the view) so that what scrolls passes through the system's soft
+    /// Where `FloatingChrome.usesSystemScrollEdge` (never, today) the scroll
+    /// view runs up under the bar (to the top of the view) so that what scrolls passes through the system's soft
     /// scroll edge effect instead of being cut off at the bar's bottom. The
     /// safe area's top becomes a content inset, so the page rests exactly
     /// where it did when the scroll view started below the bar.

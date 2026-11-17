@@ -3,11 +3,9 @@
 //  FlowDown
 //
 //  A navigation controller whose bar has no background and no divider: what
-//  scrolls under it passes through a soft edge instead — the system's scroll
-//  edge effect on iOS 26 and later (the bar is a real `UINavigationBar`, so
-//  the page's scroll view draws it under the bar, and under a search field
-//  in the bar, by itself), `ProgressiveBlurView` before — and its buttons
-//  carry their own surface —
+//  scrolls under it passes through a soft edge instead — our own
+//  `ProgressiveBlurView`, with the page's system scroll edge effect turned
+//  off on iOS 26 and later — and its buttons carry their own surface —
 //  the system's glass on iOS 26 and later, `FloatingButtonSurfaceView`
 //  circles and capsules before. On the Mac it is a plain navigation
 //  controller.
@@ -18,10 +16,10 @@ import UIKit
 
 class FadeBarNavigationController: UINavigationController {
     #if !targetEnvironment(macCatalyst)
-        /// The soft edge under the bar before iOS 26: from the top of the
-        /// view to 16 pt below the bar's buttons (or its search field), so a
-        /// page's first line rests below it. Absent on iOS 26 and later,
-        /// where the system's scroll edge effect is the edge.
+        /// The soft edge under the bar: from the top of the view to 16 pt
+        /// below the bar's buttons (or its search field), so a page's first
+        /// line rests below it. Absent where
+        /// `FloatingChrome.usesSystemScrollEdge` (never, today).
         private let topEdgeBlur: ProgressiveBlurView? = FloatingChrome.usesSystemScrollEdge ? nil : ProgressiveBlurView()
         /// Bar items this controller made, so they are not wrapped twice.
         private var floatingItems: Set<ObjectIdentifier> = []
@@ -85,7 +83,7 @@ class FadeBarNavigationController: UINavigationController {
             }
         }
 
-        /// Places `topEdgeBlur` under the bar (before iOS 26 only).
+        /// Places `topEdgeBlur` under the bar.
         private func layoutTopEdgeBlur() {
             guard let topEdgeBlur else { return }
             // Pushes can reorder the controller's views; keep the edge right
@@ -157,9 +155,9 @@ class FadeBarNavigationController: UINavigationController {
 
         // MARK: System edge
 
-        /// The page's own scroll edge under the bar: the system's soft
-        /// effect on iOS 26 and later; where `topEdgeBlur` stands in for it
-        /// (the debug switch), turned off so the two do not stack.
+        /// The page's own scroll edge under the bar: turned off on iOS 26
+        /// and later so it does not stack with `topEdgeBlur` (the system's
+        /// soft effect only where `FloatingChrome.usesSystemScrollEdge`).
         private func configureSystemTopEdge(in controller: UIViewController) {
             if let scrollView = controller.contentScrollView(for: .top) {
                 FloatingChrome.configureTopEdge(of: scrollView)

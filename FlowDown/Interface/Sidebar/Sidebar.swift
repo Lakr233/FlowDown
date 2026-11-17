@@ -18,14 +18,15 @@ class Sidebar: UIView {
     let syncIndicator = SidebarSyncLabel()
 
     #if !targetEnvironment(macCatalyst)
-        /// The soft edge under the header before iOS 26: from the top of
-        /// the screen to 16 pt below the new-chat button, clear of the first
-        /// row at rest. The list runs up under it instead of stopping hard
-        /// below the header. Absent on iOS 26 and later, where the list's
-        /// own scroll edge effect is the edge (`topEdgeElements`).
+        /// The soft edge under the header: from the top of the screen to
+        /// 16 pt below the new-chat button, clear of the first row at rest. The list runs up under it instead of stopping hard
+        /// below the header. Absent where `FloatingChrome.usesSystemScrollEdge`
+        /// (never, today): there the list's own scroll edge effect is the
+        /// edge (`topEdgeElements`).
         let topEdgeBlur: ProgressiveBlurView? = FloatingChrome.usesSystemScrollEdge ? nil : ProgressiveBlurView()
-        /// On iOS 26 and later: holds the branding label and the new-chat
-        /// button, so the system runs the list's soft top edge under them.
+        /// Where `FloatingChrome.usesSystemScrollEdge`: holds the branding
+        /// label and the new-chat button, so the system runs the list's soft
+        /// top edge under them.
         private let topEdgeElements: FloatingChromeElementContainer? =
             FloatingChrome.usesSystemScrollEdge ? FloatingChromeElementContainer() : nil
         private var listTopConstraint: Constraint?
@@ -143,7 +144,7 @@ class Sidebar: UIView {
     #if !targetEnvironment(macCatalyst)
         override func layoutSubviews() {
             super.layoutSubviews()
-            // The header is one level down on iOS 26 and later; its frames
+            // The header is one level down with `topEdgeElements`; its frames
             // are read below, so it is laid out first.
             topEdgeElements?.layoutIfNeeded()
 
