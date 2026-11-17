@@ -134,6 +134,32 @@ struct ConversationExecuteOnceTests {
 
     @Test
     @MainActor
+    func toolCallExtraFields_echoInFollowUpButStayOutOfStorage() async throws {
+        let extraFields: [String: AnyCodingValue] = [
+            "extra_content": ["google": ["thought_signature": "unit-test-signature"]],
+        ]
+        let (signedCall, signedRow) = try await followUpToolCall(
+            for: ToolRequest(id: "call_signed", name: "unit_test_missing_tool", args: "{}", extraFields: extraFields),
+        )
+        #expect(signedCall.extraFields == extraFields)
+        let signedJSON = try encodedToolCall(signedCall)
+        let extraContent = signedJSON["extra_content"] as? [String: Any]
+        let google = extraContent?["google"] as? [String: Any]
+        #expect(google?["thought_signature"] as? String == "unit-test-signature")
+        // The stored tool request keeps its format; the signature is not saved.
+        #expect(signedRow == ["args", "id", "name"])
+
+        let (plainCall, plainRow) = try await followUpToolCall(
+            for: ToolRequest(id: "call_plain", name: "unit_test_missing_tool", args: "{}"),
+        )
+        #expect(plainCall.extraFields == nil)
+        let plainJSON = try encodedToolCall(plainCall)
+        #expect(Set(plainJSON.keys) == ["id", "type", "function"])
+        #expect(plainRow == ["args", "id", "name"])
+    }
+
+    @Test
+    @MainActor
     func reasoningPlaceholderFollowedByHint_replaysItsText() async throws {
         try await withTemporarySession { _, session in
             // Terminate after the tool-call chunk: the cancellation hint
@@ -293,6 +319,53 @@ private extension ConversationExecuteOnceTests {
             }
             return AssistantTurn(content: text, toolCallCount: toolCalls?.count ?? 0, reasoning: reasoning)
         }
+    }
+
+    /// Runs one round whose model emits `request`, then returns the tool
+    /// call sent in the follow-up and the keys of the stored tool request.
+    @MainActor
+    func followUpToolCall(
+        for request: ToolRequest,
+    ) async throws -> (ChatRequestBody.Message.ToolCall, Set<String>) {
+        var result: (ChatRequestBody.Message.ToolCall, Set<String>)?
+        try await withTemporarySession { _, session in
+            let service = ChatServiceSpy(streamHandler: { _ in
+                AnyAsyncSequence(AsyncStream<ChatResponseChunk> { continuation in
+                    continuation.yield(.tool(request))
+                    continuation.finish()
+                })
+            })
+            try await withChatService(service) {
+                var requestMessages: [ChatRequestBody.Message] = [.user(content: .text("Weather?"))]
+                session.currentTask = Task {}
+                defer { session.currentTask = nil }
+                _ = try await session.doMainInferenceOnce(
+                    "unit-test-model",
+                    &requestMessages,
+                    .empty,
+                    true,
+                    false,
+                )
+                guard requestMessages.count == 3,
+                      case let .assistant(_, toolCalls, _) = requestMessages[1],
+                      let call = toolCalls?.first,
+                      let toolRow = session.messages.last(where: { $0.role == .toolHint }),
+                      let metadata = toolRow.metadata,
+                      let object = try JSONSerialization.jsonObject(with: metadata) as? [String: Any],
+                      let stored = object["tool_request"] as? [String: Any]
+                else {
+                    Issue.record("expected the assistant tool-call turn and a stored tool row")
+                    return
+                }
+                result = (call, Set(stored.keys))
+            }
+        }
+        return try #require(result)
+    }
+
+    func encodedToolCall(_ call: ChatRequestBody.Message.ToolCall) throws -> [String: Any] {
+        let data = try JSONEncoder().encode(call)
+        return try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
 
     @MainActor

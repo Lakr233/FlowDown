@@ -184,8 +184,14 @@ extension ConversationSession {
         requestMessages.append(
             .assistant(
                 content: trimmedDocument.isEmpty ? nil : .text(message.document),
+                // Provider fields on each call (Gemini's thought signature)
+                // go back unchanged; they live only in this in-flight loop.
                 toolCalls: pendingToolCalls.map {
-                    .init(id: $0.id, function: .init(name: $0.name, arguments: $0.args))
+                    .init(
+                        id: $0.id,
+                        function: .init(name: $0.name, arguments: $0.args),
+                        extraFields: $0.extraFields,
+                    )
                 },
                 reasoning: trimmedReasoning.isEmpty ? nil : trimmedReasoning,
             ),
