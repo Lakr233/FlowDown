@@ -3,9 +3,9 @@
 //  FlowDown
 //
 //  The bars' chrome without a bar background: a soft edge under the title
-//  row — the system's scroll edge effect on iOS 26 and later, our own
-//  `ProgressiveBlurView` before — and buttons that carry their own surface:
-//  system glass on iOS 26 and later, a material circle before.
+//  row — our own `ProgressiveBlurView` on every iOS version — and buttons
+//  that carry their own surface: system glass on iOS 26 and later, a
+//  material circle before.
 //  Designer spec v2 (Colo, header-fade-blur.md).
 //
 
@@ -94,34 +94,25 @@ enum FloatingChrome {
         #endif
     }
 
-    #if DEBUG
-        /// Launch with `FD_FORCE_LEGACY_EDGE=1` to draw the top edges the way
-        /// iOS 17–25 does (`ProgressiveBlurView`) on a newer system, for the
-        /// same reason as `forcesLegacyButtons`. Debug builds only.
-        static let forcesLegacyEdge = ProcessInfo.processInfo.environment["FD_FORCE_LEGACY_EDGE"] == "1"
-    #else
-        static let forcesLegacyEdge = false
-    #endif
-
     /// Whether the top edge of every page is the system's soft scroll edge
-    /// effect (iOS 26 and later) or our own `ProgressiveBlurView` (before).
-    /// Never both: where this is true no top `ProgressiveBlurView` exists.
-    /// The Mac has neither a soft edge of ours nor floating chrome, and
-    /// keeps the system's defaults.
+    /// effect or our own `ProgressiveBlurView`. Never both: where this is
+    /// true no top `ProgressiveBlurView` exists, and where it is false the
+    /// system's top edge effect is turned off (`configureTopEdge(of:)`).
+    ///
+    /// Always false: on iOS 26 and 27 devices the system's soft edge draws
+    /// as an opaque bar with a hairline under our transparent bars, so every
+    /// iOS version uses our own blur, as before 5.2.11. The system path is
+    /// kept behind this switch. The Mac has neither a soft edge of ours nor
+    /// floating chrome, and keeps the system's defaults.
     static var usesSystemScrollEdge: Bool {
-        #if targetEnvironment(macCatalyst)
-            return false
-        #else
-            if forcesLegacyEdge { return false }
-            if #available(iOS 26, *) { return true }
-            return false
-        #endif
+        false
     }
 
     /// The top edge of a scroll view under a bar or floating header: the
     /// system's soft scroll edge effect where `usesSystemScrollEdge`, and
-    /// otherwise the system's effect off, so it does not stack with the
-    /// `ProgressiveBlurView` standing over the scroll view.
+    /// otherwise (always, today) the system's effect off on iOS 26 and
+    /// later, so it does not stack with the `ProgressiveBlurView` standing
+    /// over the scroll view.
     static func configureTopEdge(of scrollView: UIScrollView) {
         #if !targetEnvironment(macCatalyst)
             if #available(iOS 26, *) {

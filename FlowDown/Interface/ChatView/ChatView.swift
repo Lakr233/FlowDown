@@ -32,13 +32,15 @@ class ChatView: UIView {
             $0.accessibilityLabel = String(localized: "Toggle Sidebar")
         }
 
-        /// The soft edge under the title row before iOS 26, from the top of
-        /// the screen to the bottom of the header buttons, then 14 pt and a
-        /// 28 pt tail. Absent on iOS 26 and later, where the message list's
-        /// own scroll edge effect is the edge (`topEdgeElements`).
+        /// The soft edge under the title row, from the top of the screen to
+        /// the bottom of the header buttons, then 14 pt and a 28 pt tail.
+        /// Absent where `FloatingChrome.usesSystemScrollEdge` (never, today):
+        /// there the message list's own scroll edge effect is the edge
+        /// (`topEdgeElements`).
         let topEdgeBlur: ProgressiveBlurView? = FloatingChrome.usesSystemScrollEdge ? nil : ProgressiveBlurView()
-        /// On iOS 26 and later: holds the sidebar button and the title bar,
-        /// so the system runs the list's soft top edge under them.
+        /// Where `FloatingChrome.usesSystemScrollEdge`: holds the sidebar
+        /// button and the title bar, so the system runs the list's soft top
+        /// edge under them.
         private let topEdgeElements: FloatingChromeElementContainer? =
             FloatingChrome.usesSystemScrollEdge ? FloatingChromeElementContainer() : nil
         private var topEdgeInteraction: UIInteraction?
@@ -388,7 +390,7 @@ class ChatView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         #if !targetEnvironment(macCatalyst)
-            // The title bar is one level down on iOS 26 and later; its frame
+            // The title bar is one level down with `topEdgeElements`; its frame
             // is read below, so it is laid out first.
             topEdgeElements?.layoutIfNeeded()
         #endif
@@ -507,8 +509,7 @@ extension ChatView {
             let sep = SeparatorView()
         #else
             // No background band and no divider: the chat's top soft edge
-            // (the list's scroll edge effect on iOS 26 and later,
-            // `ChatView.topEdgeBlur` before) sits under this bar instead.
+            // (`ChatView.topEdgeBlur`) sits under this bar instead.
             let backgroundContainer = ChatHeaderGlassBackgroundContainerView()
         #endif
 
