@@ -218,7 +218,8 @@ class MemoryStore {
                 return nil
             case let .timeInterval(interval):
                 let threshold = Date().addingTimeInterval(-interval)
-                filteredMemories = memories.filter { $0.creation >= threshold }
+                // `!(a < b)` rather than `a >= b`: see Date+BackDeployedComparison.swift.
+                filteredMemories = memories.filter { !($0.creation < threshold) }
             case let .count(limit):
                 filteredMemories = Array(memories.prefix(limit))
             case .all:
