@@ -392,7 +392,8 @@ final class ConversationSession: Identifiable {
         // between the prompt and its answer; retrying them would resend
         // their placeholder text instead of the user's question.
         return messages.last {
-            $0.creation <= message.creation && $0.role == .user && !isAttachmentHolder($0)
+            // `!(b < a)` rather than `a <= b`: see Date+BackDeployedComparison.swift.
+            !(message.creation < $0.creation) && $0.role == .user && !isAttachmentHolder($0)
         }
     }
 
