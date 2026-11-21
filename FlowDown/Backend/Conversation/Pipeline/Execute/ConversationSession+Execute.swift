@@ -299,8 +299,9 @@ extension ConversationSession {
 }
 
 extension ConversationSession {
-    /// Adds one hint per server that needs sign-in, at most once per
-    /// conversation, instead of failing the turn.
+    /// Adds one hint per server that needs sign-in, each at most once per
+    /// conversation, instead of failing the turn. Other connection errors
+    /// add nothing here.
     func noteMCPAuthorizationProblems(_ errors: [Swift.Error]) async {
         let messages = errors.compactMap { error -> String? in
             guard let error = error as? MCPError else { return nil }
@@ -311,11 +312,12 @@ extension ConversationSession {
                 return nil
             }
         }
-        let fresh = messages.filter { !mcpAuthorizationHintsShown.contains($0) }
-        guard !fresh.isEmpty else { return }
-        mcpAuthorizationHintsShown.formUnion(fresh)
-        let hintMessage = appendNewMessage(role: .hint)
-        hintMessage.update(\.document, to: fresh.joined(separator: "\n"))
-        await requestUpdate()
+        var appended = false
+        for message in messages where mcpAuthorizationHintsShown.insert(message).inserted {
+            let hintMessage = appendNewMessage(role: .hint)
+            hintMessage.update(\.document, to: message)
+            appended = true
+        }
+        if appended { await requestUpdate() }
     }
 }
