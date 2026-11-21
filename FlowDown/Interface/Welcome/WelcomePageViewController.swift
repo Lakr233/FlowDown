@@ -180,20 +180,23 @@ class WelcomePageViewController: UIViewController {
         let titleLabel = UILabel()
         titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .left
+        let title = String(localized: config.title)
         let titleText = NSMutableAttributedString(
-            string: String(localized: config.title),
+            string: title,
             attributes: [
                 .font: UIFont.systemFont(ofSize: 32, weight: .bold),
                 .foregroundColor: UIColor.label,
             ],
         )
-        titleText.append(NSAttributedString(
-            string: "\n" + String(localized: config.highlightedTitle),
-            attributes: [
-                .font: UIFont.systemFont(ofSize: 32, weight: .bold),
-                .foregroundColor: config.accentColor,
-            ],
-        ))
+        if !config.highlightedTitle.isEmpty,
+           let range = title.range(of: config.highlightedTitle, options: .backwards)
+        {
+            titleText.addAttribute(
+                .foregroundColor,
+                value: config.accentColor,
+                range: NSRange(range, in: title),
+            )
+        }
         titleLabel.attributedText = titleText
         stackView.addArrangedSubview(titleLabel)
 

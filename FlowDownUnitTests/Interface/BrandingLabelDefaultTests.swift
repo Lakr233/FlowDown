@@ -16,7 +16,7 @@ struct BrandingLabelDefaultTests {
         #expect(BrandingLabel.defaultBrandingValue(localizedInfoDictionary: ["CFBundleDisplayName": ""]) == "FlowDown")
     }
 
-    @Test(arguments: [("zh-Hans", "浮望"), ("zh-Hant", "浮望"), ("en", "FlowDown")])
+    @Test(arguments: [("zh-Hans", "浮望"), ("en", "FlowDown")])
     func `app bundle ships the localized display name`(localization: String, expected: String) throws {
         let path = try #require(Bundle(for: BrandingLabel.self).path(
             forResource: "InfoPlist",

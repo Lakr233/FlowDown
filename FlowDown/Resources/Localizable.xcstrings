@@ -54903,48 +54903,48 @@
         }
       }
     },
-    "Welcome to" : {
+    "Welcome to\n%@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Willkommen bei"
+            "value" : "Willkommen bei\n%@"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to"
+            "value" : "Welcome to\n%@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienvenido a"
+            "value" : "Bienvenido a\n%@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienvenue sur"
+            "value" : "Bienvenue sur\n%@"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ようこそ"
+            "value" : "ようこそ\n%@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "환영합니다"
+            "value" : "환영합니다\n%@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "欢迎使用"
+            "value" : "欢迎使用%@"
           }
         }
       }
