@@ -182,9 +182,15 @@ extension Message.WebSearchStatus {
     }
 
     /// Its queries, then what it is at or how it ended, as its trace and a
-    /// summary that lists its steps show it: "query · Browsed 6 website(s)".
+    /// summary that lists its steps show it: "query: Browsed 6 website(s)".
     func traceLine(isInterrupted: Bool = false) -> String {
-        (queries + [statusText(isInterrupted: isInterrupted)]).joined(separator: " · ")
+        let status = statusText(isInterrupted: isInterrupted)
+        guard !queries.isEmpty else { return status }
+        let queryList = ListFormatter.localizedString(byJoining: queries)
+        return String(
+            localized: "\(queryList): \(status)",
+            comment: "A web search step on one line: its queries, then what the search is at or how it ended.",
+        )
     }
 
     /// What the search is at, or how it ended, on one line.

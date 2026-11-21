@@ -125,7 +125,7 @@ enum SearchConversationsIntentHelper {
     ) -> String {
         let title = conversation.title.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
             ?? String(localized: "Conversation")
-        let header = String(format: "%@ • %@", title, headerFormatter.string(from: conversation.creation))
+        let header = [title, headerFormatter.string(from: conversation.creation)].joined(separator: "\n")
 
         let limitedMessages = messages.prefix(10)
 
