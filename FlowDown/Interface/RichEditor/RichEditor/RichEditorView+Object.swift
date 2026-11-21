@@ -90,6 +90,8 @@ extension RichEditorView {
         attachmentsBar.attachmetns.removeAll()
         controlPanel.close()
         inputEditor.isControlPanelOpened = false
+        // Sent, or another conversation: the note was about the reply that follows.
+        toolsChangeHint.setActive(false, text: "")
         setNeedsLayout()
         publishNewEditorStatus()
     }

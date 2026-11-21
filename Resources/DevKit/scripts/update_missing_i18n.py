@@ -53,6 +53,14 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "크기: %@",
         "zh-Hans": "大小：%@",
     },
+    "Tools changed. The next reply may take a little longer.": {
+        "de": "Tools geändert. Die nächste Antwort kann etwas länger dauern.",
+        "es": "Herramientas cambiadas. La próxima respuesta puede tardar un poco más.",
+        "fr": "Outils modifiés. La prochaine réponse peut prendre un peu plus de temps.",
+        "ja": "ツールが変更されました。次の返信は少し時間がかかる場合があります。",
+        "ko": "도구가 변경되었습니다. 다음 답변은 조금 더 오래 걸릴 수 있습니다.",
+        "zh-Hans": "工具已更改，下一条回复可能会慢一些。",
+    },
     "Require Confirmation": {
         "de": "Bestätigung anfordern",
         "es": "Pedir confirmación",

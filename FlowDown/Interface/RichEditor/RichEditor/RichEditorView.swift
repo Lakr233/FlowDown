@@ -90,6 +90,8 @@ class RichEditorView: EditorSectionView {
     let attachmentsBar = AttachmentsBar()
     let inputEditor = InputEditor()
     let visualInputHint = VisualInputHintBar()
+    /// Says the next reply may be slower after the tools change mid-conversation.
+    let toolsChangeHint = VisualInputHintBar()
     let quickSettingBar = QuickSettingBar()
     let controlPanel = ControlPanel()
     /// Covers the sections above while a tool call waits for the user.
@@ -113,6 +115,7 @@ class RichEditorView: EditorSectionView {
         attachmentsBar,
         inputEditor,
         visualInputHint,
+        toolsChangeHint,
         quickSettingBar,
         controlPanel,
     ]
@@ -209,8 +212,8 @@ class RichEditorView: EditorSectionView {
             // Sections hidden by their own state stay hidden: the quick settings
             // collapse to zero height while the attachment menu is open, and
             // their unclipped pills would otherwise draw over its buttons.
-            let visible = if subview === visualInputHint {
-                visualInputHint.isActive
+            let visible = if let hint = subview as? VisualInputHintBar {
+                hint.isActive
             } else if subview === quickSettingBar {
                 quickSettingBar.isOpen
             } else {
