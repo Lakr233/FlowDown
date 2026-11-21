@@ -10,7 +10,10 @@ import MCP
 import Storage
 
 extension ModelContextServer {
-    func createTransport() throws -> HTTPClientTransport {
+    /// Builds the HTTP transport. With `oauth`, the transport attaches stored
+    /// tokens and reports 401s to it — unless the configured headers carry
+    /// an `Authorization` value, which always wins.
+    func createTransport(oauth: MCPOAuthManager? = nil) throws -> HTTPClientTransport {
         guard let url = URL(string: endpoint) else {
             throw MCPError.invalidConfiguration
         }
@@ -30,7 +33,12 @@ extension ModelContextServer {
         config.timeoutIntervalForRequest = .init(timeout)
         config.timeoutIntervalForResource = .init(timeout)
         config.httpAdditionalHeaders = headers
+        oauth?.configureSession(config)
 
-        return HTTPClientTransport(endpoint: url, configuration: config)
+        return HTTPClientTransport(
+            endpoint: url,
+            configuration: config,
+            authorizer: oauth?.makeAuthorizer(for: self),
+        )
     }
 }

@@ -18,7 +18,13 @@ class MCPService: NSObject {
 
     let servers: CurrentValueSubject<[ModelContextServer], Never> = .init([])
     private var cancellables = Set<AnyCancellable>()
-    var connectionFactory: ConnectionFactory = { MCPConnection(config: $0) }
+    /// Sign-in state, tokens and clients. Mutable so tests can swap in an
+    /// in-memory store and a stub browser; production never writes it.
+    var oauth: MCPOAuthManager = .shared
+    lazy var connectionFactory: ConnectionFactory = { [unowned self] server in
+        let oauth = self.oauth
+        return MCPConnection(config: server) { try $0.createTransport(oauth: oauth) }
+    }
 
     /// How long conversation setup waits for a single server before giving up
     /// on it. The underlying connect/listTools calls do not honor cooperative
@@ -52,6 +58,7 @@ class MCPService: NSObject {
             updateServerStatus(server.id, status: .disconnected)
         }
         updateFromDatabase()
+        purgeOrphanedAuthorization()
         setupServerSync()
 
         NotificationCenter.default.publisher(for: SyncEngine.ModelContextServerChanged)
@@ -59,6 +66,7 @@ class MCPService: NSObject {
             .sink { [weak self] _ in
                 logger.infoFile("Recived SyncEngine.ModelContextServerChanged")
                 self?.updateFromDatabase()
+                self?.purgeOrphanedAuthorization()
             }
             .store(in: &cancellables)
     }
@@ -107,7 +115,9 @@ class MCPService: NSObject {
                         let connection = try await awaitCancellable(timeout: Self.conversationWaitTimeout) {
                             await flight.value
                         }
-                        guard connection != nil else { return (name, MCPError.connectionFailed) }
+                        guard connection != nil else {
+                            return (name, self.authorizationError(for: server) ?? MCPError.connectionFailed)
+                        }
                         return (name, nil)
                     } catch {
                         return (name, error)
@@ -204,7 +214,12 @@ class MCPService: NSObject {
                     return self.connectionGeneration[serverID, default: 0]
                 }
                 let connection = self.connectionFactory(server)
-                try await connection.connect()
+                do {
+                    try await connection.connect()
+                } catch {
+                    throw self.authorizationError(for: server) ?? error
+                }
+                self.oauth.noteConnected(server)
                 let toolInfos: [MCPToolInfo]
                 do {
                     toolInfos = try await connection.listToolInfos(
@@ -286,7 +301,9 @@ class MCPService: NSObject {
             let connection = connectionFactory(server)
             do {
                 try await connection.connect()
+                oauth.noteConnected(server)
             } catch {
+                let error = authorizationError(for: server) ?? error
                 Logger.network.errorFile("failed to connect to server \(serverID): \(error.localizedDescription)")
                 await MainActor.run {
                     self.clearFlight(for: serverID, generation: generation)
@@ -479,6 +496,61 @@ class MCPService: NSObject {
         toolInfoCache[serverID] = infos
     }
 
+    // MARK: - Authorization
+
+    /// The sign-in problem behind a failed connect, if the server's last
+    /// answer was a 401 that stored tokens could not satisfy.
+    func authorizationError(for server: ModelContextServer) -> MCPError? {
+        let name = server.displayName
+        switch oauth.state(for: server.id) {
+        case .signInRequired: return .signInRequired(name)
+        case .clientIDRequired: return .clientIDRequired(name)
+        case .unsupported: return .authorizationUnsupported(name)
+        case .none, .signedIn: return nil
+        }
+    }
+
+    func authorizationState(for serverID: ModelContextServer.ID) -> MCPOAuthState {
+        oauth.state(for: serverID)
+    }
+
+    var authorizationStates: AnyPublisher<[ModelContextServer.ID: MCPOAuthState], Never> {
+        oauth.states.eraseToAnyPublisher()
+    }
+
+    /// Interactive sign-in: may register a client and shows the
+    /// authorization page. Reconnects the server afterwards.
+    func signIn(serverID: ModelContextServer.ID) async throws {
+        guard let server = server(with: serverID) else { throw MCPError.invalidConfiguration }
+        try await oauth.signIn(server: server)
+        await reconnectAfterAuthorizationChange(serverID)
+    }
+
+    func signOut(serverID: ModelContextServer.ID) async {
+        oauth.signOut(serverID: serverID)
+        await reconnectAfterAuthorizationChange(serverID)
+    }
+
+    func setManualClient(serverID: ModelContextServer.ID, clientID: String, clientSecret: String?) {
+        guard let server = server(with: serverID) else { return }
+        oauth.setManualClient(server: server, clientID: clientID, clientSecret: clientSecret)
+    }
+
+    @MainActor
+    private func reconnectAfterAuthorizationChange(_ serverID: ModelContextServer.ID) {
+        dropConnection(for: serverID)
+        updateServerStatus(serverID, status: .disconnected)
+        if let server = server(with: serverID), server.isEnabled {
+            _ = connectionTask(for: server)
+        }
+    }
+
+    private func purgeOrphanedAuthorization() {
+        let known = Set(sdb.modelContextServerList().map(\.id))
+        let oauth = oauth
+        Task.detached(priority: .utility) { oauth.purge(keeping: known) }
+    }
+
     // MARK: - Database Methods
 
     func updateFromDatabase() {
@@ -498,6 +570,7 @@ class MCPService: NSObject {
     func remove(_ identifier: ModelContextServer.ID) {
         defer { updateFromDatabase() }
         sdb.modelContextServerRemove(identifier: identifier)
+        oauth.removeAll(for: identifier)
     }
 
     func edit(
@@ -506,9 +579,16 @@ class MCPService: NSObject {
         block: @escaping (inout ModelContextServer) -> Void
     ) {
         defer { updateFromDatabase() }
-        let before = sdb.modelContextServerWith(identifier).map(Self.configFingerprint)
+        let previous = sdb.modelContextServerWith(identifier)
+        let before = previous.map(Self.configFingerprint)
+        let endpointBefore = previous?.endpoint
         sdb.modelContextServerEdit(identifier: identifier, skipSync: skipSync, block)
-        let after = sdb.modelContextServerWith(identifier).map(Self.configFingerprint)
+        let current = sdb.modelContextServerWith(identifier)
+        let after = current.map(Self.configFingerprint)
+        if let endpointBefore, let endpointAfter = current?.endpoint, endpointBefore != endpointAfter {
+            // Tokens and clients belong to the endpoint they were issued for.
+            oauth.removeAll(for: identifier)
+        }
         if before != after {
             // The stored config changed: the live connection and any in-flight
             // attempt were built against the old one and must not survive.

@@ -229,6 +229,10 @@ private extension SceneDelegate {
     }
 
     func handleFlowDownURL(_ url: URL) {
+        // OAuth redirects belong to the ASWebAuthenticationSession that
+        // started them; one reaching the app another way carries a code
+        // nobody is waiting for, so it must not be read or logged.
+        guard url.host()?.lowercased() != MCPOAuthManager.callbackHost else { return }
         Logger.app.infoFile("handling incoming message: \(url)")
         if let handled = ModelExchangeAPI.resolveInputScheme(url) {
             if handled == false {
