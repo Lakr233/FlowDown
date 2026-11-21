@@ -123,16 +123,7 @@ extension SettingController.SettingContent.MCPController {
             configurationForMenuAtLocation _: CGPoint,
         ) -> UIContextMenuConfiguration? {
             guard let clientId else { return nil }
-            var children: [UIMenuElement] = []
-            if MCPService.shared.authorizationState(for: clientId).needsSignIn {
-                children.append(
-                    UIAction(title: String(localized: "Sign In"), image: UIImage(systemName: "person.badge.key")) { [weak self] _ in
-                        guard let controller = self?.parentViewController else { return }
-                        MCPSignInFlow.signIn(serverID: clientId, from: controller)
-                    },
-                )
-            }
-            let menu = UIMenu(options: [.displayInline], children: children + [
+            let menu = UIMenu(options: [.displayInline], children: [
                 UIAction(title: String(localized: "Export Server"), image: UIImage(systemName: "square.and.arrow.up")) { _ in
                     self.exportServer(clientId)
                 },

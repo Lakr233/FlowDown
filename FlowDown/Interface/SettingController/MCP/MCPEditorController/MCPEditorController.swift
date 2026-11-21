@@ -384,7 +384,7 @@ extension MCPEditorController {
         case .unsupported: String(localized: "Not Supported")
         case .none, .signedIn: String(localized: "Not Required")
         }
-        var statusDescription = String(localized: "FlowDown signs in automatically when this server asks for authorization. Tokens are kept in this device's Keychain and are never synced or exported.")
+        var statusDescription = String(localized: "FlowDown detects when this server asks for sign-in. Tokens stay in this device's Keychain and are never synced or exported.")
         if case let .unsupported(reason) = state {
             statusDescription = reason
         }
