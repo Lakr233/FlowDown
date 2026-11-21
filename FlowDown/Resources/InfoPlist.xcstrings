@@ -43,11 +43,16 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "FlowDown"
+            "value": "浮望"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浮望"
           }
         }
-      },
-      "shouldTranslate": false
+      }
     },
     "CFBundleName": {
       "comment": "Bundle name",
@@ -91,11 +96,16 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "FlowDown"
+            "value": "浮望"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浮望"
           }
         }
-      },
-      "shouldTranslate": false
+      }
     },
     "NSCalendarsUsageDescription": {
       "comment": "Privacy - Calendars Usage Description",
@@ -234,7 +244,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "© 2025 FlowDown 团队 版权所有"
+            "value": "© 2025 浮望团队 版权所有"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "© 2025 浮望團隊 版權所有"
           }
         }
       }
@@ -657,7 +673,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "FlowDown 模型评估清单"
+            "value": "浮望模型评估清单"
           }
         }
       }
@@ -703,7 +719,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "FlowDown 模型评测结果"
+            "value": "浮望模型评估结果"
           }
         }
       }

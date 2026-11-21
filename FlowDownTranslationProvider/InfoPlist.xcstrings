@@ -43,7 +43,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowDown 翻译"
+            "value" : "浮望翻译"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浮望翻譯"
           }
         }
       }
@@ -138,7 +144,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "© 2025 FlowDown 团队 版权所有"
+            "value" : "© 2025 浮望团队 版权所有"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© 2025 浮望團隊 版權所有"
           }
         }
       }

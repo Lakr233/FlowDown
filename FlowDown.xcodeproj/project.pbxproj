@@ -465,6 +465,7 @@
 			knownRegions = (
 				en,
 				"zh-Hans",
+				"zh-Hant",
 				Base,
 				ja,
 				de,

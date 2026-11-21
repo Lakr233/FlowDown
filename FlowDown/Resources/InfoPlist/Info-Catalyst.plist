@@ -114,6 +114,8 @@
 	</array>
 	<key>CLOUDKIT_SYNC_CONTAINER_IDENTIFIER</key>
 	<string>$(CLOUDKIT_SYNC_CONTAINER_IDENTIFIER)</string>
+	<key>LSHasLocalizedDisplayName</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
