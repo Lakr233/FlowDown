@@ -56,7 +56,7 @@ struct MessageListInlineStepsTests {
             #expect(summary.isRunning)
             #expect(summary.title == String(localized: "Executing tool…"))
             #expect(summary.banner == nil)
-            let searched = "launch date · " + String(localized: "Browsed \(2) website(s)")
+            let searched = "launch date: " + String(localized: "Browsed \(2) website(s)")
             #expect(summary.inlineSteps.map(\.kind) == [.thought, .call, .call, .thought, .call])
             #expect(summary.inlineSteps.map(\.text) == [
                 "Look the dates up first.\n\nThen compare.",
@@ -109,23 +109,23 @@ struct MessageListInlineStepsTests {
         browsed.queries = ["科技新闻 2026年11月11日 今日头条"]
         browsed.numberOfResults = 6
         browsed.proccessProgress = 1
-        #expect(line(browsed) == "科技新闻 2026年11月11日 今日头条 · " + String(localized: "Browsed \(6) website(s)"))
+        #expect(line(browsed) == "科技新闻 2026年11月11日 今日头条: " + String(localized: "Browsed \(6) website(s)"))
 
         var running = Message.WebSearchStatus()
         running.queries = ["科技新闻 今日", "AI news"]
         running.currentQuery = 1
         running.proccessProgress = 0
         let current = "AI news"
-        #expect(line(running) == "科技新闻 今日 · AI news · " + String(localized: "Browsing \(current)") + "...")
+        #expect(line(running) == ListFormatter.localizedString(byJoining: running.queries) + ": " + String(localized: "Browsing \(current)") + "...")
 
         var interrupted = Message.WebSearchStatus()
         interrupted.queries = ["weather"]
-        #expect(line(interrupted, isInterrupted: true) == "weather · " + String(localized: "Tool call was interrupted."))
+        #expect(line(interrupted, isInterrupted: true) == "weather: " + String(localized: "Tool call was interrupted."))
 
         var failed = Message.WebSearchStatus()
         failed.queries = ["weather"]
         failed.proccessProgress = -1
-        #expect(line(failed) == "weather · " + String(localized: "Failed to search"))
+        #expect(line(failed) == "weather: " + String(localized: "Failed to search"))
 
         // Before it has a query, only how it is going.
         #expect(line(Message.WebSearchStatus()) == String(localized: "Determining search keywords") + "...")
@@ -133,7 +133,7 @@ struct MessageListInlineStepsTests {
         // A query over several lines still lists on one.
         var multiline = browsed
         multiline.queries = ["first\n  second"]
-        #expect(line(multiline) == "first second · " + String(localized: "Browsed \(6) website(s)"))
+        #expect(line(multiline) == "first second: " + String(localized: "Browsed \(6) website(s)"))
     }
 
     @Test

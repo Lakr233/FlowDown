@@ -331,7 +331,7 @@ class MemoryCell: UITableViewCell {
             detailComponents.append(String(localized: "Conversation: \(conversationId)"))
         }
 
-        detailLabel.text = detailComponents.joined(separator: " · ")
+        detailLabel.text = detailComponents.joined(separator: "\n")
     }
 
     override func layoutSubviews() {

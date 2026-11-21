@@ -394,7 +394,7 @@ struct MessageListActivitySummaryTests {
             let row = try #require(summary.steps.first.map { TraceStep($0, arguments: nil) })
             let browsed = String(localized: "Browsed \(3) website(s)")
             #expect(row.title == String(localized: "Web Search"))
-            #expect(row.subtitle == "apple news · \(browsed)")
+            #expect(row.subtitle == "apple news: \(browsed)")
             #expect(row.hasDetail)
             #expect(row.body == nil)
             #expect(row.search == TraceSearch(queries: ["apple news"], status: browsed, sources: status.searchResults))

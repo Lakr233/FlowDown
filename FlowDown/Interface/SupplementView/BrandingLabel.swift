@@ -10,20 +10,29 @@ import ConfigurableKit
 import GlyphixTextFx
 import UIKit
 
-private let defaultBrandingValue = "FlowDown"
-
 class BrandingLabel: GlyphixTextLabel {
+    /// The name shown when no branding is set: the app's localized display name,
+    /// so Chinese users see the Chinese app name and everyone else sees FlowDown.
+    nonisolated static func defaultBrandingValue(
+        localizedInfoDictionary: [String: Any]? = Bundle.main.localizedInfoDictionary,
+    ) -> String {
+        if let name = localizedInfoDictionary?["CFBundleDisplayName"] as? String,
+           !name.isEmpty
+        { return name }
+        return "FlowDown"
+    }
+
     static let configurableObject = ConfigurableObject(
         icon: "pencil",
         title: "Edit Branding Name",
         explain: "Change the branding name display in the app. Leave it empty to use FlowDown.",
         key: "BrandingLabel.Text",
-        defaultValue: "\(defaultBrandingValue)",
+        defaultValue: BrandingLabel.defaultBrandingValue(),
         annotation: .action { controller in
             let alert = AlertInputViewController(
                 title: "Edit Branding Name",
                 message: "Change the branding name display in the app. Leave it empty to use FlowDown.",
-                placeholder: "\(defaultBrandingValue)",
+                placeholder: .init(BrandingLabel.defaultBrandingValue()),
                 text: BrandingLabel.readBrandingValue(),
                 cancelButtonText: "Cancel",
                 doneButtonText: "Set",
@@ -43,7 +52,7 @@ class BrandingLabel: GlyphixTextLabel {
         if let value = UserDefaults.standard.string(forKey: BrandingLabel.configurableObject.key),
            !value.isEmpty
         { return value }
-        return defaultBrandingValue
+        return defaultBrandingValue()
     }
 
     init() {
@@ -52,7 +61,7 @@ class BrandingLabel: GlyphixTextLabel {
         font = .systemFont(ofSize: UIFont.labelFontSize, weight: .semibold)
         isBlurEffectEnabled = true
         countsDown = true
-        text = defaultBrandingValue
+        text = BrandingLabel.defaultBrandingValue()
 
         setContentHuggingPriority(.required, for: .vertical)
         setContentCompressionResistancePriority(.required, for: .vertical)

@@ -103,8 +103,8 @@ extension RichEditorView.Object.Attachment {
         let fileExtension = transcoded.format.isEmpty ? "m4a" : transcoded.format.lowercased()
         let formattedDuration = formattedDuration(transcoded.duration)
         let formattedSize = ByteCountFormatter.string(fromByteCount: Int64(transcoded.data.count), countStyle: .file)
-        let durationLine = String(localized: "Duration • \(formattedDuration)")
-        let sizeLine = String(localized: "Size • \(formattedSize)")
+        let durationLine = String(localized: "Duration: \(formattedDuration)")
+        let sizeLine = String(localized: "Size: \(formattedSize)")
         let textDescription = [durationLine, sizeLine].joined(separator: "\n")
 
         let name = normalizedName(suggestedName, fileExtension: fileExtension)

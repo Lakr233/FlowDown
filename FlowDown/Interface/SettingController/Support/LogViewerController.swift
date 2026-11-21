@@ -331,12 +331,11 @@ final class LogViewerController: UIViewController, UITableViewDataSource, UITabl
 
         // Configure detail text (timestamp + category)
         cell.detailTextLabel?.font = .monospacedSystemFont(ofSize: 9, weight: .regular)
-        cell.detailTextLabel?.numberOfLines = 1
-        if logLine.timestamp.isEmpty {
-            cell.detailTextLabel?.text = logLine.category
-        } else {
-            cell.detailTextLabel?.text = "\(logLine.timestamp) • \(logLine.category)"
-        }
+        cell.detailTextLabel?.numberOfLines = 2
+        // The timestamp on its own line, the category below it.
+        cell.detailTextLabel?.text = [logLine.timestamp, logLine.category]
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n")
 
         // Color coding by level
         switch logLine.level {

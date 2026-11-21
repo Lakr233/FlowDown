@@ -732,7 +732,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有可用的云端模型用于翻译。请在 FlowDown 应用中添加云端模型。"
+            "value" : "没有可用于翻译的云端模型。请先在浮望里添加云端模型。"
           }
         }
       }
