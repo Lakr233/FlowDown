@@ -147,8 +147,18 @@ extension SettingController.SettingContent.MCPController: UITableViewDelegate {
         guard let clientId = dataSource.itemIdentifier(for: indexPath),
               let server = MCPService.shared.server(with: clientId) else { return nil }
 
+        var signIn: [UIMenuElement] = []
+        if MCPService.shared.authorizationState(for: clientId).needsSignIn {
+            signIn.append(
+                UIAction(title: String(localized: "Sign In"), image: UIImage(systemName: "person.badge.key")) { [weak self] _ in
+                    guard let self else { return }
+                    MCPSignInFlow.signIn(serverID: clientId, from: self)
+                },
+            )
+        }
+
         let menu = UIMenu(children: [
-            UIMenu(options: [.displayInline], children: [
+            UIMenu(options: [.displayInline], children: signIn + [
                 UIAction(
                     title: server.isEnabled ? String(localized: "Disable") : String(localized: "Enable"),
                     image: UIImage(systemName: server.isEnabled ? "pause.circle" : "play.circle"),

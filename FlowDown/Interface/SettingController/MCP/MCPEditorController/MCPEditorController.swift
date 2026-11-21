@@ -50,6 +50,17 @@ class MCPEditorController: StackScrollController {
                 }
             }
             .store(in: &cancellables)
+
+        MCPService.shared.authorizationStates
+            .map { [serverId] in $0[serverId] }
+            .removeDuplicates()
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, isVisible else { return }
+                refreshUI()
+            }
+            .store(in: &cancellables)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -225,6 +236,8 @@ class MCPEditorController: StackScrollController {
         stackView.addArrangedSubviewWithMargin(headerView)
         stackView.addArrangedSubview(SeparatorView())
 
+        setupAuthenticationViews(server)
+
         // MARK: - Customization
 
         stackView.addArrangedSubviewWithMargin(
@@ -340,6 +353,75 @@ class MCPEditorController: StackScrollController {
 }
 
 extension MCPEditorController {
+    /// Sign-in lives on this device only: the rows read the Keychain and the
+    /// in-memory state, never the synced server record.
+    func setupAuthenticationViews(_ server: ModelContextServer) {
+        stackView.addArrangedSubviewWithMargin(
+            ConfigurableSectionHeaderView()
+                .with(header: "Sign-In"),
+        ) { $0.bottom /= 2 }
+        stackView.addArrangedSubview(SeparatorView())
+
+        if MCPOAuthManager.hasManualAuthorization(server) {
+            let headerAuth = ConfigurableInfoView()
+            headerAuth.configure(icon: .init(systemName: "key"))
+            headerAuth.configure(title: "Sign In")
+            headerAuth.configure(description: "This server uses the Authorization field above. To sign in instead, clear that field.")
+            // The field's own name, the same in every language.
+            headerAuth.configure(value: "Authorization")
+            stackView.addArrangedSubviewWithMargin(headerAuth)
+            stackView.addArrangedSubview(SeparatorView())
+            return
+        }
+
+        let oauth = MCPService.shared.oauth
+        let state = MCPService.shared.authorizationState(for: serverId)
+        let signedIn = oauth.hasTokens(for: server)
+
+        let statusText: String = switch state {
+        case _ where signedIn: String(localized: "Signed In")
+        case .signInRequired: String(localized: "Sign-In Required")
+        case .clientIDRequired: String(localized: "Client ID Required")
+        case .unsupported: String(localized: "Not Supported")
+        case .none, .signedIn: String(localized: "Not Required")
+        }
+        var statusDescription = String(localized: "When this server asks for authorization, tap Sign In. Your sign-in stays on this device and is never synced or exported.")
+        if case let .unsupported(reason) = state {
+            statusDescription = reason
+        }
+
+        // The status is the row's value, like the other rows here; tapping it
+        // signs in or out.
+        let statusView = ConfigurableInfoView().setTapBlock { [weak self] _ in
+            guard let self else { return }
+            if signedIn {
+                MCPSignInFlow.signOut(serverID: serverId, from: self) { [weak self] in self?.refreshUI() }
+            } else {
+                MCPSignInFlow.signIn(serverID: serverId, from: self) { [weak self] in self?.refreshUI() }
+            }
+        }
+        statusView.configure(icon: .init(systemName: signedIn ? "person.crop.circle.badge.checkmark" : "person.badge.key"))
+        statusView.configure(title: signedIn ? String(localized: "Sign Out") : String(localized: "Sign In"))
+        statusView.configure(description: .init(statusDescription))
+        statusView.configure(value: statusText)
+        stackView.addArrangedSubviewWithMargin(statusView)
+        stackView.addArrangedSubview(SeparatorView())
+
+        let manualClient = oauth.manualClient(for: server)
+        let clientView = ConfigurableInfoView().setTapBlock { [weak self] _ in
+            guard let self else { return }
+            MCPSignInFlow.promptClientID(serverID: serverId, from: self) { [weak self] in
+                self?.refreshUI()
+            }
+        }
+        clientView.configure(icon: .init(systemName: "person.text.rectangle"))
+        clientView.configure(title: "Client ID")
+        clientView.configure(description: "Only needed if this server can't set up sign-in for FlowDown on its own. When you register FlowDown with the server, use flowdown://mcp-oauth/callback as the redirect URI.")
+        clientView.configure(value: manualClient?.clientID ?? String(localized: "Automatic"))
+        stackView.addArrangedSubviewWithMargin(clientView)
+        stackView.addArrangedSubview(SeparatorView())
+    }
+
     func refreshUI() {
         stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         setupContentViews()

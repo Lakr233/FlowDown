@@ -192,10 +192,11 @@ extension ConversationSession {
         let shouldPrepareMCP = MCPService.shared.servers.value.contains(where: \.isEnabled)
         if shouldPrepareMCP {
             showActivity(String(localized: "Preparing Model Context"))
-            await MCPService.shared.prepareForConversation { [weak self] status in
+            let mcpErrors = await MCPService.shared.prepareForConversation { [weak self] status in
                 self?.showActivity(status)
             }
             try checkCancellation()
+            await noteMCPAuthorizationProblems(mcpErrors)
             showActivity(String(localized: "Preparing Model Context"))
         }
 
@@ -294,5 +295,29 @@ extension ConversationSession {
         if shouldAutoRename {
             await updateTitleAndIcon()
         }
+    }
+}
+
+extension ConversationSession {
+    /// Adds one hint per server that needs sign-in, each at most once per
+    /// conversation, instead of failing the turn. Other connection errors
+    /// add nothing here.
+    func noteMCPAuthorizationProblems(_ errors: [Swift.Error]) async {
+        let messages = errors.compactMap { error -> String? in
+            guard let error = error as? MCPError else { return nil }
+            switch error {
+            case .signInRequired, .clientIDRequired, .authorizationUnsupported:
+                return error.localizedDescription
+            default:
+                return nil
+            }
+        }
+        var appended = false
+        for message in messages where mcpAuthorizationHintsShown.insert(message).inserted {
+            let hintMessage = appendNewMessage(role: .hint)
+            hintMessage.update(\.document, to: message)
+            appended = true
+        }
+        if appended { await requestUpdate() }
     }
 }
