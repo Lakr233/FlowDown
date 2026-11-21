@@ -56,7 +56,8 @@ struct MCPOAuthTokenRecord: Codable, Equatable {
 
     func isExpired(now: Date = .now, skew: TimeInterval = 30) -> Bool {
         guard let expiresAt else { return false }
-        return now.addingTimeInterval(skew) >= expiresAt
+        // `!(a < b)`, not `>=`: see Date+BackDeployedComparison.swift.
+        return !(now.addingTimeInterval(skew) < expiresAt)
     }
 }
 
