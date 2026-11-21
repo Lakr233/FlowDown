@@ -38,6 +38,17 @@ enum FloatingChrome {
         max(0, buttonBottom + max(0, buttonTop - safeAreaTop))
     }
 
+    /// The chat page's top edge style: full strength from the top of the
+    /// screen to the top of the header buttons, then a straight fade to
+    /// nothing at the band's end (designer, Colo, 2026-11-21). The title's
+    /// centre line falls at the same strength (about 60 %) on every device,
+    /// whatever the safe area above the buttons.
+    static func topEdgeStyle(height: CGFloat, buttonTop: CGFloat) -> ProgressiveBlurStyle {
+        var style = edgeStyle(height: height)
+        style.hold = height > 0 ? min(max(buttonTop / height, 0), 1) : 0
+        return style
+    }
+
     /// How far the edge of a pushed page or the sidebar runs past the bottom
     /// of its top control (the bar's buttons, or the search field below
     /// them). A page's first line rests about 30 pt below the control,
