@@ -28,6 +28,31 @@ WELCOME_MESSAGE = (
 # Populate this map with explicit translations when introducing new keys.
 # Format: {"Key": {"zh-Hans": "示例", "es": "Ejemplo"}}
 NEW_STRINGS: dict[str, dict[str, str]] = {
+    "%@: %@": {
+        "en": "%1$@: %2$@",
+        "de": "%1$@: %2$@",
+        "es": "%1$@: %2$@",
+        "fr": "%1$@ : %2$@",
+        "ja": "%1$@: %2$@",
+        "ko": "%1$@: %2$@",
+        "zh-Hans": "%1$@：%2$@",
+    },
+    "Duration: %@": {
+        "de": "Dauer: %@",
+        "es": "Duración: %@",
+        "fr": "Durée : %@",
+        "ja": "再生時間: %@",
+        "ko": "재생 시간: %@",
+        "zh-Hans": "时长：%@",
+    },
+    "Size: %@": {
+        "de": "Größe: %@",
+        "es": "Tamaño: %@",
+        "fr": "Taille : %@",
+        "ja": "サイズ: %@",
+        "ko": "크기: %@",
+        "zh-Hans": "大小：%@",
+    },
     "Require Confirmation": {
         "de": "Bestätigung anfordern",
         "es": "Pedir confirmación",
