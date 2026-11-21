@@ -358,7 +358,7 @@ extension MCPEditorController {
     func setupAuthenticationViews(_ server: ModelContextServer) {
         stackView.addArrangedSubviewWithMargin(
             ConfigurableSectionHeaderView()
-                .with(header: "Authentication"),
+                .with(header: "Sign-In"),
         ) { $0.bottom /= 2 }
         stackView.addArrangedSubview(SeparatorView())
 
@@ -366,8 +366,9 @@ extension MCPEditorController {
             let headerAuth = ConfigurableInfoView()
             headerAuth.configure(icon: .init(systemName: "key"))
             headerAuth.configure(title: "Sign In")
-            headerAuth.configure(description: "This server is authorized by the Authorization header above. Remove that header to sign in with OAuth instead.")
-            headerAuth.configure(value: String(localized: "Header"))
+            headerAuth.configure(description: "This server uses the Authorization field above. To sign in with an account instead, clear that field.")
+            // The field's own name, the same in every language.
+            headerAuth.configure(value: "Authorization")
             stackView.addArrangedSubviewWithMargin(headerAuth)
             stackView.addArrangedSubview(SeparatorView())
             return
@@ -379,12 +380,12 @@ extension MCPEditorController {
 
         let statusText: String = switch state {
         case _ where signedIn: String(localized: "Signed In")
-        case .signInRequired: String(localized: "Sign-in required")
-        case .clientIDRequired: String(localized: "Client ID required")
+        case .signInRequired: String(localized: "Sign-In Required")
+        case .clientIDRequired: String(localized: "Client ID Required")
         case .unsupported: String(localized: "Not Supported")
         case .none, .signedIn: String(localized: "Not Required")
         }
-        var statusDescription = String(localized: "FlowDown detects when this server asks for sign-in. Tokens stay in this device's Keychain and are never synced or exported.")
+        var statusDescription = String(localized: "If this server needs an account, tap Sign In. Your sign-in stays on this device and is never synced or exported.")
         if case let .unsupported(reason) = state {
             statusDescription = reason
         }
@@ -398,7 +399,7 @@ extension MCPEditorController {
             }
         }
         statusView.configure(icon: .init(systemName: signedIn ? "person.crop.circle.badge.checkmark" : "person.badge.key"))
-        statusView.configure(title: signedIn ? "Sign Out" : "Sign In")
+        statusView.configure(title: signedIn ? String(localized: "Sign Out") : String(localized: "Sign In"))
         statusView.configure(description: "\(statusText) • \(statusDescription)")
         stackView.addArrangedSubviewWithMargin(statusView)
         stackView.addArrangedSubview(SeparatorView())
@@ -412,7 +413,7 @@ extension MCPEditorController {
         }
         clientView.configure(icon: .init(systemName: "person.text.rectangle"))
         clientView.configure(title: "Client ID")
-        clientView.configure(description: "Only needed when the authorization server cannot register FlowDown automatically. Register the redirect URI flowdown://mcp-oauth/callback.")
+        clientView.configure(description: "Only needed if this server can't set up sign-in for FlowDown on its own. When you register FlowDown with the server, use flowdown://mcp-oauth/callback as the redirect URI.")
         clientView.configure(value: manualClient?.clientID ?? String(localized: "Automatic"))
         stackView.addArrangedSubviewWithMargin(clientView)
         stackView.addArrangedSubview(SeparatorView())

@@ -45,7 +45,7 @@ struct MCPOAuthHTTPClient {
             }
         }
         guard let resourceMetadata else {
-            throw MCPOAuthError.discoveryFailed(String(localized: "no protected resource metadata"))
+            throw MCPOAuthError.discoveryFailed("no protected resource metadata")
         }
 
         var resource = canonical
@@ -53,7 +53,7 @@ struct MCPOAuthHTTPClient {
             // A metadata document for some other resource must not redirect
             // our tokens there (RFC 9728 §3.3).
             guard discovery.protectedResourceMatches(resource: advertisedURL, endpoint: canonical) else {
-                throw MCPOAuthError.discoveryFailed(String(localized: "metadata is for a different resource"))
+                throw MCPOAuthError.discoveryFailed("metadata is for a different resource")
             }
             resource = advertisedURL
         }
@@ -62,7 +62,7 @@ struct MCPOAuthHTTPClient {
               let issuer = URL(string: issuerString),
               Self.isSecure(issuer)
         else {
-            throw MCPOAuthError.discoveryFailed(String(localized: "no authorization server"))
+            throw MCPOAuthError.discoveryFailed("no authorization server")
         }
 
         var serverMetadata: MCPOAuthServerMetadata?
@@ -73,18 +73,18 @@ struct MCPOAuthHTTPClient {
             }
         }
         guard let serverMetadata else {
-            throw MCPOAuthError.discoveryFailed(String(localized: "no authorization server metadata"))
+            throw MCPOAuthError.discoveryFailed("no authorization server metadata")
         }
         if let advertisedIssuer = serverMetadata.issuer,
            Self.trimmed(advertisedIssuer) != Self.trimmed(issuer.absoluteString)
         {
-            throw MCPOAuthError.discoveryFailed(String(localized: "issuer mismatch"))
+            throw MCPOAuthError.discoveryFailed("issuer mismatch")
         }
         guard let authorizationEndpoint = serverMetadata.authorizationEndpoint.flatMap(URL.init(string:)),
               let tokenEndpoint = serverMetadata.tokenEndpoint.flatMap(URL.init(string:)),
               Self.isSecure(authorizationEndpoint), Self.isSecure(tokenEndpoint)
         else {
-            throw MCPOAuthError.discoveryFailed(String(localized: "missing or insecure endpoints"))
+            throw MCPOAuthError.discoveryFailed("missing or insecure endpoints")
         }
         // MCP requires S256 and requires refusing servers that do not say so.
         guard serverMetadata.codeChallengeMethodsSupported?.contains("S256") == true else {
@@ -139,7 +139,7 @@ struct MCPOAuthHTTPClient {
         guard let registration = try? JSONDecoder().decode(Registration.self, from: data),
               !registration.client_id.isEmpty
         else {
-            throw MCPOAuthError.registrationFailed(String(localized: "invalid response"))
+            throw MCPOAuthError.registrationFailed("invalid response")
         }
         let method = registration.token_endpoint_auth_method
             ?? (registration.client_secret == nil ? "none" : "client_secret_basic")
@@ -193,7 +193,7 @@ struct MCPOAuthHTTPClient {
               let tokenEndpoint = record.tokenEndpoint.flatMap(URL.init(string:)),
               Self.isSecure(tokenEndpoint)
         else {
-            throw MCPOAuthError.tokenRequestFailed(String(localized: "no refresh token"))
+            throw MCPOAuthError.tokenRequestFailed("no refresh token")
         }
         var parameters = [
             "grant_type": "refresh_token",
@@ -270,10 +270,10 @@ struct MCPOAuthHTTPClient {
         guard let token = try? JSONDecoder().decode(MCPOAuthTokenResponse.self, from: data),
               !token.accessToken.isEmpty
         else {
-            throw MCPOAuthError.tokenRequestFailed(String(localized: "invalid response"))
+            throw MCPOAuthError.tokenRequestFailed("invalid response")
         }
         if let type = token.tokenType, type.lowercased() != "bearer" {
-            throw MCPOAuthError.tokenRequestFailed(String(localized: "unsupported token type \(type)"))
+            throw MCPOAuthError.tokenRequestFailed("unsupported token type \(type)")
         }
         return token
     }

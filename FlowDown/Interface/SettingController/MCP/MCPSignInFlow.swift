@@ -49,8 +49,8 @@ enum MCPSignInFlow {
         completion: (@MainActor () -> Void)? = nil,
     ) {
         let alert = AlertViewController(
-            title: "Sign Out",
-            message: "FlowDown will forget the sign-in for this server on this device.",
+            title: "Sign Out?",
+            message: "You'll need to sign in again to use this server on this device.",
         ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose()
@@ -78,7 +78,7 @@ enum MCPSignInFlow {
         let existing = MCPService.shared.oauth.manualClient(for: server)
         let idInput = AlertInputViewController(
             title: "Client ID",
-            message: "Enter the OAuth Client ID registered for FlowDown with this server's authorization server. Use the redirect URI flowdown://mcp-oauth/callback.",
+            message: "Enter the Client ID you got when registering FlowDown with this server. Use flowdown://mcp-oauth/callback as the redirect URI.",
             placeholder: "Client ID",
             text: existing?.clientID ?? "",
         ) { clientID in
@@ -89,7 +89,7 @@ enum MCPSignInFlow {
             }
             let secretInput = AlertInputViewController(
                 title: "Client Secret",
-                message: "Optional. Leave empty for a public client.",
+                message: "Optional. Leave empty if the server didn't give you one.",
                 placeholder: "Client Secret (Optional)",
                 text: "",
             ) { secret in

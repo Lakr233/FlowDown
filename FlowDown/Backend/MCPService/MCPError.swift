@@ -25,11 +25,11 @@ enum MCPError: Swift.Error, LocalizedError, Equatable {
         case .connectionFailed:
             String(localized: "Unable to connect to the MCP server. Please check your network or server status.")
         case let .signInRequired(name):
-            String(localized: "\(name) requires sign-in. Sign in from the server's settings.")
+            String(localized: "\(name) needs you to sign in. Go to Settings > Tools > MCP Tools and tap Sign In for this server.")
         case let .clientIDRequired(name):
-            String(localized: "\(name) requires sign-in, but its authorization server does not support automatic registration. Enter a Client ID in the server's settings.")
+            String(localized: "\(name) needs you to sign in, but can't set it up automatically. Enter a Client ID in this server's settings, then sign in.")
         case let .authorizationUnsupported(name):
-            String(localized: "\(name) requires authorization but does not support OAuth sign-in. Add an Authorization header instead.")
+            String(localized: "\(name) doesn't support signing in with an account. Fill in the Authorization field in this server's settings instead.")
         }
     }
 }

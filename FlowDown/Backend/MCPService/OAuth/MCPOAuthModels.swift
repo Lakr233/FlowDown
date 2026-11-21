@@ -46,25 +46,25 @@ enum MCPOAuthError: Swift.Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .insecureEndpoint:
-            String(localized: "Sign-in requires an HTTPS endpoint.")
+            String(localized: "Signing in needs a server address that starts with https://.")
         case let .discoveryFailed(reason):
-            String(localized: "This server does not advertise OAuth sign-in: \(reason)")
+            String(localized: "This server doesn't support signing in with an account. Details: \(reason)")
         case .pkceUnsupported:
-            String(localized: "The authorization server does not support PKCE (S256), so FlowDown cannot sign in safely.")
+            String(localized: "This server doesn't support the secure sign-in method FlowDown requires (PKCE S256), so FlowDown can't sign in.")
         case .clientIDRequired:
-            String(localized: "The authorization server does not support automatic registration. Enter a Client ID to sign in.")
+            String(localized: "This server can't set up sign-in for FlowDown on its own. Enter a Client ID, then sign in.")
         case let .registrationFailed(reason):
-            String(localized: "Client registration failed: \(reason)")
+            String(localized: "FlowDown couldn't register with this server. Details: \(reason)")
         case let .authorizationDenied(reason):
-            String(localized: "Authorization was denied: \(reason)")
+            String(localized: "Sign-in was denied. Details: \(reason)")
         case .cancelled:
-            String(localized: "Sign-in was cancelled.")
+            String(localized: "Sign-in was canceled.")
         case let .tokenRequestFailed(reason):
-            String(localized: "Token request failed: \(reason)")
+            String(localized: "FlowDown couldn't finish signing in. Details: \(reason)")
         case .signInInProgress:
-            String(localized: "A sign-in for this server is already in progress.")
+            String(localized: "Sign-in for this server is already in progress.")
         case .manualAuthorizationHeader:
-            String(localized: "This server uses an Authorization header from its configuration. Remove the header to sign in with OAuth.")
+            String(localized: "This server uses the Authorization field above. To sign in with an account instead, clear that field.")
         }
     }
 }

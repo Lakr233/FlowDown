@@ -73,10 +73,10 @@ extension SettingController.SettingContent.MCPController {
 
             let authorization = MCPService.shared.authorizationState(for: clientId)
             if client.isEnabled, client.connectionStatus != .connected, authorization.needsSignIn {
-                descriptions.append(String(localized: "Sign-in required"))
+                descriptions.append(String(localized: "Sign-In Required"))
                 configurableView.iconView.tintColor = .systemOrange
             } else if client.isEnabled, client.connectionStatus != .connected, case .unsupported = authorization {
-                descriptions.append(String(localized: "Authorization required"))
+                descriptions.append(String(localized: "Authorization Required"))
                 configurableView.iconView.tintColor = .systemRed
             } else if client.isEnabled {
                 let connectionStatusText = getConnectionStatusText(client.connectionStatus)

@@ -237,7 +237,7 @@ final class MCPOAuthManager: @unchecked Sendable {
                 at: registrationEndpoint,
                 discovery: discovery,
                 redirectURI: Self.redirectURI,
-                clientName: String(localized: "FlowDown"),
+                clientName: "FlowDown",
             )
             store.setClient(registered, for: serverID)
             client = registered
@@ -280,7 +280,7 @@ final class MCPOAuthManager: @unchecked Sendable {
         if let iss = items.first(where: { $0.name == "iss" })?.value,
            iss.trimmingCharacters(in: ["/"]) != discovery.issuer.absoluteString.trimmingCharacters(in: ["/"])
         {
-            throw MCPOAuthError.authorizationDenied(String(localized: "issuer mismatch"))
+            throw MCPOAuthError.authorizationDenied("issuer mismatch")
         }
         let code = try flow.extractCode(
             from: callback,
