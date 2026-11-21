@@ -33,7 +33,8 @@ class ChatView: UIView {
         }
 
         /// The soft edge under the title row, from the top of the screen to
-        /// the bottom of the header buttons, then 14 pt and a 28 pt tail.
+        /// the bottom of the header buttons plus their top margin
+        /// (`FloatingChrome.topEdgeHeight`).
         /// Absent where `FloatingChrome.usesSystemScrollEdge` (never, today):
         /// there the message list's own scroll edge effect is the edge
         /// (`topEdgeElements`).
@@ -403,12 +404,16 @@ class ChatView: UIView {
     #if !targetEnvironment(macCatalyst)
         private func layoutEdgeBlurs() {
             // From the top of the screen, ignoring the safe area.
-            let buttonBottom = escapeButton.convert(escapeButton.bounds, to: self).maxY
+            let button = escapeButton.convert(escapeButton.bounds, to: self)
             topEdgeBlur?.layoutAsBarEdge(CGRect(
                 x: 0,
                 y: 0,
                 width: bounds.width,
-                height: FloatingChrome.topEdgeHeight(buttonBottom: buttonBottom),
+                height: FloatingChrome.topEdgeHeight(
+                    safeAreaTop: safeAreaInsets.top,
+                    buttonTop: button.minY,
+                    buttonBottom: button.maxY,
+                ),
             ))
 
             // The input card (or the tool-approval card that stands in for

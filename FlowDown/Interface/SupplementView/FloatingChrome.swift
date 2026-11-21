@@ -13,10 +13,7 @@ import SnapKit
 import UIKit
 
 enum FloatingChrome {
-    /// How far the solid part of the top edge runs past the bottom of the
-    /// header buttons.
-    static let belowButtons: CGFloat = 14
-    /// How far past that the edge fades out.
+    /// How far the edge above the input card fades out past the card's top.
     static let tail: CGFloat = 28
     /// The circle every icon button stands in.
     static let buttonSize: CGFloat = 44
@@ -27,15 +24,19 @@ enum FloatingChrome {
     /// Between two buttons side by side.
     static let buttonSpacing: CGFloat = 8
 
-    /// The top edge's height: from the top of the screen to the bottom of the
-    /// header buttons, then `belowButtons` and the `tail`.
-    static func topEdgeHeight(buttonBottom: CGFloat) -> CGFloat {
-        max(0, buttonBottom) + fadeLength
+    /// The chat page's top edge: from the top of the screen to the bottom of
+    /// the header buttons, then as far again as the buttons stand below the
+    /// top of the safe area, so the band sits evenly around the title row
+    /// (designer, Colo, 2026-11-21). The fade runs inside this band; nothing
+    /// is blurred below it.
+    ///
+    /// Measured from the safe area, not the screen: on an iPhone Duo closed
+    /// the status bar stands in a column at the side and the safe area
+    /// starts at the top of the screen, on other iPhones below the status
+    /// bar.
+    static func topEdgeHeight(safeAreaTop: CGFloat, buttonTop: CGFloat, buttonBottom: CGFloat) -> CGFloat {
+        max(0, buttonBottom + max(0, buttonTop - safeAreaTop))
     }
-
-    /// How far an edge fades out, past the buttons on top and above the
-    /// input card at the bottom.
-    static let fadeLength: CGFloat = belowButtons + tail
 
     /// How far the edge of a pushed page or the sidebar runs past the bottom
     /// of its top control (the bar's buttons, or the search field below
