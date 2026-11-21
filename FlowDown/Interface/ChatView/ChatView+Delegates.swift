@@ -202,8 +202,8 @@ extension ChatView: RichEditorView.Delegate {
         title: String(localized: "Enabled"),
         image: UIImage(systemName: "hammer"),
         state: isEnabled ? .on : .off,
-      ) { _ in
-        requestReload(!isEnabled)
+      ) { [weak self] _ in
+        self?.applyToolsToggleChange(requestReload: requestReload)
       }
     ]
 
@@ -214,9 +214,11 @@ extension ChatView: RichEditorView.Delegate {
           image: .init(systemName: tool.interfaceIcon),
           attributes: [.keepsMenuPresented],
           state: tool.isEnabled ? .on : .off,
-        ) { _ in
-          tool.isEnabled.toggle()
-          requestReload(isEnabled)
+        ) { [weak self] _ in
+          self?.applyToolSelectionChange(requestReload: requestReload) {
+            tool.isEnabled.toggle()
+            return tool.isEnabled
+          }
         }
       }
     }
@@ -237,12 +239,14 @@ extension ChatView: RichEditorView.Delegate {
           image: UIImage(systemName: "calendar"),
           attributes: [.keepsMenuPresented],
           state: calendarToolsHasOneEnabled ? .on : .off,
-        ) { _ in
-          let target = !calendarToolsHasOneEnabled
-          for tool in calendarTools {
-            tool.isEnabled = target
+        ) { [weak self] _ in
+          self?.applyToolSelectionChange(requestReload: requestReload) {
+            let target = !calendarTools.contains { $0.isEnabled }
+            for tool in calendarTools {
+              tool.isEnabled = target
+            }
+            return target
           }
-          requestReload(isEnabled)
         }
       ],
       [
@@ -251,12 +255,14 @@ extension ChatView: RichEditorView.Delegate {
           image: UIImage(systemName: "checklist"),
           attributes: [.keepsMenuPresented],
           state: reminderToolsHasOneEnabled ? .on : .off,
-        ) { _ in
-          let target = !reminderToolsHasOneEnabled
-          for tool in reminderTools {
-            tool.isEnabled = target
+        ) { [weak self] _ in
+          self?.applyToolSelectionChange(requestReload: requestReload) {
+            let target = !reminderTools.contains { $0.isEnabled }
+            for tool in reminderTools {
+              tool.isEnabled = target
+            }
+            return target
           }
-          requestReload(isEnabled)
         }
       ],
       createAction(for: ModelToolsManager.shared.configurableTools),
@@ -266,12 +272,14 @@ extension ChatView: RichEditorView.Delegate {
           image: UIImage(systemName: "memorychip"),
           attributes: [.keepsMenuPresented],
           state: memoryToolsHasOneEnabled ? .on : .off,
-        ) { _ in
-          let target = !memoryToolsHasOneEnabled
-          for tool in memoryTools {
-            tool.isEnabled = target
+        ) { [weak self] _ in
+          self?.applyToolSelectionChange(requestReload: requestReload) {
+            let target = !memoryTools.contains { $0.isEnabled }
+            for tool in memoryTools {
+              tool.isEnabled = target
+            }
+            return target
           }
-          requestReload(isEnabled)
         }
       ],
     ].flatMap(\.self)
@@ -294,11 +302,15 @@ extension ChatView: RichEditorView.Delegate {
           image: UIImage(systemName: "server.rack"),
           attributes: [.keepsMenuPresented],
           state: server.isEnabled ? .on : .off,
-        ) { _ in
-          MCPService.shared.edit(identifier: server.id) {
-            $0.update(\.isEnabled, to: !$0.isEnabled)
+        ) { [weak self] _ in
+          self?.applyToolSelectionChange(requestReload: requestReload) {
+            // The menu stays open between picks, so read the stored value.
+            let target = !(MCPService.shared.server(with: server.id)?.isEnabled ?? server.isEnabled)
+            MCPService.shared.edit(identifier: server.id) {
+              $0.update(\.isEnabled, to: target)
+            }
+            return target
           }
-          requestReload(isEnabled)
         }
       }
 

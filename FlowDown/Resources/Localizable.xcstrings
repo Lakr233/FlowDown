@@ -60522,6 +60522,52 @@
           }
         }
       }
+    },
+    "Tools changed. The next reply may take a little longer." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tools changed. The next reply may take a little longer."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tools geändert. Die nächste Antwort kann etwas länger dauern."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herramientas cambiadas. La próxima respuesta puede tardar un poco más."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outils modifiés. La prochaine réponse peut prendre un peu plus de temps."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ツールが変更されました。次の返信は少し時間がかかる場合があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "도구가 변경되었습니다. 다음 답변은 조금 더 오래 걸릴 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工具已更改，下一条回复可能会慢一些。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

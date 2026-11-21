@@ -256,6 +256,15 @@ extension RichEditorView: QuickSettingBar.Delegate {
         }
     }
 
+    /// Shows a note under the input until the next message is sent or the
+    /// conversation changes.
+    func showToolsChangeHint(_ text: String) {
+        let becameVisible = toolsChangeHint.setActive(true, text: text)
+        if becameVisible {
+            UIAccessibility.post(notification: .announcement, argument: text)
+        }
+    }
+
     private var currentModelSupportsToolCall: Bool {
         guard let identifier = delegate?.onRichEditorRequestCurrentModelIdentifier() else { return false }
         return delegate?.onRichEditorCheckIfModelSupportsToolCall(identifier) ?? false
