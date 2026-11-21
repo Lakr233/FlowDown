@@ -226,7 +226,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**欢迎使用 FlowDown 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n你可以使用 Apple Intelligence，或在支持的设备上 _运行本地模型_。也可以使用自己的服务提供商 _配置云端模型_。\n\n💡 更多信息，请查阅[用户手册](https://flowdown.ai/docs/)。\n\n---\n**接下来可以做些什么？**\n\n1.  _选择或添加新模型_，然后 **开始一个新对话**。\n2.  之后，你可以前往 **设置** 来自定义你的使用体验。\n3.  若有任何疑问反馈或建议，欢迎[联系我们](https://discord.gg/UHKMRyJcgc)。\n\n✨ **祝你使用愉快！**"
+            "value" : "**欢迎使用浮望 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n你可以使用 Apple Intelligence，或在支持的设备上 _运行本地模型_。也可以使用自己的服务提供商 _配置云端模型_。\n\n💡 更多信息，请查阅[用户手册](https://flowdown.ai/docs/)。\n\n---\n**接下来可以做些什么？**\n\n1.  _选择或添加新模型_，然后 **开始一个新对话**。\n2.  之后，你可以前往 **设置** 来自定义你的使用体验。\n3.  若有任何疑问反馈或建议，欢迎[联系我们](https://discord.gg/UHKMRyJcgc)。\n\n✨ **祝你使用愉快！**"
           }
         }
       }
@@ -5484,7 +5484,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "浏览并选择任意 FlowDown 对话。"
+            "value" : "浏览并选择任意一个浮望对话。"
           }
         }
       }
@@ -6819,7 +6819,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "修改软件的品牌名称。留空以使用 FlowDown。"
+            "value" : "修改 App 里显示的名称。留空则显示“浮望”。"
           }
         }
       }
@@ -7233,7 +7233,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择 FlowDown 中可用的模型。"
+            "value" : "选择浮望中可用的模型。"
           }
         }
       }
@@ -20622,7 +20622,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowDown 设置备份 %@"
+            "value" : "浮望设置备份 %@"
           }
         }
       }
@@ -20668,7 +20668,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowDown 将立即关闭以应用导入的设置。"
+            "value" : "浮望将关闭以应用导入的设置。"
           }
         }
       }
@@ -20714,7 +20714,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowDown 将重新启动以应用导入的数据库。"
+            "value" : "浮望将重新启动以应用导入的数据库。"
           }
         }
       }
@@ -24178,7 +24178,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowDown 向导"
+            "value" : "浮望使用向导"
           }
         }
       }
@@ -25432,7 +25432,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "启动 FlowDown 而不执行其他操作。"
+            "value" : "只打开浮望，不执行其他操作。"
           }
         }
       }
@@ -32210,7 +32210,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开 FlowDown"
+            "value" : "打开浮望"
           }
         }
       }
@@ -54116,7 +54116,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我们提供详细的用户手册来帮助你更好的理解并使用 FlowDown。"
+            "value" : "我们准备了详细的用户手册，帮你更好地了解和使用浮望。"
           }
         }
       }
@@ -54903,48 +54903,48 @@
         }
       }
     },
-    "Welcome to" : {
+    "Welcome to\n%@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Willkommen bei"
+            "value" : "Willkommen bei\n%@"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to"
+            "value" : "Welcome to\n%@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienvenido a"
+            "value" : "Bienvenido a\n%@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienvenue sur"
+            "value" : "Bienvenue sur\n%@"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ようこそ"
+            "value" : "ようこそ\n%@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "환영합니다"
+            "value" : "환영합니다\n%@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "欢迎使用"
+            "value" : "欢迎使用%@"
           }
         }
       }

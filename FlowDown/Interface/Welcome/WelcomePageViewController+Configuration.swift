@@ -11,8 +11,10 @@ import UIKit
 
 extension WelcomePageViewController {
     struct Configuration {
+        /// The full title, one localized format string so each language orders it naturally.
         var title: String.LocalizationValue
-        var highlightedTitle: String.LocalizationValue
+        /// The part of the title drawn in the accent color.
+        var highlightedTitle: String
         var subtitle: String.LocalizationValue
         var buttonTitle: String.LocalizationValue
         var accentColor: UIColor
@@ -34,8 +36,8 @@ extension WelcomePageViewController.Configuration {
             ?? "This App"
 
         return .init(
-            title: "Welcome to",
-            highlightedTitle: "\(displayName)",
+            title: "Welcome to\n\(displayName)",
+            highlightedTitle: displayName,
             subtitle: "Your privacy-first AI workspace. Blend local intelligence with powerful cloud models in one seamless experience.",
             buttonTitle: "Get Started",
             accentColor: .accent,

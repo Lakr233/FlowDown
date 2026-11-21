@@ -43,7 +43,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "FlowDownWidgets"
+            "value": "浮望小组件"
           }
         }
       }
@@ -138,7 +138,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "© 2025 FlowDown 团队 版权所有"
+            "value": "© 2025 浮望团队 版权所有"
           }
         }
       }
