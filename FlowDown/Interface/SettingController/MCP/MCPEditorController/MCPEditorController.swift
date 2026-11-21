@@ -366,7 +366,7 @@ extension MCPEditorController {
             let headerAuth = ConfigurableInfoView()
             headerAuth.configure(icon: .init(systemName: "key"))
             headerAuth.configure(title: "Sign In")
-            headerAuth.configure(description: "This server uses the Authorization field above. To sign in with an account instead, clear that field.")
+            headerAuth.configure(description: "This server uses the Authorization field above. To sign in instead, clear that field.")
             // The field's own name, the same in every language.
             headerAuth.configure(value: "Authorization")
             stackView.addArrangedSubviewWithMargin(headerAuth)
@@ -385,7 +385,7 @@ extension MCPEditorController {
         case .unsupported: String(localized: "Not Supported")
         case .none, .signedIn: String(localized: "Not Required")
         }
-        var statusDescription = String(localized: "If this server needs an account, tap Sign In. Your sign-in stays on this device and is never synced or exported.")
+        var statusDescription = String(localized: "When this server asks for authorization, tap Sign In. Your sign-in stays on this device and is never synced or exported.")
         if case let .unsupported(reason) = state {
             statusDescription = reason
         }

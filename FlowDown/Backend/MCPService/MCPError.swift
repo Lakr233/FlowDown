@@ -29,7 +29,7 @@ enum MCPError: Swift.Error, LocalizedError, Equatable {
         case let .clientIDRequired(name):
             String(localized: "\(name) needs you to sign in, but can't set it up automatically. Enter a Client ID in this server's settings, then sign in.")
         case let .authorizationUnsupported(name):
-            String(localized: "\(name) doesn't support signing in with an account. Fill in the Authorization field in this server's settings instead.")
+            String(localized: "\(name) doesn't support sign-in. Fill in the Authorization field in this server's settings instead.")
         }
     }
 }

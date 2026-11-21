@@ -1,48 +1,48 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@ doesn't support signing in with an account. Fill in the Authorization field in this server's settings instead." : {
+    "%@ doesn't support sign-in. Fill in the Authorization field in this server's settings instead." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ unterstützt keine Anmeldung mit einem Konto. Fülle stattdessen in den Einstellungen dieses Servers das Feld „Autorisierung“ aus."
+            "value" : "%@ unterstützt keine Anmeldung. Fülle stattdessen in den Einstellungen dieses Servers das Feld „Autorisierung“ aus."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ doesn't support signing in with an account. Fill in the Authorization field in this server's settings instead."
+            "value" : "%@ doesn't support sign-in. Fill in the Authorization field in this server's settings instead."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ no admite iniciar sesión con una cuenta. En su lugar, rellena el campo Autorización en los ajustes de este servidor."
+            "value" : "%@ no admite el inicio de sesión. En su lugar, rellena el campo Autorización en los ajustes de este servidor."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ne prend pas en charge la connexion avec un compte. Renseignez plutôt le champ Autorisation dans les réglages de ce serveur."
+            "value" : "%@ ne prend pas en charge la connexion. Renseignez plutôt le champ Autorisation dans les réglages de ce serveur."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ はアカウントでのサインインに対応していません。代わりに、このサーバーの設定で Authorization を入力してください。"
+            "value" : "%@ はサインインに対応していません。代わりに、このサーバーの設定で Authorization を入力してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@은(는) 계정 로그인을 지원하지 않습니다. 대신 이 서버의 설정에서 Authorization을 입력하세요."
+            "value" : "%@은(는) 로그인을 지원하지 않습니다. 대신 이 서버의 설정에서 Authorization을 입력하세요."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 不支持账号登录。请改为在这个服务器的设置里填写 Authorization。"
+            "value" : "%@ 不支持登录授权。请改为在这个服务器的设置里填写 Authorization。"
           }
         }
       }
@@ -21156,7 +21156,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowDown n’a pas pu terminer la connexion au compte. Détails : %@"
+            "value" : "FlowDown n’a pas pu terminer l’authentification. Détails : %@"
           }
         },
         "ja" : {
@@ -22848,48 +22848,48 @@
         }
       }
     },
-    "If this server needs an account, tap Sign In. Your sign-in stays on this device and is never synced or exported." : {
+    "When this server asks for authorization, tap Sign In. Your sign-in stays on this device and is never synced or exported." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wenn dieser Server ein Konto erfordert, tippe auf „Anmelden“. Deine Anmeldung bleibt auf diesem Gerät und wird nie synchronisiert oder exportiert."
+            "value" : "Wenn dieser Server eine Autorisierung anfordert, tippe auf „Anmelden“. Deine Anmeldung bleibt auf diesem Gerät und wird nie synchronisiert oder exportiert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If this server needs an account, tap Sign In. Your sign-in stays on this device and is never synced or exported."
+            "value" : "When this server asks for authorization, tap Sign In. Your sign-in stays on this device and is never synced or exported."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si este servidor necesita una cuenta, toca Iniciar sesión. Tu inicio de sesión se queda en este dispositivo y nunca se sincroniza ni se exporta."
+            "value" : "Cuando este servidor pida autorización, toca Iniciar sesión. Tu inicio de sesión se queda en este dispositivo y nunca se sincroniza ni se exporta."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si ce serveur nécessite un compte, touchez « Se connecter ». Votre connexion reste sur cet appareil et n’est jamais synchronisée ni exportée."
+            "value" : "Lorsque ce serveur demande une autorisation, touchez « Se connecter ». Votre connexion reste sur cet appareil et n’est jamais synchronisée ni exportée."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このサーバーにアカウントが必要な場合は「サインイン」をタップしてください。サインイン情報はこのデバイスにのみ保存され、同期やエクスポートはされません。"
+            "value" : "このサーバーが認証を求めた場合は「サインイン」をタップしてください。サインイン情報はこのデバイスにのみ保存され、同期やエクスポートはされません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 서버에 계정이 필요하면 로그인을 탭하세요. 로그인 정보는 이 기기에만 저장되며 동기화되거나 내보내지지 않습니다."
+            "value" : "이 서버가 인증을 요청하면 로그인을 탭하세요. 로그인 정보는 이 기기에만 저장되며 동기화되거나 내보내지지 않습니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "如果这个服务器需要账号，请点“登录”。登录信息只保存在这台设备上，不会同步，也不会导出。"
+            "value" : "服务器要求授权时，点“登录”。登录信息只保存在这台设备上，不会同步，也不会导出。"
           }
         }
       }
@@ -42753,7 +42753,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connexion au compte"
+            "value" : "Authentification"
           }
         },
         "ja" : {
@@ -42799,7 +42799,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Échec de la connexion au compte"
+            "value" : "Échec de l’authentification"
           }
         },
         "ja" : {
@@ -42891,7 +42891,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connexion au compte requise"
+            "value" : "Authentification requise"
           }
         },
         "ja" : {
@@ -42937,7 +42937,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La connexion au compte a été annulée."
+            "value" : "L’authentification a été annulée."
           }
         },
         "ja" : {
@@ -42983,7 +42983,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La connexion au compte a été refusée. Détails : %@"
+            "value" : "L’authentification a été refusée. Détails : %@"
           }
         },
         "ja" : {
@@ -43075,7 +43075,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La connexion au compte nécessite une adresse de serveur commençant par https://."
+            "value" : "L’authentification nécessite une adresse de serveur commençant par https://."
           }
         },
         "ja" : {
@@ -49128,48 +49128,48 @@
         }
       }
     },
-    "This server doesn't support signing in with an account. Details: %@" : {
+    "This server doesn't support sign-in. Details: %@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dieser Server unterstützt keine Anmeldung mit einem Konto. Details: %@"
+            "value" : "Dieser Server unterstützt keine Anmeldung. Details: %@"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This server doesn't support signing in with an account. Details: %@"
+            "value" : "This server doesn't support sign-in. Details: %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este servidor no admite iniciar sesión con una cuenta. Detalles: %@"
+            "value" : "Este servidor no admite el inicio de sesión. Detalles: %@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ce serveur ne prend pas en charge la connexion avec un compte. Détails : %@"
+            "value" : "Ce serveur ne prend pas en charge l’authentification. Détails : %@"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このサーバーはアカウントでのサインインに対応していません。詳細: %@"
+            "value" : "このサーバーはサインインに対応していません。詳細: %@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 서버는 계정 로그인을 지원하지 않습니다. 세부 정보: %@"
+            "value" : "이 서버는 로그인을 지원하지 않습니다. 세부 정보: %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这个服务器不支持账号登录。详情：%@"
+            "value" : "这个服务器不支持登录授权。详情：%@"
           }
         }
       }
@@ -49220,48 +49220,48 @@
         }
       }
     },
-    "This server uses the Authorization field above. To sign in with an account instead, clear that field." : {
+    "This server uses the Authorization field above. To sign in instead, clear that field." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dieser Server verwendet das Feld „Autorisierung“ oben. Um dich stattdessen mit einem Konto anzumelden, leere dieses Feld."
+            "value" : "Dieser Server verwendet das Feld „Autorisierung“ oben. Um dich stattdessen anzumelden, leere dieses Feld."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This server uses the Authorization field above. To sign in with an account instead, clear that field."
+            "value" : "This server uses the Authorization field above. To sign in instead, clear that field."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este servidor usa el campo Autorización de arriba. Para iniciar sesión con una cuenta, vacía ese campo."
+            "value" : "Este servidor usa el campo Autorización de arriba. Para iniciar sesión en su lugar, vacía ese campo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ce serveur utilise le champ Autorisation ci-dessus. Pour vous connecter plutôt avec un compte, videz ce champ."
+            "value" : "Ce serveur utilise le champ Autorisation ci-dessus. Pour vous connecter plutôt, videz ce champ."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このサーバーは上の Authorization を使用しています。アカウントでサインインするには、その欄を空にしてください。"
+            "value" : "このサーバーは上の Authorization を使用しています。サインインで認証するには、その欄を空にしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 서버는 위의 Authorization을 사용하고 있습니다. 대신 계정으로 로그인하려면 해당 칸을 비우세요."
+            "value" : "이 서버는 위의 Authorization을 사용하고 있습니다. 대신 로그인하려면 해당 칸을 비우세요."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这个服务器正在使用上方的 Authorization。想改用账号登录，请清空那一栏。"
+            "value" : "这个服务器正在使用上方的 Authorization。想改用登录授权，请清空那一栏。"
           }
         }
       }

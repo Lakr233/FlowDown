@@ -49,7 +49,7 @@ enum MCPOAuthError: Swift.Error, LocalizedError, Equatable {
         case .insecureEndpoint:
             String(localized: "Signing in needs a server address that starts with https://.")
         case let .discoveryFailed(reason):
-            String(localized: "This server doesn't support signing in with an account. Details: \(reason)")
+            String(localized: "This server doesn't support sign-in. Details: \(reason)")
         case .pkceUnsupported:
             String(localized: "This server doesn't support the secure sign-in method FlowDown requires (PKCE S256), so FlowDown can't sign in.")
         case .clientIDRequired:
@@ -65,7 +65,7 @@ enum MCPOAuthError: Swift.Error, LocalizedError, Equatable {
         case .signInInProgress:
             String(localized: "Sign-in for this server is already in progress.")
         case .manualAuthorizationHeader:
-            String(localized: "This server uses the Authorization field above. To sign in with an account instead, clear that field.")
+            String(localized: "This server uses the Authorization field above. To sign in instead, clear that field.")
         case .keychainUnavailable:
             String(localized: "FlowDown couldn't save your sign-in to this device's Keychain, so you'd have to sign in again on every connection. Try again later.")
         }
