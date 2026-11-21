@@ -88,7 +88,8 @@ extension SettingController.SettingContent.MCPController {
                 configurableView.iconView.tintColor = .systemGray
             }
 
-            let desc = descriptions.joined(separator: " • ")
+            // Transport on the first line, status on its own line below.
+            let desc = descriptions.joined(separator: "\n")
             configurableView.configure(description: "\(desc)")
         }
 

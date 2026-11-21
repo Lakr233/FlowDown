@@ -390,7 +390,9 @@ extension MCPEditorController {
             statusDescription = reason
         }
 
-        let statusView = ConfigurableActionView { @MainActor [weak self] _ in
+        // The status is the row's value, like the other rows here; tapping it
+        // signs in or out.
+        let statusView = ConfigurableInfoView().setTapBlock { [weak self] _ in
             guard let self else { return }
             if signedIn {
                 MCPSignInFlow.signOut(serverID: serverId, from: self) { [weak self] in self?.refreshUI() }
@@ -400,7 +402,8 @@ extension MCPEditorController {
         }
         statusView.configure(icon: .init(systemName: signedIn ? "person.crop.circle.badge.checkmark" : "person.badge.key"))
         statusView.configure(title: signedIn ? String(localized: "Sign Out") : String(localized: "Sign In"))
-        statusView.configure(description: "\(statusText) • \(statusDescription)")
+        statusView.configure(description: .init(statusDescription))
+        statusView.configure(value: statusText)
         stackView.addArrangedSubviewWithMargin(statusView)
         stackView.addArrangedSubview(SeparatorView())
 
