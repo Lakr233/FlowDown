@@ -60475,6 +60475,52 @@
           }
         }
       }
+    },
+    "FlowDown couldn't save your sign-in to this device's Keychain, so you'd have to sign in again on every connection. Try again later." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown couldn't save your sign-in to this device's Keychain, so you'd have to sign in again on every connection. Try again later."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown konnte deine Anmeldung nicht im Schlüsselbund dieses Geräts speichern, daher müsstest du dich bei jeder Verbindung neu anmelden. Versuche es später erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown no pudo guardar tu inicio de sesión en el llavero de este dispositivo, así que tendrías que iniciar sesión de nuevo en cada conexión. Inténtalo más tarde."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FlowDown n’a pas pu enregistrer votre connexion dans le trousseau de cet appareil : il faudrait vous reconnecter à chaque connexion. Réessayez plus tard."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスのキーチェーンにサインイン情報を保存できなかったため、接続のたびにサインインが必要になります。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기의 키체인에 로그인 정보를 저장하지 못해 연결할 때마다 다시 로그인해야 합니다. 나중에 다시 시도하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法把登录信息保存到这台设备的钥匙串，每次连接都得重新登录。请稍后再试。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

@@ -42,6 +42,7 @@ enum MCPOAuthError: Swift.Error, LocalizedError, Equatable {
     case tokenRequestFailed(String)
     case signInInProgress
     case manualAuthorizationHeader
+    case keychainUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -65,6 +66,8 @@ enum MCPOAuthError: Swift.Error, LocalizedError, Equatable {
             String(localized: "Sign-in for this server is already in progress.")
         case .manualAuthorizationHeader:
             String(localized: "This server uses the Authorization field above. To sign in with an account instead, clear that field.")
+        case .keychainUnavailable:
+            String(localized: "FlowDown couldn't save your sign-in to this device's Keychain, so you'd have to sign in again on every connection. Try again later.")
         }
     }
 }

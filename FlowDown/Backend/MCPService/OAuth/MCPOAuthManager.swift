@@ -304,7 +304,11 @@ final class MCPOAuthManager: @unchecked Sendable {
             }
             throw rejected
         }
-        store.setTokens(tokens, for: serverID)
+        guard store.setTokens(tokens, for: serverID) else {
+            // Without a saved session every connect would ask to sign in
+            // again, so report it instead of claiming success.
+            throw MCPOAuthError.keychainUnavailable
+        }
         shared.withLock { $0.discoveries[serverID] = discovery }
         setState(.signedIn, for: serverID)
     }

@@ -65,7 +65,9 @@ struct MCPOAuthTokenRecord: Codable, Equatable {
 /// exports or UserDefaults.
 protocol MCPOAuthStoring: AnyObject, Sendable {
     func tokens(for serverID: ModelContextServer.ID) -> MCPOAuthTokenRecord?
-    func setTokens(_ record: MCPOAuthTokenRecord?, for serverID: ModelContextServer.ID)
+    /// Returns false when the item couldn't be saved or removed.
+    @discardableResult
+    func setTokens(_ record: MCPOAuthTokenRecord?, for serverID: ModelContextServer.ID) -> Bool
     func client(for serverID: ModelContextServer.ID) -> MCPOAuthClientRecord?
     func setClient(_ record: MCPOAuthClientRecord?, for serverID: ModelContextServer.ID)
     /// Every server that has at least one stored item.
@@ -118,7 +120,8 @@ final class MCPOAuthKeychainStore: MCPOAuthStoring, @unchecked Sendable {
         read(account(serverID, .tokens))
     }
 
-    func setTokens(_ record: MCPOAuthTokenRecord?, for serverID: ModelContextServer.ID) {
+    @discardableResult
+    func setTokens(_ record: MCPOAuthTokenRecord?, for serverID: ModelContextServer.ID) -> Bool {
         write(record, account: account(serverID, .tokens))
     }
 
@@ -171,15 +174,17 @@ final class MCPOAuthKeychainStore: MCPOAuthStoring, @unchecked Sendable {
         return try? JSONDecoder().decode(T.self, from: data)
     }
 
-    private func write(_ value: (some Encodable)?, account: String) {
+    @discardableResult
+    private func write(_ value: (some Encodable)?, account: String) -> Bool {
         lock.withLock {
             let query = baseQuery(account: account)
             guard let value, let data = try? JSONEncoder().encode(value) else {
                 let status = SecItemDelete(query as CFDictionary)
                 if status != errSecSuccess, status != errSecItemNotFound {
                     Logger.network.errorFile("mcp oauth keychain delete failed: \(status)")
+                    return false
                 }
-                return
+                return true
             }
             let attributes: [String: Any] = [
                 kSecValueData as String: data,
@@ -193,7 +198,9 @@ final class MCPOAuthKeychainStore: MCPOAuthStoring, @unchecked Sendable {
             }
             if status != errSecSuccess {
                 Logger.network.errorFile("mcp oauth keychain write failed: \(status)")
+                return false
             }
+            return true
         }
     }
 }
@@ -201,6 +208,13 @@ final class MCPOAuthKeychainStore: MCPOAuthStoring, @unchecked Sendable {
 // MARK: - In Memory
 
 final class MCPOAuthMemoryStore: MCPOAuthStoring, @unchecked Sendable {
+    /// Simulates a Keychain that refuses token writes.
+    let failsTokenWrites: Bool
+
+    init(failsTokenWrites: Bool = false) {
+        self.failsTokenWrites = failsTokenWrites
+    }
+
     private let state = OSAllocatedUnfairLock(
         initialState: (
             tokens: [ModelContextServer.ID: MCPOAuthTokenRecord](),
@@ -212,8 +226,11 @@ final class MCPOAuthMemoryStore: MCPOAuthStoring, @unchecked Sendable {
         state.withLock { $0.tokens[serverID] }
     }
 
-    func setTokens(_ record: MCPOAuthTokenRecord?, for serverID: ModelContextServer.ID) {
+    @discardableResult
+    func setTokens(_ record: MCPOAuthTokenRecord?, for serverID: ModelContextServer.ID) -> Bool {
+        if failsTokenWrites, record != nil { return false }
         state.withLock { $0.tokens[serverID] = record }
+        return true
     }
 
     func client(for serverID: ModelContextServer.ID) -> MCPOAuthClientRecord? {

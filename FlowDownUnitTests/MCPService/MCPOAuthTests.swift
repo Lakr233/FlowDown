@@ -140,6 +140,20 @@ struct MCPOAuthTests {
     }
 
     @Test(.timeLimit(.minutes(1)))
+    func signIn_reportsKeychainFailureInsteadOfSigningIn() async throws {
+        let backend = MCPOAuthTestServer()
+        let store = MCPOAuthMemoryStore(failsTokenWrites: true)
+        let (manager, _) = makeManager(backend, store: store)
+        let server = makeServer(backend.endpoint)
+
+        await #expect(throws: MCPOAuthError.keychainUnavailable) {
+            try await manager.signIn(server: server)
+        }
+        #expect(manager.state(for: server.id) != .signedIn)
+        #expect(store.tokens(for: server.id) == nil)
+    }
+
+    @Test(.timeLimit(.minutes(1)))
     func expiredToken_isRefreshedBeforeConnecting() async throws {
         let backend = MCPOAuthTestServer()
         let store = MCPOAuthMemoryStore()
