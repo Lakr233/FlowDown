@@ -44,6 +44,11 @@ final class ConversationSession: Identifiable {
     /// of the input while this conversation is on screen.
     let toolApprovalGate = ModelToolApprovalGate()
 
+    /// Sign-in prompts already shown in this conversation, so a server that
+    /// needs sign-in is mentioned once rather than on every turn. In memory
+    /// only.
+    var mcpAuthorizationHintsShown: Set<String> = []
+
     // Main-queue-confined; every mutation funnels through DispatchQueue.main
     // so state transitions keep the order their call sites issued them in —
     // an unstructured Task per call would not guarantee that.

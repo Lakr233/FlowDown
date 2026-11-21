@@ -71,7 +71,14 @@ extension SettingController.SettingContent.MCPController {
             var descriptions: [String] = []
             descriptions.append(client.type.rawValue.uppercased())
 
-            if client.isEnabled {
+            let authorization = MCPService.shared.authorizationState(for: clientId)
+            if client.isEnabled, client.connectionStatus != .connected, authorization.needsSignIn {
+                descriptions.append(String(localized: "Sign-in required"))
+                configurableView.iconView.tintColor = .systemOrange
+            } else if client.isEnabled, client.connectionStatus != .connected, case .unsupported = authorization {
+                descriptions.append(String(localized: "Authorization required"))
+                configurableView.iconView.tintColor = .systemRed
+            } else if client.isEnabled {
                 let connectionStatusText = getConnectionStatusText(client.connectionStatus)
                 descriptions.append(connectionStatusText)
 
@@ -116,7 +123,16 @@ extension SettingController.SettingContent.MCPController {
             configurationForMenuAtLocation _: CGPoint,
         ) -> UIContextMenuConfiguration? {
             guard let clientId else { return nil }
-            let menu = UIMenu(options: [.displayInline], children: [
+            var children: [UIMenuElement] = []
+            if MCPService.shared.authorizationState(for: clientId).needsSignIn {
+                children.append(
+                    UIAction(title: String(localized: "Sign In"), image: UIImage(systemName: "person.badge.key")) { [weak self] _ in
+                        guard let controller = self?.parentViewController else { return }
+                        MCPSignInFlow.signIn(serverID: clientId, from: controller)
+                    },
+                )
+            }
+            let menu = UIMenu(options: [.displayInline], children: children + [
                 UIAction(title: String(localized: "Export Server"), image: UIImage(systemName: "square.and.arrow.up")) { _ in
                     self.exportServer(clientId)
                 },
