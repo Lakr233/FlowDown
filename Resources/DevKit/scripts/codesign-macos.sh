@@ -85,6 +85,17 @@ fi
   -c "Add :com.apple.developer.team-identifier string ${PROFILE_TEAM_IDENTIFIER}" \
   -c "Add :get-task-allow bool ${PROFILE_GET_TASK_ALLOW}" \
   "$RESOLVED_ENTITLEMENTS"
+# Managed entitlements the profile does not grant must not be signed in,
+# or the system refuses to launch the app. Private Cloud Compute is only
+# granted for App Store, TestFlight and ad hoc, never for Developer ID.
+for MANAGED_ENTITLEMENT in com.apple.developer.private-cloud-compute; do
+  if /usr/libexec/PlistBuddy -c "Print :${MANAGED_ENTITLEMENT}" "$RESOLVED_ENTITLEMENTS" >/dev/null 2>&1 \
+    && ! /usr/libexec/PlistBuddy -c "Print :Entitlements:${MANAGED_ENTITLEMENT}" "$PROFILE_PLIST" >/dev/null 2>&1; then
+    echo "[i] profile does not grant ${MANAGED_ENTITLEMENT}, removing it"
+    /usr/libexec/PlistBuddy -c "Delete :${MANAGED_ENTITLEMENT}" "$RESOLVED_ENTITLEMENTS"
+  fi
+done
+
 plutil -lint "$RESOLVED_ENTITLEMENTS"
 
 echo "[*] embedding provision profile ${EMBED_PROVISION_PROFILE}"
