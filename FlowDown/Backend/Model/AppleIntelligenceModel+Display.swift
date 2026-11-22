@@ -47,6 +47,14 @@ enum AppleIntelligenceModelDescriptions {
         String(localized: "Apple Intelligence models are built into your system. No API key or setup needed. Models you turn on here appear in the model menu.")
     }
 
+    /// The footer, plus a line saying Private Cloud Compute needs the App
+    /// Store build where this copy lacks its entitlement.
+    static func sectionFooter(isEntitled: Bool) -> String {
+        isEntitled
+            ? sectionFooter
+            : sectionFooter + "\n" + PrivateCloudComputePresentation.notEntitledText
+    }
+
     /// The description, then why the model can't run on its own line.
     static func text(description: String, unavailableReason: String?) -> String {
         guard let unavailableReason, !unavailableReason.isEmpty else { return description }

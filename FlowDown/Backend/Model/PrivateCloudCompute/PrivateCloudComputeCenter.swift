@@ -76,6 +76,16 @@ final class PrivateCloudComputeCenter: @unchecked Sendable {
         )
     }
 
+    /// The reason under the switch in Settings; see
+    /// `PrivateCloudComputePresentation.switchReasonText`.
+    var switchReasonText: String? {
+        PrivateCloudComputePresentation.switchReasonText(
+            for: availabilityState,
+            isEntitled: isEntitled,
+            appleIntelligenceDisabled: appleIntelligenceDisabled,
+        )
+    }
+
     /// Whether the on-device Apple Intelligence model can run. DEBUG
     /// fixtures can stand in for it on a Simulator, which has no model.
     var isOnDeviceModelAvailable: Bool {

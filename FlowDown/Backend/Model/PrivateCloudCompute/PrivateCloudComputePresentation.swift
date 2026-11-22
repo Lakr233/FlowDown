@@ -46,9 +46,33 @@ enum PrivateCloudComputePresentation {
     }
 
     /// Shown where this copy isn't signed with the Private Cloud Compute
-    /// entitlement: the Mac build from GitHub Releases.
+    /// entitlement (the Mac build from GitHub Releases): in the Apple
+    /// Intelligence Models footer, and as the hint for a failed request.
     static var notEntitledText: String {
-        String(localized: "Available only in FlowDown from the App Store.")
+        String(localized: "Due to Apple's restrictions, Private Cloud Compute is only available in the App Store version of FlowDown.")
+    }
+
+    /// The reason line under the Private Cloud Compute switch. A missing
+    /// entitlement isn't repeated there; the section footer says it. The OS
+    /// and device reasons stay.
+    static func switchReasonText(
+        for availability: PrivateCloudComputeAvailabilityState,
+        isEntitled: Bool,
+        isMacCatalyst: Bool = Self.isMacCatalyst,
+        appleIntelligenceDisabled: Bool = false,
+    ) -> String? {
+        switch availability {
+        case .unavailable(.operatingSystemTooOld), .unavailable(.deviceNotEligible):
+            break
+        case .available, .unavailable:
+            guard isEntitled else { return nil }
+        }
+        return unavailableText(
+            for: availability,
+            isEntitled: isEntitled,
+            isMacCatalyst: isMacCatalyst,
+            appleIntelligenceDisabled: appleIntelligenceDisabled,
+        )
     }
 
     /// Why the model can't be used, or nil when it can. A missing

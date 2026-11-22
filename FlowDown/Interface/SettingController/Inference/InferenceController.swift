@@ -120,7 +120,9 @@ extension SettingController.SettingContent {
 
                 stackView.addArrangedSubviewWithMargin(
                     ConfigurableSectionFooterView().with(
-                        footer: .init(AppleIntelligenceModelDescriptions.sectionFooter),
+                        footer: .init(AppleIntelligenceModelDescriptions.sectionFooter(
+                            isEntitled: PrivateCloudComputeCenter.shared.isEntitled,
+                        )),
                     ),
                 ) { $0.top /= 2 }
                 stackView.addArrangedSubview(SeparatorView())
@@ -156,11 +158,12 @@ extension SettingController.SettingContent {
             }
             privateCloudComputeToggle.configure(description: .init(AppleIntelligenceModelDescriptions.text(
                 description: AppleIntelligenceModelDescriptions.privateCloudCompute,
-                unavailableReason: PrivateCloudComputeCenter.shared.unavailableText,
+                unavailableReason: PrivateCloudComputeCenter.shared.switchReasonText,
             )))
             // Without the entitlement (the Developer ID Mac build) the model
-            // can never run here, so the switch shows off and can't be used.
-            // The stored preference is left as it is.
+            // can never run here, so the switch shows off and can't be used;
+            // the section footer says why. The stored preference is left as
+            // it is.
             let isEntitled = PrivateCloudComputeCenter.shared.isEntitled
             privateCloudComputeToggle.switchView.isEnabled = isEntitled
             if !isEntitled {

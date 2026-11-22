@@ -27,7 +27,7 @@ struct PrivateCloudComputePresentationTests {
 
     @Test
     func `a copy without the entitlement points to the App Store`() {
-        let appStore = String(localized: "Available only in FlowDown from the App Store.")
+        let appStore = String(localized: "Due to Apple's restrictions, Private Cloud Compute is only available in the App Store version of FlowDown.")
         #expect(PrivateCloudComputePresentation.notEntitledText == appStore)
         #expect(PrivateCloudComputePresentation.unavailableText(for: .available, isEntitled: false) == appStore)
         #expect(PrivateCloudComputePresentation.unavailableText(for: .unavailable(.systemNotReady), isEntitled: false) == appStore)
@@ -52,11 +52,37 @@ struct PrivateCloudComputePresentationTests {
     }
 
     @Test
+    func `without the entitlement the footer says why, not the switch`() {
+        let appStore = String(localized: "Due to Apple's restrictions, Private Cloud Compute is only available in the App Store version of FlowDown.")
+        let footer = AppleIntelligenceModelDescriptions.sectionFooter
+        #expect(AppleIntelligenceModelDescriptions.sectionFooter(isEntitled: true) == footer)
+        #expect(AppleIntelligenceModelDescriptions.sectionFooter(isEntitled: false) == footer + "\n" + appStore)
+
+        #expect(PrivateCloudComputePresentation.switchReasonText(for: .available, isEntitled: false) == nil)
+        #expect(PrivateCloudComputePresentation.switchReasonText(for: .unavailable(.systemNotReady), isEntitled: false) == nil)
+        #expect(
+            PrivateCloudComputePresentation.switchReasonText(
+                for: .unavailable(.operatingSystemTooOld), isEntitled: false, isMacCatalyst: true,
+            ) == String(localized: "Requires macOS 27 or later."),
+        )
+        #expect(
+            PrivateCloudComputePresentation.switchReasonText(for: .unavailable(.deviceNotEligible), isEntitled: false)
+                == String(localized: "Not available on this device."),
+        )
+        // Entitled copies keep every reason under the switch.
+        #expect(PrivateCloudComputePresentation.switchReasonText(for: .available, isEntitled: true) == nil)
+        #expect(
+            PrivateCloudComputePresentation.switchReasonText(for: .unavailable(.systemNotReady), isEntitled: true)
+                == PrivateCloudComputePresentation.unavailableText(for: .systemNotReady),
+        )
+    }
+
+    @Test
     func `a request from a copy without the entitlement fails with the App Store hint`() {
         let center = PrivateCloudComputeCenter.shared
         #expect(
             center.failureText(from: PrivateCloudComputeCenter.NotEntitledError())
-                == String(localized: "Available only in FlowDown from the App Store."),
+                == String(localized: "Due to Apple's restrictions, Private Cloud Compute is only available in the App Store version of FlowDown."),
         )
         #expect(center.failure(from: PrivateCloudComputeCenter.NotEntitledError()) == nil)
     }
