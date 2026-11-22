@@ -144,7 +144,7 @@ final class PrivateCloudComputeCenter: @unchecked Sendable {
         }
     }
 
-    func makeChatService() throws -> any ChatService {
+    func makeChatService(log: PrivateCloudComputeRequestLog? = nil) throws -> any ChatService {
         guard isEntitled else { throw NotEntitledError() }
         #if DEBUG
             if let fixture = PrivateCloudComputeFixture.current {
@@ -153,9 +153,14 @@ final class PrivateCloudComputeCenter: @unchecked Sendable {
         #endif
         #if compiler(>=6.4)
             if #available(iOS 27.0, macCatalyst 27.0, *) {
+                var eventHandler: (@Sendable (PrivateCloudComputeStreamEvent) -> Void)?
+                if let log {
+                    eventHandler = { log.record($0) }
+                }
                 // Always the deepest reasoning; there is no setting for it.
                 return PrivateCloudComputeChatClient(configuration: .init(
                     reasoningDepth: .deep,
+                    eventHandler: eventHandler,
                 ))
             }
         #endif
