@@ -37,9 +37,9 @@ extension ModelManager {
             appleIntelligenceAvailable = true
         }
 
-        // Apple Intelligence Cloud: listed only on iOS / macOS 27 and
-        // eligible devices. While it can't run yet it stays listed, disabled,
-        // with the reason under it.
+        // Private Cloud Compute: listed only on iOS / macOS 27 and eligible
+        // devices, while its switch in Settings is on. While it can't run yet
+        // it stays listed, disabled, with the reason under it.
         let cloudCenter = PrivateCloudComputeCenter.shared
         let privateCloudComputeListed = cloudCenter.isListedInModelMenu
             && requiresCapabilities.isSubset(of: modelCapabilities(
@@ -154,13 +154,13 @@ extension ModelManager {
             })
         }
 
+        // One line per Apple model; a cloud model that can't run stays
+        // listed, disabled.
         var appleIntelligenceActions: [UIMenuElement] = []
         if #available(iOS 26.0, macCatalyst 26.0, *) {
             if appleIntelligenceAvailable {
                 let appleAction = UIAction(
-                    title: AppleIntelligenceModel.shared.modelDisplayName,
-                    // Named apart from the cloud model only when both are listed.
-                    subtitle: privateCloudComputeListed ? PrivateCloudComputePresentation.onDeviceSubtitle : nil,
+                    title: AppleIntelligenceModelNames.localModel,
                     state: currentSelection == AppleIntelligenceModel.shared.modelIdentifier ? .on : .off,
                 ) { _ in
                     onCompletion(AppleIntelligenceModel.shared.modelIdentifier)
@@ -169,11 +169,9 @@ extension ModelManager {
             }
         }
         if privateCloudComputeListed {
-            let unavailableText = cloudCenter.unavailableText
             let cloudAction = UIAction(
-                title: PrivateCloudComputePresentation.displayName,
-                subtitle: unavailableText ?? PrivateCloudComputePresentation.subtitle,
-                attributes: unavailableText == nil ? [] : [.disabled],
+                title: AppleIntelligenceModelNames.privateCloudComputeModel,
+                attributes: cloudCenter.unavailableText == nil ? [] : [.disabled],
                 state: currentSelection == PrivateCloudComputeCenter.modelIdentifier ? .on : .off,
             ) { _ in
                 onCompletion(PrivateCloudComputeCenter.modelIdentifier)

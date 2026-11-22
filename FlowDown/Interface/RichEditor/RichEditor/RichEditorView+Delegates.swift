@@ -230,7 +230,8 @@ extension RichEditorView: QuickSettingBar.Delegate {
 
     func updateModelinfoFile(postUpdate: Bool = true) {
         let newModel = delegate?.onRichEditorRequestCurrentModelName()
-        doWithAnimation { self.quickSettingBar.setModelName(newModel) }
+        let newModelIcon = delegate?.onRichEditorRequestCurrentModelIcon()
+        doWithAnimation { self.quickSettingBar.setModelName(newModel, icon: newModelIcon) }
         let newModelIdentifier = delegate?.onRichEditorRequestCurrentModelIdentifier()
         quickSettingBar.setModelIdentifier(newModelIdentifier)
         quickSettingBar.updateToolCallAvailability(currentModelSupportsToolCall)

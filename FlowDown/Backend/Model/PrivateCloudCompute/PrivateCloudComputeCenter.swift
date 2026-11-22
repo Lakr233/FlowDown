@@ -2,10 +2,10 @@
 //  PrivateCloudComputeCenter.swift
 //  FlowDown
 //
-//  The app's one boundary to Apple Intelligence Cloud (Apple's Private Cloud
-//  Compute model): availability, the chat client, and how its errors read.
-//  DEBUG builds can swap in a fixture here
-//  (`PrivateCloudComputeFixture`); production always reads the real model.
+//  The app's one boundary to Apple's Private Cloud Compute model:
+//  availability, the chat client, and how its errors read. DEBUG builds can
+//  swap in a fixture here (`PrivateCloudComputeFixture`); production always
+//  reads the real model.
 //
 //  Needs the managed entitlement `com.apple.developer.private-cloud-compute`
 //  (Boolean), in both FlowDown/Resources/Entitlements files. Without it the
@@ -55,9 +55,9 @@ final class PrivateCloudComputeCenter: @unchecked Sendable {
     }
 
     /// Listed in the model menu only on iOS / macOS 27 and eligible devices,
-    /// and only while the Apple Intelligence switch in Settings is on.
+    /// and only while the Private Cloud Compute switch in Settings is on.
     var isListedInModelMenu: Bool {
-        guard ModelManager.shared.appleIntelligenceEnabled else { return false }
+        guard ModelManager.shared.privateCloudComputeEnabled else { return false }
         return PrivateCloudComputePresentation.isListedInModelMenu(availabilityState)
     }
 
@@ -114,8 +114,9 @@ final class PrivateCloudComputeCenter: @unchecked Sendable {
         #endif
         #if compiler(>=6.4)
             if #available(iOS 27.0, macCatalyst 27.0, *) {
+                // Always the deepest reasoning; there is no setting for it.
                 return PrivateCloudComputeChatClient(configuration: .init(
-                    reasoningDepth: ModelManager.shared.cloudReasoningDepth,
+                    reasoningDepth: .deep,
                 ))
             }
         #endif

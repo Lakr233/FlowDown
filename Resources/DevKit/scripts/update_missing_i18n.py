@@ -509,29 +509,54 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "아니요",
         "zh-Hans": "否",
     },
-    "Apple Intelligence Cloud": {
-        "de": "Apple Intelligence Cloud",
-        "es": "Apple Intelligence Cloud",
-        "fr": "Apple Intelligence Cloud",
-        "ja": "Apple Intelligence クラウド",
-        "ko": "Apple Intelligence 클라우드",
-        "zh-Hans": "Apple 智能云端",
+    "Apple Intelligence Models": {
+        "de": "Apple Intelligence Modelle",
+        "es": "Modelos de Apple Intelligence",
+        "fr": "Modèles Apple Intelligence",
+        "ja": "Apple Intelligence モデル",
+        "ko": "Apple Intelligence 모델",
+        "zh-Hans": "Apple 智能模型",
     },
-    "On device": {
-        "de": "Auf dem Gerät",
-        "es": "En el dispositivo",
-        "fr": "Sur l'appareil",
-        "ja": "デバイス上",
-        "ko": "기기에서 실행",
+    "Local (Apple Intelligence Model)": {
+        "en": "Local",
+        "de": "Lokal",
+        "es": "Local",
+        "fr": "Local",
+        "ja": "ローカル",
+        "ko": "로컬",
         "zh-Hans": "本机",
     },
-    "Runs on Apple's Private Cloud Compute": {
-        "de": "Läuft auf Apples Private Cloud Compute",
-        "es": "Funciona en Private Cloud Compute de Apple",
-        "fr": "Fonctionne sur le Private Cloud Compute d'Apple",
-        "ja": "Apple の Private Cloud Compute で動作",
-        "ko": "Apple의 Private Cloud Compute에서 실행",
-        "zh-Hans": "在 Apple 的私有云计算上运行",
+    "Private Cloud Compute": {
+        "de": "Private Cloud Compute",
+        "es": "Private Cloud Compute",
+        "fr": "Private Cloud Compute",
+        "ja": "Private Cloud Compute",
+        "ko": "Private Cloud Compute",
+        "zh-Hans": "Private Cloud Compute",
+    },
+    "Runs entirely on this device. Works offline, and your conversations never leave it.": {
+        "de": "Läuft vollständig auf diesem Gerät. Funktioniert offline, und deine Unterhaltungen verlassen es nie.",
+        "es": "Funciona por completo en este dispositivo. Se puede usar sin conexión y tus conversaciones nunca salen de él.",
+        "fr": "Fonctionne entièrement sur cet appareil. Utilisable hors ligne, vos conversations ne le quittent jamais.",
+        "ja": "すべてこのデバイス上で動作します。オフラインでも使え、会話がデバイスの外に出ることはありません。",
+        "ko": "이 기기에서만 실행됩니다. 오프라인에서도 사용할 수 있으며 대화가 기기 밖으로 나가지 않습니다.",
+        "zh-Hans": "完全在这台设备上运行，不联网也能用，对话不会离开设备。",
+    },
+    "A larger model running on Apple's private cloud. Apple doesn't store your requests. Needs an internet connection and has a daily limit.": {
+        "de": "Ein größeres Modell, das in Apples privater Cloud läuft. Apple speichert deine Anfragen nicht. Benötigt eine Internetverbindung und hat ein Tageslimit.",
+        "es": "Un modelo más grande que funciona en la nube privada de Apple. Apple no guarda tus solicitudes. Necesita conexión a internet y tiene un límite diario.",
+        "fr": "Un modèle plus puissant qui fonctionne sur le cloud privé d'Apple. Apple ne conserve pas vos requêtes. Nécessite une connexion Internet et a une limite quotidienne.",
+        "ja": "Apple のプライベートクラウドで動作する、より大きなモデルです。リクエストが Apple に保存されることはありません。インターネット接続が必要で、1日の上限があります。",
+        "ko": "Apple의 프라이빗 클라우드에서 실행되는 더 큰 모델입니다. Apple은 요청을 저장하지 않습니다. 인터넷 연결이 필요하며 일일 한도가 있습니다.",
+        "zh-Hans": "在苹果私有云上运行的更大模型，苹果不会保存你的请求。需要联网，有每日额度。",
+    },
+    "Apple Intelligence models are built into your system. No API key or setup needed. Models you turn on here appear in the model menu.": {
+        "de": "Apple Intelligence Modelle sind in dein System integriert. Kein API-Schlüssel und keine Einrichtung nötig. Hier aktivierte Modelle erscheinen im Modellmenü.",
+        "es": "Los modelos de Apple Intelligence vienen integrados en tu sistema. No necesitas clave API ni configuración. Los modelos que actives aquí aparecen en el menú de modelos.",
+        "fr": "Les modèles Apple Intelligence sont intégrés à votre système. Aucune clé API ni configuration requise. Les modèles activés ici apparaissent dans le menu des modèles.",
+        "ja": "Apple Intelligence のモデルはシステムに組み込まれています。API キーや設定は不要です。ここでオンにしたモデルがモデルメニューに表示されます。",
+        "ko": "Apple Intelligence 모델은 시스템에 내장되어 있습니다. API 키나 설정이 필요 없습니다. 여기서 켠 모델이 모델 메뉴에 나타납니다.",
+        "zh-Hans": "Apple 智能模型由系统自带，不用填 API 密钥，也不用另外设置。在这里打开的模型会出现在模型菜单里。",
     },
     "Requires iOS 27 or later.": {
         "de": "Erfordert iOS 27 oder neuer.",
@@ -589,21 +614,13 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "오늘 한도에 도달했습니다. 내일 다시 시도하세요.",
         "zh-Hans": "今天的额度已用完，明天再试。",
     },
-    "Apple Intelligence Cloud isn't responding. Try again in a moment.": {
-        "de": "Apple Intelligence Cloud antwortet nicht. Versuche es gleich noch einmal.",
-        "es": "Apple Intelligence Cloud no responde. Inténtalo de nuevo en un momento.",
-        "fr": "Apple Intelligence Cloud ne répond pas. Réessayez dans un instant.",
-        "ja": "Apple Intelligence クラウドが応答していません。しばらくしてからもう一度お試しください。",
-        "ko": "Apple Intelligence 클라우드가 응답하지 않습니다. 잠시 후 다시 시도하세요.",
-        "zh-Hans": "Apple 智能云端没有响应，请稍后再试。",
-    },
-    "Reasoning Effort applies only to Apple Intelligence Cloud.": {
-        "de": "Der Reasoning-Aufwand gilt nur für Apple Intelligence Cloud.",
-        "es": "El esfuerzo de razonamiento solo se aplica a Apple Intelligence Cloud.",
-        "fr": "L’effort de raisonnement s’applique uniquement à Apple Intelligence Cloud.",
-        "ja": "推論の労力は Apple Intelligence クラウドにのみ適用されます。",
-        "ko": "추론 노력은 Apple Intelligence 클라우드에만 적용됩니다.",
-        "zh-Hans": "推理强度仅适用于 Apple 智能云端。",
+    "Private Cloud Compute isn't responding. Try again in a moment.": {
+        "de": "Private Cloud Compute antwortet nicht. Versuche es gleich noch einmal.",
+        "es": "Private Cloud Compute no responde. Inténtalo de nuevo en un momento.",
+        "fr": "Private Cloud Compute ne répond pas. Réessayez dans un instant.",
+        "ja": "Private Cloud Compute が応答していません。しばらくしてからもう一度お試しください。",
+        "ko": "Private Cloud Compute가 응답하지 않습니다. 잠시 후 다시 시도하세요.",
+        "zh-Hans": "Private Cloud Compute 没有响应，请稍后再试。",
     },
     WELCOME_MESSAGE: {
         "de": (
@@ -657,7 +674,7 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
             "✨ **FlowDown을 마음껏 즐겨보세요!**"
         ),
         "zh-Hans": (
-            "**欢迎使用 FlowDown 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n"
+            "**欢迎使用浮望 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n"
             "你可以使用 Apple Intelligence，或在支持的设备上 _运行本地模型_。也可以使用自己的服务提供商 _配置云端模型_。\n\n"
             "💡 更多信息，请查阅[用户手册](https://flowdown.ai/docs/)。\n\n"
             "---\n**接下来可以做些什么？**\n\n"

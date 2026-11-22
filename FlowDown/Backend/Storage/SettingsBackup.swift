@@ -55,6 +55,8 @@ enum SettingsBackup {
         "Model.Default.AuxiliaryVisual",
         "Model.Default.AuxiliaryVisual.SkipIfPossible",
         "InferenceController.defaultAuxiliaryModelAlignWithChatModel",
+        // The Private Cloud Compute Reasoning Effort menu.
+        "Model.Inference.AppleIntelligence.Cloud.ReasoningEffort",
         "Model.Inference.Prompt.Temperature",
         "CONFKIT.Model.Inference.Temperature",
         "Model.ChatInterface.CollapseReasoningSectionWhenComplete",

@@ -63,6 +63,12 @@ class ModelManager: NSObject {
     )
     var appleIntelligenceEnabled: Bool
 
+    @TypedStorage(
+        key: ModelManager.privateCloudComputeEnabledKey,
+        defaultValue: true,
+    )
+    var privateCloudComputeEnabled: Bool
+
     @TypedStorage(key: "Model.Default.Conversation", defaultValue: "")
     // swiftformat:disable:next redundantFileprivate
     fileprivate var defaultModelForConversation: String {
@@ -183,7 +189,7 @@ class ModelManager: NSObject {
             return AppleIntelligenceModel.shared.modelDisplayName
         }
         if identifier == PrivateCloudComputeCenter.modelIdentifier {
-            return PrivateCloudComputePresentation.displayName
+            return AppleIntelligenceModelNames.privateCloudComputeModel
         }
         return cloudModel(identifier: identifier)?.modelFullName
             ?? localModel(identifier: identifier)?.model_identifier

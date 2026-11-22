@@ -2,42 +2,23 @@
 //  ModelManager+PrivateCloudCompute.swift
 //  FlowDown
 //
-//  Apple Intelligence Cloud (Apple's Private Cloud Compute model) settings.
+//  Private Cloud Compute model settings: the switch key.
 //
 
-import ChatClientKit
 import ConfigurableKit
 import Foundation
 
 extension ModelManager {
-    static let cloudReasoningEffortKey = "Model.Inference.AppleIntelligence.Cloud.ReasoningEffort"
+    /// The Private Cloud Compute switch in Settings: whether the model menu
+    /// lists the model, like the Local switch does for the on-device model.
+    static let privateCloudComputeEnabledKey = "Model.Inference.AppleIntelligence.Cloud.Enabled"
 
-    /// The Reasoning Effort menu for the cloud model, reusing the app's
-    /// Low / Medium / High labels for the light / moderate / deep levels.
-    static let cloudReasoningEffortConfigurableObject: ConfigurableObject = .init(
-        icon: "brain.head.profile",
-        title: "Reasoning Effort",
-        key: cloudReasoningEffortKey,
-        defaultValue: PrivateCloudComputeReasoningDepth.moderate.rawValue,
-        annotation: .menu {
-            PrivateCloudComputeReasoningDepth.allCases.map {
-                .init(title: $0.effortTitle, rawValue: $0.rawValue)
-            }
-        },
-    )
+    /// The retired Reasoning Effort menu for Private Cloud Compute, which now
+    /// always uses deep reasoning. Also listed in `SettingsBackup.retiredKeys`.
+    static let retiredCloudReasoningEffortKey = "Model.Inference.AppleIntelligence.Cloud.ReasoningEffort"
 
-    var cloudReasoningDepth: PrivateCloudComputeReasoningDepth {
-        let stored: String? = ConfigurableKit.value(forKey: Self.cloudReasoningEffortKey)
-        return stored.flatMap(PrivateCloudComputeReasoningDepth.init(rawValue:)) ?? .moderate
-    }
-}
-
-extension PrivateCloudComputeReasoningDepth {
-    var effortTitle: String.LocalizationValue {
-        switch self {
-        case .light: "Low"
-        case .moderate: "Medium"
-        case .deep: "High"
-        }
+    /// Deletes the saved values of retired model settings. Runs at launch.
+    static func removeRetiredSettings(storage: KeyValueStorage = ConfigurableKit.storage) {
+        storage.setValue(nil, forKey: retiredCloudReasoningEffortKey)
     }
 }

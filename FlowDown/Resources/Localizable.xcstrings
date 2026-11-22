@@ -3591,144 +3591,6 @@
         }
       }
     },
-    "Apple Intelligence Cloud" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence クラウド"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence 클라우드"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple 智能云端"
-          }
-        }
-      }
-    },
-    "Apple Intelligence Cloud isn't responding. Try again in a moment." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud isn't responding. Try again in a moment."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud antwortet nicht. Versuche es gleich noch einmal."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud no responde. Inténtalo de nuevo en un momento."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence Cloud ne répond pas. Réessayez dans un instant."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence クラウドが応答していません。しばらくしてからもう一度お試しください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence 클라우드가 응답하지 않습니다. 잠시 후 다시 시도하세요."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple 智能云端没有响应，请稍后再试。"
-          }
-        }
-      }
-    },
-    "Apple Intelligence is available and ready to use on this device." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence ist verfügbar und einsatzbereit auf diesem Gerät."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence is available and ready to use on this device."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence está disponible y lista para usarse en este dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence est disponible et prête à être utilisée sur cet appareil."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このデバイスでは Apple Intelligence が利用可能で、すぐ使えます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 기기에서 Apple Intelligence를 사용할 수 있습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple 智能对此设备可用。"
-          }
-        }
-      }
-    },
     "Apple Intelligence is not enabled. Check your device settings." : {
       "localizations" : {
         "de" : {
@@ -3867,6 +3729,52 @@
         }
       }
     },
+    "Apple Intelligence Models" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence Models"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence Modelle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modelos de Apple Intelligence"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèles Apple Intelligence"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence モデル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 모델"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 智能模型"
+          }
+        }
+      }
+    },
     "Apple Intelligence Not Enabled" : {
       "localizations" : {
         "de" : {
@@ -3909,52 +3817,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple 智能未启用。"
-          }
-        }
-      }
-    },
-    "Apple Intelligence provides on-device AI capabilities when available." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence bietet, wenn verfügbar, KI-Funktionen direkt auf dem Gerät."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence provides on-device AI capabilities when available."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence ofrece capacidades de IA en el dispositivo cuando está disponible."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence offre des capacités d’IA sur l’appareil lorsqu’elle est disponible."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "利用可能な場合、Apple Intelligence はデバイス上で AI 機能を提供します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Intelligence는 사용 가능할 때 온디바이스 AI 기능을 제공합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple 智能在设备上提供离线可用的模型。"
           }
         }
       }
@@ -16452,52 +16314,6 @@
         }
       }
     },
-    "Enable Foundation Model" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Foundation-Modell aktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable Foundation Model"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activar modelo Foundation"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer Foundation Model"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Foundation モデルを有効化"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Foundation 모델 활성화"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用 Foundation Model"
-          }
-        }
-      }
-    },
     "Enable iCloud Sync" : {
       "localizations" : {
         "de" : {
@@ -22802,6 +22618,52 @@
         }
       }
     },
+    "Local (Apple Intelligence Model)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ローカル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로컬"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本机"
+          }
+        }
+      }
+    },
     "Not available on this device." : {
       "localizations" : {
         "en" : {
@@ -22894,48 +22756,94 @@
         }
       }
     },
-    "On device" : {
+    "Private Cloud Compute" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On device"
+            "value" : "Private Cloud Compute"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auf dem Gerät"
+            "value" : "Private Cloud Compute"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En el dispositivo"
+            "value" : "Private Cloud Compute"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sur l'appareil"
+            "value" : "Private Cloud Compute"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デバイス上"
+            "value" : "Private Cloud Compute"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "기기에서 실행"
+            "value" : "Private Cloud Compute"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机"
+            "value" : "Private Cloud Compute"
+          }
+        }
+      }
+    },
+    "Private Cloud Compute isn't responding. Try again in a moment." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Cloud Compute isn't responding. Try again in a moment."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Cloud Compute antwortet nicht. Versuche es gleich noch einmal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Cloud Compute no responde. Inténtalo de nuevo en un momento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Cloud Compute ne répond pas. Réessayez dans un instant."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Cloud Compute が応答していません。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Cloud Compute가 응답하지 않습니다. 잠시 후 다시 시도하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Cloud Compute 没有响应，请稍后再试。"
           }
         }
       }
@@ -23028,52 +22936,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要 macOS 27 或更高版本。"
-          }
-        }
-      }
-    },
-    "Runs on Apple's Private Cloud Compute" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Runs on Apple's Private Cloud Compute"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Läuft auf Apples Private Cloud Compute"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Funciona en Private Cloud Compute de Apple"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fonctionne sur le Private Cloud Compute d'Apple"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple の Private Cloud Compute で動作"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple의 Private Cloud Compute에서 실행"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 Apple 的私有云计算上运行"
           }
         }
       }
@@ -37209,52 +37071,6 @@
         }
       }
     },
-    "Reasoning Effort applies only to Apple Intelligence Cloud." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reasoning Effort applies only to Apple Intelligence Cloud."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Reasoning-Aufwand gilt nur für Apple Intelligence Cloud."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El esfuerzo de razonamiento solo se aplica a Apple Intelligence Cloud."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’effort de raisonnement s’applique uniquement à Apple Intelligence Cloud."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推論の労力は Apple Intelligence クラウドにのみ適用されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "추론 노력은 Apple Intelligence 클라우드에만 적용됩니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推理强度仅适用于 Apple 智能云端。"
-          }
-        }
-      }
-    },
     "Reasoning Keys" : {
       "localizations" : {
         "de" : {
@@ -42588,52 +42404,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "显示对话"
-          }
-        }
-      }
-    },
-    "Show Foundation Model in the model picker when available." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Foundation-Modell im Modellwähler anzeigen, wenn verfügbar."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Foundation Model in the model picker when available."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar el modelo Foundation en el selector cuando esté disponible."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher Foundation Model dans le sélecteur quand disponible."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "利用可能な場合、モデルピッカーに Foundation モデルを表示します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가능하면 모델 선택기에 Foundation 모델을 표시합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可用时在模型选择器中显示 Foundation Model。"
           }
         }
       }
@@ -60841,6 +60611,144 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "工具已更改，下一条回复可能会慢一些。"
+          }
+        }
+      }
+    },
+    "Runs entirely on this device. Works offline, and your conversations never leave it." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs entirely on this device. Works offline, and your conversations never leave it."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft vollständig auf diesem Gerät. Funktioniert offline, und deine Unterhaltungen verlassen es nie."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Funciona por completo en este dispositivo. Se puede usar sin conexión y tus conversaciones nunca salen de él."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fonctionne entièrement sur cet appareil. Utilisable hors ligne, vos conversations ne le quittent jamais."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてこのデバイス上で動作します。オフラインでも使え、会話がデバイスの外に出ることはありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기기에서만 실행됩니다. 오프라인에서도 사용할 수 있으며 대화가 기기 밖으로 나가지 않습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完全在这台设备上运行，不联网也能用，对话不会离开设备。"
+          }
+        }
+      }
+    },
+    "A larger model running on Apple's private cloud. Apple doesn't store your requests. Needs an internet connection and has a daily limit." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A larger model running on Apple's private cloud. Apple doesn't store your requests. Needs an internet connection and has a daily limit."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein größeres Modell, das in Apples privater Cloud läuft. Apple speichert deine Anfragen nicht. Benötigt eine Internetverbindung und hat ein Tageslimit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un modelo más grande que funciona en la nube privada de Apple. Apple no guarda tus solicitudes. Necesita conexión a internet y tiene un límite diario."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un modèle plus puissant qui fonctionne sur le cloud privé d'Apple. Apple ne conserve pas vos requêtes. Nécessite une connexion Internet et a une limite quotidienne."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple のプライベートクラウドで動作する、より大きなモデルです。リクエストが Apple に保存されることはありません。インターネット接続が必要で、1日の上限があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple의 프라이빗 클라우드에서 실행되는 더 큰 모델입니다. Apple은 요청을 저장하지 않습니다. 인터넷 연결이 필요하며 일일 한도가 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在苹果私有云上运行的更大模型，苹果不会保存你的请求。需要联网，有每日额度。"
+          }
+        }
+      }
+    },
+    "Apple Intelligence models are built into your system. No API key or setup needed. Models you turn on here appear in the model menu." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence models are built into your system. No API key or setup needed. Models you turn on here appear in the model menu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence Modelle sind in dein System integriert. Kein API-Schlüssel und keine Einrichtung nötig. Hier aktivierte Modelle erscheinen im Modellmenü."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los modelos de Apple Intelligence vienen integrados en tu sistema. No necesitas clave API ni configuración. Los modelos que actives aquí aparecen en el menú de modelos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les modèles Apple Intelligence sont intégrés à votre système. Aucune clé API ni configuration requise. Les modèles activés ici apparaissent dans le menu des modèles."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence のモデルはシステムに組み込まれています。API キーや設定は不要です。ここでオンにしたモデルがモデルメニューに表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence 모델은 시스템에 내장되어 있습니다. API 키나 설정이 필요 없습니다. 여기서 켠 모델이 모델 메뉴에 나타납니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 智能模型由系统自带，不用填 API 密钥，也不用另外设置。在这里打开的模型会出现在模型菜单里。"
           }
         }
       }

@@ -45,6 +45,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         MarkdownTheme.subscribeToConfigurableItem()
         ScrubberConfiguration.subscribeToConfigurableItem()
         ScrubberConfiguration.setup() // build access control rule
+        ModelManager.removeRetiredSettings()
 
         AlertControllerConfiguration.alertImage = .avatar
         AlertControllerConfiguration.accentColor = .accent

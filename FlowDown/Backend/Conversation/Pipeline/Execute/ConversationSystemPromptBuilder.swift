@@ -37,7 +37,7 @@ enum ConversationSystemPromptBuilder {
         if #available(iOS 26.0, macCatalyst 26.0, *), modelID == AppleIntelligenceModel.shared.modelIdentifier {
             return .systemMessages
         }
-        // Apple Intelligence Cloud uses the same per-request session.
+        // Private Cloud Compute uses the same per-request session.
         if modelID == PrivateCloudComputeCenter.modelIdentifier {
             return .systemMessages
         }

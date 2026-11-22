@@ -2,7 +2,7 @@
 //  PrivateCloudComputeFixture.swift
 //  FlowDown
 //
-//  DEBUG-only fixtures for Apple Intelligence Cloud, so every designed state
+//  DEBUG-only fixtures for Private Cloud Compute, so every designed state
 //  can be shown on a Simulator, which has no model. Select one by launching
 //  the app with the environment variable FLOWDOWN_PCC_FIXTURE set to a case
 //  name, for example:
@@ -83,7 +83,7 @@
             }
 
             static let sampleReasoning = "[Fixture] Scripted reasoning from the DEBUG fixture."
-            static let sampleReply = "[Fixture] This reply is sample output from the DEBUG Apple Intelligence Cloud fixture. No model was called."
+            static let sampleReply = "[Fixture] This reply is sample output from the DEBUG Private Cloud Compute fixture. No model was called."
 
             func streamingChat(body _: ChatRequestBody) async throws -> AnyAsyncSequence<ChatResponseChunk> {
                 switch fixture {

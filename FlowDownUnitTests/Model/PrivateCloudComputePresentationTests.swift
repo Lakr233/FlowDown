@@ -1,9 +1,10 @@
 @testable import ChatClientKit
+import ConfigurableKit
 @testable import FlowDown
 import Foundation
 import Testing
 
-/// What the app says about Apple Intelligence Cloud in each state. The tests
+/// What the app says about Private Cloud Compute in each state. The tests
 /// run on any OS: the presentation reads only the FoundationModels-free state.
 struct PrivateCloudComputePresentationTests {
     private let fixedTime: (Date) -> String = { _ in "3:00 PM" }
@@ -66,7 +67,7 @@ struct PrivateCloudComputePresentationTests {
         )
         #expect(
             PrivateCloudComputePresentation.failureText(for: .serviceUnavailable)
-                == String(localized: "Apple Intelligence Cloud isn't responding. Try again in a moment."),
+                == String(localized: "Private Cloud Compute isn't responding. Try again in a moment."),
         )
     }
 
@@ -95,12 +96,79 @@ struct PrivateCloudComputePresentationTests {
     @Test
     func `copy never uses middle dots`() {
         let texts = [
-            PrivateCloudComputePresentation.displayName,
-            PrivateCloudComputePresentation.subtitle,
-            PrivateCloudComputePresentation.onDeviceSubtitle,
+            AppleIntelligenceModelNames.localModel,
+            AppleIntelligenceModelNames.privateCloudComputeModel,
+            AppleIntelligenceModelNames.local,
+            AppleIntelligenceModelNames.privateCloudCompute,
+            AppleIntelligenceModelDescriptions.local,
+            AppleIntelligenceModelDescriptions.privateCloudCompute,
+            AppleIntelligenceModelDescriptions.sectionFooter,
         ]
         for text in texts {
+            #expect(!text.isEmpty)
             #expect(!text.contains("·") && !text.contains("•") && !text.contains("・"))
         }
+    }
+
+    @MainActor
+    @Test
+    func `model names are English in every language`() {
+        #expect(AppleIntelligenceModelNames.localModel == "Apple Intelligence Local")
+        #expect(AppleIntelligenceModelNames.privateCloudComputeModel == "Apple Intelligence PCC")
+        #expect(AppleIntelligenceModelNames.privateCloudCompute == "Private Cloud Compute")
+        #expect(AppleIntelligenceModelNames.local != "Local (Apple Intelligence Model)")
+        #expect(ModelManager.shared.modelName(identifier: PrivateCloudComputeCenter.modelIdentifier)
+            == AppleIntelligenceModelNames.privateCloudComputeModel)
+    }
+
+    @Test
+    func `switch text puts the reason on its own line`() {
+        let description = AppleIntelligenceModelDescriptions.privateCloudCompute
+        #expect(AppleIntelligenceModelDescriptions.text(description: description, unavailableReason: nil) == description)
+        #expect(AppleIntelligenceModelDescriptions.text(description: description, unavailableReason: "") == description)
+        let reason = PrivateCloudComputePresentation.unavailableText(for: .systemNotReady)
+        #expect(
+            AppleIntelligenceModelDescriptions.text(description: description, unavailableReason: reason)
+                == description + "\n" + reason,
+        )
+    }
+
+    @Test
+    func `launch deletes the retired Reasoning Effort value`() throws {
+        let suiteName = "pcc.retired.\(UUID().uuidString)"
+        let suite = try #require(UserDefaults(suiteName: suiteName))
+        defer { suite.removePersistentDomain(forName: suiteName) }
+        let storage = UserDefaultKeyValueStorage(suite: suite)
+        let key = ModelManager.retiredCloudReasoningEffortKey
+        storage.setValue(Data("deep".utf8), forKey: key)
+        storage.setValue(Data("1".utf8), forKey: ModelManager.privateCloudComputeEnabledKey)
+
+        ModelManager.removeRetiredSettings(storage: storage)
+
+        #expect(storage.value(forKey: key) == nil)
+        #expect(storage.value(forKey: ModelManager.privateCloudComputeEnabledKey) != nil)
+        #expect(SettingsBackup.retiredKeys.contains(key))
+    }
+
+    @MainActor
+    @Test
+    func `the Private Cloud Compute switch alone decides whether the menu lists it`() {
+        let manager = ModelManager.shared
+        let savedCloud = manager.privateCloudComputeEnabled
+        let savedLocal = manager.appleIntelligenceEnabled
+        defer {
+            manager.privateCloudComputeEnabled = savedCloud
+            manager.appleIntelligenceEnabled = savedLocal
+        }
+        let center = PrivateCloudComputeCenter.shared
+        let listable = PrivateCloudComputePresentation.isListedInModelMenu(center.availabilityState)
+
+        manager.privateCloudComputeEnabled = false
+        manager.appleIntelligenceEnabled = true
+        #expect(!center.isListedInModelMenu)
+
+        manager.privateCloudComputeEnabled = true
+        manager.appleIntelligenceEnabled = false
+        #expect(center.isListedInModelMenu == listable)
     }
 }
