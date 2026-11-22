@@ -235,6 +235,7 @@ extension RichEditorView: QuickSettingBar.Delegate {
         quickSettingBar.setModelIdentifier(newModelIdentifier)
         quickSettingBar.updateToolCallAvailability(currentModelSupportsToolCall)
         updateVisualInputHint()
+        updateCloudModelNotice()
         if postUpdate {
             delegate?.onRichEditorUpdateObject(object: collectObject())
         }
@@ -254,6 +255,29 @@ extension RichEditorView: QuickSettingBar.Delegate {
         if becameVisible, let hint {
             UIAccessibility.post(notification: .announcement, argument: hint)
         }
+    }
+
+    /// Shows, updates or hides the Apple Intelligence Cloud note for the
+    /// current model. It stays while the state lasts; it has no close button.
+    func updateCloudModelNotice() {
+        let modelIdentifier = delegate?.onRichEditorRequestCurrentModelIdentifier() ?? ""
+        let notice = modelIdentifier.isEmpty
+            ? nil
+            : delegate?.onRichEditorCloudModelNotice(modelIdentifier: modelIdentifier)
+        let actions = (notice?.actions ?? []).map { action in
+            VisualInputHintBar.Action(
+                title: action.title,
+                identifier: action.accessibilityIdentifier,
+            ) { [weak self] in
+                self?.delegate?.onRichEditorPerformCloudModelAction(action)
+            }
+        }
+        let previousText = cloudModelNotice.label.text
+        let becameVisible = cloudModelNotice.setActive(notice != nil, text: notice?.text ?? "", actions: actions)
+        if let notice, becameVisible || previousText != notice.text {
+            UIAccessibility.post(notification: .announcement, argument: notice.text)
+        }
+        setNeedsLayout()
     }
 
     /// Shows a note under the input until the next message is sent or the

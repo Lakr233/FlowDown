@@ -93,6 +93,37 @@ extension ChatView: RichEditorView.Delegate {
     return ConversationSession.visualInputUnsupportedHintText
   }
 
+  func onRichEditorCloudModelNotice(modelIdentifier: String) -> PrivateCloudComputeNotice? {
+    guard modelIdentifier == PrivateCloudComputeCenter.modelIdentifier else { return nil }
+    return PrivateCloudComputeCenter.shared.notice(for: conversationIdentifier)
+  }
+
+  func onRichEditorPerformCloudModelAction(_ action: PrivateCloudComputeNotice.Action) {
+    switch action {
+    case .useOnDeviceModel:
+      switchToOnDeviceModel()
+    case .increaseLimit:
+      PrivateCloudComputeCenter.shared.showLimitIncreaseSuggestion()
+    }
+  }
+
+  /// Moves this conversation from Apple Intelligence Cloud to the on-device
+  /// Apple Intelligence model, so the user can keep going offline or past
+  /// the daily limit.
+  func switchToOnDeviceModel() {
+    guard let conversationIdentifier,
+      let onDeviceIdentifier = PrivateCloudComputeCenter.shared.onDeviceModelIdentifier
+    else { return }
+    ConversationManager.shared.editConversation(identifier: conversationIdentifier) {
+      $0.update(\.modelId, to: onDeviceIdentifier)
+    }
+    if editorApplyModelToDefault {
+      ModelManager.ModelIdentifier.defaultModelForConversation = onDeviceIdentifier
+    }
+    PrivateCloudComputeCenter.shared.clearFailure(conversationID: conversationIdentifier)
+    editor.updateModelinfoFile()
+  }
+
   func onRichEditorError(_ error: String) {
     Indicator.present(
       title: "\(error)",
@@ -152,6 +183,9 @@ extension ChatView: RichEditorView.Delegate {
       modelIdentifier == AppleIntelligenceModel.shared.modelIdentifier
     {
       return AppleIntelligenceModel.shared.modelDisplayName
+    }
+    if modelIdentifier == PrivateCloudComputeCenter.modelIdentifier {
+      return PrivateCloudComputePresentation.displayName
     }
     let full: String
     let trimmed: String

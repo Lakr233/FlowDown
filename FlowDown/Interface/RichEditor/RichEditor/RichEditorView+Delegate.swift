@@ -17,6 +17,10 @@ extension RichEditorView {
             attachments: [Object.Attachment],
             modelIdentifier: String,
         ) -> String?
+        /// The note about Apple Intelligence Cloud for this model, or nil
+        /// when the model is another one or there is nothing to say.
+        func onRichEditorCloudModelNotice(modelIdentifier: String) -> PrivateCloudComputeNotice?
+        func onRichEditorPerformCloudModelAction(_ action: PrivateCloudComputeNotice.Action)
         func onRichEditorRequestObjectForRestore() -> Object?
         func onRichEditorUpdateObject(object: Object)
         func onRichEditorRequestAutomaticModelSelection()

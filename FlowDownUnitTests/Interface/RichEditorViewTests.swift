@@ -1,3 +1,4 @@
+import ChatClientKit
 import Combine
 @testable import FlowDown
 import Foundation
@@ -39,6 +40,19 @@ private final class RichEditorDelegateSpy: RichEditorView.Delegate {
     }
 
     func onRichEditorTogglesUpdate(object _: RichEditorView.Object) {}
+
+    /// The Apple Intelligence Cloud note for `cloudNoticeModel`, if any.
+    var cloudNotice: PrivateCloudComputeNotice?
+    var cloudNoticeModel = PrivateCloudComputeCenter.modelIdentifier
+    private(set) var performedCloudActions: [PrivateCloudComputeNotice.Action] = []
+
+    func onRichEditorCloudModelNotice(modelIdentifier: String) -> PrivateCloudComputeNotice? {
+        modelIdentifier == cloudNoticeModel ? cloudNotice : nil
+    }
+
+    func onRichEditorPerformCloudModelAction(_ action: PrivateCloudComputeNotice.Action) {
+        performedCloudActions.append(action)
+    }
 
     func onRichEditorRequestObjectForRestore() -> RichEditorView.Object? {
         storedObject
@@ -380,5 +394,28 @@ struct RichEditorViewTests {
             includingPropertiesForKeys: nil,
         )
         #expect(leftovers.isEmpty)
+    }
+
+    @MainActor
+    @Test
+    func cloudModelNotice_followsTheSelectedModel() {
+        let spy = RichEditorDelegateSpy()
+        spy.modelIdentifier = PrivateCloudComputeCenter.modelIdentifier
+        spy.cloudNotice = PrivateCloudComputePresentation.failureNotice(for: .networkFailure)
+
+        let editor = RichEditorView()
+        editor.delegate = spy
+        editor.frame = CGRect(x: 0, y: 0, width: 390, height: 400)
+
+        editor.updateCloudModelNotice()
+        #expect(editor.cloudModelNotice.isActive)
+        #expect(editor.cloudModelNotice.label.text == spy.cloudNotice?.text)
+        editor.cloudModelNotice.layoutIfNeeded()
+        #expect(editor.cloudModelNotice.heightPublisher.value > 0)
+
+        spy.modelIdentifier = "another-model"
+        editor.updateCloudModelNotice()
+        #expect(!editor.cloudModelNotice.isActive)
+        #expect(editor.cloudModelNotice.heightPublisher.value == 0)
     }
 }

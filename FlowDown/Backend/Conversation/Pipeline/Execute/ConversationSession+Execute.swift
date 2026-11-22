@@ -88,6 +88,18 @@ extension ConversationSession {
         var requestMessages: [ChatRequestBody.Message] = []
         await buildInitialRequestMessages(&requestMessages, modelCapabilities)
 
+        let usesPrivateCloudCompute = modelID == PrivateCloudComputeCenter.modelIdentifier
+        if usesPrivateCloudCompute {
+            // A new attempt: the note about the last failure no longer applies.
+            PrivateCloudComputeCenter.shared.clearFailure(conversationID: id)
+        }
+        defer {
+            if usesPrivateCloudCompute {
+                // The quota note follows the allowance this request used.
+                PrivateCloudComputeCenter.shared.requestDidFinish()
+            }
+        }
+
         do {
             try await doInfereExecuteCore(
                 inputObject,
@@ -98,11 +110,26 @@ extension ConversationSession {
         } catch {
             logger.errorFile("\(error.localizedDescription)")
             finalizeInterruptedReasoning()
-            let sanitized = error.localizedDescription
+            var sanitized = error.localizedDescription
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            if error is InferenceUserCancellationError {
+            let cloudFailure = usesPrivateCloudCompute
+                ? PrivateCloudComputeCenter.shared.failure(from: error)
+                : nil
+            if let cloudFailure {
+                // Offline, quota and busy states get the app's own words and a
+                // note above the input with what the user can do next
+                // (switch to the on-device model, see the reset time).
+                PrivateCloudComputeCenter.shared.recordFailure(cloudFailure, conversationID: id)
+                sanitized = PrivateCloudComputePresentation.failureNotice(
+                    for: cloudFailure,
+                    appleIntelligenceDisabled: PrivateCloudComputeCenter.shared.appleIntelligenceDisabled,
+                ).text
+            }
+            if cloudFailure != nil || error is InferenceUserCancellationError {
                 // A cancellation is the user's own doing, not a failure worth an
-                // assistant bubble; show it like the date separators do.
+                // assistant bubble; show it like the date separators do. The
+                // cloud model's known failures read the same way, not as an
+                // error dump.
                 let hintMessage = appendNewMessage(role: .hint)
                 hintMessage.update(\.document, to: sanitized)
             } else {

@@ -22,7 +22,7 @@ import Foundation
 ///    text, which is never stored, so the history replays byte-identical
 ///    next turn.
 ///
-/// Apple Intelligence rebuilds its session for every request and folds all
+/// Apple Intelligence (on device and Cloud) rebuilds its session for every request and folds all
 /// system messages into its instructions, so it gets the variable parts as
 /// system messages instead (``ContextPlacement/systemMessages``).
 enum ConversationSystemPromptBuilder {
@@ -35,6 +35,10 @@ enum ConversationSystemPromptBuilder {
 
     static func contextPlacement(for modelID: ModelManager.ModelIdentifier) -> ContextPlacement {
         if #available(iOS 26.0, macCatalyst 26.0, *), modelID == AppleIntelligenceModel.shared.modelIdentifier {
+            return .systemMessages
+        }
+        // Apple Intelligence Cloud uses the same per-request session.
+        if modelID == PrivateCloudComputeCenter.modelIdentifier {
             return .systemMessages
         }
         return .finalUserMessage

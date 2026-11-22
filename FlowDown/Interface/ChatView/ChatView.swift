@@ -253,6 +253,18 @@ class ChatView: UIView {
             }
             .store(in: &cancellables)
 
+        // Apple Intelligence Cloud's quota and last failure live outside the
+        // editor; refresh its note when they change or the app comes back.
+        PrivateCloudComputeCenter.shared.changes
+            .merge(with: NotificationCenter.default
+                .publisher(for: UIApplication.didBecomeActiveNotification)
+                .map { _ in () })
+            .ensureMainThread()
+            .sink { [weak self] _ in
+                self?.editor.updateCloudModelNotice()
+            }
+            .store(in: &cancellables)
+
         NotificationCenter.default.publisher(for: NSNotification.Name("RefreshRichEditor"))
             .ensureMainThread()
             .sink { [weak self] notification in
