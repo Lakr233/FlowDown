@@ -20,6 +20,8 @@
 	<true/>
 	<key>com.apple.developer.kernel.increased-memory-limit</key>
 	<true/>
+	<key>com.apple.developer.private-cloud-compute</key>
+	<true/>
 	<key>com.apple.developer.translation-app</key>
 	<true/>
 	<key>com.apple.security.application-groups</key>

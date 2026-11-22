@@ -164,7 +164,8 @@ class ModelManager: NSObject {
         if !defaultModelForConversation.isEmpty,
            localModel(identifier: defaultModelForConversation) == nil,
            cloudModel(identifier: defaultModelForConversation) == nil,
-           !(appleIntelligenceId != nil && defaultModelForConversation == appleIntelligenceId)
+           !(appleIntelligenceId != nil && defaultModelForConversation == appleIntelligenceId),
+           defaultModelForConversation != PrivateCloudComputeCenter.modelIdentifier
         {
             Logger.model.debugFile("reset defaultModelForConversation due to not found")
             defaultModelForConversation = ""
@@ -176,6 +177,9 @@ class ModelManager: NSObject {
         if #available(iOS 26.0, macCatalyst 26.0, *), identifier == AppleIntelligenceModel.shared.modelIdentifier {
             return AppleIntelligenceModel.shared.modelDisplayName
         }
+        if identifier == PrivateCloudComputeCenter.modelIdentifier {
+            return PrivateCloudComputePresentation.displayName
+        }
         return cloudModel(identifier: identifier)?.modelFullName
             ?? localModel(identifier: identifier)?.model_identifier
             ?? "-"
@@ -184,6 +188,11 @@ class ModelManager: NSObject {
     func modelCapabilities(identifier: ModelIdentifier) -> Set<ModelCapabilities> {
         if #available(iOS 26.0, macCatalyst 26.0, *), identifier == AppleIntelligenceModel.shared.modelIdentifier {
             // no endpoint
+            return [.tool]
+        }
+        if identifier == PrivateCloudComputeCenter.modelIdentifier {
+            // Tools go through the same bridge as the on-device model; images
+            // are not sent to either Apple model yet.
             return [.tool]
         }
         if let cloudModel = cloudModel(identifier: identifier) {
@@ -199,6 +208,9 @@ class ModelManager: NSObject {
         if #available(iOS 26.0, macCatalyst 26.0, *), identifier == AppleIntelligenceModel.shared.modelIdentifier {
             // Apple Intelligence: context length is not public, use a safe default
             return 8192
+        }
+        if identifier == PrivateCloudComputeCenter.modelIdentifier {
+            return PrivateCloudComputeIdentity.contextLength
         }
         if let cloudModel = cloudModel(identifier: identifier) {
             return cloudModel.context.rawValue

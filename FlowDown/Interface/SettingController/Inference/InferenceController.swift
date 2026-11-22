@@ -122,6 +122,34 @@ extension SettingController.SettingContent {
                 ) { $0.top /= 2 }
                 stackView.addArrangedSubview(SeparatorView())
 
+                // Apple Intelligence Cloud gets its own section, so its
+                // settings read as cloud-only. Where it can't run, the reason
+                // shows here instead of an entry in the model menu.
+                stackView.addArrangedSubviewWithMargin(
+                    ConfigurableSectionHeaderView().with(
+                        header: "Apple Intelligence Cloud",
+                    ),
+                ) { $0.bottom /= 2 }
+                stackView.addArrangedSubview(SeparatorView())
+
+                stackView.addArrangedSubviewWithMargin(cloudModelStatusView)
+                stackView.addArrangedSubview(SeparatorView())
+                updateCloudModelStatus()
+
+                if PrivateCloudComputeIdentity.isSupportedOperatingSystem {
+                    stackView.addArrangedSubviewWithMargin(
+                        ModelManager.cloudReasoningEffortConfigurableObject.createView(),
+                    )
+                    stackView.addArrangedSubview(SeparatorView())
+
+                    stackView.addArrangedSubviewWithMargin(
+                        ConfigurableSectionFooterView().with(
+                            footer: "Reasoning Effort applies only to Apple Intelligence Cloud.",
+                        ),
+                    ) { $0.top /= 2 }
+                    stackView.addArrangedSubview(SeparatorView())
+                }
+
                 appleIntelligenceToggle.onUpdated = { [weak self] isOn in
                     ModelManager.shared.appleIntelligenceEnabled = isOn
                     self?.updateDefaultModelinfoFile()
@@ -149,6 +177,22 @@ extension SettingController.SettingContent {
         override func viewWillAppear(_ animated: Bool) {
             super.viewWillAppear(animated)
             updateDefaultModelinfoFile()
+            updateCloudModelStatus()
+        }
+
+        private let cloudModelStatusView = ConfigurableInfoView().with {
+            $0.configure(icon: UIImage(systemName: "icloud"))
+            $0.configure(title: "Apple Intelligence Cloud")
+        }
+
+        func updateCloudModelStatus() {
+            let unavailableText = PrivateCloudComputeCenter.shared.unavailableText
+            cloudModelStatusView.configure(
+                description: .init(unavailableText ?? PrivateCloudComputePresentation.subtitle),
+            )
+            cloudModelStatusView.configure(
+                value: unavailableText == nil ? String(localized: "Available") : String(localized: "Unavailable"),
+            )
         }
 
         func updateDefaultModelinfoFile() {
@@ -169,6 +213,11 @@ extension SettingController.SettingContent {
                     row.configure(value: AppleIntelligenceModel.shared.modelDisplayName)
                     if !AppleIntelligenceModel.shared.isAvailable {
                         row.configure(description: "Status: \(AppleIntelligenceModel.shared.availabilityStatus)")
+                    }
+                } else if id == PrivateCloudComputeCenter.modelIdentifier {
+                    row.configure(value: PrivateCloudComputePresentation.displayName)
+                    if let unavailableText = PrivateCloudComputeCenter.shared.unavailableText {
+                        row.configure(description: .init(unavailableText))
                     }
                 } else {
                     row.configure(value: displayName(for: id))

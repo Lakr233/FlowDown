@@ -88,6 +88,8 @@ extension ConversationSession {
         var requestMessages: [ChatRequestBody.Message] = []
         await buildInitialRequestMessages(&requestMessages, modelCapabilities)
 
+        let usesPrivateCloudCompute = modelID == PrivateCloudComputeCenter.modelIdentifier
+
         do {
             try await doInfereExecuteCore(
                 inputObject,
@@ -98,11 +100,23 @@ extension ConversationSession {
         } catch {
             logger.errorFile("\(error.localizedDescription)")
             finalizeInterruptedReasoning()
-            let sanitized = error.localizedDescription
+            var sanitized = error.localizedDescription
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            if error is InferenceUserCancellationError {
+            let cloudFailure = usesPrivateCloudCompute
+                ? PrivateCloudComputeCenter.shared.failure(from: error)
+                : nil
+            if let cloudFailure {
+                // Offline, quota and busy states get the app's own words.
+                sanitized = PrivateCloudComputePresentation.failureText(
+                    for: cloudFailure,
+                    appleIntelligenceDisabled: PrivateCloudComputeCenter.shared.appleIntelligenceDisabled,
+                )
+            }
+            if cloudFailure != nil || error is InferenceUserCancellationError {
                 // A cancellation is the user's own doing, not a failure worth an
-                // assistant bubble; show it like the date separators do.
+                // assistant bubble; show it like the date separators do. The
+                // cloud model's known failures read the same way, not as an
+                // error dump.
                 let hintMessage = appendNewMessage(role: .hint)
                 hintMessage.update(\.document, to: sanitized)
             } else {

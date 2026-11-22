@@ -29,7 +29,7 @@ extension ModelManager {
         var appleIntelligenceAvailable = false
         if ModelManager.shared.appleIntelligenceEnabled,
            #available(iOS 26.0, macCatalyst 26.0, *),
-           AppleIntelligenceModel.shared.isAvailable,
+           PrivateCloudComputeCenter.shared.isOnDeviceModelAvailable,
            requiresCapabilities.isSubset(of: modelCapabilities(
                identifier: AppleIntelligenceModel.shared.modelIdentifier,
            ))
@@ -37,7 +37,16 @@ extension ModelManager {
             appleIntelligenceAvailable = true
         }
 
-        if localModels.isEmpty, cloudModels.isEmpty, !appleIntelligenceAvailable {
+        // Apple Intelligence Cloud: listed only on iOS / macOS 27 and
+        // eligible devices. While it can't run yet it stays listed, disabled,
+        // with the reason under it.
+        let cloudCenter = PrivateCloudComputeCenter.shared
+        let privateCloudComputeListed = cloudCenter.isListedInModelMenu
+            && requiresCapabilities.isSubset(of: modelCapabilities(
+                identifier: PrivateCloudComputeCenter.modelIdentifier,
+            ))
+
+        if localModels.isEmpty, cloudModels.isEmpty, !appleIntelligenceAvailable, !privateCloudComputeListed {
             return [
                 UIAction(
                     title: String(localized: "(None)"),
@@ -145,21 +154,35 @@ extension ModelManager {
             })
         }
 
-        var appleIntelligenceMenu: UIMenuElement?
+        var appleIntelligenceActions: [UIMenuElement] = []
         if #available(iOS 26.0, macCatalyst 26.0, *) {
             if appleIntelligenceAvailable {
                 let appleAction = UIAction(
                     title: AppleIntelligenceModel.shared.modelDisplayName,
+                    // Named apart from the cloud model only when both are listed.
+                    subtitle: privateCloudComputeListed ? PrivateCloudComputePresentation.onDeviceSubtitle : nil,
                     state: currentSelection == AppleIntelligenceModel.shared.modelIdentifier ? .on : .off,
                 ) { _ in
                     onCompletion(AppleIntelligenceModel.shared.modelIdentifier)
                 }
-                appleIntelligenceMenu = UIMenu(
-                    options: [.displayInline],
-                    children: [appleAction],
-                )
+                appleIntelligenceActions.append(appleAction)
             }
         }
+        if privateCloudComputeListed {
+            let unavailableText = cloudCenter.unavailableText
+            let cloudAction = UIAction(
+                title: PrivateCloudComputePresentation.displayName,
+                subtitle: unavailableText ?? PrivateCloudComputePresentation.subtitle,
+                attributes: unavailableText == nil ? [] : [.disabled],
+                state: currentSelection == PrivateCloudComputeCenter.modelIdentifier ? .on : .off,
+            ) { _ in
+                onCompletion(PrivateCloudComputeCenter.modelIdentifier)
+            }
+            appleIntelligenceActions.append(cloudAction)
+        }
+        let appleIntelligenceMenu: UIMenuElement? = appleIntelligenceActions.isEmpty
+            ? nil
+            : UIMenu(options: [.displayInline], children: appleIntelligenceActions)
 
         if let appleIntelligenceMenu {
             finalChildren.append(appleIntelligenceMenu)

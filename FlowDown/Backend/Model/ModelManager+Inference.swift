@@ -211,6 +211,9 @@ extension ModelManager {
         if #available(iOS 26.0, macCatalyst 26.0, *), identifier == AppleIntelligenceModel.shared.modelIdentifier {
             return AppleIntelligenceChatClient()
         }
+        if identifier == PrivateCloudComputeCenter.modelIdentifier {
+            return try PrivateCloudComputeCenter.shared.makeChatService()
+        }
         if let model = cloudModel(identifier: identifier) {
             let endpoint = resolveEndpointComponents(from: model.endpoint)
             // Use additionalBodyField directly without merging model's bodyFields
