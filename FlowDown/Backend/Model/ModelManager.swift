@@ -184,7 +184,7 @@ class ModelManager: NSObject {
             return AppleIntelligenceModel.shared.modelDisplayName
         }
         if identifier == PrivateCloudComputeCenter.modelIdentifier {
-            return AppleIntelligenceModelNames.privateCloudComputeOneLine
+            return AppleIntelligenceModelNames.privateCloudComputeModel
         }
         return cloudModel(identifier: identifier)?.modelFullName
             ?? localModel(identifier: identifier)?.model_identifier

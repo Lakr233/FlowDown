@@ -151,11 +151,10 @@ extension ChatView: RichEditorView.Delegate {
     if #available(iOS 26.0, macCatalyst 26.0, *),
       modelIdentifier == AppleIntelligenceModel.shared.modelIdentifier
     {
-      return AppleIntelligenceModelNames.family
+      return AppleIntelligenceModelNames.localModel
     }
-    // Both Apple models read Apple Intelligence on the chip; the icon tells them apart.
     if modelIdentifier == PrivateCloudComputeCenter.modelIdentifier {
-      return AppleIntelligenceModelNames.family
+      return AppleIntelligenceModelNames.privateCloudComputeModel
     }
     let full: String
     let trimmed: String

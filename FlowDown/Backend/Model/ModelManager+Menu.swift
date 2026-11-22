@@ -154,14 +154,13 @@ extension ModelManager {
             })
         }
 
-        // Both Apple models read "Apple Intelligence" with the name of their
-        // switch in Settings (Local, Private Cloud Compute) as a second line.
+        // One line per Apple model; a cloud model that can't run stays
+        // listed, disabled.
         var appleIntelligenceActions: [UIMenuElement] = []
         if #available(iOS 26.0, macCatalyst 26.0, *) {
             if appleIntelligenceAvailable {
                 let appleAction = UIAction(
-                    title: AppleIntelligenceModelNames.family,
-                    subtitle: AppleIntelligenceModelNames.local,
+                    title: AppleIntelligenceModelNames.localModel,
                     state: currentSelection == AppleIntelligenceModel.shared.modelIdentifier ? .on : .off,
                 ) { _ in
                     onCompletion(AppleIntelligenceModel.shared.modelIdentifier)
@@ -170,15 +169,9 @@ extension ModelManager {
             }
         }
         if privateCloudComputeListed {
-            // While it can't run, the reason goes on a line below the name.
-            let unavailableText = cloudCenter.unavailableText
-            let subtitle = [AppleIntelligenceModelNames.privateCloudCompute, unavailableText]
-                .compactMap(\.self)
-                .joined(separator: "\n")
             let cloudAction = UIAction(
-                title: AppleIntelligenceModelNames.family,
-                subtitle: subtitle,
-                attributes: unavailableText == nil ? [] : [.disabled],
+                title: AppleIntelligenceModelNames.privateCloudComputeModel,
+                attributes: cloudCenter.unavailableText == nil ? [] : [.disabled],
                 state: currentSelection == PrivateCloudComputeCenter.modelIdentifier ? .on : .off,
             ) { _ in
                 onCompletion(PrivateCloudComputeCenter.modelIdentifier)

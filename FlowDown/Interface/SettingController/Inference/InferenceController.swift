@@ -52,10 +52,6 @@ extension SettingController.SettingContent {
             $0.configure(title: AppleIntelligenceModelNames.privateCloudCompute)
         }
 
-        /// Reasoning Effort and its separator, shown only while the Private
-        /// Cloud Compute switch is on.
-        private var reasoningEffortRows: [UIView] = []
-
         override func setupContentViews() {
             super.setupContentViews()
 
@@ -107,8 +103,8 @@ extension SettingController.SettingContent {
             stackView.addArrangedSubview(SeparatorView())
 
             // Apple Intelligence Models: one switch per model, which decides
-            // whether the model menu lists it. The small text under a switch
-            // says why its model can't run, and is empty when it can.
+            // whether the model menu lists it. The text under a switch
+            // describes the model, then says why it can't run on a new line.
             if #available(iOS 26.0, macCatalyst 26.0, *) {
                 stackView.addArrangedSubviewWithMargin(
                     ConfigurableSectionHeaderView().with(
@@ -123,14 +119,13 @@ extension SettingController.SettingContent {
                 stackView.addArrangedSubviewWithMargin(privateCloudComputeToggle)
                 stackView.addArrangedSubview(SeparatorView())
 
-                if PrivateCloudComputeIdentity.isSupportedOperatingSystem {
-                    let reasoningEffortRow = stackView.addArrangedSubviewWithMargin(
-                        ModelManager.cloudReasoningEffortConfigurableObject.createView(),
-                    )
-                    let reasoningEffortSeparator = SeparatorView()
-                    stackView.addArrangedSubview(reasoningEffortSeparator)
-                    reasoningEffortRows = [reasoningEffortRow, reasoningEffortSeparator]
-                }
+                stackView.addArrangedSubviewWithMargin(
+                    ConfigurableSectionFooterView().with(
+                        footer: .init(AppleIntelligenceModelDescriptions.sectionFooter),
+                    ),
+                ) { $0.top /= 2 }
+                stackView.addArrangedSubview(SeparatorView())
+
                 updateAppleIntelligenceModels()
 
                 appleIntelligenceToggle.onUpdated = { [weak self] isOn in
@@ -139,7 +134,6 @@ extension SettingController.SettingContent {
                 }
                 privateCloudComputeToggle.onUpdated = { [weak self] isOn in
                     ModelManager.shared.privateCloudComputeEnabled = isOn
-                    self?.updateAppleIntelligenceModels()
                     self?.updateDefaultModelinfoFile()
                 }
             }
@@ -170,18 +164,18 @@ extension SettingController.SettingContent {
 
         func updateAppleIntelligenceModels() {
             if #available(iOS 26.0, macCatalyst 26.0, *) {
-                let localReason: String.LocalizationValue? = PrivateCloudComputeCenter.shared.isOnDeviceModelAvailable
+                let localReason = PrivateCloudComputeCenter.shared.isOnDeviceModelAvailable
                     ? nil
-                    : AppleIntelligenceModel.shared.availabilityDescription
-                appleIntelligenceToggle.configure(description: localReason ?? "")
+                    : AppleIntelligenceModel.shared.availabilityDescription.map { String(localized: $0) }
+                appleIntelligenceToggle.configure(description: .init(AppleIntelligenceModelDescriptions.text(
+                    description: AppleIntelligenceModelDescriptions.local,
+                    unavailableReason: localReason,
+                )))
             }
-            privateCloudComputeToggle.configure(
-                description: PrivateCloudComputeCenter.shared.unavailableText ?? "",
-            )
-            let showsReasoningEffort = ModelManager.shared.privateCloudComputeEnabled
-            for row in reasoningEffortRows {
-                row.isHidden = !showsReasoningEffort
-            }
+            privateCloudComputeToggle.configure(description: .init(AppleIntelligenceModelDescriptions.text(
+                description: AppleIntelligenceModelDescriptions.privateCloudCompute,
+                unavailableReason: PrivateCloudComputeCenter.shared.unavailableText,
+            )))
         }
 
         func updateDefaultModelinfoFile() {
@@ -204,7 +198,7 @@ extension SettingController.SettingContent {
                         row.configure(description: "Status: \(AppleIntelligenceModel.shared.availabilityStatus)")
                     }
                 } else if id == PrivateCloudComputeCenter.modelIdentifier {
-                    row.configure(value: AppleIntelligenceModelNames.privateCloudComputeOneLine)
+                    row.configure(value: AppleIntelligenceModelNames.privateCloudComputeModel)
                     if let unavailableText = PrivateCloudComputeCenter.shared.unavailableText {
                         row.configure(description: .init(unavailableText))
                     }

@@ -114,8 +114,9 @@ final class PrivateCloudComputeCenter: @unchecked Sendable {
         #endif
         #if compiler(>=6.4)
             if #available(iOS 27.0, macCatalyst 27.0, *) {
+                // Always the deepest reasoning; there is no setting for it.
                 return PrivateCloudComputeChatClient(configuration: .init(
-                    reasoningDepth: ModelManager.shared.cloudReasoningDepth,
+                    reasoningDepth: .deep,
                 ))
             }
         #endif

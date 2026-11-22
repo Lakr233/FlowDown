@@ -1,4 +1,5 @@
 @testable import ChatClientKit
+import ConfigurableKit
 @testable import FlowDown
 import Foundation
 import Testing
@@ -95,23 +96,58 @@ struct PrivateCloudComputePresentationTests {
     @Test
     func `copy never uses middle dots`() {
         let texts = [
-            AppleIntelligenceModelNames.family,
+            AppleIntelligenceModelNames.localModel,
+            AppleIntelligenceModelNames.privateCloudComputeModel,
             AppleIntelligenceModelNames.local,
             AppleIntelligenceModelNames.privateCloudCompute,
-            AppleIntelligenceModelNames.localOneLine,
-            AppleIntelligenceModelNames.privateCloudComputeOneLine,
+            AppleIntelligenceModelDescriptions.local,
+            AppleIntelligenceModelDescriptions.privateCloudCompute,
+            AppleIntelligenceModelDescriptions.sectionFooter,
         ]
         for text in texts {
+            #expect(!text.isEmpty)
             #expect(!text.contains("·") && !text.contains("•") && !text.contains("・"))
         }
     }
 
+    @MainActor
     @Test
-    func `model names keep Private Cloud Compute in English`() {
+    func `model names are English in every language`() {
+        #expect(AppleIntelligenceModelNames.localModel == "Apple Intelligence Local")
+        #expect(AppleIntelligenceModelNames.privateCloudComputeModel == "Apple Intelligence PCC")
         #expect(AppleIntelligenceModelNames.privateCloudCompute == "Private Cloud Compute")
-        #expect(AppleIntelligenceModelNames.privateCloudComputeOneLine.hasSuffix("Private Cloud Compute"))
-        #expect(!AppleIntelligenceModelNames.local.isEmpty)
         #expect(AppleIntelligenceModelNames.local != "Local (Apple Intelligence Model)")
+        #expect(ModelManager.shared.modelName(identifier: PrivateCloudComputeCenter.modelIdentifier)
+            == AppleIntelligenceModelNames.privateCloudComputeModel)
+    }
+
+    @Test
+    func `switch text puts the reason on its own line`() {
+        let description = AppleIntelligenceModelDescriptions.privateCloudCompute
+        #expect(AppleIntelligenceModelDescriptions.text(description: description, unavailableReason: nil) == description)
+        #expect(AppleIntelligenceModelDescriptions.text(description: description, unavailableReason: "") == description)
+        let reason = PrivateCloudComputePresentation.unavailableText(for: .systemNotReady)
+        #expect(
+            AppleIntelligenceModelDescriptions.text(description: description, unavailableReason: reason)
+                == description + "\n" + reason,
+        )
+    }
+
+    @Test
+    func `launch deletes the retired Reasoning Effort value`() throws {
+        let suiteName = "pcc.retired.\(UUID().uuidString)"
+        let suite = try #require(UserDefaults(suiteName: suiteName))
+        defer { suite.removePersistentDomain(forName: suiteName) }
+        let storage = UserDefaultKeyValueStorage(suite: suite)
+        let key = ModelManager.retiredCloudReasoningEffortKey
+        storage.setValue(Data("deep".utf8), forKey: key)
+        storage.setValue(Data("1".utf8), forKey: ModelManager.privateCloudComputeEnabledKey)
+
+        ModelManager.removeRetiredSettings(storage: storage)
+
+        #expect(storage.value(forKey: key) == nil)
+        #expect(storage.value(forKey: ModelManager.privateCloudComputeEnabledKey) != nil)
+        #expect(SettingsBackup.retiredKeys.contains(key))
     }
 
     @MainActor
