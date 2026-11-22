@@ -22664,48 +22664,48 @@
         }
       }
     },
-    "Available only in FlowDown from the App Store." : {
+    "Due to Apple's restrictions, Private Cloud Compute is only available in the App Store version of FlowDown." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Available only in FlowDown from the App Store."
+            "value" : "Due to Apple's restrictions, Private Cloud Compute is only available in the App Store version of FlowDown."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nur in FlowDown aus dem App Store verfügbar."
+            "value" : "Aufgrund von Einschränkungen durch Apple ist Private Cloud Compute nur in der App Store-Version von FlowDown verfügbar."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disponible solo en FlowDown descargado desde el App Store."
+            "value" : "Por restricciones de Apple, Private Cloud Compute solo está disponible en la versión de FlowDown del App Store."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disponible uniquement dans FlowDown téléchargé depuis l'App Store."
+            "value" : "En raison des restrictions d'Apple, Private Cloud Compute est disponible uniquement dans la version App Store de FlowDown."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App Store からダウンロードした FlowDown でのみ利用できます。"
+            "value" : "Apple の制限により、Private Cloud Compute は App Store 版の FlowDown でのみ利用できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App Store에서 다운로드한 FlowDown에서만 사용할 수 있습니다."
+            "value" : "Apple의 제한으로 Private Cloud Compute는 App Store 버전의 FlowDown에서만 사용할 수 있습니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅限从 App Store 下载的浮望使用。"
+            "value" : "受苹果限制，Private Cloud Compute 仅在 App Store 版浮望中可用。"
           }
         }
       }
