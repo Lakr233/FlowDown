@@ -92,9 +92,6 @@ class RichEditorView: EditorSectionView {
     let visualInputHint = VisualInputHintBar()
     /// Says the next reply may be slower after the tools change mid-conversation.
     let toolsChangeHint = VisualInputHintBar()
-    /// Apple Intelligence Cloud's daily limit, or why its last reply failed,
-    /// while it is the conversation's model.
-    let cloudModelNotice = VisualInputHintBar()
     let quickSettingBar = QuickSettingBar()
     let controlPanel = ControlPanel()
     /// Covers the sections above while a tool call waits for the user.
@@ -119,7 +116,6 @@ class RichEditorView: EditorSectionView {
         inputEditor,
         visualInputHint,
         toolsChangeHint,
-        cloudModelNotice,
         quickSettingBar,
         controlPanel,
     ]

@@ -573,22 +573,6 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "오프라인 상태입니다. 이 모델은 인터넷 연결이 필요합니다.",
         "zh-Hans": "当前没有网络，这个模型需要联网才能使用。",
     },
-    "Use On-Device Model": {
-        "de": "Modell auf dem Gerät nutzen",
-        "es": "Usar modelo del dispositivo",
-        "fr": "Utiliser le modèle sur l'appareil",
-        "ja": "デバイス上のモデルを使う",
-        "ko": "기기 모델 사용",
-        "zh-Hans": "改用本机模型",
-    },
-    "You've almost reached today's limit.": {
-        "de": "Du hast dein Tageslimit fast erreicht.",
-        "es": "Casi has alcanzado el límite de hoy.",
-        "fr": "Vous avez presque atteint la limite du jour.",
-        "ja": "今日の上限に近づいています。",
-        "ko": "오늘 한도에 거의 도달했습니다.",
-        "zh-Hans": "今天的额度快用完了。",
-    },
     "Today's limit reached. Resets at %@.": {
         "de": "Tageslimit erreicht. Wird um %@ zurückgesetzt.",
         "es": "Límite de hoy alcanzado. Se restablece a las %@.",
@@ -605,14 +589,6 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "오늘 한도에 도달했습니다. 내일 다시 시도하세요.",
         "zh-Hans": "今天的额度已用完，明天再试。",
     },
-    "Get More with iCloud+": {
-        "de": "Mehr mit iCloud+",
-        "es": "Más con iCloud+",
-        "fr": "Plus avec iCloud+",
-        "ja": "iCloud+ で上限を増やす",
-        "ko": "iCloud+로 한도 늘리기",
-        "zh-Hans": "升级 iCloud+ 获取更多额度",
-    },
     "Apple Intelligence Cloud isn't responding. Try again in a moment.": {
         "de": "Apple Intelligence Cloud antwortet nicht. Versuche es gleich noch einmal.",
         "es": "Apple Intelligence Cloud no responde. Inténtalo de nuevo en un momento.",
@@ -620,6 +596,14 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ja": "Apple Intelligence クラウドが応答していません。しばらくしてからもう一度お試しください。",
         "ko": "Apple Intelligence 클라우드가 응답하지 않습니다. 잠시 후 다시 시도하세요.",
         "zh-Hans": "Apple 智能云端没有响应，请稍后再试。",
+    },
+    "Reasoning Effort applies only to Apple Intelligence Cloud.": {
+        "de": "Der Reasoning-Aufwand gilt nur für Apple Intelligence Cloud.",
+        "es": "El esfuerzo de razonamiento solo se aplica a Apple Intelligence Cloud.",
+        "fr": "L’effort de raisonnement s’applique uniquement à Apple Intelligence Cloud.",
+        "ja": "推論の労力は Apple Intelligence クラウドにのみ適用されます。",
+        "ko": "추론 노력은 Apple Intelligence 클라우드에만 적용됩니다.",
+        "zh-Hans": "推理强度仅适用于 Apple 智能云端。",
     },
     WELCOME_MESSAGE: {
         "de": (

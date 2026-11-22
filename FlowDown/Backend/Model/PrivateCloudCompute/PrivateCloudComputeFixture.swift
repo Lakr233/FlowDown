@@ -7,10 +7,10 @@
 //  the app with the environment variable FLOWDOWN_PCC_FIXTURE set to a case
 //  name, for example:
 //
-//      simulator launch wiki.qaq.flow --env FLOWDOWN_PCC_FIXTURE=approachingLimit
+//      simulator launch wiki.qaq.flow --env FLOWDOWN_PCC_FIXTURE=limitReached
 //
 //  Add FLOWDOWN_PCC_FIXTURE_ON_DEVICE=available to also treat the on-device
-//  model as available, so the menu and the "Use On-Device Model" button show.
+//  model as available, so the model menu lists both Apple models.
 //
 //  Without the variable, and in every release build, the app reads the real
 //  model. Fixture replies are labelled as fixture output; no model is called.
@@ -25,18 +25,19 @@
         case available
         case deviceNotEligible
         case systemNotReady
-        case approachingLimit
-        /// Limit reached with a reset time and an iCloud+ suggestion.
+        /// Every request fails: limit reached, with a reset time.
         case limitReached
-        /// Limit reached with neither a reset time nor a suggestion.
+        /// Every request fails: limit reached, without a reset time.
         case limitReachedWithoutResetDate
         /// Available, but every request fails with `networkFailure`.
         case networkFailure
+        /// Available, but every request fails with `serviceUnavailable`.
+        case serviceUnavailable
 
         static let environmentKey = "FLOWDOWN_PCC_FIXTURE"
         /// Set to `available` next to a fixture to treat the on-device model
         /// as available too (the Simulator has none), so the model menu lists
-        /// both Apple models and "Use On-Device Model" shows.
+        /// both Apple models.
         static let onDeviceEnvironmentKey = "FLOWDOWN_PCC_FIXTURE_ON_DEVICE"
 
         /// Fixtures stand in for the iOS 27 model, so they only apply where it
@@ -63,21 +64,8 @@
             }
         }
 
-        var quota: PrivateCloudComputeQuotaState {
-            switch self {
-            case .approachingLimit:
-                .approachingLimit
-            case .limitReached:
-                .limitReached(resetDate: Self.fixtureResetDate, canIncreaseLimit: true)
-            case .limitReachedWithoutResetDate:
-                .limitReached(resetDate: nil, canIncreaseLimit: false)
-            default:
-                .belowLimit
-            }
-        }
-
-        /// A fixture failure the real error types can't express (the
-        /// framework offers no way to build a `LimitIncreaseSuggestion`).
+        /// Stands in for the real error where the iOS 27 framework isn't
+        /// compiled in. Fixtures only apply where it is, so this is a fallback.
         struct FixtureError: LocalizedError {
             let failure: PrivateCloudComputeFailure
             var errorDescription: String? {
@@ -104,10 +92,16 @@
                         throw PrivateCloudComputeUnavailableError(reason: reason)
                     }
                 case .limitReached:
-                    throw FixtureError(failure: .quotaLimitReached(
-                        resetDate: PrivateCloudComputeFixture.fixtureResetDate,
-                        canIncreaseLimit: true,
-                    ))
+                    #if compiler(>=6.4)
+                        if #available(iOS 27.0, macCatalyst 27.0, *) {
+                            // The real error, so the real mapping runs.
+                            throw PrivateCloudComputeLanguageModel.Error.quotaLimitReached(.init(
+                                resetDate: PrivateCloudComputeFixture.fixtureResetDate,
+                                debugDescription: "Fixture: daily limit reached",
+                            ))
+                        }
+                    #endif
+                    throw FixtureError(failure: .quotaLimitReached(resetDate: PrivateCloudComputeFixture.fixtureResetDate))
                 case .limitReachedWithoutResetDate:
                     #if compiler(>=6.4)
                         if #available(iOS 27.0, macCatalyst 27.0, *) {
@@ -117,17 +111,28 @@
                             )
                         }
                     #endif
-                    throw FixtureError(failure: .quotaLimitReached(resetDate: nil, canIncreaseLimit: false))
+                    throw FixtureError(failure: .quotaLimitReached(resetDate: nil))
                 case .networkFailure:
                     #if compiler(>=6.4)
                         if #available(iOS 27.0, macCatalyst 27.0, *) {
+                            // The real error, so the real mapping runs.
                             throw PrivateCloudComputeLanguageModel.Error.networkFailure(
                                 .init(debugDescription: "Fixture: offline"),
                             )
                         }
                     #endif
                     throw FixtureError(failure: .networkFailure)
-                case .available, .approachingLimit:
+                case .serviceUnavailable:
+                    #if compiler(>=6.4)
+                        if #available(iOS 27.0, macCatalyst 27.0, *) {
+                            // The real error, so the real mapping runs.
+                            throw PrivateCloudComputeLanguageModel.Error.serviceUnavailable(
+                                .init(debugDescription: "Fixture: busy"),
+                            )
+                        }
+                    #endif
+                    throw FixtureError(failure: .serviceUnavailable)
+                case .available:
                     break
                 }
 

@@ -115,8 +115,23 @@ extension SettingController.SettingContent {
                 stackView.addArrangedSubviewWithMargin(appleIntelligenceStatusView)
                 stackView.addArrangedSubview(SeparatorView())
 
-                // Apple Intelligence Cloud: where it can't run, the reason
+                stackView.addArrangedSubviewWithMargin(
+                    ConfigurableSectionFooterView().with(
+                        footer: "Apple Intelligence provides on-device AI capabilities when available.",
+                    ),
+                ) { $0.top /= 2 }
+                stackView.addArrangedSubview(SeparatorView())
+
+                // Apple Intelligence Cloud gets its own section, so its
+                // settings read as cloud-only. Where it can't run, the reason
                 // shows here instead of an entry in the model menu.
+                stackView.addArrangedSubviewWithMargin(
+                    ConfigurableSectionHeaderView().with(
+                        header: "Apple Intelligence Cloud",
+                    ),
+                ) { $0.bottom /= 2 }
+                stackView.addArrangedSubview(SeparatorView())
+
                 stackView.addArrangedSubviewWithMargin(cloudModelStatusView)
                 stackView.addArrangedSubview(SeparatorView())
                 updateCloudModelStatus()
@@ -126,14 +141,14 @@ extension SettingController.SettingContent {
                         ModelManager.cloudReasoningEffortConfigurableObject.createView(),
                     )
                     stackView.addArrangedSubview(SeparatorView())
-                }
 
-                stackView.addArrangedSubviewWithMargin(
-                    ConfigurableSectionFooterView().with(
-                        footer: "Apple Intelligence provides on-device AI capabilities when available.",
-                    ),
-                ) { $0.top /= 2 }
-                stackView.addArrangedSubview(SeparatorView())
+                    stackView.addArrangedSubviewWithMargin(
+                        ConfigurableSectionFooterView().with(
+                            footer: "Reasoning Effort applies only to Apple Intelligence Cloud.",
+                        ),
+                    ) { $0.top /= 2 }
+                    stackView.addArrangedSubview(SeparatorView())
+                }
 
                 appleIntelligenceToggle.onUpdated = { [weak self] isOn in
                     ModelManager.shared.appleIntelligenceEnabled = isOn

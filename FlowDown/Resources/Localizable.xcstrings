@@ -22111,52 +22111,6 @@
         }
       }
     },
-    "Get More with iCloud+" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get More with iCloud+"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mehr mit iCloud+"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Más con iCloud+"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus avec iCloud+"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iCloud+ で上限を増やす"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iCloud+로 한도 늘리기"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "升级 iCloud+ 获取更多额度"
-          }
-        }
-      }
-    },
     "Get Started" : {
       "localizations" : {
         "de" : {
@@ -23258,52 +23212,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天的额度已用完，明天再试。"
-          }
-        }
-      }
-    },
-    "Use On-Device Model" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use On-Device Model"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modell auf dem Gerät nutzen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar modelo del dispositivo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser le modèle sur l'appareil"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "デバイス上のモデルを使う"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기기 모델 사용"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "改用本机模型"
           }
         }
       }
@@ -37481,6 +37389,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "推理强度"
+          }
+        }
+      }
+    },
+    "Reasoning Effort applies only to Apple Intelligence Cloud." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reasoning Effort applies only to Apple Intelligence Cloud."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Reasoning-Aufwand gilt nur für Apple Intelligence Cloud."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El esfuerzo de razonamiento solo se aplica a Apple Intelligence Cloud."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’effort de raisonnement s’applique uniquement à Apple Intelligence Cloud."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推論の労力は Apple Intelligence クラウドにのみ適用されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추론 노력은 Apple Intelligence 클라우드에만 적용됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推理强度仅适用于 Apple 智能云端。"
           }
         }
       }
@@ -58211,52 +58165,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "当前没有网络，这个模型需要联网才能使用。"
-          }
-        }
-      }
-    },
-    "You've almost reached today's limit." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You've almost reached today's limit."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du hast dein Tageslimit fast erreicht."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Casi has alcanzado el límite de hoy."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous avez presque atteint la limite du jour."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日の上限に近づいています。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "오늘 한도에 거의 도달했습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天的额度快用完了。"
           }
         }
       }

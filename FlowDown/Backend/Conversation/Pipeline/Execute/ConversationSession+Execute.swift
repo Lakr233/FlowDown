@@ -89,16 +89,6 @@ extension ConversationSession {
         await buildInitialRequestMessages(&requestMessages, modelCapabilities)
 
         let usesPrivateCloudCompute = modelID == PrivateCloudComputeCenter.modelIdentifier
-        if usesPrivateCloudCompute {
-            // A new attempt: the note about the last failure no longer applies.
-            PrivateCloudComputeCenter.shared.clearFailure(conversationID: id)
-        }
-        defer {
-            if usesPrivateCloudCompute {
-                // The quota note follows the allowance this request used.
-                PrivateCloudComputeCenter.shared.requestDidFinish()
-            }
-        }
 
         do {
             try await doInfereExecuteCore(
@@ -116,14 +106,11 @@ extension ConversationSession {
                 ? PrivateCloudComputeCenter.shared.failure(from: error)
                 : nil
             if let cloudFailure {
-                // Offline, quota and busy states get the app's own words and a
-                // note above the input with what the user can do next
-                // (switch to the on-device model, see the reset time).
-                PrivateCloudComputeCenter.shared.recordFailure(cloudFailure, conversationID: id)
-                sanitized = PrivateCloudComputePresentation.failureNotice(
+                // Offline, quota and busy states get the app's own words.
+                sanitized = PrivateCloudComputePresentation.failureText(
                     for: cloudFailure,
                     appleIntelligenceDisabled: PrivateCloudComputeCenter.shared.appleIntelligenceDisabled,
-                ).text
+                )
             }
             if cloudFailure != nil || error is InferenceUserCancellationError {
                 // A cancellation is the user's own doing, not a failure worth an

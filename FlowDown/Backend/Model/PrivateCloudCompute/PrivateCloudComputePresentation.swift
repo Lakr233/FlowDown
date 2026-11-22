@@ -10,50 +10,6 @@
 import ChatClientKit
 import Foundation
 
-/// A note shown above the input while Apple Intelligence Cloud is the
-/// conversation's model.
-struct PrivateCloudComputeNotice: Equatable {
-    enum Kind: Equatable {
-        case approachingLimit
-        case limitReached
-        case offline
-        case serviceUnavailable
-        case unavailable
-    }
-
-    enum Action: Equatable {
-        /// Switch this conversation to the on-device Apple Intelligence model.
-        case useOnDeviceModel
-        /// Present the system's iCloud+ sheet (`LimitIncreaseSuggestion.show()`).
-        case increaseLimit
-
-        var title: String {
-            switch self {
-            case .useOnDeviceModel: PrivateCloudComputePresentation.useOnDeviceModelTitle
-            case .increaseLimit: PrivateCloudComputePresentation.increaseLimitTitle
-            }
-        }
-
-        var accessibilityIdentifier: String {
-            switch self {
-            case .useOnDeviceModel: "cloud-model-use-on-device"
-            case .increaseLimit: "cloud-model-increase-limit"
-            }
-        }
-    }
-
-    let kind: Kind
-    let text: String
-    let actions: [Action]
-
-    /// The same note without the switch button when the on-device model
-    /// isn't available.
-    func offeringOnDeviceModel(_ available: Bool) -> PrivateCloudComputeNotice {
-        guard !available else { return self }
-        return .init(kind: kind, text: text, actions: actions.filter { $0 != .useOnDeviceModel })
-    }
-}
-
 enum PrivateCloudComputePresentation {
     static var displayName: String {
         String(localized: "Apple Intelligence Cloud")
@@ -67,14 +23,6 @@ enum PrivateCloudComputePresentation {
     /// Under the on-device model, only while the cloud model is listed too.
     static var onDeviceSubtitle: String {
         String(localized: "On device")
-    }
-
-    static var useOnDeviceModelTitle: String {
-        String(localized: "Use On-Device Model")
-    }
-
-    static var increaseLimitTitle: String {
-        String(localized: "Get More with iCloud+")
     }
 
     static var isMacCatalyst: Bool {
@@ -115,8 +63,22 @@ enum PrivateCloudComputePresentation {
         String(localized: "Not available right now: \(reason)")
     }
 
-    /// The reset time, formatted for the user's locale, time only.
-    static func formatResetTime(_ date: Date, locale: Locale = .current, timeZone: TimeZone = .current) -> String {
+    /// The locale for the reset time: the language the app is shown in
+    /// (which can differ from the system's, per app), with the user's region
+    /// and 12 or 24 hour setting. zh-Hans reads "15:00" or "下午3:00".
+    static var timeLocale: Locale {
+        let current = Locale.autoupdatingCurrent
+        var components = Locale.Components(locale: current)
+        if let language = Bundle.main.preferredLocalizations.first {
+            components.languageComponents = .init(identifier: language)
+        }
+        components.hourCycle = current.hourCycle
+        return Locale(components: components)
+    }
+
+    /// The reset time, time only, in the system's short time format for
+    /// `locale`.
+    static func formatResetTime(_ date: Date, locale: Locale = timeLocale, timeZone: TimeZone = .current) -> String {
         var style = Date.FormatStyle(date: .omitted, time: .shortened)
         style.locale = locale
         style.timeZone = timeZone
@@ -131,91 +93,22 @@ enum PrivateCloudComputePresentation {
         return String(localized: "Today's limit reached. Try again tomorrow.")
     }
 
-    private static func limitReachedNotice(
-        resetDate: Date?,
-        canIncreaseLimit: Bool,
-        formatTime: (Date) -> String,
-    ) -> PrivateCloudComputeNotice {
-        .init(
-            kind: .limitReached,
-            text: limitReachedText(resetDate: resetDate, formatTime: formatTime),
-            actions: canIncreaseLimit ? [.useOnDeviceModel, .increaseLimit] : [.useOnDeviceModel],
-        )
-    }
-
-    /// The persistent note for the daily allowance, or nil while it's fine.
-    static func quotaNotice(
-        for state: PrivateCloudComputeQuotaState,
-        formatTime: (Date) -> String = { formatResetTime($0) },
-    ) -> PrivateCloudComputeNotice? {
-        switch state {
-        case .belowLimit:
-            nil
-        case .approachingLimit:
-            .init(
-                kind: .approachingLimit,
-                text: String(localized: "You've almost reached today's limit."),
-                actions: [],
-            )
-        case let .limitReached(resetDate, canIncreaseLimit):
-            limitReachedNotice(resetDate: resetDate, canIncreaseLimit: canIncreaseLimit, formatTime: formatTime)
-        }
-    }
-
-    /// The note after a failed request.
-    static func failureNotice(
+    /// The hint added to the conversation after a failed request.
+    static func failureText(
         for failure: PrivateCloudComputeFailure,
         appleIntelligenceDisabled: Bool = false,
         formatTime: (Date) -> String = { formatResetTime($0) },
-    ) -> PrivateCloudComputeNotice {
+    ) -> String {
         switch failure {
         case .networkFailure:
-            .init(
-                kind: .offline,
-                text: String(localized: "You're offline. This model needs an internet connection."),
-                actions: [.useOnDeviceModel],
-            )
-        case let .quotaLimitReached(resetDate, canIncreaseLimit):
-            limitReachedNotice(resetDate: resetDate, canIncreaseLimit: canIncreaseLimit, formatTime: formatTime)
+            String(localized: "You're offline. This model needs an internet connection.")
+        case let .quotaLimitReached(resetDate):
+            limitReachedText(resetDate: resetDate, formatTime: formatTime)
         case .serviceUnavailable:
-            .init(
-                kind: .serviceUnavailable,
-                text: String(localized: "Apple Intelligence Cloud isn't responding. Try again in a moment."),
-                actions: [],
-            )
+            String(localized: "Apple Intelligence Cloud isn't responding. Try again in a moment.")
         case let .unavailable(reason):
-            .init(
-                kind: .unavailable,
-                text: unavailableText(for: reason, appleIntelligenceDisabled: appleIntelligenceDisabled),
-                actions: [],
-            )
+            unavailableText(for: reason, appleIntelligenceDisabled: appleIntelligenceDisabled)
         }
-    }
-
-    /// What the input area shows: the last failure in this conversation wins
-    /// over the quota, because it explains why the last reply is missing.
-    static func notice(
-        availability: PrivateCloudComputeAvailabilityState,
-        quota: PrivateCloudComputeQuotaState,
-        lastFailure: PrivateCloudComputeFailure?,
-        appleIntelligenceDisabled: Bool = false,
-        formatTime: (Date) -> String = { formatResetTime($0) },
-    ) -> PrivateCloudComputeNotice? {
-        if let lastFailure {
-            return failureNotice(
-                for: lastFailure,
-                appleIntelligenceDisabled: appleIntelligenceDisabled,
-                formatTime: formatTime,
-            )
-        }
-        if case let .unavailable(reason) = availability {
-            return failureNotice(
-                for: .unavailable(reason),
-                appleIntelligenceDisabled: appleIntelligenceDisabled,
-                formatTime: formatTime,
-            )
-        }
-        return quotaNotice(for: quota, formatTime: formatTime)
     }
 
     /// Whether the model menu lists the cloud model: only where it could ever
