@@ -8,7 +8,6 @@
 import Combine
 import ConfigurableKit
 import FlowDownModelExchange
-import MLX
 import Storage
 import UIKit
 
@@ -72,7 +71,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     /// restore must run on become-active, not on will-enter-foreground.
     func sceneDidBecomeActive(_: UIScene) {
         guard !RecoveryMode.isActivated else { return }
-        MLX.GPU.onApplicationBecomeActivate()
         #if canImport(ActivityKit) && os(iOS) && !targetEnvironment(macCatalyst)
             if #available(iOS 16.2, *) {
                 LiveActivityService.shared.appDidEnterForeground()
@@ -82,7 +80,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func sceneWillResignActive(_: UIScene) {
         guard !RecoveryMode.isActivated else { return }
-        MLX.GPU.onApplicationResignActivate()
         #if canImport(ActivityKit) && os(iOS) && !targetEnvironment(macCatalyst)
             if #available(iOS 16.2, *) {
                 LiveActivityService.shared.appWillEnterBackground()

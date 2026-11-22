@@ -2440,52 +2440,6 @@
         }
       }
     },
-    "Allowed in Foreground" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Im Vordergrund erlaubt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allowed in Foreground"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permitido en primer plano"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorisé au premier plan"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フォアグラウンドで許可"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "포그라운드에서 허용"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用时允许"
-          }
-        }
-      }
-    },
     "Allows AI to delete specific memories that are no longer needed." : {
       "localizations" : {
         "de" : {
@@ -24642,52 +24596,6 @@
         }
       }
     },
-    "Inference Cache" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inferenz-Cache"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inference Cache"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Caché de inferencia"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cache d’inférence"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推論キャッシュ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "추론 캐시"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "推理缓存"
-          }
-        }
-      }
-    },
     "Inference Endpoint" : {
       "localizations" : {
         "de" : {
@@ -29535,52 +29443,6 @@
         }
       }
     },
-    "MLX is only available on Apple Silicon devices with Metal 3 support." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MLX ist nur auf Apple-Silicon-Geräten mit Metal-3-Unterstützung verfügbar."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MLX is only available on Apple Silicon devices with Metal 3 support."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MLX solo está disponible en dispositivos Apple Silicon con soporte Metal 3."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MLX est disponible uniquement sur les appareils Apple Silicon prenant en charge Metal 3."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MLX は Metal 3 対応の Apple Silicon デバイスでのみ利用できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MLX는 Metal 3를 지원하는 Apple Silicon 기기에서만 사용할 수 있습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MLX 仅在支持 Metal 3 的 Apple Silicon 上可用。"
-          }
-        }
-      }
-    },
     "Modalities" : {
       "localizations" : {
         "de" : {
@@ -32670,52 +32532,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无"
-          }
-        }
-      }
-    },
-    "Not Allowed" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nicht erlaubt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not Allowed"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No permitido"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non autorisé"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "許可されていません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "허용되지 않음"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不允许"
           }
         }
       }
@@ -41943,52 +41759,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "将对话的默认模型设置为 ${model}"
-          }
-        }
-      }
-    },
-    "Set the strategy for handling runtime resource cache. Allowing the use of cache can speed up inference and save energy, but may cause the software to close unexpectedly." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Strategie für den Umgang mit Laufzeit-Ressourcen-Cache festlegen. Cache-Nutzung kann die Inferenz beschleunigen und Energie sparen, kann aber unerwartete Schließungen verursachen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Set the strategy for handling runtime resource cache. Allowing the use of cache can speed up inference and save energy, but may cause the software to close unexpectedly."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Define la estrategia para manejar la caché de recursos en ejecución. Permitir caché puede acelerar la inferencia y ahorrar energía, pero puede causar cierres inesperados."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Définissez la stratégie de cache des ressources à l’exécution. Autoriser le cache peut accélérer l’inférence et économiser l’énergie, mais peut provoquer une fermeture inattendue."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "実行時リソースキャッシュの扱い方針を設定します。キャッシュを許可すると高速化・省エネになりますが、予期せず終了する場合があります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "런타임 리소스 캐시 처리 전략을 설정하세요. 캐시 사용을 허용하면 추론이 빨라지고 에너지를 절약하지만 소프트웨어가 예기치 않게 종료될 수 있습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设置处理运行时资源缓存的策略。允许使用缓存会加快推理速度，节约能源，但可能会导致软件意外关闭。"
           }
         }
       }
@@ -53427,52 +53197,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不设限制"
-          }
-        }
-      }
-    },
-    "Unrestricted" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unbeschränkt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unrestricted"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sin restricciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non restreint"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無制限"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "제한 없음"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不作限制"
           }
         }
       }

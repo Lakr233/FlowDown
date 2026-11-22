@@ -5,94 +5,76 @@
 //  Created by 秋星桥 on 1/31/25.
 //
 
-import Combine
+import ChatClientKit
 import ConfigurableKit
 import Foundation
 import MLX
 import UIKit
 
 extension MLX.GPU {
-    static let storageKey = "wiki.qaq.MLX.GPU.cacheSize"
-    private static var cancellables = Set<AnyCancellable>()
     static let isSupportedKey = "Device.isMlxSupported"
     static var isSupported: Bool {
         ConfigurableKit.value(forKey: isSupportedKey) ?? false
     }
 
-    enum CacheSizeLimit: String, CaseIterable {
-        case notAllowed
-        case allowedInForeground
-        #if targetEnvironment(macCatalyst)
-            case unrestricted
-        #endif
+    /// The retired "Inference Cache" setting. MLX now always keeps its runtime
+    /// resources and gives them back under memory pressure instead.
+    static let retiredCacheSizeKey = "wiki.qaq.MLX.GPU.cacheSize"
 
-        var title: String.LocalizationValue {
-            switch self {
-            case .notAllowed: return "Not Allowed"
-            case .allowedInForeground: return "Allowed in Foreground"
-            #if targetEnvironment(macCatalyst)
-                case .unrestricted: return "Unrestricted"
-            #endif
-            }
-        }
-    }
+    private nonisolated(unsafe) static var memoryPressureSource: DispatchSourceMemoryPressure?
+    private nonisolated(unsafe) static var memoryWarningObserver: NSObjectProtocol?
 
-    static let configurableObject: ConfigurableObject = .init(
-        icon: "aqi.medium",
-        title: "Inference Cache",
-        explain: "Set the strategy for handling runtime resource cache. Allowing the use of cache can speed up inference and save energy, but may cause the software to close unexpectedly.",
-        key: storageKey,
-        defaultValue: CacheSizeLimit.notAllowed.rawValue,
-        annotation: .menu {
-            CacheSizeLimit.allCases.map { item in
-                MenuAnnotation.Option(title: item.title, rawValue: item.rawValue)
-            }
-        },
-        availabilityRequirement: .match(key: isSupportedKey, value: true),
-    )
+    /// Starts watching for memory pressure. MLX keeps its buffer cache and the
+    /// loaded model between requests; when the system runs low on memory they
+    /// are offloaded through `LocalInferenceQueue`, which waits for a running
+    /// generation to finish first.
+    static func startMemoryPressureMonitoring() {
+        removeRetiredSettings()
 
-    static func subscribeToConfigurableItem() {
         #if targetEnvironment(simulator) || arch(x86_64)
             return
         #else
-            assert(cancellables.isEmpty)
-            let value: String? = ConfigurableKit.value(forKey: Self.storageKey)
-            if value == nil { ConfigurableKit.set(value: CacheSizeLimit.notAllowed.rawValue, forKey: Self.storageKey) }
-            ConfigurableKit.publisher(forKey: storageKey, type: String.self)
-                .sink { _ in onApplicationBecomeActivate() }
-                .store(in: &cancellables)
+            assert(Thread.isMainThread)
+            guard memoryPressureSource == nil else { return }
+
+            memoryWarningObserver = NotificationCenter.default.addObserver(
+                forName: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil,
+                queue: .main,
+            ) { _ in
+                requestOffload(reason: "memory warning")
+            }
+
+            let source = DispatchSource.makeMemoryPressureSource(
+                eventMask: [.warning, .critical],
+                queue: .main,
+            )
+            source.setEventHandler { [weak source] in
+                guard let event = source?.data else { return }
+                requestOffload(reason: event.contains(.critical) ? "critical memory pressure" : "memory pressure warning")
+            }
+            source.activate()
+            memoryPressureSource = source
         #endif
     }
 
-    private static var configuredCacheSizeLimit: CacheSizeLimit {
-        CacheSizeLimit(rawValue: ConfigurableKit.value(forKey: storageKey) ?? "") ?? .notAllowed
-    }
-
-    static func onApplicationResignActivate() {
+    static func requestOffload(reason: String) {
         guard isSupported else { return }
-        switch configuredCacheSizeLimit {
-        case .notAllowed, .allowedInForeground:
-            MLX.Memory.cacheLimit = 0
-            MLX.Memory.clearCache()
-        #if targetEnvironment(macCatalyst)
-            case .unrestricted:
-                MLX.Memory.cacheLimit = .max
-        #endif
-        }
+        Logger.model.infoFile("requesting MLX offload: \(reason)")
+        Task { await LocalInferenceQueue.shared.requestOffload() }
     }
 
-    static func onApplicationBecomeActivate() {
+    /// Frees the MLX buffer cache and unloads the cached model container.
+    /// Only `LocalInferenceQueue` calls this, while no generation runs.
+    static func offloadRuntimeResources() async {
         guard isSupported else { return }
-        switch configuredCacheSizeLimit {
-        case .notAllowed:
-            MLX.Memory.cacheLimit = 0
-            MLX.Memory.clearCache()
-        case .allowedInForeground:
-            MLX.Memory.cacheLimit = .max
-        #if targetEnvironment(macCatalyst)
-            case .unrestricted:
-                MLX.Memory.cacheLimit = .max
-        #endif
-        }
+        await MLXModelCoordinator.shared.reset()
+        MLX.Memory.clearCache()
+        Logger.model.infoFile("offloaded MLX runtime resources")
+    }
+
+    private static func removeRetiredSettings() {
+        guard let storage = ConfigurableKit.storage as? UserDefaultKeyValueStorage else { return }
+        storage.setValue(nil, forKey: retiredCacheSizeKey)
     }
 }
