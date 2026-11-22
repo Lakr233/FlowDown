@@ -151,10 +151,11 @@ extension ChatView: RichEditorView.Delegate {
     if #available(iOS 26.0, macCatalyst 26.0, *),
       modelIdentifier == AppleIntelligenceModel.shared.modelIdentifier
     {
-      return AppleIntelligenceModel.shared.modelDisplayName
+      return AppleIntelligenceModelNames.family
     }
+    // Both Apple models read Apple Intelligence on the chip; the icon tells them apart.
     if modelIdentifier == PrivateCloudComputeCenter.modelIdentifier {
-      return AppleIntelligenceModelNames.privateCloudComputeOneLine
+      return AppleIntelligenceModelNames.family
     }
     let full: String
     let trimmed: String
@@ -170,6 +171,12 @@ extension ChatView: RichEditorView.Delegate {
     case .trimmed: return trimmed
     case .none: return "👌"
     }
+  }
+
+  func onRichEditorRequestCurrentModelIcon() -> UIImage? {
+    guard modelIdentifier() == PrivateCloudComputeCenter.modelIdentifier else { return nil }
+    // The same symbol as the Private Cloud Compute switch in Settings.
+    return UIImage(systemName: "icloud")
   }
 
   func onRichEditorRequestCurrentModelIdentifier() -> String? {

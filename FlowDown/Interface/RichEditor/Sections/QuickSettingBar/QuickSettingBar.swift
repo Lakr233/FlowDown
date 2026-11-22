@@ -148,8 +148,13 @@ class QuickSettingBar: EditorSectionView {
         scrollView.contentSize = .init(width: contentSizeWidth, height: height)
     }
 
-    func setModelName(_ name: String?) {
+    private static let defaultModelIcon = UIImage(named: "asterisk")?
+        .withRenderingMode(.alwaysTemplate)
+
+    /// Shows the model's name, with `icon` in place of the default one.
+    func setModelName(_ name: String?, icon: UIImage? = nil) {
         defer { setNeedsLayout() }
+        modelPicker.iconView.image = icon?.withRenderingMode(.alwaysTemplate) ?? Self.defaultModelIcon
         guard let name, !name.isEmpty else {
             modelPicker.textLabel.text = NSLocalizedString("No Model", comment: "")
             return

@@ -21,6 +21,8 @@ extension RichEditorView {
         func onRichEditorUpdateObject(object: Object)
         func onRichEditorRequestAutomaticModelSelection()
         func onRichEditorRequestCurrentModelName() -> String?
+        /// The icon for the model chip, or nil for the default one.
+        func onRichEditorRequestCurrentModelIcon() -> UIImage?
         func onRichEditorRequestCurrentModelIdentifier() -> String?
         func onRichEditorBuildModelSelectionMenu(completion: @escaping () -> Void) -> [UIMenuElement]
         func onRichEditorCheckIfModelSupportsToolCall(_ modelIdentifier: String) -> Bool
@@ -28,5 +30,11 @@ extension RichEditorView {
             isEnabled: Bool,
             requestReload: @escaping (Bool) -> Void
         ) -> [UIMenuElement]
+    }
+}
+
+extension RichEditorView.Delegate {
+    func onRichEditorRequestCurrentModelIcon() -> UIImage? {
+        nil
     }
 }

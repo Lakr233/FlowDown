@@ -12,6 +12,7 @@ private final class RichEditorDelegateSpy: RichEditorView.Delegate {
     var storedObject: RichEditorView.Object?
     var modelIdentifier: String?
     var supportsToolCall = false
+    var modelIcon: UIImage?
     private(set) var updatedObjects: [RichEditorView.Object] = []
     private(set) var submittedObjects: [RichEditorView.Object] = []
     private(set) var errors: [String] = []
@@ -53,6 +54,10 @@ private final class RichEditorDelegateSpy: RichEditorView.Delegate {
 
     func onRichEditorRequestCurrentModelName() -> String? {
         modelIdentifier
+    }
+
+    func onRichEditorRequestCurrentModelIcon() -> UIImage? {
+        modelIcon
     }
 
     func onRichEditorRequestCurrentModelIdentifier() -> String? {
@@ -380,5 +385,26 @@ struct RichEditorViewTests {
             includingPropertiesForKeys: nil,
         )
         #expect(leftovers.isEmpty)
+    }
+
+    @MainActor
+    @Test
+    func richEditorModelChip_usesDelegateIconThenFallsBack() {
+        let spy = RichEditorDelegateSpy()
+        spy.modelIdentifier = "some-model"
+        let cloud = UIImage(systemName: "icloud")
+        spy.modelIcon = cloud
+
+        let editor = RichEditorView()
+        editor.delegate = spy
+        editor.updateModelinfoFile(postUpdate: false)
+        let chip = editor.quickSettingBar.modelPicker
+        #expect(chip.iconView.image?.isSymbolImage == true)
+
+        spy.modelIcon = nil
+        editor.updateModelinfoFile(postUpdate: false)
+        #expect(chip.iconView.image != nil)
+        #expect(chip.iconView.image?.isSymbolImage == false)
+        #expect(chip.textLabel.text == "some-model")
     }
 }
