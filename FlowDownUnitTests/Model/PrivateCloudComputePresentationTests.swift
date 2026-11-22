@@ -19,6 +19,57 @@ struct PrivateCloudComputePresentationTests {
     }
 
     @Test
+    func `a copy without the entitlement never lists the cloud model`() {
+        #expect(!PrivateCloudComputePresentation.isListedInModelMenu(.available, isEntitled: false))
+        #expect(!PrivateCloudComputePresentation.isListedInModelMenu(.unavailable(.systemNotReady), isEntitled: false))
+        #expect(PrivateCloudComputePresentation.isListedInModelMenu(.available, isEntitled: true))
+    }
+
+    @Test
+    func `a copy without the entitlement points to the App Store`() {
+        let appStore = String(localized: "Available only in FlowDown from the App Store.")
+        #expect(PrivateCloudComputePresentation.notEntitledText == appStore)
+        #expect(PrivateCloudComputePresentation.unavailableText(for: .available, isEntitled: false) == appStore)
+        #expect(PrivateCloudComputePresentation.unavailableText(for: .unavailable(.systemNotReady), isEntitled: false) == appStore)
+        #expect(PrivateCloudComputePresentation.unavailableText(for: .unavailable(.other("x")), isEntitled: false) == appStore)
+        // The App Store build wouldn't run there either, so the OS or
+        // device reason stays.
+        #expect(
+            PrivateCloudComputePresentation.unavailableText(
+                for: .unavailable(.operatingSystemTooOld), isEntitled: false, isMacCatalyst: true,
+            ) == String(localized: "Requires macOS 27 or later."),
+        )
+        #expect(
+            PrivateCloudComputePresentation.unavailableText(for: .unavailable(.deviceNotEligible), isEntitled: false)
+                == String(localized: "Not available on this device."),
+        )
+        // Entitled copies read as before.
+        #expect(PrivateCloudComputePresentation.unavailableText(for: .available, isEntitled: true) == nil)
+        #expect(
+            PrivateCloudComputePresentation.unavailableText(for: .unavailable(.deviceNotEligible), isEntitled: true)
+                == String(localized: "Not available on this device."),
+        )
+    }
+
+    @Test
+    func `a request from a copy without the entitlement fails with the App Store hint`() {
+        let center = PrivateCloudComputeCenter.shared
+        #expect(
+            center.failureText(from: PrivateCloudComputeCenter.NotEntitledError())
+                == String(localized: "Available only in FlowDown from the App Store."),
+        )
+        #expect(center.failure(from: PrivateCloudComputeCenter.NotEntitledError()) == nil)
+    }
+
+    @Test
+    func `iOS builds are taken as entitled`() {
+        #if !targetEnvironment(macCatalyst)
+            #expect(PrivateCloudComputeEntitlement.isGranted)
+            #expect(PrivateCloudComputeCenter.shared.isEntitled)
+        #endif
+    }
+
+    @Test
     func `unavailable reasons read as plain sentences`() {
         #expect(
             PrivateCloudComputePresentation.unavailableText(for: .operatingSystemTooOld, isMacCatalyst: false)
