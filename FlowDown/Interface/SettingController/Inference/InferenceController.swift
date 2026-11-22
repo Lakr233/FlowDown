@@ -8,7 +8,6 @@
 import AlertController
 import ChatClientKit
 import ConfigurableKit
-import MLX
 import UIKit
 
 extension SettingController.SettingContent {
@@ -155,23 +154,6 @@ extension SettingController.SettingContent {
                     self?.updateDefaultModelinfoFile()
                 }
             }
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionHeaderView().with(
-                    header: String("MLX"),
-                ),
-            ) { $0.bottom /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(MLX.GPU.configurableObject.createView())
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionFooterView().with(
-                    footer: "MLX is only available on Apple Silicon devices with Metal 3 support.",
-                ),
-            ) { $0.top /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
         }
 
         override func viewWillAppear(_ animated: Bool) {
