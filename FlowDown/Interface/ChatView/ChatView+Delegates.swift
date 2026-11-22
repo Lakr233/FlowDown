@@ -154,7 +154,7 @@ extension ChatView: RichEditorView.Delegate {
       return AppleIntelligenceModel.shared.modelDisplayName
     }
     if modelIdentifier == PrivateCloudComputeCenter.modelIdentifier {
-      return PrivateCloudComputePresentation.displayName
+      return AppleIntelligenceModelNames.privateCloudComputeOneLine
     }
     let full: String
     let trimmed: String

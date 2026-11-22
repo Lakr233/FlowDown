@@ -2,7 +2,7 @@
 //  ModelManager+PrivateCloudCompute.swift
 //  FlowDown
 //
-//  Apple Intelligence Cloud (Apple's Private Cloud Compute model) settings.
+//  Private Cloud Compute model settings: the switch key and Reasoning Effort.
 //
 
 import ChatClientKit
@@ -10,6 +10,9 @@ import ConfigurableKit
 import Foundation
 
 extension ModelManager {
+    /// The Private Cloud Compute switch in Settings: whether the model menu
+    /// lists the model, like the Local switch does for the on-device model.
+    static let privateCloudComputeEnabledKey = "Model.Inference.AppleIntelligence.Cloud.Enabled"
     static let cloudReasoningEffortKey = "Model.Inference.AppleIntelligence.Cloud.ReasoningEffort"
 
     /// The Reasoning Effort menu for the cloud model, reusing the app's

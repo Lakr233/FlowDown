@@ -509,29 +509,46 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "아니요",
         "zh-Hans": "否",
     },
-    "Apple Intelligence Cloud": {
-        "de": "Apple Intelligence Cloud",
-        "es": "Apple Intelligence Cloud",
-        "fr": "Apple Intelligence Cloud",
-        "ja": "Apple Intelligence クラウド",
-        "ko": "Apple Intelligence 클라우드",
-        "zh-Hans": "Apple 智能云端",
+    "Apple Intelligence Models": {
+        "de": "Apple Intelligence Modelle",
+        "es": "Modelos de Apple Intelligence",
+        "fr": "Modèles Apple Intelligence",
+        "ja": "Apple Intelligence モデル",
+        "ko": "Apple Intelligence 모델",
+        "zh-Hans": "Apple 智能模型",
     },
-    "On device": {
-        "de": "Auf dem Gerät",
-        "es": "En el dispositivo",
-        "fr": "Sur l'appareil",
-        "ja": "デバイス上",
-        "ko": "기기에서 실행",
+    "Local (Apple Intelligence Model)": {
+        "en": "Local",
+        "de": "Lokal",
+        "es": "Local",
+        "fr": "Local",
+        "ja": "ローカル",
+        "ko": "로컬",
         "zh-Hans": "本机",
     },
-    "Runs on Apple's Private Cloud Compute": {
-        "de": "Läuft auf Apples Private Cloud Compute",
-        "es": "Funciona en Private Cloud Compute de Apple",
-        "fr": "Fonctionne sur le Private Cloud Compute d'Apple",
-        "ja": "Apple の Private Cloud Compute で動作",
-        "ko": "Apple의 Private Cloud Compute에서 실행",
-        "zh-Hans": "在 Apple 的私有云计算上运行",
+    "Private Cloud Compute": {
+        "de": "Private Cloud Compute",
+        "es": "Private Cloud Compute",
+        "fr": "Private Cloud Compute",
+        "ja": "Private Cloud Compute",
+        "ko": "Private Cloud Compute",
+        "zh-Hans": "Private Cloud Compute",
+    },
+    "Apple Intelligence Local": {
+        "de": "Apple Intelligence Lokal",
+        "es": "Apple Intelligence Local",
+        "fr": "Apple Intelligence Local",
+        "ja": "Apple Intelligence ローカル",
+        "ko": "Apple Intelligence 로컬",
+        "zh-Hans": "Apple 智能 本机",
+    },
+    "Apple Intelligence Private Cloud Compute": {
+        "de": "Apple Intelligence Private Cloud Compute",
+        "es": "Apple Intelligence Private Cloud Compute",
+        "fr": "Apple Intelligence Private Cloud Compute",
+        "ja": "Apple Intelligence Private Cloud Compute",
+        "ko": "Apple Intelligence Private Cloud Compute",
+        "zh-Hans": "Apple 智能 Private Cloud Compute",
     },
     "Requires iOS 27 or later.": {
         "de": "Erfordert iOS 27 oder neuer.",
@@ -589,21 +606,13 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
         "ko": "오늘 한도에 도달했습니다. 내일 다시 시도하세요.",
         "zh-Hans": "今天的额度已用完，明天再试。",
     },
-    "Apple Intelligence Cloud isn't responding. Try again in a moment.": {
-        "de": "Apple Intelligence Cloud antwortet nicht. Versuche es gleich noch einmal.",
-        "es": "Apple Intelligence Cloud no responde. Inténtalo de nuevo en un momento.",
-        "fr": "Apple Intelligence Cloud ne répond pas. Réessayez dans un instant.",
-        "ja": "Apple Intelligence クラウドが応答していません。しばらくしてからもう一度お試しください。",
-        "ko": "Apple Intelligence 클라우드가 응답하지 않습니다. 잠시 후 다시 시도하세요.",
-        "zh-Hans": "Apple 智能云端没有响应，请稍后再试。",
-    },
-    "Reasoning Effort applies only to Apple Intelligence Cloud.": {
-        "de": "Der Reasoning-Aufwand gilt nur für Apple Intelligence Cloud.",
-        "es": "El esfuerzo de razonamiento solo se aplica a Apple Intelligence Cloud.",
-        "fr": "L’effort de raisonnement s’applique uniquement à Apple Intelligence Cloud.",
-        "ja": "推論の労力は Apple Intelligence クラウドにのみ適用されます。",
-        "ko": "추론 노력은 Apple Intelligence 클라우드에만 적용됩니다.",
-        "zh-Hans": "推理强度仅适用于 Apple 智能云端。",
+    "Private Cloud Compute isn't responding. Try again in a moment.": {
+        "de": "Private Cloud Compute antwortet nicht. Versuche es gleich noch einmal.",
+        "es": "Private Cloud Compute no responde. Inténtalo de nuevo en un momento.",
+        "fr": "Private Cloud Compute ne répond pas. Réessayez dans un instant.",
+        "ja": "Private Cloud Compute が応答していません。しばらくしてからもう一度お試しください。",
+        "ko": "Private Cloud Compute가 응답하지 않습니다. 잠시 후 다시 시도하세요.",
+        "zh-Hans": "Private Cloud Compute 没有响应，请稍后再试。",
     },
     WELCOME_MESSAGE: {
         "de": (
@@ -657,7 +666,7 @@ NEW_STRINGS: dict[str, dict[str, str]] = {
             "✨ **FlowDown을 마음껏 즐겨보세요!**"
         ),
         "zh-Hans": (
-            "**欢迎使用 FlowDown 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n"
+            "**欢迎使用浮望 🐦**，一款注重隐私、极速流畅且轻量高效的 LLM 客户端。\n\n"
             "你可以使用 Apple Intelligence，或在支持的设备上 _运行本地模型_。也可以使用自己的服务提供商 _配置云端模型_。\n\n"
             "💡 更多信息，请查阅[用户手册](https://flowdown.ai/docs/)。\n\n"
             "---\n**接下来可以做些什么？**\n\n"

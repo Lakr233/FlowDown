@@ -37,9 +37,9 @@ extension ModelManager {
             appleIntelligenceAvailable = true
         }
 
-        // Apple Intelligence Cloud: listed only on iOS / macOS 27 and
-        // eligible devices. While it can't run yet it stays listed, disabled,
-        // with the reason under it.
+        // Private Cloud Compute: listed only on iOS / macOS 27 and eligible
+        // devices, while its switch in Settings is on. While it can't run yet
+        // it stays listed, disabled, with the reason under it.
         let cloudCenter = PrivateCloudComputeCenter.shared
         let privateCloudComputeListed = cloudCenter.isListedInModelMenu
             && requiresCapabilities.isSubset(of: modelCapabilities(
@@ -154,13 +154,14 @@ extension ModelManager {
             })
         }
 
+        // Both Apple models read "Apple Intelligence" with the name of their
+        // switch in Settings (Local, Private Cloud Compute) as a second line.
         var appleIntelligenceActions: [UIMenuElement] = []
         if #available(iOS 26.0, macCatalyst 26.0, *) {
             if appleIntelligenceAvailable {
                 let appleAction = UIAction(
-                    title: AppleIntelligenceModel.shared.modelDisplayName,
-                    // Named apart from the cloud model only when both are listed.
-                    subtitle: privateCloudComputeListed ? PrivateCloudComputePresentation.onDeviceSubtitle : nil,
+                    title: AppleIntelligenceModelNames.family,
+                    subtitle: AppleIntelligenceModelNames.local,
                     state: currentSelection == AppleIntelligenceModel.shared.modelIdentifier ? .on : .off,
                 ) { _ in
                     onCompletion(AppleIntelligenceModel.shared.modelIdentifier)
@@ -169,10 +170,14 @@ extension ModelManager {
             }
         }
         if privateCloudComputeListed {
+            // While it can't run, the reason goes on a line below the name.
             let unavailableText = cloudCenter.unavailableText
+            let subtitle = [AppleIntelligenceModelNames.privateCloudCompute, unavailableText]
+                .compactMap(\.self)
+                .joined(separator: "\n")
             let cloudAction = UIAction(
-                title: PrivateCloudComputePresentation.displayName,
-                subtitle: unavailableText ?? PrivateCloudComputePresentation.subtitle,
+                title: AppleIntelligenceModelNames.family,
+                subtitle: subtitle,
                 attributes: unavailableText == nil ? [] : [.disabled],
                 state: currentSelection == PrivateCloudComputeCenter.modelIdentifier ? .on : .off,
             ) { _ in

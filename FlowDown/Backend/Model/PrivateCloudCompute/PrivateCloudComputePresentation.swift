@@ -2,29 +2,15 @@
 //  PrivateCloudComputePresentation.swift
 //  FlowDown
 //
-//  What the app says about Apple Intelligence Cloud (Apple's Private Cloud
-//  Compute model). Pure functions over the FoundationModels-free state in
-//  ChatClientKit, so every OS can compile and test them.
+//  What the app says about Apple's Private Cloud Compute model. Pure
+//  functions over the FoundationModels-free state in ChatClientKit, so every
+//  OS can compile and test them.
 //
 
 import ChatClientKit
 import Foundation
 
 enum PrivateCloudComputePresentation {
-    static var displayName: String {
-        String(localized: "Apple Intelligence Cloud")
-    }
-
-    /// Under the cloud model in the model menu and in Settings.
-    static var subtitle: String {
-        String(localized: "Runs on Apple's Private Cloud Compute")
-    }
-
-    /// Under the on-device model, only while the cloud model is listed too.
-    static var onDeviceSubtitle: String {
-        String(localized: "On device")
-    }
-
     static var isMacCatalyst: Bool {
         #if targetEnvironment(macCatalyst)
             true
@@ -105,7 +91,7 @@ enum PrivateCloudComputePresentation {
         case let .quotaLimitReached(resetDate):
             limitReachedText(resetDate: resetDate, formatTime: formatTime)
         case .serviceUnavailable:
-            String(localized: "Apple Intelligence Cloud isn't responding. Try again in a moment.")
+            String(localized: "Private Cloud Compute isn't responding. Try again in a moment.")
         case let .unavailable(reason):
             unavailableText(for: reason, appleIntelligenceDisabled: appleIntelligenceDisabled)
         }

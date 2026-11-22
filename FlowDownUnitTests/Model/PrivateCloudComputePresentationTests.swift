@@ -3,7 +3,7 @@
 import Foundation
 import Testing
 
-/// What the app says about Apple Intelligence Cloud in each state. The tests
+/// What the app says about Private Cloud Compute in each state. The tests
 /// run on any OS: the presentation reads only the FoundationModels-free state.
 struct PrivateCloudComputePresentationTests {
     private let fixedTime: (Date) -> String = { _ in "3:00 PM" }
@@ -66,7 +66,7 @@ struct PrivateCloudComputePresentationTests {
         )
         #expect(
             PrivateCloudComputePresentation.failureText(for: .serviceUnavailable)
-                == String(localized: "Apple Intelligence Cloud isn't responding. Try again in a moment."),
+                == String(localized: "Private Cloud Compute isn't responding. Try again in a moment."),
         )
     }
 
@@ -95,12 +95,44 @@ struct PrivateCloudComputePresentationTests {
     @Test
     func `copy never uses middle dots`() {
         let texts = [
-            PrivateCloudComputePresentation.displayName,
-            PrivateCloudComputePresentation.subtitle,
-            PrivateCloudComputePresentation.onDeviceSubtitle,
+            AppleIntelligenceModelNames.family,
+            AppleIntelligenceModelNames.local,
+            AppleIntelligenceModelNames.privateCloudCompute,
+            AppleIntelligenceModelNames.localOneLine,
+            AppleIntelligenceModelNames.privateCloudComputeOneLine,
         ]
         for text in texts {
             #expect(!text.contains("·") && !text.contains("•") && !text.contains("・"))
         }
+    }
+
+    @Test
+    func `model names keep Private Cloud Compute in English`() {
+        #expect(AppleIntelligenceModelNames.privateCloudCompute == "Private Cloud Compute")
+        #expect(AppleIntelligenceModelNames.privateCloudComputeOneLine.hasSuffix("Private Cloud Compute"))
+        #expect(!AppleIntelligenceModelNames.local.isEmpty)
+        #expect(AppleIntelligenceModelNames.local != "Local (Apple Intelligence Model)")
+    }
+
+    @MainActor
+    @Test
+    func `the Private Cloud Compute switch alone decides whether the menu lists it`() {
+        let manager = ModelManager.shared
+        let savedCloud = manager.privateCloudComputeEnabled
+        let savedLocal = manager.appleIntelligenceEnabled
+        defer {
+            manager.privateCloudComputeEnabled = savedCloud
+            manager.appleIntelligenceEnabled = savedLocal
+        }
+        let center = PrivateCloudComputeCenter.shared
+        let listable = PrivateCloudComputePresentation.isListedInModelMenu(center.availabilityState)
+
+        manager.privateCloudComputeEnabled = false
+        manager.appleIntelligenceEnabled = true
+        #expect(!center.isListedInModelMenu)
+
+        manager.privateCloudComputeEnabled = true
+        manager.appleIntelligenceEnabled = false
+        #expect(center.isListedInModelMenu == listable)
     }
 }
