@@ -158,6 +158,14 @@ extension SettingController.SettingContent {
                 description: AppleIntelligenceModelDescriptions.privateCloudCompute,
                 unavailableReason: PrivateCloudComputeCenter.shared.unavailableText,
             )))
+            // Without the entitlement (the Developer ID Mac build) the model
+            // can never run here, so the switch shows off and can't be used.
+            // The stored preference is left as it is.
+            let isEntitled = PrivateCloudComputeCenter.shared.isEntitled
+            privateCloudComputeToggle.switchView.isEnabled = isEntitled
+            if !isEntitled {
+                privateCloudComputeToggle.switchView.setOn(false, animated: false)
+            }
         }
 
         func updateDefaultModelinfoFile() {

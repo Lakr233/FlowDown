@@ -45,6 +45,35 @@ enum PrivateCloudComputePresentation {
         }
     }
 
+    /// Shown where this copy isn't signed with the Private Cloud Compute
+    /// entitlement: the Mac build from GitHub Releases.
+    static var notEntitledText: String {
+        String(localized: "Available only in FlowDown from the App Store.")
+    }
+
+    /// Why the model can't be used, or nil when it can. A missing
+    /// entitlement is reported unless the OS or device rules the model out
+    /// anyway, since then the App Store build wouldn't run it either.
+    static func unavailableText(
+        for availability: PrivateCloudComputeAvailabilityState,
+        isEntitled: Bool,
+        isMacCatalyst: Bool = Self.isMacCatalyst,
+        appleIntelligenceDisabled: Bool = false,
+    ) -> String? {
+        switch availability {
+        case .unavailable(.operatingSystemTooOld), .unavailable(.deviceNotEligible):
+            break
+        case .available, .unavailable:
+            if !isEntitled { return notEntitledText }
+        }
+        guard case let .unavailable(reason) = availability else { return nil }
+        return unavailableText(
+            for: reason,
+            isMacCatalyst: isMacCatalyst,
+            appleIntelligenceDisabled: appleIntelligenceDisabled,
+        )
+    }
+
     private static func notAvailableRightNow(_ reason: String) -> String {
         String(localized: "Not available right now: \(reason)")
     }
@@ -99,9 +128,10 @@ enum PrivateCloudComputePresentation {
 
     /// Whether the model menu lists the cloud model: only where it could ever
     /// run. An eligible device that isn't ready yet still lists it, disabled,
-    /// with the reason.
-    static func isListedInModelMenu(_ availability: PrivateCloudComputeAvailabilityState) -> Bool {
-        switch availability {
+    /// with the reason. A copy without the entitlement never lists it.
+    static func isListedInModelMenu(_ availability: PrivateCloudComputeAvailabilityState, isEntitled: Bool = true) -> Bool {
+        guard isEntitled else { return false }
+        return switch availability {
         case .available:
             true
         case let .unavailable(reason):

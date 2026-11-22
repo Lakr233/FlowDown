@@ -22664,6 +22664,52 @@
         }
       }
     },
+    "Available only in FlowDown from the App Store." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available only in FlowDown from the App Store."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur in FlowDown aus dem App Store verfügbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disponible solo en FlowDown descargado desde el App Store."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disponible uniquement dans FlowDown téléchargé depuis l'App Store."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store からダウンロードした FlowDown でのみ利用できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store에서 다운로드한 FlowDown에서만 사용할 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅限从 App Store 下载的浮望使用。"
+          }
+        }
+      }
+    },
     "Not available on this device." : {
       "localizations" : {
         "en" : {

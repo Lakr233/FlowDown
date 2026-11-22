@@ -102,17 +102,14 @@ extension ConversationSession {
             finalizeInterruptedReasoning()
             var sanitized = error.localizedDescription
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            let cloudFailure = usesPrivateCloudCompute
-                ? PrivateCloudComputeCenter.shared.failure(from: error)
+            let cloudFailureText = usesPrivateCloudCompute
+                ? PrivateCloudComputeCenter.shared.failureText(from: error)
                 : nil
-            if let cloudFailure {
+            if let cloudFailureText {
                 // Offline, quota and busy states get the app's own words.
-                sanitized = PrivateCloudComputePresentation.failureText(
-                    for: cloudFailure,
-                    appleIntelligenceDisabled: PrivateCloudComputeCenter.shared.appleIntelligenceDisabled,
-                )
+                sanitized = cloudFailureText
             }
-            if cloudFailure != nil || error is InferenceUserCancellationError {
+            if cloudFailureText != nil || error is InferenceUserCancellationError {
                 // A cancellation is the user's own doing, not a failure worth an
                 // assistant bubble; show it like the date separators do. The
                 // cloud model's known failures read the same way, not as an
