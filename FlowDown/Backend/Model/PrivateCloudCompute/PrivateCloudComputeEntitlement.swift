@@ -44,6 +44,24 @@ enum PrivateCloudComputeEntitlement {
         static let debugEnvironmentKey = "FLOWDOWN_PCC_ENTITLEMENT"
     #endif
 
+    /// Where `isGranted` came from, for the log.
+    static var diagnosticDescription: String {
+        #if DEBUG
+            if ProcessInfo.processInfo.environment[debugEnvironmentKey] == "missing" {
+                return "missing (\(debugEnvironmentKey)=missing)"
+            }
+        #endif
+        #if targetEnvironment(macCatalyst)
+            switch signedValue() {
+            case true?: return "granted (code signature)"
+            case false?: return "missing (code signature)"
+            case nil: return "assumed granted (code signature unreadable)"
+            }
+        #else
+            return "assumed granted (iOS)"
+        #endif
+    }
+
     #if targetEnvironment(macCatalyst)
         /// The entitlement in the running process's code signature, or nil
         /// when it can't be read.

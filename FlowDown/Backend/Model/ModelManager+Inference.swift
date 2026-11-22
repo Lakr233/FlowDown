@@ -216,7 +216,16 @@ extension ModelManager {
             return AppleIntelligenceChatClient()
         }
         if identifier == PrivateCloudComputeCenter.modelIdentifier {
-            return try PrivateCloudComputeCenter.shared.makeChatService()
+            // Every stage of a cloud request goes to the in-app log; the
+            // framework's own failures would otherwise leave no trace there.
+            let log = PrivateCloudComputeRequestLog()
+            do {
+                let client = try PrivateCloudComputeCenter.shared.makeChatService(log: log)
+                return PrivateCloudComputeLoggingChatService(inner: client, log: log)
+            } catch {
+                log.error("could not create the client: \(PrivateCloudComputeRequestLog.describe(error)); \(PrivateCloudComputeRequestLog.stateDescription())")
+                throw error
+            }
         }
         if let model = cloudModel(identifier: identifier) {
             let endpoint = resolveEndpointComponents(from: model.endpoint)
