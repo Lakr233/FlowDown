@@ -46,7 +46,8 @@ enum SettingsBackup {
     private static let excludedKeys: Set<String> = ["FlowDownSyncEngineState"]
 
     /// Settings the app no longer has: the task and visual auxiliary models, the
-    /// app-wide temperature and the reasoning collapse toggle. Older backups still carry them; they are skipped on
+    /// app-wide temperature, the reasoning collapse toggle and the MLX inference
+    /// cache policy. Older backups still carry them; they are skipped on
     /// import and left out of new exports so nothing writes them back.
     static let retiredKeys: Set<String> = [
         "Model.Default.Auxiliary",
@@ -59,6 +60,7 @@ enum SettingsBackup {
         "Model.Inference.Prompt.Temperature",
         "CONFKIT.Model.Inference.Temperature",
         "Model.ChatInterface.CollapseReasoningSectionWhenComplete",
+        "wiki.qaq.MLX.GPU.cacheSize",
     ]
 
     private static func isSkipped(_ key: String) -> Bool {

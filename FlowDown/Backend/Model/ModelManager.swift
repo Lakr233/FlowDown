@@ -41,6 +41,11 @@ class ModelManager: NSObject {
 
     var chatServiceFactory: ChatServiceFactory?
     var gpuSupportProvider: () -> Bool = { MLX.GPU.isSupported }
+    /// The one serial path every on-device request (MLX and the Apple
+    /// Foundation Model) runs through.
+    var localInferenceQueue: LocalInferenceQueue = .shared
+    /// Overrides which models count as on-device; tests only.
+    var onDeviceModelPredicate: ((ModelIdentifier) -> Bool)?
     var dateProvider: () -> Date = { Date() }
 
     @TypedStorage(key: "Model.Inference.Prompt.Default", defaultValue: PromptType.complete)

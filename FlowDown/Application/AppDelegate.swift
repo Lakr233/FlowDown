@@ -40,7 +40,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #endif
         _ = SoundEffectPlayer.shared
 
-        MLX.GPU.subscribeToConfigurableItem()
+        MLX.GPU.startMemoryPressureMonitoring()
         EditorBehavior.subscribeToConfigurableItem()
         MarkdownTheme.subscribeToConfigurableItem()
         ScrubberConfiguration.subscribeToConfigurableItem()

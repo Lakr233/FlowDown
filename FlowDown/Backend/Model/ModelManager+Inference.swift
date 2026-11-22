@@ -37,90 +37,94 @@ extension ModelManager {
             assert(!Thread.isMainThread)
 
             do {
-                let client = try self.chatService(
-                    for: model.id,
-                    additionalBodyField: [:],
-                )
-                await client.errorCollector.clear()
+                // Shares the one on-device queue with chats, so a test never
+                // runs beside a generation or a memory-pressure offload.
+                try await self.localInferenceQueue.run {
+                    let client = try self.chatService(
+                        for: model.id,
+                        additionalBodyField: [:],
+                    )
+                    await client.errorCollector.clear()
 
-                let userContent: ChatRequestBody.Message.MessageContent<String, [ChatRequestBody.Message.ContentPart]> = {
-                    guard model.capabilities.contains(.visual),
-                          let imageURL = Self.testImageDataURL
-                    else {
-                        return .text("YES or NO")
-                    }
-                    return .parts([
-                        .text("YES or NO"),
-                        .imageURL(imageURL, detail: .low),
-                    ])
-                }()
+                    let userContent: ChatRequestBody.Message.MessageContent<String, [ChatRequestBody.Message.ContentPart]> = {
+                        guard model.capabilities.contains(.visual),
+                              let imageURL = Self.testImageDataURL
+                        else {
+                            return .text("YES or NO")
+                        }
+                        return .parts([
+                            .text("YES or NO"),
+                            .imageURL(imageURL, detail: .low),
+                        ])
+                    }()
 
-                let stream = try await client.streamingChat(
-                    body: .init(
-                        messages: [
-                            .system(content: .text("Reply YES to every query.")),
-                            .user(content: userContent),
-                        ],
-                        maxCompletionTokens: 32,
-                    ),
-                )
-
-                var reasoningContent = ""
-                var responseContent = ""
-                var collectedToolCalls: [ToolRequest] = []
-
-                for try await object in stream {
-                    switch object {
-                    case let .reasoning(value):
-                        reasoningContent += value
-                    case let .text(value):
-                        responseContent += value
-                    case let .tool(call):
-                        collectedToolCalls.append(call)
-                    case let .image(url):
-                        // MARK: TODO
-
-                        print(url)
-                    }
-                }
-
-                var trimmedContent = responseContent
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-
-                for terminator in ChatClientConstants.additionalTerminatingTokens {
-                    while trimmedContent.hasSuffix(terminator) {
-                        trimmedContent.removeLast(terminator.count)
-                    }
-                }
-
-                trimmedContent = trimmedContent.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                if trimmedContent.isEmpty,
-                   reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                   collectedToolCalls.isEmpty
-                {
-                    if let error = client.collectedErrors, !error.isEmpty {
-                        throw NSError(
-                            domain: "Model",
-                            code: -1,
-                            userInfo: [NSLocalizedDescriptionKey: error],
-                        )
-                    }
-
-                    completion(
-                        .failure(
-                            NSError(
-                                domain: "Model",
-                                code: -1,
-                                userInfo: [NSLocalizedDescriptionKey: String(localized: "Failed to generate text.")],
-                            ),
+                    let stream = try await client.streamingChat(
+                        body: .init(
+                            messages: [
+                                .system(content: .text("Reply YES to every query.")),
+                                .user(content: userContent),
+                            ],
+                            maxCompletionTokens: 32,
                         ),
                     )
-                } else {
-                    Logger.model.debugFile(
-                        "model \(model.model_identifier) generates output for test case: \(trimmedContent)"
-                    )
-                    completion(.success(()))
+
+                    var reasoningContent = ""
+                    var responseContent = ""
+                    var collectedToolCalls: [ToolRequest] = []
+
+                    for try await object in stream {
+                        switch object {
+                        case let .reasoning(value):
+                            reasoningContent += value
+                        case let .text(value):
+                            responseContent += value
+                        case let .tool(call):
+                            collectedToolCalls.append(call)
+                        case let .image(url):
+                            // MARK: TODO
+
+                            print(url)
+                        }
+                    }
+
+                    var trimmedContent = responseContent
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+
+                    for terminator in ChatClientConstants.additionalTerminatingTokens {
+                        while trimmedContent.hasSuffix(terminator) {
+                            trimmedContent.removeLast(terminator.count)
+                        }
+                    }
+
+                    trimmedContent = trimmedContent.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                    if trimmedContent.isEmpty,
+                       reasoningContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                       collectedToolCalls.isEmpty
+                    {
+                        if let error = client.collectedErrors, !error.isEmpty {
+                            throw NSError(
+                                domain: "Model",
+                                code: -1,
+                                userInfo: [NSLocalizedDescriptionKey: error],
+                            )
+                        }
+
+                        completion(
+                            .failure(
+                                NSError(
+                                    domain: "Model",
+                                    code: -1,
+                                    userInfo: [NSLocalizedDescriptionKey: String(localized: "Failed to generate text.")],
+                                ),
+                            ),
+                        )
+                    } else {
+                        Logger.model.debugFile(
+                            "model \(model.model_identifier) generates output for test case: \(trimmedContent)"
+                        )
+                        completion(.success(()))
+                    }
                 }
             } catch {
                 Logger.model.errorFile("local model test failed: \(error.localizedDescription)")
@@ -313,7 +317,9 @@ extension ModelManager {
             tools: tools,
             toolChoice: toolChoice,
         )
-        let response = try await client.chat(body: body)
+        let response = try await withOnDeviceQueue(for: modelID) {
+            try await client.chat(body: body)
+        }
         // Remote clients collect HTTP and provider errors instead of throwing
         // them, so an empty response would otherwise leave no trace.
         if let error = client.collectedErrors, !error.isEmpty {
@@ -369,6 +375,7 @@ extension ModelManager {
             tools: tools,
             toolChoice: toolChoice,
         )
+        let onDeviceQueue = runsOnDevice(modelID) ? localInferenceQueue : nil
         return AsyncThrowingStream(ChatResponseChunk.self, bufferingPolicy: .unbounded) { cont in
             let reasoningEmitter = BalancedEmitter(
                 duration: 1.0,
@@ -383,7 +390,7 @@ extension ModelManager {
                 cont.yield(.text(chunk))
             }
 
-            let producer = Task.detached {
+            func produce() async {
                 // Large outputs make each Markdown layout pass slow (~0.1s), so throttle the text emitter
                 // as the emitted text grows. Only text is throttled because only text drives Markdown layout.
                 var emittedTextCount = 0
@@ -443,6 +450,25 @@ extension ModelManager {
                 }
             }
 
+            let producer = Task.detached {
+                // On-device models run one request at a time. The turn is held
+                // from model load until the model's stream ends, and is given
+                // back on every exit, cancellation included.
+                var permit: LocalInferenceQueue.Permit?
+                if let onDeviceQueue {
+                    do {
+                        permit = try await onDeviceQueue.acquire()
+                    } catch {
+                        cont.finish(throwing: error)
+                        return
+                    }
+                }
+                await produce()
+                if let onDeviceQueue, let permit {
+                    await onDeviceQueue.release(permit)
+                }
+            }
+
             // Stopping the consumer must stop the model too: the inner stream
             // only releases its work (such as the MLX queue permit or the
             // Apple Intelligence session) when its own consumer, the producer,
@@ -454,6 +480,35 @@ extension ModelManager {
                     await reasoningEmitter.cancel()
                     await textEmitter.cancel()
                 }
+            }
+        }
+    }
+
+    /// Whether `modelID` runs on this device (MLX or the Apple Foundation
+    /// Model) and so must go through `localInferenceQueue`.
+    func runsOnDevice(_ modelID: ModelIdentifier) -> Bool {
+        if let onDeviceModelPredicate { return onDeviceModelPredicate(modelID) }
+        if localModel(identifier: modelID) != nil { return true }
+        if #available(iOS 26.0, macCatalyst 26.0, *), modelID == AppleIntelligenceModel.shared.modelIdentifier {
+            return true
+        }
+        return false
+    }
+
+    private func withOnDeviceQueue<T: Sendable>(
+        for modelID: ModelIdentifier,
+        _ operation: @escaping @Sendable () async throws -> T,
+    ) async throws -> T {
+        guard runsOnDevice(modelID) else { return try await operation() }
+        return try await localInferenceQueue.run {
+            // The MLX client still takes a blocking semaphore when it starts.
+            // Run it off the caller's executor, which may be the main actor,
+            // so that wait can never stall the main thread.
+            let task = Task.detached(operation: operation)
+            return try await withTaskCancellationHandler {
+                try await task.value
+            } onCancel: {
+                task.cancel()
             }
         }
     }
