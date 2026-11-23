@@ -173,6 +173,11 @@ class ChatView: UIView {
             make.top.equalTo(editor.snp.top).offset(-4) // for visual
         }
 
+        editor.quickSettingBar.terminateAction = { [weak self] in
+            guard let self, let conversationIdentifier else { return }
+            sessionManager.session(for: conversationIdentifier).cancelCurrentTask {}
+        }
+
         sessionManager.executingSessionsPublisher
             .ensureMainThread()
             .sink { [weak self] executingSessions in
@@ -344,7 +349,7 @@ class ChatView: UIView {
         }
 
         let isExecuting = sessionManager.isSessionExecuting(conversation)
-        editor.setProcessingMode(isExecuting)
+        editor.setProcessingMode(isExecuting, animated: false)
         updateCurrentMessageListInsets()
 
         toolApprovalCancellable = sessionManager.session(for: conversation).toolApprovalGate.pendingRequest
