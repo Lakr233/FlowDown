@@ -257,7 +257,7 @@ extension RichEditorView: QuickSettingBar.Delegate {
         }
     }
 
-    /// Shows a note under the input until the next message is sent or the
+    /// Shows a note above the input until the next message is sent or the
     /// conversation changes.
     func showToolsChangeHint(_ text: String) {
         let becameVisible = toolsChangeHint.setActive(true, text: text)
