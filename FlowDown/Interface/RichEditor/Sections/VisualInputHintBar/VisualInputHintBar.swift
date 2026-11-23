@@ -6,7 +6,7 @@
 import UIKit
 
 /// A short note under the input box: the draft holds an image that the
-/// selected model cannot read, or the tools changed mid-conversation.
+/// selected model cannot read.
 final class VisualInputHintBar: EditorSectionView {
     let label = UILabel()
 

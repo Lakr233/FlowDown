@@ -99,18 +99,28 @@ struct ToolsSelectionPolicyTests {
     @Test
     func richEditorToolsChangeHint_showsUntilEditorResets() {
         let editor = RichEditorView()
+        editor.frame = CGRect(x: 0, y: 0, width: 390, height: 200)
+        editor.layoutIfNeeded()
+        let editorHeight = editor.heightPublisher.value
+        let cardFrame = editor.shadowContainer.frame
         #expect(!editor.toolsChangeHint.isActive)
-        #expect(editor.toolsChangeHint.heightPublisher.value == 0)
+        #expect(!editor.toolsChangeHint.isUserInteractionEnabled)
 
         editor.showToolsChangeHint(ChatView.toolsChangedHintText)
+        editor.layoutIfNeeded()
         #expect(editor.toolsChangeHint.isActive)
         #expect(editor.toolsChangeHint.label.text == ChatView.toolsChangedHintText)
-        #expect(editor.toolsChangeHint.heightPublisher.value > 0)
+        // It floats 8 pt above the card, centred, and moves nothing.
+        #expect(editor.heightPublisher.value == editorHeight)
+        #expect(editor.shadowContainer.frame == cardFrame)
+        #expect(editor.toolsChangeHint.frame.maxY == cardFrame.minY - ToolsChangeHintView.gapAboveInput)
+        #expect(editor.toolsChangeHint.frame.midX == cardFrame.midX)
+        #expect(editor.toolsChangeHint.frame.width <= cardFrame.width)
         // It is a note, not a block: sending stays possible.
         #expect(editor.inputEditor.sendButton.isEnabled == !editor.visualInputHint.isActive)
 
         editor.resetValues()
         #expect(!editor.toolsChangeHint.isActive)
-        #expect(editor.toolsChangeHint.heightPublisher.value == 0)
+        #expect(editor.heightPublisher.value == editorHeight)
     }
 }
