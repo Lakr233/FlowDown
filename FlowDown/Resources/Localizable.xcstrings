@@ -16975,7 +16975,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入在服务器上登记 FlowDown 时拿到的 Client ID。回调地址填 flowdown://mcp-oauth/callback。"
+            "value" : "输入在服务器上登记浮望时拿到的 Client ID。回调地址填 flowdown://mcp-oauth/callback。"
           }
         }
       }
@@ -20990,7 +20990,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowDown 无法在这个服务器上登记。详情：%@"
+            "value" : "浮望无法在这个服务器上登记。详情：%@"
           }
         }
       }
@@ -32946,7 +32946,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅在服务器无法自动为 FlowDown 设置登录时需要。在服务器上登记 FlowDown 时，回调地址（Redirect URI）填 flowdown://mcp-oauth/callback。"
+            "value" : "仅在服务器无法自动为浮望设置登录时需要。在服务器上登记浮望时，回调地址（Redirect URI）填 flowdown://mcp-oauth/callback。"
           }
         }
       }
@@ -49077,7 +49077,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这个服务器无法自动为 FlowDown 设置登录。请先填写 Client ID，再登录。"
+            "value" : "这个服务器无法自动为浮望设置登录。请先填写 Client ID，再登录。"
           }
         }
       }
@@ -49169,7 +49169,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这个服务器不支持 FlowDown 所需的安全登录方式（PKCE S256），因此无法登录。"
+            "value" : "这个服务器不支持浮望所需的安全登录方式（PKCE S256），因此无法登录。"
           }
         }
       }
