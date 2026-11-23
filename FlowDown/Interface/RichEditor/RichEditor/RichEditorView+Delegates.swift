@@ -231,7 +231,12 @@ extension RichEditorView: QuickSettingBar.Delegate {
     func updateModelinfoFile(postUpdate: Bool = true) {
         let newModel = delegate?.onRichEditorRequestCurrentModelName()
         let newModelIcon = delegate?.onRichEditorRequestCurrentModelIcon()
-        doWithAnimation { self.quickSettingBar.setModelName(newModel, icon: newModelIcon) }
+        // In one unanimated pass: a label shows its new text at once, so a
+        // selector still springing to the new width would cut the name off.
+        UIView.performWithoutAnimation {
+            quickSettingBar.setModelName(newModel, icon: newModelIcon)
+            quickSettingBar.layoutIfNeeded()
+        }
         let newModelIdentifier = delegate?.onRichEditorRequestCurrentModelIdentifier()
         quickSettingBar.setModelIdentifier(newModelIdentifier)
         quickSettingBar.updateToolCallAvailability(currentModelSupportsToolCall)
