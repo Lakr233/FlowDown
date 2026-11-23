@@ -48,7 +48,10 @@ open class StackScrollController: UIViewController {
             } else {
                 make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             }
-            make.leading.trailing.equalToSuperview()
+            // Side insets can differ on iPhone Duo, where the status area
+            // and system bars can stand along one edge.
+            make.leading.equalTo(view.safeAreaLayoutGuide.snp.leading)
+            make.trailing.equalTo(view.safeAreaLayoutGuide.snp.trailing)
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
         }
 
