@@ -193,14 +193,14 @@ class MCPEditorController: StackScrollController {
                     $0.update(\.endpoint, to: endpoint)
                 }
                 self.refreshUI()
-                view.configure(value: endpoint.isEmpty ? "Not Configured" : endpoint)
+                view.configure(value: endpoint.isEmpty ? String(localized: "Not Configured") : endpoint)
             }
             view.parentViewController?.present(input, animated: true)
         }
         endpointView.configure(icon: .init(systemName: "link"))
         endpointView.configure(title: "Endpoint")
         endpointView.configure(description: "The URL endpoint for this MCP server. Most of them requires /mcp/ suffix.")
-        endpointView.configure(value: server.endpoint.isEmpty ? "Not Configured" : server.endpoint)
+        endpointView.configure(value: server.endpoint.isEmpty ? String(localized: "Not Configured") : server.endpoint)
         stackView.addArrangedSubviewWithMargin(endpointView)
         stackView.addArrangedSubview(SeparatorView())
 

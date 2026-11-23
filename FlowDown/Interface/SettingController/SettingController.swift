@@ -99,6 +99,24 @@ import UIKit
             set { _ = newValue }
         }
 
+        // On iPhone Duo's outer display a sheet's bar stands vertically over
+        // the trailing edge, on top of these pages' values and switches. Keep
+        // the title row horizontal for the whole stack: a navigation
+        // controller forwards this preference to its top page by default, so
+        // answer here instead. The API exists only in the iOS 27.1 SDK and
+        // later; Swift 6.4.2 is Xcode 27.2's compiler.
+        #if compiler(>=6.4.2)
+            @available(iOS 27.1, *)
+            override var preferredVerticalBarBehavior: UIVerticalBarBehavior {
+                .disabled
+            }
+
+            @available(iOS 27.1, *)
+            override var childForPreferredVerticalBarBehavior: UIViewController? {
+                nil
+            }
+        #endif
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError()
