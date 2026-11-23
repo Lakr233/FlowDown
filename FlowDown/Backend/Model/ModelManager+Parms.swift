@@ -93,60 +93,6 @@ extension ModelManager {
 }
 
 extension ModelManager {
-    enum SearchSensitivity: String, CaseIterable, Codable {
-        case essential
-        case balanced
-        case proactive
-
-        var title: String.LocalizationValue {
-            switch self {
-            case .essential:
-                "Essential"
-            case .balanced:
-                "Balanced"
-            case .proactive:
-                "Proactive"
-            }
-        }
-
-        var icon: String {
-            switch self {
-            case .essential:
-                "bolt"
-            case .balanced:
-                "magnifyingglass"
-            case .proactive:
-                "book"
-            }
-        }
-
-        var briefDescription: String {
-            switch self {
-            case .essential:
-                "Search only when the answer is time-sensitive or your own knowledge is likely wrong. Favor speed, but never at the cost of a badly wrong answer."
-            case .balanced:
-                "You MUST search for anything dynamic — news, politics, weather, sports, science, cultural trends — and whenever you are even slightly unsure your knowledge is current."
-            case .proactive:
-                "You MUST search at research depth for comprehensive, up-to-date coverage, even on familiar topics, unless the user asks you not to browse."
-            }
-        }
-    }
-
-    static let searchSensitivityConfigurableObject: ConfigurableObject = .init(
-        icon: "list.bullet.clipboard",
-        title: "Search Strategy",
-        explain: "Adjust how aggressively web searches are triggered.",
-        key: "Model.Inference.SearchSensitivity",
-        defaultValue: SearchSensitivity.balanced.rawValue,
-        annotation: .menu {
-            SearchSensitivity.allCases.map {
-                .init(icon: $0.icon, title: $0.title, rawValue: $0.rawValue)
-            }
-        },
-    )
-}
-
-extension ModelManager {
     enum PromptType: String, CaseIterable, Codable {
         case none
         case minimal

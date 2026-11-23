@@ -59,6 +59,19 @@ final class ConversationSessionManager {
                 }
             }
             .store(in: &cancellables)
+
+        // Loaded sessions follow the global default. Only a real change counts:
+        // this publisher also fires whenever the model list is rescanned.
+        ModelManager.shared.modelChangedPublisher
+            .ensureMainThread()
+            .map { ModelManager.ModelIdentifier.defaultModelForConversation }
+            .prepend(ModelManager.ModelIdentifier.defaultModelForConversation)
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.sessions.values.forEach { $0.updateModels() }
+            }
+            .store(in: &cancellables)
     }
 
     deinit {

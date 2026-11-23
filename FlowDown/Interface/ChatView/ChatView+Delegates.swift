@@ -112,38 +112,24 @@ extension ChatView: RichEditorView.Delegate {
     offloadModelsToSession(modelIdentifier: modelIdentifier())
   }
 
+  /// Every conversation chats on the global default. `Conversation.modelId`
+  /// is kept for devices that have not upgraded and is not read here.
   func modelIdentifier() -> String? {
-    if let id = ConversationManager.shared.conversation(
-      identifier: conversationIdentifier,
-    )?.modelId {
-      return id
-    }
-    return ModelManager.ModelIdentifier.defaultModelForConversation
+    ModelManager.ModelIdentifier.defaultModelForConversation
   }
 
   func onRichEditorRequestAutomaticModelSelection() {
     guard modelIdentifier()?.isEmpty ?? true else { return }
 
-    let storedDefault = ModelManager.ModelIdentifier.defaultModelForConversation
-    let identifier: ModelManager.ModelIdentifier
-    if !storedDefault.isEmpty {
-      identifier = storedDefault
-    } else if let candidate = ModelManager.shared.automaticSelectionCandidate() {
-      identifier = candidate
-      ModelManager.ModelIdentifier.defaultModelForConversation = candidate
-    } else {
+    guard let candidate = ModelManager.shared.automaticSelectionCandidate() else {
       Logger.model.infoFile("no model available for automatic selection")
       return
     }
 
-    Logger.model.infoFile("automatically selected model: \(identifier)")
-    if let conversationIdentifier {
-      ConversationManager.shared.editConversation(identifier: conversationIdentifier) {
-        $0.update(\.modelId, to: identifier)
-      }
-    }
+    Logger.model.infoFile("automatically selected model: \(candidate)")
+    ModelManager.ModelIdentifier.defaultModelForConversation = candidate
     editor.updateModelinfoFile()
-    offloadModelsToSession(modelIdentifier: identifier)
+    offloadModelsToSession(modelIdentifier: candidate)
   }
 
   func onRichEditorRequestCurrentModelName() -> String? {
@@ -156,20 +142,21 @@ extension ChatView: RichEditorView.Delegate {
     if modelIdentifier == PrivateCloudComputeCenter.modelIdentifier {
       return AppleIntelligenceModelNames.privateCloudComputeModel
     }
-    let full: String
-    let trimmed: String
     if let localModel = ModelManager.shared.localModel(identifier: modelIdentifier) {
-      (full, trimmed) = (localModel.model_identifier, localModel.modelDisplayName)
-    } else if let cloudModel = ModelManager.shared.cloudModel(identifier: modelIdentifier) {
-      (full, trimmed) = (cloudModel.modelFullName, cloudModel.modelDisplayName)
-    } else {
-      return nil
+      return Self.modelButtonTitle(for: localModel.modelDisplayName)
     }
-    switch editorModelNameStyle {
-    case .full: return full
-    case .trimmed: return trimmed
-    case .none: return "👌"
+    if let cloudModel = ModelManager.shared.cloudModel(identifier: modelIdentifier) {
+      return Self.modelButtonTitle(for: cloudModel.modelDisplayName)
     }
+    return nil
+  }
+
+  /// The model button shows only the last path component of a model's name,
+  /// or the full name when that component is empty.
+  static func modelButtonTitle(for name: String) -> String {
+    let lastComponent = name.split(separator: "/", omittingEmptySubsequences: false).last ?? ""
+    let trimmed = lastComponent.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? name : trimmed
   }
 
   func onRichEditorRequestCurrentModelIcon() -> UIImage? {
@@ -183,19 +170,11 @@ extension ChatView: RichEditorView.Delegate {
   }
 
   func onRichEditorBuildModelSelectionMenu(completion: @escaping () -> Void) -> [UIMenuElement] {
-    guard let conversationIdentifier else { return [] }
-    let modelIdentifier = ConversationManager.shared.conversation(
-      identifier: conversationIdentifier,
-    )?.modelId
+    guard conversationIdentifier != nil else { return [] }
     return ModelManager.shared.buildModelSelectionMenu(
-      currentSelection: modelIdentifier,
+      currentSelection: modelIdentifier(),
       onCompletion: { modelIdentifier in
-        ConversationManager.shared.editConversation(identifier: conversationIdentifier) {
-          $0.update(\.modelId, to: modelIdentifier)
-        }
-        if self.editorApplyModelToDefault {
-          ModelManager.ModelIdentifier.defaultModelForConversation = modelIdentifier
-        }
+        ModelManager.ModelIdentifier.defaultModelForConversation = modelIdentifier
         completion()
       },
     )

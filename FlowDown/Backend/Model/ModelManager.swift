@@ -54,8 +54,6 @@ class ModelManager: NSObject {
     var additionalPrompt: String {
         didSet { dumpAdditionalPromptToAppGroup() }
     }
-    @TypedStorage(key: "Model.Inference.SearchSensitivity", defaultValue: SearchSensitivity.balanced)
-    var searchSensitivity: SearchSensitivity
 
     @TypedStorage(
         key: ModelManager.appleIntelligenceEnabledKey,

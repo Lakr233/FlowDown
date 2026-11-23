@@ -98,14 +98,6 @@ class ChatView: UIView {
         return listView
     }
 
-    @TypedStorage(key: "Chat.Editor.Model.Name.Style", defaultValue: EditorModelNameStyle.trimmed)
-    var editorModelNameStyle: EditorModelNameStyle {
-        didSet { editor.updateModelinfoFile() }
-    }
-
-    @TypedStorage(key: "Chat.Editor.Model.Apply.Default", defaultValue: true)
-    var editorApplyModelToDefault: Bool
-
     let title = TitleBar()
 
     var onCreateNewChat: (() -> Void)?
@@ -223,17 +215,6 @@ class ChatView: UIView {
             .sink { [weak self] _ in
                 self?.setNeedsLayout()
             }
-            .store(in: &cancellables)
-
-        Self.editorModelNameStyle.onChange
-            .compactMap { try? $0.decodingValue() }
-            .compactMap { EditorModelNameStyle(rawValue: $0) }
-            .sink { [weak self] output in self?.editorModelNameStyle = output }
-            .store(in: &cancellables)
-
-        Self.editorApplyModelToDefault.onChange
-            .compactMap { try? $0.decodingValue() }
-            .sink { [weak self] output in self?.editorApplyModelToDefault = output }
             .store(in: &cancellables)
 
         ConversationManager.removeAllEditorObjectsPublisher

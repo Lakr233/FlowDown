@@ -24,7 +24,6 @@ struct ModelToolsScopeTests {
 
     @Test(arguments: [
         ("scrape_web_page", MTWebScraperTool().definition, #"{"url":""}"#),
-        ("web_search", MTWebSearchTool().definition, #"{"query":""}"#),
     ])
     func `web tools repair empty arguments into object payload`(
         row: (name: String, definition: ChatRequestBody.Tool, expected: String),

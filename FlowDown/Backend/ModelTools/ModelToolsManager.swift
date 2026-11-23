@@ -27,7 +27,6 @@ final class ModelToolsManager {
             MTCompleteReminderTool(),
             MTDeleteReminderTool(),
 
-            MTWebSearchTool(),
             MTWebScraperTool(),
         ]
 

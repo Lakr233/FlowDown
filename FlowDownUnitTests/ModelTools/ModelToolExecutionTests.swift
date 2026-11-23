@@ -124,7 +124,6 @@ struct ModelToolExecutionTests {
 
     @Test
     func `built-in tools that reach private data ask, web and memory tools do not`() {
-        #expect(MTWebSearchTool().access == .general)
         #expect(MTWebScraperTool().access == .general)
         #expect(MTStoreMemoryTool().access == .general)
         #expect(MTAddCalendarTool().access == .privateData)

@@ -94,7 +94,7 @@ struct PromptCacheStabilityTests {
         let system = try #require(systemMessages.first?["content"] as? String)
         #expect(system.hasPrefix(Self.storedPrompt))
         #expect(system.contains("store_memory"))
-        for variable in [Self.morning, "Proactive Memory Context", "Recent conversation context", "Web Search Mode:"] {
+        for variable in [Self.morning, "Proactive Memory Context", "Recent conversation context"] {
             #expect(!system.contains(variable))
         }
         // Text-only user messages, the final one included, go out as plain
@@ -209,7 +209,6 @@ private extension PromptCacheStabilityTests {
         .init(
             enabledTools: [MTWebScraperTool(), MTRecallMemoryTool()],
             proactiveMemoryScope: .recent30,
-            searchSensitivity: .balanced,
             runtimeSystemInfoProvider: { modelName in
                 ConversationSystemPromptBuilder.runtimeSystemInfo(modelName: modelName, date: date)
             },
@@ -244,7 +243,6 @@ private extension PromptCacheStabilityTests {
                 userText: userText,
                 modelName: "test-model",
                 modelWillExecuteTools: true,
-                webSearchEnabled: true,
             ),
             dependencies: dependencies(date: date),
         )

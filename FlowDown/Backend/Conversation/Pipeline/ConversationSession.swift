@@ -377,15 +377,10 @@ final class ConversationSession: Identifiable {
         thinkingDurationTimer.removeValue(forKey: id)
     }
 
+    /// Every conversation chats on the global default. `Conversation.modelId`
+    /// is kept for devices that have not upgraded and is not read here.
     func updateModels() {
-        let conversation = ConversationManager.shared.conversation(identifier: id)
-
-        // conversation model
-        if let conversationModelId = conversation?.modelId, !conversationModelId.isEmpty {
-            models.chat = conversationModelId
-        } else if models.chat == nil || models.chat!.isEmpty {
-            models.chat = .defaultModelForConversation
-        }
+        models.chat = .defaultModelForConversation
     }
 
     func nearestUserMessage(beforeOrEqual messageIdentifier: Message.ID) -> Message? {
