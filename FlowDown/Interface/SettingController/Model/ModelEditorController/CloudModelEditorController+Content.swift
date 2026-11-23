@@ -22,7 +22,7 @@ private extension CloudModelEditorController {
     }
 
     var notAvailableText: String {
-        "N/A"
+        String(localized: "Not Configured")
     }
 
     var configuredText: String {
