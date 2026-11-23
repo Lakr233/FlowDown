@@ -19,9 +19,25 @@ open class StackScrollController: UIViewController {
     /// where it did when the scroll view started below the bar.
     private let scrollsUnderTopBar = FloatingChrome.usesSystemScrollEdge
     private var appliedTopInset: CGFloat = 0
+    private var appliedBottomInset: CGFloat = 0
+    /// How much of the view the software keyboard covers, in points.
+    private var keyboardOverlap: CGFloat = 0
 
     override open func viewDidLoad() {
         super.viewDidLoad()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardFrameWillChange(_:)),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil,
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardFrameWillChange(_:)),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil,
+        )
 
         view.backgroundColor = .background
 
@@ -52,19 +68,19 @@ open class StackScrollController: UIViewController {
             // and system bars can stand along one edge.
             make.leading.equalTo(view.safeAreaLayoutGuide.snp.leading)
             make.trailing.equalTo(view.safeAreaLayoutGuide.snp.trailing)
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            // The scroll view runs to the bottom of the view so rows scroll
+            // under the home indicator instead of being cut off at a hard
+            // line above it. The bottom safe area becomes a content inset.
+            make.bottom.equalToSuperview()
         }
 
         contentView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
             make.width.equalToSuperview()
-            if scrollsUnderTopBar {
-                // As tall as the scroll view was when it started below the
-                // bar, so short pages scroll no further than before.
-                make.height.greaterThanOrEqualTo(view.safeAreaLayoutGuide)
-            } else {
-                make.height.greaterThanOrEqualToSuperview()
-            }
+            // As tall as the safe area, which is what the scroll view spanned
+            // when it stopped at both safe edges, so short pages scroll no
+            // further than before.
+            make.height.greaterThanOrEqualTo(view.safeAreaLayoutGuide)
         }
 
         if scrollsUnderTopBar {
@@ -100,6 +116,18 @@ open class StackScrollController: UIViewController {
     override open func viewSafeAreaInsetsDidChange() {
         super.viewSafeAreaInsetsDidChange()
         updateTopInset()
+        updateBottomInset()
+    }
+
+    /// Keeps the last row clear of the home indicator at the end of the page,
+    /// or of the keyboard while it is up.
+    private func updateBottomInset() {
+        let bottomInset = max(view.safeAreaInsets.bottom, keyboardOverlap)
+        let delta = bottomInset - appliedBottomInset
+        guard delta != 0 else { return }
+        appliedBottomInset = bottomInset
+        scrollView.contentInset.bottom += delta
+        scrollView.verticalScrollIndicatorInsets.bottom += delta
     }
 
     /// Keeps the content inset's top equal to the safe area's (the bar's
@@ -114,6 +142,38 @@ open class StackScrollController: UIViewController {
         let offset = scrollView.contentOffset.y - delta
         scrollView.contentInset.top += delta
         scrollView.contentOffset.y = offset
+    }
+
+    @objc private func keyboardFrameWillChange(_ notification: Notification) {
+        var overlap: CGFloat = 0
+        if notification.name != UIResponder.keyboardWillHideNotification,
+           let screen = view.window?.windowScene?.screen,
+           let endFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
+        {
+            let keyboardFrame = view.convert(endFrame, from: screen.coordinateSpace)
+            let covered = view.bounds.intersection(keyboardFrame)
+            overlap = covered.isNull ? 0 : covered.height
+        }
+        guard overlap != keyboardOverlap else { return }
+        keyboardOverlap = overlap
+        updateBottomInset()
+        guard overlap > 0, let responder = firstResponder(in: scrollView) else { return }
+        scrollView.layoutIfNeeded()
+        // A field taller than the space above the keyboard keeps its top in
+        // view, so its first line is not pushed under the navigation bar.
+        let inset = scrollView.adjustedContentInset
+        let visibleHeight = scrollView.bounds.height - inset.top - inset.bottom
+        var target = responder.convert(responder.bounds, to: scrollView)
+        target.size.height = min(target.height, max(visibleHeight, 0))
+        scrollView.scrollRectToVisible(target, animated: true)
+    }
+
+    private func firstResponder(in view: UIView) -> UIView? {
+        if view.isFirstResponder { return view }
+        for subview in view.subviews {
+            if let found = firstResponder(in: subview) { return found }
+        }
+        return nil
     }
 
     open func setupContentViews() { /* stub */ }
