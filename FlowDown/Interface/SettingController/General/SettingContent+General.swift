@@ -163,26 +163,6 @@ extension SettingController.SettingContent {
                 ),
             ) { $0.top /= 2 }
             stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionHeaderView().with(
-                    header: "Model Selector",
-                ),
-            ) { $0.bottom /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(ChatView.editorModelNameStyle.createView())
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(ChatView.editorApplyModelToDefault.createView())
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(
-                ConfigurableSectionFooterView().with(
-                    footer: "If this switch is turned off, the newly selected model in the conversation will not be used for new conversations.",
-                ),
-            ) { $0.top /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
         }
 
         private func presentCustomDialTunePicker(from controller: UIViewController) {
