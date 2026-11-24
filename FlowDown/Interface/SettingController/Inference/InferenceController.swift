@@ -27,12 +27,6 @@ extension SettingController.SettingContent {
             view.backgroundColor = .background
         }
 
-        private let defaultConversationModel = ConfigurableInfoView().with {
-            $0.configure(icon: UIImage(systemName: "quote.bubble"))
-            $0.configure(title: "Default Model")
-            $0.configure(description: "The model used for new conversations.")
-        }
-
         private let appleIntelligenceToggle = ConfigurableBooleanBlockView(storage: .init(
             key: ModelManager.appleIntelligenceEnabledKey,
             defaultValue: true,
@@ -59,9 +53,6 @@ extension SettingController.SettingContent {
                     header: "Conversation",
                 ),
             ) { $0.bottom /= 2 }
-            stackView.addArrangedSubview(SeparatorView())
-
-            stackView.addArrangedSubviewWithMargin(defaultConversationModel)
             stackView.addArrangedSubview(SeparatorView())
 
             stackView.addArrangedSubviewWithMargin(
@@ -173,46 +164,6 @@ extension SettingController.SettingContent {
 
         func updateDefaultModelinfoFile() {
             ModelManager.shared.checkDefaultModels()
-
-            func displayName(for id: ModelManager.ModelIdentifier) -> String {
-                if let localModel = ModelManager.shared.localModel(identifier: id) {
-                    return localModel.model_identifier
-                }
-                if let cloudModel = ModelManager.shared.cloudModel(identifier: id) {
-                    return cloudModel.modelFullName
-                }
-                return String(localized: "Not Configured")
-            }
-
-            func configureModelRow(_ row: ConfigurableInfoView, id: ModelManager.ModelIdentifier) {
-                if #available(iOS 26.0, macCatalyst 26.0, *), id == AppleIntelligenceModel.shared.modelIdentifier {
-                    row.configure(value: AppleIntelligenceModel.shared.modelDisplayName)
-                    if !AppleIntelligenceModel.shared.isAvailable {
-                        row.configure(description: "Status: \(AppleIntelligenceModel.shared.availabilityStatus)")
-                    }
-                } else if id == PrivateCloudComputeCenter.modelIdentifier {
-                    row.configure(value: AppleIntelligenceModelNames.privateCloudComputeModel)
-                    if let unavailableText = PrivateCloudComputeCenter.shared.unavailableText {
-                        row.configure(description: .init(unavailableText))
-                    }
-                } else {
-                    row.configure(value: displayName(for: id))
-                }
-            }
-
-            configureModelRow(defaultConversationModel, id: ModelManager.ModelIdentifier.defaultModelForConversation)
-            defaultConversationModel.use { [weak self] in
-                guard let self else { return [] }
-                return ModelManager.shared.buildModelSelectionMenu(
-                    currentSelection: ModelManager.ModelIdentifier.defaultModelForConversation,
-                    requiresCapabilities: [],
-                    allowSelectionWithNone: true,
-                    onCompletion: { [weak self] identifier in
-                        ModelManager.ModelIdentifier.defaultModelForConversation = identifier
-                        self?.updateDefaultModelinfoFile()
-                    },
-                )
-            }
         }
     }
 }
