@@ -10,15 +10,18 @@ import UIKit
 /// (`ActivitySummaryView`). Tapping it opens the details in a popover
 /// (`ErrorDetailController`); the description is cut at the end to fit.
 final class ErrorMessageView: MessageListRowView {
-    /// Called with the view the details point at: the whole row, so the
-    /// popover's arrow lands mid-row, clear of its rounded corners.
-    var onOpenDetails: ((UIView) -> Void)?
+    /// Called with the view the details point at and the part of it to point
+    /// at (`detailsAnchor`).
+    var onOpenDetails: ((UIView, CGRect) -> Void)?
 
     private let button = UIControl()
     private let label = UILabel()
     private let chevronView = UIImageView()
     /// Between the description and the chevron.
     static let chevronSpacing: CGFloat = 4
+    /// The narrowest the details' anchor gets, so the popover's arrow sits
+    /// well clear of its rounded corners even for a short description.
+    static let minimumAnchorWidth: CGFloat = 120
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -40,7 +43,8 @@ final class ErrorMessageView: MessageListRowView {
         button.accessibilityHint = String(localized: "View Details")
         button.addAction(UIAction { [weak self] _ in
             guard let self else { return }
-            onOpenDetails?(self)
+            layoutIfNeeded()
+            onOpenDetails?(self, detailsAnchor)
         }, for: .touchUpInside)
         contentView.addSubview(button)
         themeDidUpdate()
@@ -88,6 +92,20 @@ final class ErrorMessageView: MessageListRowView {
             scale: .small,
         )
         chevronView.image = UIImage(systemName: "chevron.forward", withConfiguration: configuration)
+    }
+
+    /// The description and the chevron, in this view's coordinates, made
+    /// `minimumAnchorWidth` wide from where the text starts when narrower.
+    var detailsAnchor: CGRect {
+        let line = label.frame.union(chevronView.frame)
+        var anchor = button.convert(line, to: self)
+        if anchor.width < Self.minimumAnchorWidth {
+            if effectiveUserInterfaceLayoutDirection == .rightToLeft {
+                anchor.origin.x = anchor.maxX - Self.minimumAnchorWidth
+            }
+            anchor.size.width = Self.minimumAnchorWidth
+        }
+        return anchor
     }
 
     override func prepareForReuse() {

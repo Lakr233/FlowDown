@@ -21,14 +21,14 @@ final class ErrorDetailController: UIViewController, UIPopoverPresentationContro
     static let headerHeight: CGFloat = 30
     static let spacing: CGFloat = 8
 
-    init(details: String, sourceView: UIView) {
+    init(details: String, sourceView: UIView, sourceRect: CGRect? = nil) {
         self.details = details
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .popover
         if let popover = popoverPresentationController {
             popover.delegate = self
             popover.sourceView = sourceView
-            popover.sourceRect = sourceView.bounds
+            popover.sourceRect = sourceRect ?? sourceView.bounds
             popover.permittedArrowDirections = [.up, .down]
         }
         preferredContentSize = Self.contentSize(for: details, width: Self.width)
@@ -36,7 +36,7 @@ final class ErrorDetailController: UIViewController, UIPopoverPresentationContro
 
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
-        fatalError("Use init(details:sourceView:)")
+        fatalError("Use init(details:sourceView:sourceRect:)")
     }
 
     static var textFont: UIFont {

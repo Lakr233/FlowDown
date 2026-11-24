@@ -72,8 +72,8 @@ extension MessageListView {
                     guard let self, case let .error(_, _, description) = entry else { return }
                     prepare(row, for: entry)
                     row.show(description)
-                    row.onOpenDetails = { [weak self] sourceView in
-                        self?.presentErrorDetails(description, from: sourceView)
+                    row.onOpenDetails = { [weak self] sourceView, sourceRect in
+                        self?.presentErrorDetails(description, from: sourceView, at: sourceRect)
                     }
                 }
 
@@ -224,9 +224,9 @@ extension MessageListView {
     }
 
     /// Opens a failed turn's whole error in a small popover at its row.
-    private func presentErrorDetails(_ details: String, from sourceView: UIView) {
+    private func presentErrorDetails(_ details: String, from sourceView: UIView, at sourceRect: CGRect) {
         guard let parentViewController, parentViewController.presentedViewController == nil else { return }
-        let controller = ErrorDetailController(details: details, sourceView: sourceView)
+        let controller = ErrorDetailController(details: details, sourceView: sourceView, sourceRect: sourceRect)
         parentViewController.present(controller, animated: true)
     }
 
