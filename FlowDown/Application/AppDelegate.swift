@@ -43,7 +43,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         MLX.GPU.startMemoryPressureMonitoring()
         EditorBehavior.subscribeToConfigurableItem()
         MarkdownTheme.subscribeToConfigurableItem()
-        ScrubberConfiguration.subscribeToConfigurableItem()
         ScrubberConfiguration.setup() // build access control rule
         ModelManager.removeRetiredSettings()
 

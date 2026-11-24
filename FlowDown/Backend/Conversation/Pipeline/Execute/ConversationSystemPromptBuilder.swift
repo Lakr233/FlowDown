@@ -17,10 +17,9 @@ import Foundation
 ///    guidance, which depends only on settings. It goes right after the
 ///    leading system messages, ahead of the history.
 /// 2. Variable: runtime info (model name, day-precision date, locale),
-///    proactive memory, recent conversations and the web search mode. They
-///    travel as a `<context>` block leading the current user message's
-///    text, which is never stored, so the history replays byte-identical
-///    next turn.
+///    proactive memory and recent conversations. They travel as a
+///    `<context>` block leading the current user message's text, which is
+///    never stored, so the history replays byte-identical next turn.
 ///
 /// Apple Intelligence (on device and Cloud) rebuilds its session for every request and folds all
 /// system messages into its instructions, so it gets the variable parts as
@@ -48,14 +47,12 @@ enum ConversationSystemPromptBuilder {
         let userText: String
         let modelName: String
         let modelWillExecuteTools: Bool
-        let webSearchEnabled: Bool
         var contextPlacement: ContextPlacement = .finalUserMessage
     }
 
     struct Dependencies {
         let enabledTools: [any ModelTool]
         let proactiveMemoryScope: MemoryProactiveProvisionScope
-        let searchSensitivity: ModelManager.SearchSensitivity
         let runtimeSystemInfoProvider: ((String) -> String)?
         let proactiveMemoryContextProvider: () async -> String?
         let recentConversationContextProvider: (_ limit: Int) async -> String?
@@ -64,7 +61,6 @@ enum ConversationSystemPromptBuilder {
             .init(
                 enabledTools: ModelToolsManager.shared.enabledTools.map { $0 as any ModelTool },
                 proactiveMemoryScope: MemoryProactiveProvisionSetting.currentScope,
-                searchSensitivity: ModelManager.shared.searchSensitivity,
                 runtimeSystemInfoProvider: ModelManager.shared.includeDynamicSystemInfo ? { modelName in
                     runtimeSystemInfo(modelName: modelName, date: Date().promptDay())
                 } : nil,
@@ -140,17 +136,6 @@ enum ConversationSystemPromptBuilder {
            !recentConversationContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         {
             contextBlocks.append(recentConversationContext)
-        }
-
-        if input.webSearchEnabled {
-            let sensitivity = dependencies.searchSensitivity
-            let sensitivityTitle = String(localized: sensitivity.title)
-            contextBlocks.append(
-                """
-                Web Search Mode: \(sensitivityTitle)
-                \(sensitivity.briefDescription)
-                """,
-            )
         }
 
         var systemMessages = fixedBlocks.map { ChatRequestBody.Message.system(content: .text($0)) }

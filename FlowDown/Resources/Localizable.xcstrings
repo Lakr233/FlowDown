@@ -9446,48 +9446,48 @@
         }
       }
     },
-    "Configure tool settings, choose search engine for internet searches, adding custom tools." : {
+    "Choose which tools models can use and manage MCP servers." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tool-Einstellungen konfigurieren, Suchmaschine für Internetsuchen wählen, eigene Tools hinzufügen."
+            "value" : "Festlegen, welche Tools Modelle nutzen dürfen, und MCP-Server verwalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configure tool settings, choose search engine for internet searches, adding custom tools."
+            "value" : "Choose which tools models can use and manage MCP servers."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configura ajustes de herramientas, elige el motor de búsqueda para Internet y añade herramientas personalizadas."
+            "value" : "Elige qué herramientas pueden usar los modelos y gestiona los servidores MCP."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configurez les paramètres des outils, choisissez le moteur de recherche pour Internet et ajoutez des outils personnalisés."
+            "value" : "Choisissez les outils que les modèles peuvent utiliser et gérez les serveurs MCP."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ツール設定を構成し、検索エンジンを選び、カスタムツールを追加します。"
+            "value" : "モデルが使えるツールを選び、MCP サーバーを管理します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "도구 설정을 구성하고 인터넷 검색 엔진을 선택하며 사용자 정의 도구를 추가합니다."
+            "value" : "모델이 사용할 수 있는 도구를 선택하고 MCP 서버를 관리하세요."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置工具设置，选择网络搜索引擎，添加自定义工具。"
+            "value" : "选择模型可以使用的工具，管理 MCP 服务器。"
           }
         }
       }
@@ -26675,52 +26675,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "列表：%@"
-          }
-        }
-      }
-    },
-    "Live internet access with citations, scraping, and verification." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live-Internetzugriff mit Zitaten, Scraping und Verifizierung."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live internet access with citations, scraping, and verification."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acceso en vivo a internet con citas, scraping y verificación."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accès internet en direct avec citations, scraping et vérification."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "引用・スクレイピング・検证を備えたライブなインターネットアクセス。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "실시간 인터넷 접근, 인용·스크래핑·검증 지원."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "实时联网，提供引文、抓取和校验。"
           }
         }
       }
@@ -59280,48 +59234,48 @@
         }
       }
     },
-    "When this is off, tools run without asking, including ones that change your calendar or reminders. Web search, reading web pages, and memory never ask." : {
+    "When this is off, tools run without asking, including ones that change your calendar or reminders. Reading web pages and memory never ask." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When this is off, tools run without asking, including ones that change your calendar or reminders. Web search, reading web pages, and memory never ask."
+            "value" : "When this is off, tools run without asking, including ones that change your calendar or reminders. Reading web pages and memory never ask."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wenn diese Option deaktiviert ist, werden Tools ohne Nachfrage ausgeführt, auch solche, die deinen Kalender oder deine Erinnerungen ändern. Websuche, das Lesen von Webseiten und die Gedächtnisfunktion fragen nie nach."
+            "value" : "Wenn diese Option deaktiviert ist, werden Tools ohne Nachfrage ausgeführt, auch solche, die deinen Kalender oder deine Erinnerungen ändern. Das Lesen von Webseiten und die Gedächtnisfunktion fragen nie nach."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si se desactiva, las herramientas se ejecutan sin preguntar, incluidas las que modifican tu calendario o tus recordatorios. La búsqueda web, la lectura de páginas web y la memoria nunca piden confirmación."
+            "value" : "Si se desactiva, las herramientas se ejecutan sin preguntar, incluidas las que modifican tu calendario o tus recordatorios. La lectura de páginas web y la memoria nunca piden confirmación."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si cette option est désactivée, les outils s’exécutent sans confirmation, y compris ceux qui modifient votre calendrier ou vos rappels. La recherche web, la lecture de pages web et la mémoire ne demandent jamais de confirmation."
+            "value" : "Si cette option est désactivée, les outils s’exécutent sans confirmation, y compris ceux qui modifient votre calendrier ou vos rappels. La lecture de pages web et la mémoire ne demandent jamais de confirmation."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "オフにすると、カレンダーやリマインダーを変更するツールも確認なしで実行されます。ウェブ検索、ウェブページの読み取り、メモリーは確認しません。"
+            "value" : "オフにすると、カレンダーやリマインダーを変更するツールも確認なしで実行されます。ウェブページの読み取りとメモリーは確認しません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "끄면 캘린더나 미리 알림을 변경하는 도구도 묻지 않고 실행됩니다. 웹 검색, 웹 페이지 읽기, 메모리는 확인하지 않습니다."
+            "value" : "끄면 캘린더나 미리 알림을 변경하는 도구도 묻지 않고 실행됩니다. 웹 페이지 읽기와 메모리는 확인하지 않습니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关闭后，工具会直接运行，包括会更改日历或提醒事项的工具。网页搜索、网页读取和记忆从不需要确认。"
+            "value" : "关闭后，工具会直接运行，包括会更改日历或提醒事项的工具。网页读取和记忆从不需要确认。"
           }
         }
       }

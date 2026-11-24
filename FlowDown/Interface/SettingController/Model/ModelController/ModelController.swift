@@ -48,22 +48,7 @@ extension SettingController.SettingContent {
                 controller?.navigationController?.dismiss(animated: true)
             }
 
-            if isDefaultModel {
-                return [newChat]
-            }
-
-            let newChatUseOnce = UIAction(
-                title: String(localized: "New Chat (Use Once)"),
-                image: UIImage(systemName: "plus.bubble"),
-            ) { [weak controller] _ in
-                let conversation = ConversationManager.shared.createNewConversation { conv in
-                    conv.update(\.modelId, to: modelIdentifier)
-                }
-                ChatSelection.shared.select(conversation.id, options: [.collapseSidebar, .focusEditor])
-                controller?.navigationController?.dismiss(animated: true)
-            }
-
-            return [newChat, newChatUseOnce]
+            return [newChat]
         }
 
         static func makeActionMenuElements(

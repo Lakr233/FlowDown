@@ -38,7 +38,7 @@ extension SettingController {
             .init(
                 icon: "hammer",
                 title: "Tools",
-                explain: "Configure tool settings, choose search engine for internet searches, adding custom tools.",
+                explain: "Choose which tools models can use and manage MCP servers.",
                 ephemeralAnnotation: .page { ToolsController() },
             ),
             .init(

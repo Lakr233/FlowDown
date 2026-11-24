@@ -60,7 +60,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "continue",
         modelName: "test-model",
         modelWillExecuteTools: true,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .off,
@@ -109,7 +108,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "continue",
         modelName: "test-model",
         modelWillExecuteTools: testCase.modelWillExecuteTools,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
@@ -168,7 +166,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "continue",
         modelName: "test-model",
         modelWillExecuteTools: testCase.modelWillExecuteTools,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
@@ -195,7 +192,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "continue",
         modelName: "test-model",
         modelWillExecuteTools: true,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .off,
@@ -224,7 +220,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "continue",
         modelName: "test-model",
         modelWillExecuteTools: true,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
@@ -245,7 +240,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "continue",
         modelName: "test-model",
         modelWillExecuteTools: false,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
@@ -259,7 +253,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "continue",
         modelName: "test-model",
         modelWillExecuteTools: true,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
@@ -271,40 +264,21 @@ struct ConversationSystemPromptBuilderTests {
   }
 
   @Test
-  func `web search guidance is appended only when the web search tool is enabled`() async {
-    let webSearchMessages = await buildMessages(
+  func `prompt carries no web search mode`() async {
+    let messages = await buildMessages(
       input: .init(
         userText: "search this",
         modelName: "test-model",
         modelWillExecuteTools: false,
-        webSearchEnabled: true,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
         enabledTools: [],
-        searchSensitivity: .proactive,
-      ),
-    )
-    let defaultMessages = await buildMessages(
-      input: .init(
-        userText: "search this",
-        modelName: "test-model",
-        modelWillExecuteTools: false,
-        webSearchEnabled: false,
-      ),
-      dependencies: makeDependencies(
-        proactiveMemoryScope: .recent30,
-        enabledTools: [],
-        searchSensitivity: .proactive,
       ),
     )
 
     #expect(
-      promptTexts(in: webSearchMessages).contains {
-        $0.contains("Web Search Mode:")
-      })
-    #expect(
-      promptTexts(in: defaultMessages).allSatisfy {
+      promptTexts(in: messages).allSatisfy {
         !$0.contains("Web Search Mode:")
       })
   }
@@ -316,7 +290,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "hello",
         modelName: "test-model",
         modelWillExecuteTools: false,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
@@ -331,7 +304,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "hello",
         modelName: "test-model",
         modelWillExecuteTools: false,
-        webSearchEnabled: false,
       ),
       dependencies: makeDependencies(
         proactiveMemoryScope: .recent30,
@@ -363,7 +335,6 @@ struct ConversationSystemPromptBuilderTests {
         userText: "final user message",
         modelName: "test-model",
         modelWillExecuteTools: true,
-        webSearchEnabled: true,
       ),
       dependencies: makeFullDependencies(),
     )
@@ -389,11 +360,9 @@ struct ConversationSystemPromptBuilderTests {
     let memory = try #require(context.range(of: "Proactive Memory Context"))
     let note = try #require(context.range(of: ConversationSystemPromptBuilder.proactiveMemoryNote))
     let recent = try #require(context.range(of: "Recent conversation context"))
-    let search = try #require(context.range(of: "Web Search Mode:"))
     #expect(runtime.lowerBound < memory.lowerBound)
     #expect(memory.lowerBound < note.lowerBound)
     #expect(note.lowerBound < recent.lowerBound)
-    #expect(recent.lowerBound < search.lowerBound)
   }
 
   @Test
@@ -405,21 +374,19 @@ struct ConversationSystemPromptBuilderTests {
         userText: "final user message",
         modelName: "test-model",
         modelWillExecuteTools: true,
-        webSearchEnabled: true,
         contextPlacement: .systemMessages,
       ),
       dependencies: makeFullDependencies(),
     )
 
     let systemTexts = systemTexts(in: messages)
-    #expect(systemTexts.count == 6)
+    #expect(systemTexts.count == 5)
     #expect(systemTexts[0] == "stored prompt")
     #expect(systemTexts[1].contains("store_memory"))
     #expect(systemTexts[2] == "runtime info for test-model")
     #expect(systemTexts[3].hasPrefix("Proactive Memory Context"))
     #expect(systemTexts[3].hasSuffix(ConversationSystemPromptBuilder.proactiveMemoryNote))
     #expect(systemTexts[4].contains("Recent conversation context"))
-    #expect(systemTexts[5].contains("Web Search Mode:"))
     #expect(messages.last?.plainUserText == "final user message")
 
     let instructions = AppleIntelligencePromptBuilder.makeInstructions(
@@ -429,7 +396,6 @@ struct ConversationSystemPromptBuilderTests {
     )
     #expect(instructions.contains("runtime info for test-model"))
     #expect(instructions.contains("Proactive Memory Context"))
-    #expect(instructions.contains("Web Search Mode:"))
     #expect(AppleIntelligencePromptBuilder.makePrompt(from: messages) == "final user message")
   }
 
@@ -499,7 +465,6 @@ struct ConversationSystemPromptBuilderTests {
   private func makeDependencies(
     proactiveMemoryScope: MemoryProactiveProvisionScope,
     enabledTools: [any ModelTool],
-    searchSensitivity: ModelManager.SearchSensitivity = .balanced,
     runtimeSystemInfoProvider: ((String) -> String)? = nil,
     recorder: PromptContextProviderRecorder? = nil,
     proactiveMemoryContext: String? = nil,
@@ -508,7 +473,6 @@ struct ConversationSystemPromptBuilderTests {
     .init(
       enabledTools: enabledTools,
       proactiveMemoryScope: proactiveMemoryScope,
-      searchSensitivity: searchSensitivity,
       runtimeSystemInfoProvider: runtimeSystemInfoProvider,
       proactiveMemoryContextProvider: {
         await recorder?.recordProactiveRequest()

@@ -27,7 +27,7 @@ struct ConversationVisualInputTests {
 
     @Test
     @MainActor
-    func `session auxiliary model is the conversation model even with a retired task model stored`() async throws {
+    func `session auxiliary model is the global default even with a retired task model stored`() async throws {
         let retiredKey = "Model.Default.Auxiliary"
         let previous = UserDefaults.standard.object(forKey: retiredKey)
         defer { UserDefaults.standard.set(previous, forKey: retiredKey) }
@@ -35,8 +35,9 @@ struct ConversationVisualInputTests {
 
         try await withTemporarySession(modelID: "conversation-model") { session in
             session.updateModels()
-            #expect(session.models.chat == "conversation-model")
-            #expect(session.models.auxiliary == "conversation-model")
+            let globalDefault = ModelManager.ModelIdentifier.defaultModelForConversation
+            #expect(session.models.chat == globalDefault)
+            #expect(session.models.auxiliary == globalDefault)
         }
     }
 

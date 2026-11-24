@@ -15,6 +15,8 @@ public final class Conversation: Identifiable, Codable, TableNamed, TableCodable
     public package(set) var icon: Data = .init()
     public package(set) var isFavorite: Bool = false
     public package(set) var shouldAutoRename: Bool = true
+    /// Deprecated: conversations chat on the global default model. Still
+    /// stamped on new conversations for devices that have not upgraded.
     public package(set) var modelId: String? = nil
 
     public package(set) var objectId: String = UUID().uuidString

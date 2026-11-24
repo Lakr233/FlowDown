@@ -76,11 +76,6 @@ extension WelcomePageViewController.Configuration {
                 // MARK: - Powerful Capabilities (强大能力)
 
                 .init(
-                    icon: UIImage(systemName: "globe")!,
-                    title: "Web Search",
-                    detail: "Live internet access with citations, scraping, and verification.",
-                ),
-                .init(
                     icon: UIImage(systemName: "eye.fill")!,
                     title: "Visual Understanding",
                     detail: "Analyze images, screenshots, and diagrams with OCR support.",

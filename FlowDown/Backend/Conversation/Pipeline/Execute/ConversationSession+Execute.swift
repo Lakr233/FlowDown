@@ -214,7 +214,6 @@ extension ConversationSession {
         let toolSet: ModelToolSet = modelWillExecuteTools
             ? await ModelToolsManager.shared.makeToolSet()
             : .empty
-        let webSearchEnabled = toolSet.contains { $0 is MTWebSearchTool }
 
         await ConversationSystemPromptBuilder.appendMessages(
             to: &requestMessages,
@@ -222,7 +221,6 @@ extension ConversationSession {
                 userText: object.text,
                 modelName: modelName,
                 modelWillExecuteTools: modelWillExecuteTools,
-                webSearchEnabled: webSearchEnabled,
                 contextPlacement: ConversationSystemPromptBuilder.contextPlacement(for: modelID),
             ),
             dependencies: .live(),
