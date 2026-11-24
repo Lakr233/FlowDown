@@ -13,6 +13,9 @@ extension MessageListView {
         /// Thoughts, tool calls and web searches folded into one line.
         case activity(ActivitySummary)
         case aiContent(Message.ID, MessageRepresentation)
+        /// A failed turn: its error's description on one red line, which
+        /// opens the details (`ReplyErrorDocument`).
+        case error(Message.ID, MessageRepresentation, String)
         case hint(String, String)
         case activityReporting(String)
 
@@ -24,6 +27,8 @@ extension MessageListView {
                 summary.id
             case let .aiContent(_, message):
                 "AiContent.\(message.id)"
+            case let .error(_, message, _):
+                "Error.\(message.id)"
             case let .hint(id, _):
                 "Hint.\(id)"
             case .activityReporting:
@@ -205,7 +210,14 @@ extension MessageListView {
                     checkAddDateHint(message.creation)
                     var representation = MessageRepresentation(from: message)
                     representation.isStreaming = message.objectId == streamingMessageID
-                    entries.append(.aiContent(message.objectId, representation))
+                    if let description = ReplyErrorDocument.description(
+                        in: messageContent,
+                        isStreaming: representation.isStreaming,
+                    ) {
+                        entries.append(.error(message.objectId, representation, description))
+                    } else {
+                        entries.append(.aiContent(message.objectId, representation))
+                    }
                 }
 
             // MARK: - Web Search
