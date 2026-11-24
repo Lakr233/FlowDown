@@ -26,6 +26,8 @@ final class ErrorMessageView: MessageListRowView {
         label.textColor = .systemRed
         label.isAccessibilityElement = false
         chevronView.tintColor = .systemRed
+        // stays red while the details popover dims the window's tint
+        chevronView.tintAdjustmentMode = .normal
         chevronView.contentMode = .center
         chevronView.isAccessibilityElement = false
         button.addSubview(label)
@@ -80,8 +82,9 @@ final class ErrorMessageView: MessageListRowView {
         guard label.font != font else { return }
         label.font = font
         let configuration = UIImage.SymbolConfiguration(
-            pointSize: font.pointSize * 0.7,
-            weight: .bold,
+            pointSize: font.pointSize,
+            weight: .heavy,
+            scale: .small,
         )
         chevronView.image = UIImage(systemName: "chevron.forward", withConfiguration: configuration)
     }
