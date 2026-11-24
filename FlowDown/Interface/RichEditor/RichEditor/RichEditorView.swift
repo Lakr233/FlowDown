@@ -400,6 +400,7 @@ class RichEditorView: EditorSectionView {
     }
 
     func prepareForReuse() {
+        quickSettingBar.setTerminateVisible(false, animated: false)
         storage = .init(id: "-1")
         resetValues()
         updateModelinfoFile()
@@ -416,9 +417,10 @@ class RichEditorView: EditorSectionView {
         restoreEditorStatusIfPossible()
     }
 
-    func setProcessingMode(_ isProcessing: Bool) {
+    func setProcessingMode(_ isProcessing: Bool, animated: Bool = true) {
         let mode: ColorfulShadowView.Mode = isProcessing ? .appleIntelligence : .idle
         colorfulShadow.mode = mode
+        quickSettingBar.setTerminateVisible(isProcessing, animated: animated)
     }
 
     /// used when requesting retry, inherit current option toggles

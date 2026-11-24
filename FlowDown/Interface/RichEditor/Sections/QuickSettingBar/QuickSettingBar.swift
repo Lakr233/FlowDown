@@ -17,6 +17,20 @@ class QuickSettingBar: EditorSectionView {
         icon: "tools",
     )
 
+    let terminateButton = BlockButton(
+        text: NSLocalizedString("Terminate", comment: ""),
+        icon: "stop.circle",
+    )
+
+    /// Drives the row's layout. The button's `isHidden` only follows it once the
+    /// disappear animation has finished.
+    var isTerminateVisible = false
+    var terminateAction: () -> Void = {}
+    var terminateTransitionID = 0
+    var needsTerminateReveal = false
+    /// Set when the button hides so the row returns to its leading edge.
+    var needsTerminateRestore = false
+
     /// User preference for the tools toggle, shared across conversations and launches.
     /// Models without tool call support turn the toggle off without clearing this value.
     static let toolsEnabledKey = "wiki.qaq.RichEditor.QuickSettingBar.toolsEnabled"
@@ -28,6 +42,7 @@ class QuickSettingBar: EditorSectionView {
     lazy var buttons: [BlockButton] = [
         modelPicker,
         toolsToggle,
+        terminateButton,
     ]
     var modelIdentifier: String = ""
     var modelSupportsToolCall = false {
@@ -70,6 +85,7 @@ class QuickSettingBar: EditorSectionView {
             }
         }
 
+        configureTerminateButton()
         setModelName(nil)
 
         modelPicker.showsMenuAsPrimaryAction = true
@@ -109,24 +125,30 @@ class QuickSettingBar: EditorSectionView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        scrollView.frame = bounds
-        defer {
-            let contentSizeWidth = scrollView.contentSize.width
-            if contentSizeWidth < bounds.width {
-                scrollView.frame = .init(
-                    x: (bounds.width - contentSizeWidth) / 2,
-                    y: 0,
-                    width: contentSizeWidth,
-                    height: bounds.height,
-                )
-            }
-        }
-
         alpha = isOpen ? 1 : 0
-        guard isOpen else { return }
+        if isOpen { layoutButtons() }
 
-        buttons.forEach { $0.transform = .identity }
-        let visibleButtons = buttons.filter { !$0.isHidden }
+        // Set once per pass: the centering is part of the terminate animation.
+        let contentSizeWidth = scrollView.contentSize.width
+        scrollView.frame = contentSizeWidth < bounds.width
+            ? .init(
+                x: (bounds.width - contentSizeWidth) / 2,
+                y: 0,
+                width: contentSizeWidth,
+                height: bounds.height,
+            )
+            : bounds
+        if isOpen { updateScrollOffsetAfterLayout() }
+    }
+
+    private func layoutButtons() {
+        // The terminate button's transform belongs to its own animation.
+        for button in buttons where button !== terminateButton {
+            button.transform = .identity
+        }
+        let visibleButtons = buttons.filter {
+            $0 === terminateButton ? isTerminateVisible : !$0.isHidden
+        }
         let sizes = visibleButtons.map(\.intrinsicContentSize)
 
         var anchorX: CGFloat = horizontalAdjustment
@@ -134,16 +156,11 @@ class QuickSettingBar: EditorSectionView {
             let size = sizes[index]
             assert(size.width > 0)
             assert(size.height > 0)
-            button.frame = .init(
-                x: anchorX,
-                y: 0,
-                width: size.width,
-                height: size.height,
-            )
+            place(button, x: anchorX, size: size)
             anchorX += size.width + 10
         }
 
-        let lastOne = visibleButtons.last?.frame.maxX ?? 0
+        let lastOne = visibleButtons.isEmpty ? 0 : anchorX - 10
         let contentSizeWidth = lastOne + horizontalAdjustment
         scrollView.contentSize = .init(width: contentSizeWidth, height: height)
     }
