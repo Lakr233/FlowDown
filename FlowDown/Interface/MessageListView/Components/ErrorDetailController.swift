@@ -113,11 +113,13 @@ final class ErrorDetailController: UIViewController, UIPopoverPresentationContro
         textView.isScrollEnabled = textView.contentSize.height > textView.bounds.height + 1
     }
 
-    /// Icon only: `doc.on.doc`, briefly a checkmark after copying.
+    /// Icon only: `doc.on.doc`, briefly a checkmark after copying. Both use
+    /// the "Error" title's font (size and weight) at small scale, so the icon
+    /// sits at that text's height.
     private func showCopyButton(copied: Bool) {
         var configuration = UIButton.Configuration.plain()
         configuration.image = UIImage(systemName: copied ? "checkmark" : "doc.on.doc")
-        configuration.preferredSymbolConfigurationForImage = .init(textStyle: .footnote)
+        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(font: titleLabel.font, scale: .small)
         configuration.buttonSize = .small
         configuration.contentInsets = .init(top: 4, leading: 8, bottom: 4, trailing: 8)
         copyButton.configuration = configuration
