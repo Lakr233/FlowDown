@@ -307,7 +307,7 @@ extension ChatView: RichEditorView.Delegate {
           title: String(localized: "Settings"),
           image: UIImage(systemName: "gear"),
         ) { [weak self] _ in
-          SettingController.setNextEntryPage(.mcp)
+          SettingController.setNextEntryPage(.tools)
           let settingController = SettingController()
           self?.parentViewController?.present(settingController, animated: true)
         },

@@ -1,5 +1,5 @@
 //
-//  MCPController+Cell.swift
+//  ToolsController+MCPServerCell.swift
 //  FlowDown
 //
 //  Created by LiBr on 6/30/25.
@@ -9,21 +9,29 @@ import ConfigurableKit
 import Storage
 import UIKit
 
-extension SettingController.SettingContent.MCPController {
-    class MCPServerCell: UITableViewCell, UIContextMenuInteractionDelegate {
+extension SettingController.SettingContent.ToolsController {
+    class MCPServerCell: UITableViewCell {
         private var timer: Timer?
 
         override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
             super.init(style: style, reuseIdentifier: reuseIdentifier)
             let margin = AutoLayoutMarginView(configurableView)
             contentView.addSubview(margin)
+            // Drawn by the row itself so it slides with the row when swiped,
+            // matching the separators the rest of the page stacks between rows.
+            let separator = SeparatorView()
+            contentView.addSubview(separator)
             margin.snp.makeConstraints { make in
-                make.edges.equalToSuperview()
+                make.top.leading.trailing.equalToSuperview()
+            }
+            separator.snp.makeConstraints { make in
+                make.top.equalTo(margin.snp.bottom)
+                make.leading.trailing.bottom.equalToSuperview()
+                make.height.equalTo(1)
             }
             separatorInset = .zero
             selectionStyle = .none
             backgroundColor = .clear
-            contentView.addInteraction(UIContextMenuInteraction(delegate: self))
             let timer = Timer(timeInterval: 2, repeats: true) { [weak self] _ in
                 guard let self else { return }
                 guard let clientId else { return }
@@ -117,47 +125,6 @@ extension SettingController.SettingContent.MCPController {
             case .failed:
                 .systemRed
             }
-        }
-
-        func contextMenuInteraction(
-            _: UIContextMenuInteraction,
-            configurationForMenuAtLocation _: CGPoint,
-        ) -> UIContextMenuConfiguration? {
-            guard let clientId else { return nil }
-            let menu = UIMenu(options: [.displayInline], children: [
-                UIAction(title: String(localized: "Export Server"), image: UIImage(systemName: "square.and.arrow.up")) { _ in
-                    self.exportServer(clientId)
-                },
-                UIAction(title: String(localized: "Delete"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
-                    MCPService.shared.remove(clientId)
-                },
-            ])
-            return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-                menu
-            }
-        }
-
-        private func exportServer(_ serverId: ModelContextServer.ID) {
-            guard let server = MCPService.shared.server(with: serverId) else { return }
-
-            let tempFileDir = disposableResourcesDir
-                .appendingPathComponent(UUID().uuidString)
-            let serverName = URL(string: server.endpoint)?.host ?? "Server"
-            let tempFile = tempFileDir
-                .appendingPathComponent("Export-\(serverName.sanitizedFileName)")
-                .appendingPathExtension("fdmcp")
-            try? FileManager.default.createDirectory(at: tempFileDir, withIntermediateDirectories: true)
-            FileManager.default.createFile(atPath: tempFile.path, contents: nil)
-
-            do {
-                let data = try MCPService.shared.exportServerData(server)
-                try data.write(to: tempFile, options: .atomic)
-            } catch {
-                Logger.app.errorFile("failed to export MCP server: \(error)")
-                return
-            }
-
-            DisposableExporter(deletableItem: tempFile, title: "Export MCP Server").run(anchor: self)
         }
     }
 }
