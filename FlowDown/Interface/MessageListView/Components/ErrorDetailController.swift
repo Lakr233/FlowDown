@@ -113,28 +113,32 @@ final class ErrorDetailController: UIViewController, UIPopoverPresentationContro
         textView.isScrollEnabled = textView.contentSize.height > textView.bounds.height + 1
     }
 
+    /// Icon only: `doc.on.doc`, briefly a checkmark after copying.
     private func showCopyButton(copied: Bool) {
         var configuration = UIButton.Configuration.plain()
-        configuration.title = copied ? String(localized: "Copied") : String(localized: "Copy")
         configuration.image = UIImage(systemName: copied ? "checkmark" : "doc.on.doc")
         configuration.preferredSymbolConfigurationForImage = .init(textStyle: .footnote)
-        configuration.imagePadding = 4
         configuration.buttonSize = .small
         configuration.contentInsets = .init(top: 4, leading: 8, bottom: 4, trailing: 8)
-        configuration.titleTextAttributesTransformer = .init { attributes in
-            var attributes = attributes
-            attributes.font = .preferredFont(forTextStyle: .subheadline)
-            return attributes
-        }
         copyButton.configuration = configuration
+        copyButton.accessibilityLabel = String(localized: "Copy")
         view.setNeedsLayout()
     }
+
+    private var revertCopyButton: DispatchWorkItem?
 
     private func copyDetails() {
         UIPasteboard.general.string = details
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         showCopyButton(copied: true)
         UIAccessibility.post(notification: .announcement, argument: String(localized: "Copied"))
+
+        revertCopyButton?.cancel()
+        let revert = DispatchWorkItem { [weak self] in
+            self?.showCopyButton(copied: false)
+        }
+        revertCopyButton = revert
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: revert)
     }
 
     // MARK: - UIPopoverPresentationControllerDelegate
