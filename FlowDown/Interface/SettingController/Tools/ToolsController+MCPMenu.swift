@@ -1,5 +1,5 @@
 //
-//  MCPController+Bar.swift
+//  ToolsController+MCPMenu.swift
 //  FlowDown
 //
 //  Created by LiBr on 6/30/25.
@@ -9,7 +9,7 @@ import Storage
 import UIKit
 import UniformTypeIdentifiers
 
-extension SettingController.SettingContent.MCPController {
+extension SettingController.SettingContent.ToolsController {
     func createAddClientMenuItems() -> [UIMenuElement] {
         [
             UIMenu(title: String(localized: "MCP Server"), options: [.displayInline], children: [
