@@ -35346,48 +35346,48 @@
         }
       }
     },
-    "Please select a default chat model in settings before using rewrite features." : {
+    "Please select a model in the input bar first." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitte in den Einstellungen ein Standard-Chatmodell auswählen, bevor Umschreibefunktionen genutzt werden."
+            "value" : "Bitte zuerst im Eingabefeld ein Modell auswählen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please select a default chat model in settings before using rewrite features."
+            "value" : "Please select a model in the input bar first."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecciona un modelo de chat predeterminado en Ajustes antes de usar las funciones de reescritura."
+            "value" : "Selecciona primero un modelo en el cuadro de entrada."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sélectionnez un modèle de chat par défaut dans les réglages avant d’utiliser les fonctions de réécriture."
+            "value" : "Sélectionnez d’abord un modèle dans la zone de saisie."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "書き換え機能を使う前に設定でデフォルトのチャットモデルを選択してください。"
+            "value" : "先に入力欄でモデルを選択してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "리라이트 기능을 사용하기 전에 설정에서 기본 채팅 모델을 선택하세요."
+            "value" : "먼저 입력창에서 모델을 선택하세요."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请选择一个对话模型来使用改写功能。"
+            "value" : "请先在输入框里选择模型。"
           }
         }
       }
