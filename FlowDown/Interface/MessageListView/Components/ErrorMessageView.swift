@@ -10,7 +10,8 @@ import UIKit
 /// (`ActivitySummaryView`). Tapping it opens the details in a popover
 /// (`ErrorDetailController`); the description is cut at the end to fit.
 final class ErrorMessageView: MessageListRowView {
-    /// Called with the view the details point at.
+    /// Called with the view the details point at: the whole row, so the
+    /// popover's arrow lands mid-row, clear of its rounded corners.
     var onOpenDetails: ((UIView) -> Void)?
 
     private let button = UIControl()
@@ -39,7 +40,7 @@ final class ErrorMessageView: MessageListRowView {
         button.accessibilityHint = String(localized: "View Details")
         button.addAction(UIAction { [weak self] _ in
             guard let self else { return }
-            onOpenDetails?(chevronView.isHidden ? label : chevronView)
+            onOpenDetails?(self)
         }, for: .touchUpInside)
         contentView.addSubview(button)
         themeDidUpdate()
