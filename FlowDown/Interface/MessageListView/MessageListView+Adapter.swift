@@ -60,6 +60,23 @@ extension MessageListView {
                     }
                 }
 
+            ListRow(ErrorMessageView.self)
+                .when { if case .error = $0 { true } else { false } }
+                .height { [weak self] entry, context in
+                    guard let self, case .error = entry else { return 0 }
+                    return rowHeight(inListWidth: context.width) { _ in
+                        ErrorMessageView.height(font: self.theme.fonts.body)
+                    }
+                }
+                .configure { [weak self] row, entry, _ in
+                    guard let self, case let .error(_, _, description) = entry else { return }
+                    prepare(row, for: entry)
+                    row.show(description)
+                    row.onOpenDetails = { [weak self] sourceView in
+                        self?.presentErrorDetails(description, from: sourceView)
+                    }
+                }
+
             ListRow(AiMessageView.self)
                 .when { if case .aiContent = $0 { true } else { false } }
                 .height { [weak self] entry, context in
@@ -192,6 +209,9 @@ extension MessageListView {
         case let .aiContent(msgID, messageRepresentation):
             messageIdentifier = msgID
             representation = messageRepresentation
+        case let .error(msgID, messageRepresentation, _):
+            messageIdentifier = msgID
+            representation = messageRepresentation
         default:
             return nil
         }
@@ -201,6 +221,13 @@ extension MessageListView {
             representation: representation,
             referenceView: referenceView,
         )
+    }
+
+    /// Opens a failed turn's whole error in a small popover at its row.
+    private func presentErrorDetails(_ details: String, from sourceView: UIView) {
+        guard let parentViewController, parentViewController.presentedViewController == nil else { return }
+        let controller = ErrorDetailController(details: details, sourceView: sourceView)
+        parentViewController.present(controller, animated: true)
     }
 
     /// Opens the trace behind a summary in a sheet, which follows the run

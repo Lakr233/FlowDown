@@ -118,7 +118,7 @@ extension ConversationSession {
                 hintMessage.update(\.document, to: sanitized)
             } else {
                 let errorMessage = appendNewMessage(role: .assistant)
-                errorMessage.update(\.document, to: "```\n\(sanitized)")
+                errorMessage.update(\.document, to: ReplyErrorDocument.document(for: sanitized))
             }
         }
 
