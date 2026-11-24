@@ -69,15 +69,52 @@ struct QuickSettingBarTerminateTests {
         #expect(bar.scrollView.contentOffset.x == 0)
     }
 
-    @Test func hidingButton_clampsScrollOffset() {
+    @Test func hidingButton_restoresLeadingOffset() {
         let bar = makeBar(width: 200, modelName: String(repeating: "Long Model Name ", count: 4))
         bar.setTerminateVisible(true, animated: false)
+        #expect(bar.scrollView.contentOffset.x > 0)
 
         bar.setTerminateVisible(false, animated: false)
 
-        let maxOffset = max(0, bar.scrollView.contentSize.width - bar.scrollView.bounds.width)
-        #expect(bar.scrollView.contentOffset.x == maxOffset)
+        #expect(bar.scrollView.contentOffset.x == 0)
         #expect(bar.terminateButton.isHidden)
+    }
+
+    @Test func conversationSwitch_whileHidden_resetsOffset() {
+        let bar = makeBar(width: 200, modelName: String(repeating: "Long Model Name ", count: 4))
+        bar.scrollView.contentOffset.x = 40
+
+        bar.setTerminateVisible(false, animated: false)
+
+        #expect(bar.scrollView.contentOffset.x == 0)
+    }
+
+    @Test func restoredOffset_isNotForcedOnLaterLayouts() {
+        let bar = makeBar(width: 200, modelName: String(repeating: "Long Model Name ", count: 4))
+        bar.setTerminateVisible(true, animated: false)
+        bar.setTerminateVisible(false, animated: false)
+
+        bar.scrollView.contentOffset.x = 40
+        bar.setNeedsLayout()
+        bar.layoutIfNeeded()
+
+        #expect(bar.scrollView.contentOffset.x == 40)
+    }
+
+    @Test func animatedHide_restoresLeadingOffset() async throws {
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 200, height: 200))
+        let bar = makeBar(width: 200, modelName: String(repeating: "Long Model Name ", count: 4))
+        window.addSubview(bar)
+        window.isHidden = false
+        bar.setTerminateVisible(true, animated: false)
+        #expect(bar.scrollView.contentOffset.x > 0)
+
+        bar.setTerminateVisible(false)
+        try await Task.sleep(for: .milliseconds(400))
+
+        #expect(bar.scrollView.contentOffset.x == 0)
+        #expect(bar.terminateButton.isHidden)
+        window.isHidden = true
     }
 
     @Test func reversedDisappearance_leavesButtonVisible() async throws {

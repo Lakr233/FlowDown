@@ -38,6 +38,7 @@ extension QuickSettingBar {
         let transitionID = terminateTransitionID
         isTerminateVisible = visible
         needsTerminateReveal = visible
+        needsTerminateRestore = !visible
         setTerminateInteractive(visible)
 
         let reduceMotion = UIAccessibility.isReduceMotionEnabled
@@ -89,15 +90,25 @@ extension QuickSettingBar {
         if !isFirstPlacement { button.center = center }
     }
 
-    /// Reveals the button once after it appears and keeps the offset in range.
+    /// Reveals the button once after it appears, returns the row to its leading
+    /// edge once after it hides, and otherwise keeps the offset in range.
     /// Never touches a scroll the user is performing.
     func updateScrollOffsetAfterLayout() {
         let isUserScrolling = scrollView.isTracking || scrollView.isDragging || scrollView.isDecelerating
         let maxOffset = max(0, scrollView.contentSize.width - scrollView.bounds.width)
-        defer { needsTerminateReveal = false }
+        defer {
+            needsTerminateReveal = false
+            needsTerminateRestore = false
+        }
         guard !isUserScrolling else { return }
 
-        let target = needsTerminateReveal ? maxOffset : min(max(scrollView.contentOffset.x, 0), maxOffset)
+        let target: CGFloat = if needsTerminateReveal {
+            maxOffset
+        } else if needsTerminateRestore {
+            0
+        } else {
+            min(max(scrollView.contentOffset.x, 0), maxOffset)
+        }
         if scrollView.contentOffset.x != target {
             scrollView.contentOffset.x = target
         }
@@ -130,7 +141,13 @@ extension QuickSettingBar {
         terminateTransitionID += 1
         isTerminateVisible = visible
         if changed { needsTerminateReveal = visible }
-        if !visible { needsTerminateReveal = false }
+        if !visible {
+            // Also on an unchanged hide: a conversation switch starts at the leading edge.
+            needsTerminateReveal = false
+            needsTerminateRestore = true
+        } else {
+            needsTerminateRestore = false
+        }
         setTerminateInteractive(visible)
 
         buttons.forEach { $0.layer.removeAllAnimations() }

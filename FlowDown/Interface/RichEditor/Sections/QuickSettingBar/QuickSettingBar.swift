@@ -28,6 +28,8 @@ class QuickSettingBar: EditorSectionView {
     var terminateAction: () -> Void = {}
     var terminateTransitionID = 0
     var needsTerminateReveal = false
+    /// Set when the button hides so the row returns to its leading edge.
+    var needsTerminateRestore = false
 
     /// User preference for the tools toggle, shared across conversations and launches.
     /// Models without tool call support turn the toggle off without clearing this value.
