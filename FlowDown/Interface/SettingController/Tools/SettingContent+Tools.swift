@@ -79,7 +79,7 @@ extension SettingController.SettingContent {
       stackView.addArrangedSubviewWithMargin(
         ConfigurableSectionFooterView().with(
           footer:
-            "When this is off, tools run without asking, including ones that change your calendar or reminders. Web search, reading web pages, and memory never ask.",
+            "When this is off, tools run without asking, including ones that change your calendar or reminders. Reading web pages and memory never ask.",
         ),
       ) { $0.top /= 2 }
       stackView.addArrangedSubview(SeparatorView())
