@@ -9446,48 +9446,48 @@
         }
       }
     },
-    "Configure tool settings, choose search engine for internet searches, adding custom tools." : {
+    "Choose which tools models can use and manage MCP servers." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tool-Einstellungen konfigurieren, Suchmaschine für Internetsuchen wählen, eigene Tools hinzufügen."
+            "value" : "Festlegen, welche Tools Modelle nutzen dürfen, und MCP-Server verwalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configure tool settings, choose search engine for internet searches, adding custom tools."
+            "value" : "Choose which tools models can use and manage MCP servers."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configura ajustes de herramientas, elige el motor de búsqueda para Internet y añade herramientas personalizadas."
+            "value" : "Elige qué herramientas pueden usar los modelos y gestiona los servidores MCP."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configurez les paramètres des outils, choisissez le moteur de recherche pour Internet et ajoutez des outils personnalisés."
+            "value" : "Choisissez les outils que les modèles peuvent utiliser et gérez les serveurs MCP."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ツール設定を構成し、検索エンジンを選び、カスタムツールを追加します。"
+            "value" : "モデルが使えるツールを選び、MCP サーバーを管理します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "도구 설정을 구성하고 인터넷 검색 엔진을 선택하며 사용자 정의 도구를 추가합니다."
+            "value" : "모델이 사용할 수 있는 도구를 선택하고 MCP 서버를 관리하세요."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置工具设置，选择网络搜索引擎，添加自定义工具。"
+            "value" : "选择模型可以使用的工具，管理 MCP 服务器。"
           }
         }
       }
@@ -26675,52 +26675,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "列表：%@"
-          }
-        }
-      }
-    },
-    "Live internet access with citations, scraping, and verification." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live-Internetzugriff mit Zitaten, Scraping und Verifizierung."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live internet access with citations, scraping, and verification."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acceso en vivo a internet con citas, scraping y verificación."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accès internet en direct avec citations, scraping et vérification."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "引用・スクレイピング・検证を備えたライブなインターネットアクセス。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "실시간 인터넷 접근, 인용·스크래핑·검증 지원."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "实时联网，提供引文、抓取和校验。"
           }
         }
       }
