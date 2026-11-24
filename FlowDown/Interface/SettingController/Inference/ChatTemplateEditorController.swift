@@ -113,7 +113,7 @@ class ChatTemplateEditorController: StackScrollController, UITextViewDelegate {
         guard !defaultModel.isEmpty else {
             let alert = AlertViewController(
                 title: "No Model Selected",
-                message: "Please select a default chat model in settings before using rewrite features.",
+                message: "Please select a model in the input bar first.",
             ) { context in
                 context.allowSimpleDispose()
                 context.addAction(title: "OK") {
