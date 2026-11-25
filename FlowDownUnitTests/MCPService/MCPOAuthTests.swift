@@ -346,7 +346,23 @@ struct MCPOAuthTests {
         #expect(!manager.hasTokens(for: server))
     }
 
-    @Test
+    /// An unsigned test host (`make test-unit` builds with code signing off)
+    /// has no keychain access group, so every write fails with
+    /// errSecMissingEntitlement. Only then is the Keychain test skipped.
+    static var keychainIsWritable: Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "wiki.qaq.flow.mcp-oauth.tests.probe.\(UUID().uuidString)",
+            kSecAttrAccount as String: "probe",
+        ]
+        var item = query
+        item[kSecValueData as String] = Data([0])
+        let status = SecItemAdd(item as CFDictionary, nil)
+        SecItemDelete(query as CFDictionary)
+        return status != errSecMissingEntitlement
+    }
+
+    @Test(.enabled(if: keychainIsWritable, "The unsigned test host has no keychain entitlement."))
     func keychainStore_isDeviceOnlyAndPerServer() throws {
         let store = MCPOAuthKeychainStore(service: "wiki.qaq.flow.mcp-oauth.tests.\(UUID().uuidString)")
         let first = UUID().uuidString
