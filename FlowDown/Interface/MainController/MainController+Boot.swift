@@ -54,17 +54,19 @@ extension MainController {
     }
 
     func scheduleWelcomeIfNeeded() {
-        guard WelcomeExperience.shouldPresent else { return }
+        // The app closed in the welcome's cloud model editor: a model left
+        // blank there goes away.
+        WelcomeExperience.discardBlankPendingCloudModelAtLaunch()
         guard !hasScheduledWelcome else { return }
+        guard WelcomeExperience.shouldPresentAtLaunch(
+            hasExistingModel: { WelcomeExperience.hasExistingModel },
+        ) else { return }
         hasScheduledWelcome = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self else { return }
             guard WelcomeExperience.shouldPresent else { return }
             guard presentedViewController == nil else { return }
-            let controller = WelcomePageViewController.makePresentedController {
-                WelcomeExperience.markPresented()
-            }
-            present(controller, animated: true)
+            WelcomeFlow.present(from: self)
         }
     }
 }
