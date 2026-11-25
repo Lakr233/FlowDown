@@ -7,6 +7,7 @@
 //  FlowDown
 //
 
+import CoreText
 import SnapKit
 import UIKit
 
@@ -72,6 +73,15 @@ final class WelcomeNoticePage: UIViewController {
             case .note:
                 label.font = WelcomeStyle.detailFont
                 label.textColor = WelcomeStyle.detailColor
+                // The notes are the license, English in every language. Say
+                // so, or in German the label is sized a line short of the
+                // text and cuts its end.
+                label.attributedText = NSAttributedString(string: paragraph.text, attributes: [
+                    .font: WelcomeStyle.detailFont,
+                    .foregroundColor: WelcomeStyle.detailColor,
+                    NSAttributedString.Key(kCTLanguageAttributeName as String): "en",
+                ])
+                label.accessibilityLanguage = "en"
                 // The notes stand apart from the text above them.
                 if let previous, previous.style == .body {
                     stack.setCustomSpacing(24, after: previous.label)

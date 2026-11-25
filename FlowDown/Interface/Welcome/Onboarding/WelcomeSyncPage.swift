@@ -88,7 +88,7 @@ final class WelcomeSyncPage: UIViewController {
         titleLabel.font = WelcomeStyle.titleFont
         titleLabel.textColor = WelcomeStyle.titleColor
         titleLabel.textAlignment = .center
-        titleLabel.numberOfLines = 0
+        WelcomeStyle.fitOnOneLine(titleLabel)
         titleLabel.accessibilityTraits = .header
 
         messageLabel.text = String(localized: "Keep your chats in sync across your iPhone, iPad, and Mac.")

@@ -69,7 +69,7 @@ final class WelcomeModelPage: WelcomeListPage {
             snapshot.appendItems([.appleIntelligence, .privateCloudCompute], toSection: .appleIntelligence)
         }
         snapshot.appendSections([.other])
-        snapshot.appendItems(Self.isLocalModelSupported ? [.cloudModel, .localModel] : [.cloudModel], toSection: .other)
+        snapshot.appendItems([.cloudModel, .localModel], toSection: .other)
         dataSource.apply(snapshot, animatingDifferences: false)
 
         next { [weak self] in
@@ -96,10 +96,6 @@ final class WelcomeModelPage: WelcomeListPage {
     }
 
     // MARK: - Rows
-
-    static var isLocalModelSupported: Bool {
-        ModelManager.shared.gpuSupportProvider()
-    }
 
     /// Why the on-device model can't run, as Settings says it, or nil.
     private static var appleIntelligenceReason: String? {
@@ -240,20 +236,23 @@ final class WelcomeModelPage: WelcomeListPage {
             : UITableView.automaticDimension
     }
 
-    /// Only a model that can't run here has a footer: why, one line each,
-    /// in Settings' words.
+    /// One reason, in Settings' words: the on-device model's, or Private
+    /// Cloud Compute's where only that one can't run.
+    static func footerReason(local: String?, privateCloudCompute: String?) -> String? {
+        [local, privateCloudCompute].compactMap(\.self).first { !$0.isEmpty }
+    }
+
+    /// Only a model that can't run here has a footer: why.
     @objc func tableView(_: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        guard dataSource.sectionIdentifier(for: section) == .appleIntelligence else { return nil }
-        var reasons: [String] = []
-        for reason in [Self.appleIntelligenceReason, PrivateCloudComputeCenter.shared.unavailableText] {
-            if let reason, !reason.isEmpty, !reasons.contains(reason) {
-                reasons.append(reason)
-            }
-        }
-        guard !reasons.isEmpty else { return nil }
+        guard dataSource.sectionIdentifier(for: section) == .appleIntelligence,
+              let reason = Self.footerReason(
+                  local: Self.appleIntelligenceReason,
+                  privateCloudCompute: PrivateCloudComputeCenter.shared.unavailableText,
+              )
+        else { return nil }
         var configuration = UIListContentConfiguration.groupedFooter()
         configuration.textProperties.font = WelcomeStyle.detailFont
         configuration.textProperties.color = WelcomeStyle.detailColor
-        return text(configuration, reasons.joined(separator: "\n"))
+        return text(configuration, reason)
     }
 }

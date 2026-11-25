@@ -42,6 +42,9 @@ final class WelcomeFlow {
         let navigation = WelcomeNavigationController(rootViewController: welcome)
         navigation.isModalInPresentation = true
         navigation.navigationBar.prefersLargeTitles = true
+        // the size of the other page titles, so Before You Start fits on
+        // one line at any text size
+        navigation.navigationBar.largeTitleTextAttributes = [.font: WelcomeStyle.titleFont]
         navigation.view.backgroundColor = WelcomeStyle.background
         navigation.view.tintColor = WelcomeStyle.accent
         navigation.navigationBar.tintColor = WelcomeStyle.accent
