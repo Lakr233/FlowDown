@@ -39,7 +39,7 @@ extension WelcomePageViewController.Configuration {
             title: "Welcome to\n\(displayName)",
             highlightedTitle: displayName,
             subtitle: "Your privacy-first AI workspace. Blend local intelligence with powerful cloud models in one seamless experience.",
-            buttonTitle: "Get Started",
+            buttonTitle: "Next",
             accentColor: .accent,
             icon: .avatar,
             features: [

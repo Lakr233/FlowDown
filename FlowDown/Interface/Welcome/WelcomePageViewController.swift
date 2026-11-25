@@ -11,11 +11,10 @@ import SnapKit
 import SwifterSwift
 import UIKit
 
-/// A self-contained welcome screen that does not depend on the original app infrastructure.
-/// - Shows an optional app icon, two-line title, feature list, and a primary action button.
-/// - Uses only UIKit + SnapKit + SwifterSwift so it can be dropped into another project.
+/// The first page of the welcome flow (`WelcomeFlow`).
+/// - Shows the app icon, two-line title, feature list, and the flow's action bar.
 class WelcomePageViewController: UIViewController {
-    var onComplete: (() -> Void)?
+    private let onNext: () -> Void
 
     let config: Configuration
     let scrollView = UIScrollView()
@@ -45,20 +44,23 @@ class WelcomePageViewController: UIViewController {
         view.frameLimit = 30
     }
 
-    let actionContainer = UIView()
-    let actionButton = UIButton(type: .system)
+    private(set) lazy var actionBar = WelcomeActionBar(
+        title: String(localized: config.buttonTitle),
+    ) { [weak self] in
+        self?.onNext()
+    }
+
     var featureViews: [FeatureRowView] = []
+    private var hasAppeared = false
 
     let contentInsets = UIEdgeInsets(top: 28, left: 24, bottom: 28, right: 24)
 
-    init(config: Configuration = .default, onComplete: (() -> Void)? = nil) {
+    init(config: Configuration = .default, onNext: @escaping () -> Void) {
         self.config = config
-        self.onComplete = onComplete
+        self.onNext = onNext
         super.init(nibName: nil, bundle: nil)
-        modalPresentationStyle = .formSheet
-        modalTransitionStyle = .coverVertical
         isModalInPresentation = true
-        preferredContentSize = .init(width: 520, height: 620)
+        preferredContentSize = WelcomeFlow.preferredSize
     }
 
     @available(*, unavailable)
@@ -83,7 +85,10 @@ class WelcomePageViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        // Hidden at once when the sheet opens; back from the next page, the
+        // bar leaves with the pop.
+        navigationController?.setNavigationBarHidden(true, animated: animated && hasAppeared)
+        hasAppeared = true
         navigationController?.view.tintColor = config.accentColor
     }
 
@@ -98,15 +103,14 @@ class WelcomePageViewController: UIViewController {
         scrollView.addSubview(contentView)
         contentView.addSubview(stackView)
 
-        view.addSubview(actionContainer)
-        actionContainer.addSubview(actionButton)
+        view.addSubview(actionBar)
 
         scrollView.snp.makeConstraints { make in
             #if targetEnvironment(macCatalyst)
                 make.edges.equalToSuperview()
             #else
                 make.top.leading.trailing.equalTo(view.safeAreaLayoutGuide)
-                make.bottom.equalTo(actionContainer.snp.top)
+                make.bottom.equalTo(actionBar.snp.top)
             #endif
         }
 
@@ -119,39 +123,9 @@ class WelcomePageViewController: UIViewController {
             make.edges.equalToSuperview().inset(contentInsets)
         }
 
-        let effect = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-        actionContainer.addSubview(effect)
-        actionContainer.sendSubviewToBack(effect)
-        effect.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-        actionContainer.snp.makeConstraints { make in
+        actionBar.snp.makeConstraints { make in
             make.leading.trailing.bottom.equalToSuperview()
         }
-
-        let separator = UIView()
-        separator.backgroundColor = .separator
-        actionContainer.addSubview(separator)
-        separator.snp.makeConstraints { make in
-            make.top.leading.trailing.equalToSuperview()
-            make.height.equalTo(0.5)
-        }
-
-        actionButton.snp.makeConstraints { make in
-            #if targetEnvironment(macCatalyst)
-                make.edges.equalToSuperview().inset(16)
-            #else
-                make.top.equalTo(separator.snp.bottom).offset(12)
-                make.leading.trailing.equalToSuperview().inset(contentInsets.left)
-                make.bottom.equalTo(view.safeAreaLayoutGuide).inset(contentInsets.bottom)
-            #endif
-            make.height.equalTo(48)
-        }
-
-        actionButton.layer.cornerRadius = 12
-        actionButton.clipsToBounds = true
-        actionButton.titleLabel?.font = .preferredFont(forTextStyle: .headline)
-        actionButton.addTarget(self, action: #selector(handleComplete), for: .touchUpInside)
     }
 
     private func applyConfiguration() {
@@ -230,23 +204,13 @@ class WelcomePageViewController: UIViewController {
             make.height.greaterThanOrEqualTo(12)
         }
         stackView.addArrangedSubview(spacer)
-
-        var buttonConfig = UIButton.Configuration.filled()
-        buttonConfig.cornerStyle = .large
-        buttonConfig.baseBackgroundColor = config.accentColor
-        buttonConfig.baseForegroundColor = .white
-        buttonConfig.title = String(localized: config.buttonTitle)
-        actionButton.configuration = buttonConfig
-    }
-
-    @objc
-    private func handleComplete() {
-        onComplete?()
-        onComplete = nil
-        dismiss(animated: true)
     }
 
     private func animateFeatures() {
+        guard !UIAccessibility.isReduceMotionEnabled else {
+            featureViews.forEach { $0.alpha = 1 }
+            return
+        }
         for (idx, view) in featureViews.enumerated() {
             let delay = 0.1 * Double(idx)
             UIView.animate(
@@ -259,41 +223,5 @@ class WelcomePageViewController: UIViewController {
                 view.alpha = 1
             }
         }
-    }
-}
-
-extension WelcomePageViewController {
-    static func makePresentedController(
-        config: Configuration = .default,
-        onComplete: (() -> Void)? = nil,
-    ) -> UIViewController {
-        let controller = WelcomePageViewController(config: config, onComplete: onComplete)
-        controller.navigationItem.largeTitleDisplayMode = .never
-
-        let navigationController = UINavigationController(rootViewController: controller)
-        navigationController.navigationBar.prefersLargeTitles = false
-        navigationController.view.backgroundColor = .systemBackground
-        navigationController.view.tintColor = config.accentColor
-        navigationController.navigationBar.tintColor = config.accentColor
-        navigationController.isModalInPresentation = true
-
-        let preferredWidth = controller.preferredContentSize.width
-        let preferredHeight = controller.preferredContentSize.height
-
-        #if targetEnvironment(macCatalyst)
-            return AlertBaseController(
-                rootViewController: navigationController,
-                preferredWidth: preferredWidth,
-                preferredHeight: preferredHeight,
-            )
-        #else
-            navigationController.modalTransitionStyle = .coverVertical
-            navigationController.modalPresentationStyle = .formSheet
-            navigationController.preferredContentSize = .init(
-                width: preferredWidth,
-                height: preferredHeight,
-            )
-            return navigationController
-        #endif
     }
 }

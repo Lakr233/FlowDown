@@ -65,6 +65,14 @@ extension SettingController.SettingContent.SupportController {
                         url: URL(string: "https://flowdown.ai/docs/")!,
                     ),
                 ),
+                ConfigurableObject(
+                    icon: "hand.wave",
+                    title: "Show Welcome Screen",
+                    explain: "See the welcome screen again. Your settings won't change.",
+                    ephemeralAnnotation: .action { controller in
+                        Self.showWelcomeScreen(from: controller)
+                    },
+                ),
             ],
         )
     }
@@ -154,5 +162,18 @@ extension SettingController.SettingContent.SupportController {
             agreementsObject,
             openSourceObject,
         ]
+    }
+}
+
+extension SettingController.SettingContent.SupportController {
+    /// Closes Settings, then shows the same welcome flow as the first launch.
+    /// Nothing is reset; only Get Started records the welcome as seen, which
+    /// it already is.
+    static func showWelcomeScreen(from controller: UIViewController) {
+        guard let root = controller.view.window?.rootViewController else { return }
+        root.dismiss(animated: true) {
+            guard root.presentedViewController == nil else { return }
+            WelcomeFlow.present(from: root)
+        }
     }
 }

@@ -157,6 +157,7 @@
 				Configuration/Development.xcconfig,
 				Configuration/Release.xcconfig,
 				Configuration/Version.xcconfig,
+				Interface/Welcome/Onboarding/LICENSE,
 				"Resources/InfoPlist/Info-Catalyst.plist",
 				"Resources/InfoPlist/Info-iOS.plist",
 			);
