@@ -53,26 +53,44 @@ extension QuickSettingBar {
             }
         }
 
-        let duration: TimeInterval = reduceMotion ? 0.15 : (visible ? 0.22 : 0.18)
-        let curve: UIView.AnimationOptions = reduceMotion ? .curveLinear : (visible ? .curveEaseOut : .curveEaseIn)
-        UIView.animate(
-            withDuration: duration,
-            delay: 0,
-            options: [curve, .beginFromCurrentState, .allowUserInteraction],
-        ) { [self] in
+        let options: UIView.AnimationOptions = [.beginFromCurrentState, .allowUserInteraction]
+        let animations = { [self] in
             terminateButton.alpha = visible ? 1 : 0
             if !reduceMotion {
                 terminateButton.transform = visible ? .identity : Self.terminateHiddenScale
                 setNeedsLayout()
                 layoutIfNeeded()
             }
-        } completion: { [weak self] _ in
+        }
+        let completion: (Bool) -> Void = { [weak self] _ in
             guard let self,
                   transitionID == terminateTransitionID,
                   !isTerminateVisible
             else { return }
             terminateButton.isHidden = true
             terminateButton.transform = .identity
+        }
+
+        if reduceMotion {
+            UIView.animate(
+                withDuration: 0.15,
+                delay: 0,
+                options: options.union(.curveLinear),
+                animations: animations,
+                completion: completion,
+            )
+        } else {
+            // Critically damped spring: smooth settle, no overshoot, and a
+            // reversal mid-flight continues from the current presentation.
+            UIView.animate(
+                springDuration: visible ? 0.38 : 0.3,
+                bounce: 0,
+                initialSpringVelocity: 0,
+                delay: 0,
+                options: options,
+                animations: animations,
+                completion: completion,
+            )
         }
     }
 
