@@ -119,7 +119,7 @@ final class WelcomeModelPage: WelcomeListPage {
         case .appleIntelligence:
             cell.configure(
                 symbol: "sparkles",
-                title: "Apple Intelligence",
+                title: String(localized: "Apple Intelligence"),
                 detail: String(localized: "Built into this device. Ready to use."),
                 accessory: done ? .selected : .use({ [weak self] in self?.useAppleIntelligence() }),
             )
