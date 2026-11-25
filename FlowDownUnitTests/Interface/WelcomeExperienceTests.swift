@@ -1,3 +1,4 @@
+import CloudKit
 @testable import FlowDown
 import Foundation
 import Storage
@@ -121,5 +122,33 @@ struct WelcomeExperienceTests {
         )
         #expect(!result)
         #expect(!looked)
+    }
+
+    // MARK: - iCloud Sync Page
+
+    @Test
+    @MainActor
+    func `the sync page is offered only when sync can be turned on`() {
+        #expect(WelcomeSyncPage.offersSync(supported: true, enabled: false, accountStatus: .available))
+        #expect(!WelcomeSyncPage.offersSync(supported: true, enabled: true, accountStatus: .available))
+        #expect(!WelcomeSyncPage.offersSync(supported: false, enabled: false, accountStatus: .available))
+    }
+
+    @Test(arguments: [CKAccountStatus.noAccount, .restricted, .couldNotDetermine, .temporarilyUnavailable])
+    @MainActor
+    func `the sync page is skipped without an iCloud account`(status: CKAccountStatus) {
+        #expect(!WelcomeSyncPage.offersSync(supported: true, enabled: false, accountStatus: status))
+    }
+
+    @Test
+    @MainActor
+    func `the sync page is skipped when the account check fails or times out`() {
+        #expect(!WelcomeSyncPage.offersSync(supported: true, enabled: false, accountStatus: nil))
+    }
+
+    @Test
+    @MainActor
+    func `the sync page is not offered under tests`() async {
+        #expect(await !WelcomeSyncPage.isOffered(timeout: .milliseconds(100)))
     }
 }

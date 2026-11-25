@@ -12,8 +12,8 @@ import SnapKit
 import UIKit
 
 /// The onboarding pages in one navigation stack inside a form sheet:
-/// Welcome, Choose a Model, iCloud Sync, Before You Start. Only Get Started on
-/// the last page records the welcome as seen.
+/// Welcome, Choose a Model, iCloud Sync where it can be turned on, Before You
+/// Start. Only Get Started on the last page records the welcome as seen.
 @MainActor
 final class WelcomeFlow {
     static let preferredSize = CGSize(width: 520, height: 620)
@@ -23,6 +23,8 @@ final class WelcomeFlow {
     /// Mac the alert container around it.
     private weak var container: UIViewController?
     private var finished = false
+    /// Next on Choose a Model waits for the iCloud account check.
+    private var decidingSync = false
     private let onFinish: () -> Void
 
     private init(onFinish: @escaping () -> Void) {
@@ -68,21 +70,40 @@ final class WelcomeFlow {
         push(WelcomeModelPage(flow: self))
     }
 
+    /// iCloud Sync where sync can be turned on; otherwise straight to
+    /// Before You Start.
     func showSync() {
-        push(WelcomeSyncPage(flow: self))
+        guard !decidingSync else { return }
+        decidingSync = true
+        Task {
+            let offered = await WelcomeSyncPage.isOffered()
+            decidingSync = false
+            if offered {
+                push(WelcomeSyncPage(flow: self))
+            } else {
+                showCaution()
+            }
+        }
     }
 
-    func showCaution() {
-        push(WelcomeNoticePage.caution(flow: self))
+    /// Before You Start; `page` leaves the stack, so Back skips it.
+    func showCaution(replacing page: UIViewController? = nil) {
+        push(WelcomeNoticePage.caution(flow: self), replacing: page)
     }
 
-    private func push(_ page: UIViewController) {
+    private func push(_ page: UIViewController, replacing old: UIViewController? = nil) {
+        guard let navigation else { return }
         let animated = !UIAccessibility.isReduceMotionEnabled
         // The welcome page hides the bar. Show it before the push, so the
         // next page lays out under it from the start instead of sliding its
         // first rows beneath it.
-        navigation?.setNavigationBarHidden(false, animated: animated)
-        navigation?.pushViewController(page, animated: animated)
+        navigation.setNavigationBarHidden(false, animated: animated)
+        if let old {
+            let stack = navigation.viewControllers.filter { $0 !== old } + [page]
+            navigation.setViewControllers(stack, animated: animated)
+        } else {
+            navigation.pushViewController(page, animated: animated)
+        }
     }
 
     func finish() {
