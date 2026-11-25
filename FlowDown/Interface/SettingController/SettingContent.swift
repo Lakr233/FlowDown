@@ -125,7 +125,13 @@ extension SettingController {
                 stackView.addArrangedSubview(SeparatorView())
             }
 
-            stackView.addArrangedSubviewWithMargin(SettingFooterView())
+            stackView.addArrangedSubviewWithMargin(SettingFooterView().with {
+                // over Settings, so finishing returns here; nothing is reset
+                $0.onShowWelcome = { [weak self] in
+                    guard let self, presentedViewController == nil else { return }
+                    WelcomeFlow.present(from: self)
+                }
+            })
             stackView.addArrangedSubviewWithMargin(UIView())
         }
 
@@ -296,6 +302,10 @@ extension SettingController.SettingContent {
             $0.numberOfLines = 1
         }
 
+        /// Long-pressing the version, or click-and-hold on Mac, opens the
+        /// welcome again.
+        var onShowWelcome: () -> Void = {}
+
         let buildTimeLabel = UILabel().with {
             $0.text = BuildInfo.buildTime
             $0.font = .preferredFont(forTextStyle: .caption2).monospaced
@@ -325,6 +335,23 @@ extension SettingController.SettingContent {
             stackView.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
             }
+
+            versionLabel.isUserInteractionEnabled = true
+            versionLabel.addGestureRecognizer(UILongPressGestureRecognizer(
+                target: self,
+                action: #selector(versionLongPressed(_:)),
+            ))
+            versionLabel.accessibilityCustomActions = [
+                UIAccessibilityCustomAction(name: String(localized: "Show Welcome Screen")) { [weak self] _ in
+                    self?.onShowWelcome()
+                    return true
+                },
+            ]
+        }
+
+        @objc private func versionLongPressed(_ recognizer: UILongPressGestureRecognizer) {
+            guard recognizer.state == .began else { return }
+            onShowWelcome()
         }
 
         @available(*, unavailable)
