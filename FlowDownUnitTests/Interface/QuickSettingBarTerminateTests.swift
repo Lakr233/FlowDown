@@ -110,7 +110,7 @@ struct QuickSettingBarTerminateTests {
         #expect(bar.scrollView.contentOffset.x > 0)
 
         bar.setTerminateVisible(false)
-        try await Task.sleep(for: .milliseconds(400))
+        try await Task.sleep(for: .milliseconds(600))
 
         #expect(bar.scrollView.contentOffset.x == 0)
         #expect(bar.terminateButton.isHidden)
@@ -127,7 +127,7 @@ struct QuickSettingBarTerminateTests {
         bar.setTerminateVisible(false)
         #expect(!bar.terminateButton.isHidden)
         bar.setTerminateVisible(true)
-        try await Task.sleep(for: .milliseconds(400))
+        try await Task.sleep(for: .milliseconds(600))
 
         #expect(bar.isTerminateVisible)
         #expect(!bar.terminateButton.isHidden)
