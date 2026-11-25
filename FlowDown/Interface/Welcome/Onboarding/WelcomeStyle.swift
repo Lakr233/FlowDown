@@ -19,6 +19,16 @@ enum WelcomeStyle {
         .white
     }
 
+    /// The title on a tinted button, whose ground is a pale `accent`:
+    /// #1E766A in light mode, #5ED3BF in dark mode.
+    static var tintedButtonTitle: UIColor {
+        UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(red: 0x5E / 255, green: 0xD3 / 255, blue: 0xBF / 255, alpha: 1)
+                : UIColor(red: 0x1E / 255, green: 0x76 / 255, blue: 0x6A / 255, alpha: 1)
+        }
+    }
+
     static let horizontalMargin: CGFloat = 24
 
     /// The ground of every page after the first: light grouped background,

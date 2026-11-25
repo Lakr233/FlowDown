@@ -39,9 +39,6 @@ final class WelcomeModelPage: WelcomeListPage {
     }
 
     private var cancellables: Set<AnyCancellable> = []
-    /// The blank cloud model this page created, reused while it stays blank
-    /// so going back and forth does not leave several empty ones behind.
-    private var pendingCloudModelID: CloudModel.ID?
 
     override init(flow: WelcomeFlow) {
         super.init(flow: flow)
@@ -68,11 +65,24 @@ final class WelcomeModelPage: WelcomeListPage {
             .ensureMainThread()
             .sink { [weak self] _ in self?.reconfigureRows() }
             .store(in: &cancellables)
+
+        // the symbols follow the text size
+        _ = registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (page: WelcomeModelPage, _: UITraitCollection) in
+            page.reconfigureRows()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         reconfigureRows()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // Back from the cloud model editor: a model left blank goes away.
+        // Not before the page is back, so a swipe back the user cancels
+        // keeps the editor's model.
+        WelcomeExperience.discardBlankPendingCloudModel()
     }
 
     // MARK: - Rows
@@ -160,22 +170,14 @@ final class WelcomeModelPage: WelcomeListPage {
     }
 
     /// The same as Settings' Add Model, Empty Model: a blank cloud model,
-    /// then its editor.
+    /// then its editor. The welcome remembers the model, and removes it if it
+    /// is still blank when this page shows again or the welcome ends.
     private func connectCloudService() {
-        let identifier: CloudModel.ID
-        if let pending = pendingCloudModelID,
-           let model = ModelManager.shared.cloudModel(identifier: pending),
-           model.model_identifier.isEmpty,
-           model.endpoint.isEmpty
-        {
-            identifier = pending
-        } else {
-            let profile = CloudModel(deviceId: Storage.deviceId)
-            _ = ModelManager.shared.newCloudModel(profile: profile)
-            identifier = profile.id
-            pendingCloudModelID = identifier
-        }
-        push(CloudModelEditorController(identifier: identifier))
+        WelcomeExperience.discardBlankPendingCloudModel()
+        let profile = CloudModel(deviceId: Storage.deviceId)
+        let model = ModelManager.shared.newCloudModel(profile: profile)
+        WelcomeExperience.setPendingCloudModel(model.id)
+        push(CloudModelEditorController(identifier: model.id))
     }
 
     /// Settings' own pages, pushed without the onboarding's large titles.
@@ -232,9 +234,11 @@ final class WelcomeModelPage: WelcomeListPage {
     }
 }
 
-/// One way to get a model: a 20 pt symbol in a 28 pt box, a title over a
-/// one-line explanation, and on the trailing edge either Use, a disclosure
-/// indicator or the checkmark of a row that is done.
+/// One way to get a model: a symbol, a title over a one-line explanation, and
+/// on the trailing edge either Use, a disclosure indicator or the checkmark of
+/// a row that is done. The symbol and the checkmark are 20 pt at the default
+/// text size and scale with it, as the body text does; the symbol's column is
+/// 1.4 times as wide as the symbol, 28 pt by default.
 final class WelcomeModelCell: UITableViewCell {
     enum Accessory {
         /// The tinted capsule button, as Irisin's Add.
@@ -253,9 +257,25 @@ final class WelcomeModelCell: UITableViewCell {
         return button
     }()
 
+    /// Every row is at least this tall, a one-line explanation included.
+    static let minimumHeight: CGFloat = 60
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 60).isActive = true
+    }
+
+    override func systemLayoutSizeFitting(
+        _ targetSize: CGSize,
+        withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority,
+        verticalFittingPriority: UILayoutPriority,
+    ) -> CGSize {
+        var size = super.systemLayoutSizeFitting(
+            targetSize,
+            withHorizontalFittingPriority: horizontalFittingPriority,
+            verticalFittingPriority: verticalFittingPriority,
+        )
+        size.height = max(size.height, Self.minimumHeight)
+        return size
     }
 
     @available(*, unavailable)
@@ -263,14 +283,26 @@ final class WelcomeModelCell: UITableViewCell {
         fatalError()
     }
 
+    /// The symbol size at the default text size.
+    static let symbolPointSize: CGFloat = 20
+
+    /// The symbol size at the current text size, scaled as the body text is.
+    private static var scaledSymbolPointSize: CGFloat {
+        UIFontMetrics(forTextStyle: .body).scaledValue(for: symbolPointSize)
+    }
+
+    /// The symbol and checkmark configuration at the current text size.
+    private static var symbolConfiguration: UIImage.SymbolConfiguration {
+        UIImage.SymbolConfiguration(pointSize: scaledSymbolPointSize, weight: .medium)
+    }
+
     func configure(symbol: String, title: String, detail: String, accessory: Accessory) {
+        let symbolConfiguration = Self.symbolConfiguration
+        let column = (Self.scaledSymbolPointSize * 1.4).rounded(.up)
         var content = UIListContentConfiguration.subtitleCell()
-        content.image = UIImage(
-            systemName: symbol,
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .medium),
-        )
+        content.image = UIImage(systemName: symbol, withConfiguration: symbolConfiguration)
         content.imageProperties.tintColor = WelcomeStyle.accent
-        content.imageProperties.reservedLayoutSize = CGSize(width: 28, height: 28)
+        content.imageProperties.reservedLayoutSize = CGSize(width: column, height: column)
         content.text = title
         content.textProperties.font = .preferredFont(forTextStyle: .body)
         content.textProperties.color = WelcomeStyle.titleColor
@@ -292,7 +324,7 @@ final class WelcomeModelCell: UITableViewCell {
             var configuration = UIButton.Configuration.tinted()
             configuration.buttonSize = .small
             configuration.cornerStyle = .capsule
-            configuration.baseForegroundColor = WelcomeStyle.accent
+            configuration.baseForegroundColor = WelcomeStyle.tintedButtonTitle
             configuration.baseBackgroundColor = WelcomeStyle.accent
             configuration.title = String(localized: "Use")
             useButton.configuration = configuration
@@ -314,7 +346,10 @@ final class WelcomeModelCell: UITableViewCell {
     }
 
     private static func checkmark() -> UIView {
-        let check = UIImageView(image: UIImage(systemName: "checkmark.circle.fill"))
+        let check = UIImageView(image: UIImage(
+            systemName: "checkmark.circle.fill",
+            withConfiguration: symbolConfiguration,
+        ))
         check.tintColor = WelcomeStyle.accent
         check.sizeToFit()
         return check

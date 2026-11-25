@@ -54,6 +54,9 @@ extension MainController {
     }
 
     func scheduleWelcomeIfNeeded() {
+        // The app closed in the welcome's cloud model editor: a model left
+        // blank there goes away.
+        WelcomeExperience.discardBlankPendingCloudModelAtLaunch()
         guard !hasScheduledWelcome else { return }
         guard WelcomeExperience.shouldPresentAtLaunch(
             hasExistingModel: { WelcomeExperience.hasExistingModel },

@@ -1,5 +1,6 @@
 @testable import FlowDown
 import Foundation
+import Storage
 import Testing
 
 struct WelcomeExperienceTests {
@@ -51,5 +52,74 @@ struct WelcomeExperienceTests {
         WelcomeExperience.markPresented(defaults: defaults)
         #expect(!WelcomeExperience.shouldPresent(defaults: defaults))
         #expect(!WelcomeExperience.shouldPresentAtLaunch(defaults: defaults, hasExistingModel: { false }))
+    }
+
+    // MARK: - Blank Cloud Models
+
+    @Test
+    func `a cloud model with nothing filled in is blank`() {
+        #expect(WelcomeExperience.isBlank(CloudModel(deviceId: "test")))
+        #expect(!WelcomeExperience.isBlank(CloudModel(deviceId: "test", model_identifier: "gpt-4o")))
+        #expect(!WelcomeExperience.isBlank(CloudModel(deviceId: "test", endpoint: "https://example.com/v1")))
+        #expect(!WelcomeExperience.isBlank(CloudModel(deviceId: "test", token: "sk-test")))
+        #expect(!WelcomeExperience.isBlank(CloudModel(deviceId: "test", name: "Mine")))
+    }
+
+    @Test
+    func `a blank cloud model does not count as an existing model`() {
+        let blank = CloudModel(deviceId: "test")
+        let filled = CloudModel(deviceId: "test", model_identifier: "gpt-4o")
+        #expect(!WelcomeExperience.hasExistingModel(cloudModels: [], localModelCount: 0))
+        #expect(!WelcomeExperience.hasExistingModel(cloudModels: [blank], localModelCount: 0))
+        #expect(WelcomeExperience.hasExistingModel(cloudModels: [blank, filled], localModelCount: 0))
+        #expect(WelcomeExperience.hasExistingModel(cloudModels: [blank], localModelCount: 1))
+    }
+
+    @Test
+    func `a pending cloud model left blank is removed and forgotten`() throws {
+        let defaults = try makeDefaults()
+        let model = CloudModel(deviceId: "test")
+        WelcomeExperience.setPendingCloudModel(model.id, defaults: defaults)
+        var removed: [CloudModel.ID] = []
+        let result = WelcomeExperience.discardBlankPendingCloudModel(
+            defaults: defaults,
+            lookup: { $0 == model.id ? model : nil },
+            remove: { removed.append($0) },
+        )
+        #expect(result)
+        #expect(removed == [model.id])
+        #expect(WelcomeExperience.pendingCloudModel(defaults: defaults) == nil)
+    }
+
+    @Test
+    func `a pending cloud model filled in stays and is forgotten`() throws {
+        let defaults = try makeDefaults()
+        let model = CloudModel(deviceId: "test", model_identifier: "gpt-4o")
+        WelcomeExperience.setPendingCloudModel(model.id, defaults: defaults)
+        var removed: [CloudModel.ID] = []
+        let result = WelcomeExperience.discardBlankPendingCloudModel(
+            defaults: defaults,
+            lookup: { $0 == model.id ? model : nil },
+            remove: { removed.append($0) },
+        )
+        #expect(!result)
+        #expect(removed.isEmpty)
+        #expect(WelcomeExperience.pendingCloudModel(defaults: defaults) == nil)
+    }
+
+    @Test
+    func `nothing is removed without a pending cloud model`() throws {
+        let defaults = try makeDefaults()
+        var looked = false
+        let result = WelcomeExperience.discardBlankPendingCloudModel(
+            defaults: defaults,
+            lookup: { _ in
+                looked = true
+                return CloudModel(deviceId: "test")
+            },
+            remove: { _ in Issue.record("nothing to remove") },
+        )
+        #expect(!result)
+        #expect(!looked)
     }
 }

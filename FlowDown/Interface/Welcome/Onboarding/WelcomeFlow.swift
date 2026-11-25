@@ -88,6 +88,7 @@ final class WelcomeFlow {
     func finish() {
         guard !finished else { return }
         finished = true
+        WelcomeExperience.discardBlankPendingCloudModel()
         WelcomeExperience.markPresented()
         onFinish()
         container?.dismiss(animated: !UIAccessibility.isReduceMotionEnabled)
