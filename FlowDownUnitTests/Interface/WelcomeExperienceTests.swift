@@ -151,4 +151,16 @@ struct WelcomeExperienceTests {
     func `the sync page is not offered under tests`() async {
         #expect(await !WelcomeSyncPage.isOffered(timeout: .milliseconds(100)))
     }
+
+    // MARK: - Choose a Model
+
+    @Test
+    @MainActor
+    func `the Apple Intelligence footer gives one reason`() {
+        #expect(WelcomeModelPage.footerReason(local: "Local", privateCloudCompute: "PCC") == "Local")
+        #expect(WelcomeModelPage.footerReason(local: nil, privateCloudCompute: "PCC") == "PCC")
+        #expect(WelcomeModelPage.footerReason(local: "", privateCloudCompute: "PCC") == "PCC")
+        #expect(WelcomeModelPage.footerReason(local: "Local", privateCloudCompute: nil) == "Local")
+        #expect(WelcomeModelPage.footerReason(local: nil, privateCloudCompute: nil) == nil)
+    }
 }

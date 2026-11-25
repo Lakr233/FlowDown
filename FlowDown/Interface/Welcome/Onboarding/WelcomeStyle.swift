@@ -36,6 +36,13 @@ enum WelcomeStyle {
         .systemFont(ofSize: 32, weight: .bold)
     }
 
+    /// Keeps a page title on one line, shrinking it to 70% at most.
+    static func fitOnOneLine(_ label: UILabel) {
+        label.numberOfLines = 1
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.7
+    }
+
     /// The system body style used for introductions and page text.
     static var subtitleFont: UIFont {
         .preferredFont(forTextStyle: .body)
