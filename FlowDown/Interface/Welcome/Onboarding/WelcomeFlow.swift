@@ -12,7 +12,7 @@ import SnapKit
 import UIKit
 
 /// The onboarding pages in one navigation stack inside a form sheet:
-/// Welcome, Choose a Model, Your Data, Before You Start. Only Get Started on
+/// Welcome, Choose a Model, iCloud Sync, Before You Start. Only Get Started on
 /// the last page records the welcome as seen.
 @MainActor
 final class WelcomeFlow {
@@ -68,8 +68,8 @@ final class WelcomeFlow {
         push(WelcomeModelPage(flow: self))
     }
 
-    func showData() {
-        push(WelcomeNoticePage.data(flow: self))
+    func showSync() {
+        push(WelcomeSyncPage(flow: self))
     }
 
     func showCaution() {

@@ -60799,140 +60799,48 @@
         }
       }
     },
-    "You need a model to start chatting. Pick one now, or add one later in Settings." : {
+    "Pick a model to start chatting, or add one later in Settings." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zum Chatten brauchst du ein Modell. Wähle jetzt eins aus oder füge später eins in den Einstellungen hinzu."
+            "value" : "Wähle ein Modell zum Chatten oder füge später eins in den Einstellungen hinzu."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You need a model to start chatting. Pick one now, or add one later in Settings."
+            "value" : "Pick a model to start chatting, or add one later in Settings."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Necesitas un modelo para chatear. Elige uno ahora o añádelo más tarde en Ajustes."
+            "value" : "Elige un modelo para chatear o añade uno más tarde en Ajustes."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Il vous faut un modèle pour discuter. Choisissez-en un maintenant ou ajoutez-en un plus tard dans les Réglages."
+            "value" : "Choisissez un modèle pour discuter, ou ajoutez-en un plus tard dans les Réglages."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "チャットを始めるにはモデルが必要です。今すぐ選ぶか、あとで設定から追加できます。"
+            "value" : "チャットに使うモデルを選ぶか、あとで設定から追加してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "대화를 시작하려면 모델이 필요합니다. 지금 고르거나 나중에 설정에서 추가하세요."
+            "value" : "대화에 쓸 모델을 고르거나, 나중에 설정에서 추가하세요."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始对话前需要一个模型。现在选一个，或者以后在设置里添加。"
-          }
-        }
-      }
-    },
-    "Built into this device. Ready to use." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In dieses Gerät integriert und sofort startklar."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Built into this device. Ready to use."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Integrado en este dispositivo y listo para usar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Intégré à cet appareil, prêt à l'emploi."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このデバイスに内蔵。すぐに使えます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 기기에 내장되어 있어 바로 쓸 수 있습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统自带，马上就能用。"
-          }
-        }
-      }
-    },
-    "Use" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verwenden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使う"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "사용"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用"
+            "value" : "选一个模型就能开始对话，也可以以后在设置里添加。"
           }
         }
       }
@@ -60983,52 +60891,6 @@
         }
       }
     },
-    "Runs offline on this device. Takes up storage space." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Läuft offline auf diesem Gerät und belegt Speicherplatz."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Runs offline on this device. Takes up storage space."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Funciona sin conexión en este dispositivo y ocupa espacio de almacenamiento."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fonctionne hors ligne sur cet appareil et utilise de l'espace de stockage."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このデバイスでオフラインで動作します。ストレージを使用します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 기기에서 오프라인으로 실행되며 저장 공간을 사용합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在这台设备上离线运行，会占用存储空间。"
-          }
-        }
-      }
-    },
     "Connect a Cloud Service" : {
       "localizations" : {
         "de" : {
@@ -61075,232 +60937,278 @@
         }
       }
     },
-    "OpenAI-compatible services, Ollama, LM Studio, and more." : {
+    "Other Models" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OpenAI-kompatible Dienste, Ollama, LM Studio und mehr."
+            "value" : "Weitere Modelle"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OpenAI-compatible services, Ollama, LM Studio, and more."
+            "value" : "Other Models"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Servicios compatibles con OpenAI, Ollama, LM Studio y más."
+            "value" : "Otros modelos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Services compatibles OpenAI, Ollama, LM Studio et plus encore."
+            "value" : "Autres modèles"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OpenAI 互換のサービス、Ollama、LM Studio など。"
+            "value" : "その他のモデル"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OpenAI 호환 서비스, Ollama, LM Studio 등."
+            "value" : "다른 모델"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "兼容 OpenAI 的服务、Ollama、LM Studio 等。"
+            "value" : "其他模型"
           }
         }
       }
     },
-    "You can add more models anytime in Settings." : {
+    "Keep your chats in sync across your iPhone, iPad, and Mac." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weitere Modelle kannst du jederzeit in den Einstellungen hinzufügen."
+            "value" : "Halte deine Chats auf iPhone, iPad und Mac synchron."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You can add more models anytime in Settings."
+            "value" : "Keep your chats in sync across your iPhone, iPad, and Mac."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puedes añadir más modelos cuando quieras en Ajustes."
+            "value" : "Sincroniza tus chats en iPhone, iPad y Mac."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous pouvez ajouter d'autres modèles à tout moment dans les Réglages."
+            "value" : "Synchronisez vos conversations sur iPhone, iPad et Mac."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "モデルはあとからいつでも設定で追加できます。"
+            "value" : "チャットを iPhone、iPad、Mac で同期します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "나중에 언제든 설정에서 모델을 더 추가할 수 있습니다."
+            "value" : "채팅을 iPhone, iPad, Mac에서 동기화합니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以后随时可以在设置里添加更多模型。"
+            "value" : "让聊天记录在 iPhone、iPad 和 Mac 上保持同步。"
           }
         }
       }
     },
-    "Your Data" : {
+    "iCloud Sync is on." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deine Daten"
+            "value" : "Die iCloud-Synchronisation ist aktiviert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your Data"
+            "value" : "iCloud Sync is on."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus datos"
+            "value" : "La sincronización con iCloud está activada."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vos données"
+            "value" : "La synchronisation iCloud est activée."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あなたのデータ"
+            "value" : "iCloud 同期はオンです。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "내 데이터"
+            "value" : "iCloud 동기화가 켜져 있습니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你的数据"
+            "value" : "iCloud 同步已启用。"
           }
         }
       }
     },
-    "Your chats and keys are stored on this device. We don't collect any of your data." : {
+    "iCloud isn't set up on this device." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deine Chats und Schlüssel werden auf diesem Gerät gespeichert. Wir erfassen keine deiner Daten."
+            "value" : "Auf diesem Gerät ist iCloud nicht eingerichtet."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your chats and keys are stored on this device. We don't collect any of your data."
+            "value" : "iCloud isn't set up on this device."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus chats y claves se guardan en este dispositivo. No recopilamos ninguno de tus datos."
+            "value" : "iCloud no está configurado en este dispositivo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vos conversations et vos clés sont stockées sur cet appareil. Nous ne collectons aucune de vos données."
+            "value" : "iCloud n'est pas configuré sur cet appareil."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "チャットとキーはこのデバイスに保存されます。データを収集することは一切ありません。"
+            "value" : "このデバイスでは iCloud が設定されていません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "채팅과 키는 이 기기에 저장되며, 어떤 데이터도 수집하지 않습니다."
+            "value" : "이 기기에 iCloud가 설정되어 있지 않습니다."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "聊天记录和密钥都保存在这台设备上，我们不收集你的任何数据。"
+            "value" : "这台设备还没有设置 iCloud。"
           }
         }
       }
     },
-    "To see your chats on your other devices, turn on iCloud Sync in Settings > Data." : {
+    "Not Now" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um deine Chats auf anderen Geräten zu sehen, aktiviere die iCloud-Synchronisation unter Einstellungen > Daten."
+            "value" : "Später"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To see your chats on your other devices, turn on iCloud Sync in Settings > Data."
+            "value" : "Not Now"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para ver tus chats en tus otros dispositivos, activa la sincronización con iCloud en Ajustes > Datos."
+            "value" : "Ahora no"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour retrouver vos conversations sur vos autres appareils, activez la synchronisation iCloud dans Réglages > Données."
+            "value" : "Plus tard"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ほかのデバイスでもチャットを見るには、「設定 > データ」で iCloud 同期をオンにしてください。"
+            "value" : "後で"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "다른 기기에서도 채팅을 보려면 설정 > 데이터에서 iCloud 동기화를 켜세요."
+            "value" : "나중에"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "想在其他设备上看到聊天记录，可以在“设置 > 数据”里打开 iCloud 同步。"
+            "value" : "以后再说"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続ける"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계속"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
           }
         }
       }
@@ -61393,52 +61301,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AI 可能会出错，重要信息请先自己核实。"
-          }
-        }
-      }
-    },
-    "FlowDown is open-source software, provided as is, without warranty of any kind." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown ist Open-Source-Software und wird ohne jegliche Gewährleistung so bereitgestellt, wie sie ist."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown is open-source software, provided as is, without warranty of any kind."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown es software de código abierto y se ofrece tal cual, sin garantía de ningún tipo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown est un logiciel open source fourni tel quel, sans aucune garantie."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown はオープンソースソフトウェアです。現状のまま提供され、いかなる保証もありません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FlowDown은 오픈 소스 소프트웨어로, 어떠한 보증 없이 있는 그대로 제공됩니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "浮望是开源软件，按“原样”提供，不附带任何形式的担保。"
           }
         }
       }
