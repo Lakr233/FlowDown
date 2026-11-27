@@ -134,6 +134,9 @@ extension MessageListView {
         }
 
         var summary: ActivitySummary?
+        /// The newest call in `summary`, whose reason its banner keeps once
+        /// the call is done.
+        var newestCall: Message?
         func fold(_ step: ActivitySummary.Step, of message: Message, thinkingDuration: TimeInterval = 0) {
             if summary == nil {
                 checkAddDateHint(message.creation)
@@ -152,6 +155,7 @@ extension MessageListView {
             }
             entries.append(.activity(finished))
             summary = nil
+            newestCall = nil
         }
 
         for message in messages {
@@ -236,6 +240,7 @@ extension MessageListView {
 
             case .toolHint:
                 fold(.tool(message.objectId, status: message.toolStatus), of: message)
+                newestCall = message
                 if showsSteps {
                     // Every call is listed with its reason, decoded once per row.
                     if let reason = toolReasons.reason(for: message, decode: {
@@ -257,7 +262,15 @@ extension MessageListView {
             }
         }
         // While the session runs, the summary nothing has come after is the
-        // one the turn is still at work on.
+        // one the turn is still at work on. Its newest call's line stays up
+        // once the call is done, so its reason is kept too, decoded once.
+        if isExecuting, !showsSteps, let call = newestCall, summary?.reasons[call.objectId] == nil,
+           let reason = toolReasons.reason(for: call, decode: {
+               session.decodeToolRequestFromToolMessage($0)?.args
+           })
+        {
+            summary?.reasons[call.objectId] = reason
+        }
         summary?.isRunning = isExecuting
         endSummary()
         return entries
