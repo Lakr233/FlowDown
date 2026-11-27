@@ -12,6 +12,10 @@ final class ChatMarkdownView: MarkdownStreamView {
     /// Whether the label reads the document shown now (`updateSpokenText`).
     private var spokenTextIsCurrent = false
 
+    /// The inline code colour and the theme colour it was made from
+    /// (`halvedCodeColor`).
+    private var halvedCode: (source: UIColor, color: UIColor)?
+
     /// How long every streamed character takes to fade in, so even a chunk of
     /// one character takes this long to appear in full.
     static let revealDuration: TimeInterval = 0.5
@@ -83,7 +87,7 @@ final class ChatMarkdownView: MarkdownStreamView {
         }
         // `colors.code` also colours a code block's plain text, so only the
         // inline runs, set in the inline code font, take the halved colour.
-        let inlineCodeColor = Self.halved(theme.colors.code)
+        let inlineCodeColor = halvedCodeColor()
         text.enumerateAttribute(.font, in: NSRange(location: 0, length: text.length)) { font, range, _ in
             guard let font = font as? UIFont, font == theme.fonts.codeInline else { return }
             text.addAttribute(.foregroundColor, value: inlineCodeColor, range: range)
@@ -166,6 +170,23 @@ final class ChatMarkdownView: MarkdownStreamView {
             text.replaceCharacters(in: range, with: attachment.attributedStringRepresentation())
         }
         return text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// `colors.code` halved, the same object for as long as the theme keeps
+    /// its colour.
+    ///
+    /// A colour that resolves itself is equal only to itself, and the label
+    /// typesets again from the first run whose attributes changed. Made anew
+    /// for every rebuild, the colour of the first inline code in a reply
+    /// would have every streamed update typeset the whole reply.
+    private func halvedCodeColor() -> UIColor {
+        let source = theme.colors.code
+        if let halvedCode, halvedCode.source == source {
+            return halvedCode.color
+        }
+        let color = Self.halved(source)
+        halvedCode = (source, color)
+        return color
     }
 
     /// The colour at half its own opacity, in light and dark alike.
