@@ -21,6 +21,9 @@ final class AiMessageView: MessageListRowView {
     /// it at once. Nil while an update is on its way through the stream
     /// view, which shows it a moment later.
     private var settledPackage: MarkdownContent?
+    /// The width the reply was last typeset at for ``contentHeight(showing:width:)``,
+    /// while it still shows what it showed then.
+    private(set) var typesetWidth: CGFloat?
     /// The reply has finished, but its last text is still fading in.
     private var finishesStreamWhenStill = false
     private var revealObservation: NSKeyValueObservation?
@@ -74,6 +77,7 @@ final class AiMessageView: MessageListRowView {
         }
         if package !== representedPackage {
             representedPackage = package
+            typesetWidth = nil
             if firstFill {
                 representedMessageID = messageID
                 markdownView.setContentImmediately(package)
@@ -94,6 +98,7 @@ final class AiMessageView: MessageListRowView {
     /// measured as it was.
     func contentHeight(showing package: MarkdownContent, width: CGFloat) -> CGFloat? {
         guard settledPackage === package, !markdownView.isStreaming, !finishesStreamWhenStill else { return nil }
+        typesetWidth = width
         return markdownView.boundingSize(for: width).height
     }
 

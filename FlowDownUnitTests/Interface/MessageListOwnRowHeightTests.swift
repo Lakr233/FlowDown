@@ -116,6 +116,41 @@ struct MessageListOwnRowHeightTests {
 
     @Test
     @MainActor
+    func `a reply is prepared in two slices, its row built in one and typeset in the next`() async throws {
+        try await withList { list, message in
+            let entry = MessageListView.Entry.aiContent(message.id, message)
+
+            #expect(list.prepareAiRow(for: message, of: entry, inListWidth: 600))
+            let built = try #require(list.listView.row(for: entry.id) as? AiMessageView)
+            #expect(built.typesetWidth == nil, "the first slice typeset the reply as well as building its row")
+
+            #expect(!list.prepareAiRow(for: message, of: entry, inListWidth: 600))
+            #expect(list.listView.row(for: entry.id) === built)
+            #expect(built.typesetWidth != nil)
+            // Nothing is left: asked again, it does nothing.
+            #expect(!list.prepareAiRow(for: message, of: entry, inListWidth: 600))
+
+            list.listView.apply([entry])
+            list.listView.layoutIfNeeded()
+            #expect(list.listView.rowView(for: entry.id) === built)
+            #expect(abs(built.bounds.height - pooledHeight(list, message, width: 600)) < 0.5)
+        }
+    }
+
+    @Test
+    @MainActor
+    func `a reply still being written is not prepared`() async throws {
+        try await withList { list, message in
+            var streaming = message
+            streaming.isStreaming = true
+            let entry = MessageListView.Entry.aiContent(streaming.id, streaming)
+            #expect(!list.prepareAiRow(for: streaming, of: entry, inListWidth: 600))
+            #expect(list.listView.row(for: entry.id) == nil)
+        }
+    }
+
+    @Test
+    @MainActor
     func `a reply still being written is never measured on its row`() async throws {
         try await withList { list, message in
             var streaming = message
