@@ -17,6 +17,10 @@ final class AiMessageView: MessageListRowView {
 
     private var representedMessageID: Message.ID?
     private var representedPackage: MarkdownContent?
+    /// The content the view shows in full right now: what was last put in
+    /// it at once. Nil while an update is on its way through the stream
+    /// view, which shows it a moment later.
+    private var settledPackage: MarkdownContent?
     /// The reply has finished, but its last text is still fading in.
     private var finishesStreamWhenStill = false
     private var revealObservation: NSKeyValueObservation?
@@ -73,13 +77,24 @@ final class AiMessageView: MessageListRowView {
             if firstFill {
                 representedMessageID = messageID
                 markdownView.setContentImmediately(package)
+                settledPackage = package
             } else {
                 markdownView.setContent(package)
+                settledPackage = nil
             }
         }
         if finishesStreamWhenStill, !markdownView.streamLabel.isAnimating {
             finishStream()
         }
+    }
+
+    /// The height of the reply at `width`, measured on the view that draws
+    /// it, or nil unless that view shows exactly `package`: a reply still
+    /// streaming, or one whose update has yet to reach the view, would be
+    /// measured as it was.
+    func contentHeight(showing package: MarkdownContent, width: CGFloat) -> CGFloat? {
+        guard settledPackage === package, !markdownView.isStreaming, !finishesStreamWhenStill else { return nil }
+        return markdownView.boundingSize(for: width).height
     }
 
     private func finishStream() {

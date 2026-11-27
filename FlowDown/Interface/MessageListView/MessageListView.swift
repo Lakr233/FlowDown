@@ -163,8 +163,13 @@ final class MessageListView: UIView {
         // Markdown document at a new width is what stalls one.
         listView.preparedRowHeight = { [weak self] entry, listWidth in
             guard let self, case let .aiContent(_, message) = entry else { return nil }
-            return aiRowHeight(for: message, inListWidth: listWidth)
+            return aiRowHeight(for: message, of: entry, inListWidth: listWidth, buildsRow: false)
         }
+        // The rows three screens on, the way the reader is going, are
+        // measured, built and typeset before a scroll reaches them, a step
+        // at a time between frames and mostly while the list stands still,
+        // so scrolling to one only uncovers it.
+        listView.preparationRange = .viewports(ahead: 3, behind: 1)
         listView.alwaysBounceVertical = true
         listView.alwaysBounceHorizontal = false
         listView.contentInsetAdjustmentBehavior = .never
@@ -360,7 +365,10 @@ final class MessageListView: UIView {
             if isFirstLoad || alpha == 0 {
                 isFirstLoad = false
                 listView.apply(entries)
-                listView.setContentOffset(.init(x: 0, y: listView.maximumContentOffset.y), animated: false)
+                // Onto the end itself, not where the estimated heights put
+                // it: from there the list would scroll on to the end, and
+                // build every reply it passed on the way.
+                listView.landOnEnd()
                 Task { [weak self] in
                     try? await Task.sleep(for: .seconds(0.1))
                     await MainActor.run {
