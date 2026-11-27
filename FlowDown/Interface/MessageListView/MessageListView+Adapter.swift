@@ -81,7 +81,7 @@ extension MessageListView {
                 .when { if case .aiContent = $0 { true } else { false } }
                 .height { [weak self] entry, context in
                     guard let self, case let .aiContent(_, message) = entry else { return 0 }
-                    return aiRowHeight(for: message, inListWidth: context.width)
+                    return aiRowHeight(for: message, of: entry, inListWidth: context.width, buildsRow: context.willMount)
                 }
                 .configure { [weak self] row, entry, _ in
                     guard let self, case let .aiContent(messageID, message) = entry else { return }
@@ -131,16 +131,55 @@ extension MessageListView {
         }
     }
 
-    /// The height of an AI message row, measured on a pooled sizing view. The
-    /// row registration and the off-screen preparation both read it, so a row
-    /// prepared ahead of time is mounted at exactly the height it was laid out at.
-    func aiRowHeight(for message: MessageRepresentation, inListWidth listWidth: CGFloat) -> CGFloat {
+    /// The height of an AI message row. The row registration and the
+    /// off-screen preparation both read it, so a row prepared ahead of time
+    /// is mounted at exactly the height it was laid out at.
+    ///
+    /// Measured on the reply's own row where there is one, and on a pooled
+    /// sizing view otherwise. Filling a view in is most of what a reply
+    /// costs to show, and a sizing view is filled in only to be measured:
+    /// the row then fills in the same reply again. `buildsRow` says the row
+    /// is about to be mounted, so it is built here, measured, and kept for
+    /// the mount.
+    func aiRowHeight(
+        for message: MessageRepresentation,
+        of entry: Entry,
+        inListWidth listWidth: CGFloat,
+        buildsRow: Bool,
+    ) -> CGFloat {
         rowHeight(inListWidth: listWidth) { containerWidth in
+            if let height = heightOnOwnRow(of: message, entry: entry, width: containerWidth, buildsRow: buildsRow) {
+                return ceil(height)
+            }
             let sizingView = markdownSizingViewPool.view(for: message, theme: theme) {
                 markdownPackageCache.package(for: message, theme: theme)
             }
             return ceil(sizingView.boundingSize(for: containerWidth).height)
         }
+    }
+
+    /// The reply's height measured on its own row, or nil when the row
+    /// cannot answer: there is none and none is wanted yet, or it does not
+    /// show the reply as it now reads.
+    private func heightOnOwnRow(
+        of message: MessageRepresentation,
+        entry: Entry,
+        width: CGFloat,
+        buildsRow: Bool,
+    ) -> CGFloat? {
+        // A reply being written goes through the stream view, which shows
+        // each update a moment after it is given.
+        guard !message.isStreaming else { return nil }
+        let package = markdownPackageCache.package(for: message, theme: theme)
+        if let row = listView.row(for: entry.id) {
+            return (row as? AiMessageView)?.contentHeight(showing: package, width: width)
+        }
+        guard buildsRow, let registration = listView.registrationIndex(for: entry) else { return nil }
+        let row = AiMessageView()
+        row.theme = theme
+        row.setMarkdownPackage(package, for: message.id, isStreaming: false)
+        listView.keep(row, for: entry.id, registration: registration)
+        return row.contentHeight(showing: package, width: width)
     }
 
     /// Wraps a content height in the shared row insets, mirroring the layout

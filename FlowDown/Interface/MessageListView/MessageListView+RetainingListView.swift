@@ -19,8 +19,12 @@ extension MessageListView {
     /// its stream when it is scrolled away and back.
     ///
     /// Views live as long as their entries, so a long conversation holds one
-    /// view per entry. A row is let go when its entry leaves the list, or
-    /// when the entry turns into another row type.
+    /// view per entry it has shown. A row is let go when its entry leaves the
+    /// list, or when the entry turns into another row type.
+    ///
+    /// A reply about to be shown is measured on its own row, which is built
+    /// for that and kept here until the list mounts it (`keep`), so the reply
+    /// is filled in once and not once to measure and again to show.
     ///
     /// When the list changes width, the rows it keeps off screen are laid out
     /// again at the new width ahead of time, a slice at a time between frames,
@@ -50,6 +54,28 @@ extension MessageListView {
         private var rowsSkippedByPreparation: Set<Entry.ID> = []
         private var preparationTimer: Timer?
         private var isPreparationScheduled = false
+
+        /// Puts the list on its end at once, measuring the rows it will
+        /// show there first. By the last row rather than `scrollToBottom`,
+        /// which SwifterSwift also declares on every scroll view: the call
+        /// is ambiguous from here.
+        func landOnEnd() {
+            guard let last = content.indices.last else { return }
+            scrollToRow(at: last, at: .bottom, animated: false)
+        }
+
+        /// The entry's own row, on screen or kept off it.
+        func row(for identifier: Entry.ID) -> ListRowView? {
+            rowView(for: identifier) ?? retainedRows[identifier]?.view
+        }
+
+        /// Keeps a row built for an entry before it is mounted, which is
+        /// then mounted as the row it already is. Does nothing for an entry
+        /// that has one.
+        func keep(_ view: ListRowView, for identifier: Entry.ID, registration: Int) {
+            guard row(for: identifier) == nil else { return }
+            retainedRows[identifier] = (view, registration)
+        }
 
         override func recycleRow(with identifier: Entry.ID) -> ListRowView? {
             recyclingEntryID = identifier
