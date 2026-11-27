@@ -170,15 +170,16 @@ final class MessageListView: UIView {
         // at a time between frames and mostly while the list stands still,
         // so scrolling to one only uncovers it.
         //
-        // A reply made ready is mounted, and a mounted reply holds its
-        // pixels for its whole height, however little of it is within
-        // reach: some fifty megabytes for a reply five screens tall. A Mac
-        // has the memory for a few of those. A phone's limit is far lower,
-        // so the list reaches less far there.
+        // On the Mac only, for now. A reply made ready is mounted, and a
+        // mounted reply holds its pixels for its whole height, however
+        // little of it is within reach: some fifty megabytes for a reply
+        // five screens tall, and several times that for a very long one at
+        // a phone's scale. What the range gains was measured on the Mac,
+        // which has the memory for it; on a phone neither the gain nor the
+        // memory has been, so a reply there is mounted when the scroll
+        // reaches it, as it always was.
         #if targetEnvironment(macCatalyst)
             listView.preparationRange = .viewports(ahead: 3, behind: 1)
-        #else
-            listView.preparationRange = .viewports(ahead: 2, behind: 0.5)
         #endif
         listView.alwaysBounceVertical = true
         listView.alwaysBounceHorizontal = false
