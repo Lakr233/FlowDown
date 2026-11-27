@@ -165,11 +165,21 @@ final class MessageListView: UIView {
             guard let self, case let .aiContent(_, message) = entry else { return nil }
             return aiRowHeight(for: message, of: entry, inListWidth: listWidth, buildsRow: false)
         }
-        // The rows three screens on, the way the reader is going, are
+        // The rows a few screens on, the way the reader is going, are
         // measured, built and typeset before a scroll reaches them, a step
         // at a time between frames and mostly while the list stands still,
         // so scrolling to one only uncovers it.
-        listView.preparationRange = .viewports(ahead: 3, behind: 1)
+        //
+        // A reply made ready is mounted, and a mounted reply holds its
+        // pixels for its whole height, however little of it is within
+        // reach: some fifty megabytes for a reply five screens tall. A Mac
+        // has the memory for a few of those. A phone's limit is far lower,
+        // so the list reaches less far there.
+        #if targetEnvironment(macCatalyst)
+            listView.preparationRange = .viewports(ahead: 3, behind: 1)
+        #else
+            listView.preparationRange = .viewports(ahead: 2, behind: 0.5)
+        #endif
         listView.alwaysBounceVertical = true
         listView.alwaysBounceHorizontal = false
         listView.contentInsetAdjustmentBehavior = .never
