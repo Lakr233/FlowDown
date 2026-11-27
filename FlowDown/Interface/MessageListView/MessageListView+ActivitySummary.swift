@@ -38,8 +38,9 @@ extension MessageListView {
         var thinkingDuration: TimeInterval = 0
         /// The turn is still at work on this summary: nothing has come after it.
         var isRunning = false
-        /// The reason each running call gave, by its row; with `showsSteps`,
-        /// every call's.
+        /// The reason each running call gave, by its row, and the newest
+        /// call's while the turn is at work on the summary; with
+        /// `showsSteps`, every call's.
         var reasons: [Message.ID: String] = [:]
         /// Every step is listed under the title (`InlineActivityStepsSetting`),
         /// so the newest call's banner is not shown on top of them.
@@ -78,19 +79,21 @@ extension MessageListView {
             return hasThoughts ? max(1, seconds) : seconds
         }
 
-        /// The newest running call's reason, else its name, or a running
-        /// search's progress, shown under a running summary. Once the calls
-        /// are done the model is thinking again and it goes away.
+        /// The newest call's reason, else its name, or a search's progress or
+        /// how it went, shown under a running summary. It stays once the
+        /// call is done, until new text comes after it: a thought with text,
+        /// or the reply, which ends the summary. A call over in a moment so
+        /// leaves its line up instead of flashing it.
         var banner: String? {
             guard isRunning, !showsSteps else { return nil }
             for step in steps.reversed() {
                 switch step {
-                case let .tool(messageID, status) where status.state == 0:
+                case let .thought(_, text):
+                    if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return nil }
+                case let .tool(messageID, status):
                     return reasons[messageID] ?? status.name
-                case let .webSearch(_, status, _) where status.isUnfinished:
+                case let .webSearch(_, status, _):
                     return status.statusText()
-                default:
-                    continue
                 }
             }
             return nil
@@ -145,7 +148,10 @@ extension MessageListView {
 
         var title: String {
             // An unfinished summary counts only the calls still running; between
-            // them the model is at work again, so it reads "Thinking…".
+            // them the model is at work again, so it reads "Thinking…", over
+            // the line of the call just done until new text comes. The title
+            // changes at most once a second (`ThinkingStatusLabel`), so a
+            // call over in a moment does not flash it either.
             if isRunning {
                 let running = runningTools
                 guard running > 0 else { return String(localized: "Thinking…") }

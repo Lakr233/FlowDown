@@ -1,7 +1,9 @@
+@testable import ChatClientKit
 @preconcurrency @testable import FlowDown
 import Foundation
 import Storage
 import Testing
+import UIKit
 
 @Suite(.serialized)
 struct MessageListActivitySummaryTests {
@@ -236,7 +238,7 @@ struct MessageListActivitySummaryTests {
 
     @Test
     @MainActor
-    func `a running summary drops the banner once its calls finish`() async throws {
+    func `a running summary keeps the finished call's line until new text comes`() async throws {
         try await withTemporarySession { session in
             _ = session.appendNewMessage(role: .user) {
                 $0.update(\.document, to: "Look it up")
@@ -254,8 +256,107 @@ struct MessageListActivitySummaryTests {
             #expect(summaries.count == 1)
             #expect(summaries.first?.isRunning == true)
             #expect(summaries.first?.title == String(localized: "Thinking…"))
-            #expect(summaries.first?.banner == nil)
+            // A call without a reason keeps its name up.
+            #expect(summaries.first?.banner == "Search")
         }
+    }
+
+    @Test
+    @MainActor
+    func `the newest call's reason stays up until a thought with text or the reply`() async throws {
+        try await withTemporarySession { session in
+            _ = session.appendNewMessage(role: .user) {
+                $0.update(\.document, to: "When is it?")
+            }
+            let first = session.appendNewMessage(role: .toolHint)
+            session.encodeToolRequestAndAttachToToolMessage(
+                ToolRequest(name: "search_calendar", args: #"{"query":"launch","reason":"Find the dates"}"#),
+                message: first,
+            )
+            first.update(\.toolStatus, to: .init(name: "Search Calendar", state: 0, message: ""))
+
+            let listView = MessageListView()
+            listView.session = session
+            func summary(isExecuting: Bool = true) -> MessageListView.ActivitySummary? {
+                listView.entries(from: session.messages, isExecuting: isExecuting).compactMap {
+                    if case let .activity(summary) = $0 { summary } else { nil }
+                }.last
+            }
+
+            // Running: its reason.
+            #expect(summary()?.title == String(localized: "Executing tool…"))
+            #expect(summary()?.banner == "Find the dates")
+
+            // Done in a moment, nothing after it: the reason stays.
+            first.update(\.toolStatus, to: .init(name: "Search Calendar", state: 1, message: "Found 2."))
+            #expect(summary()?.title == String(localized: "Thinking…"))
+            #expect(summary()?.reasons[first.objectId] == "Find the dates")
+            #expect(summary()?.banner == "Find the dates")
+            let font = UIFont.preferredFont(forTextStyle: .body)
+            let footnote = UIFont.preferredFont(forTextStyle: .footnote)
+            let height = try ActivitySummaryView.height(for: #require(summary()), font: font, stepFont: footnote, width: 320)
+            #expect(height == ActivitySummaryView.headerHeight(font: font)
+                + ActivitySummaryView.bannerSpacing + MessageBannerView.height)
+
+            // The next round has begun but written nothing yet: still the reason.
+            let round = session.appendNewMessage(role: .assistant)
+            #expect(summary()?.banner == "Find the dates")
+
+            // Its thought has text: the line goes.
+            round.update(\.reasoningContent, to: "One more page.")
+            #expect(summary()?.banner == nil)
+            #expect(summary()?.title == String(localized: "Thinking…"))
+
+            // A newer call: its reason, kept once it is done too.
+            let second = session.appendNewMessage(role: .toolHint)
+            session.encodeToolRequestAndAttachToToolMessage(
+                ToolRequest(name: "read_page", args: #"{"url":"https://example.com/2","reason":"Read the second page"}"#),
+                message: second,
+            )
+            second.update(\.toolStatus, to: .init(name: "Read Page", state: 0, message: ""))
+            #expect(summary()?.banner == "Read the second page")
+            second.update(\.toolStatus, to: .init(name: "Read Page", state: 1, message: "Done."))
+            #expect(summary()?.banner == "Read the second page")
+            #expect(summary()?.reasons[first.objectId] == nil)
+
+            // The turn stopped: no line.
+            #expect(summary(isExecuting: false)?.banner == nil)
+
+            // The reply came: the summary ends, and with it the line.
+            _ = session.appendNewMessage(role: .assistant) {
+                $0.update(\.document, to: "It is on Friday.")
+            }
+            let ended = listView.entries(from: session.messages, isExecuting: true).compactMap {
+                if case let .activity(summary) = $0 { summary } else { nil }
+            }
+            #expect(ended.count == 1)
+            #expect(ended.allSatisfy { !$0.isRunning && $0.banner == nil })
+        }
+    }
+
+    @Test
+    func `only a thought with text after the newest call takes its line down`() {
+        var summary = MessageListView.ActivitySummary(startingWith: "thought")
+        summary.steps = [
+            .thought("thought", text: "Look it up."),
+            .tool("call", status: .init(name: "Search", state: 1, message: "Done.")),
+        ]
+        summary.reasons = ["call": "Find the dates"]
+        #expect(summary.banner == nil)
+
+        summary.isRunning = true
+        #expect(summary.banner == "Find the dates")
+
+        summary.steps.append(.thought("empty", text: " \n"))
+        #expect(summary.banner == "Find the dates")
+
+        summary.steps.append(.thought("next", text: "Now compare."))
+        #expect(summary.banner == nil)
+
+        // With every step listed there is no line.
+        summary.steps.removeLast(2)
+        summary.showsSteps = true
+        #expect(summary.banner == nil)
     }
 
     // MARK: - Web Search
@@ -413,7 +514,7 @@ struct MessageListActivitySummaryTests {
 
     @Test
     @MainActor
-    func `a running search shows its progress and the model thinks again once it is done`() async throws {
+    func `a running search shows its progress and how it went until new text comes`() async throws {
         try await withTemporarySession { session in
             _ = session.appendNewMessage(role: .user) {
                 $0.update(\.document, to: "Any Apple news today?")
@@ -443,9 +544,16 @@ struct MessageListActivitySummaryTests {
             search.assign(\.webSearchStatus, to: status)
             #expect(runningSummary()?.banner == String(localized: "Searched \(7) website(s), fetching them") + "...")
 
+            // Done: the model is at work again, and the line says how the
+            // search went until new text comes.
             status.proccessProgress = 1
             search.assign(\.webSearchStatus, to: status)
             #expect(runningSummary()?.title == String(localized: "Thinking…"))
+            #expect(runningSummary()?.banner == String(localized: "Search completed with no results"))
+
+            _ = session.appendNewMessage(role: .assistant) {
+                $0.update(\.reasoningContent, to: "Nothing found.")
+            }
             #expect(runningSummary()?.banner == nil)
         }
     }
