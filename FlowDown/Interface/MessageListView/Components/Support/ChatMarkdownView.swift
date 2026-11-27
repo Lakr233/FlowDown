@@ -35,6 +35,24 @@ final class ChatMarkdownView: MarkdownStreamView {
         maxBatches: 32,
     )
 
+    /// How a reply many screens tall draws its text: in tiles around what is
+    /// on screen, so a long reply costs what the window shows instead of a
+    /// bitmap as tall as the reply, drawn again whole on every streamed
+    /// update. `nil` draws every reply into one bitmap. Read when a view is
+    /// made.
+    ///
+    /// On for the Mac, where tiles were compared with one bitmap capture by
+    /// capture. Off elsewhere until that has been done on a device: a context
+    /// menu's preview there is a snapshot of the row, and a snapshot holds
+    /// only the tiles near the screen.
+    static var tiledDrawing: TextLabelView.TiledDrawing? = {
+        #if targetEnvironment(macCatalyst)
+            .init()
+        #else
+            nil
+        #endif
+    }()
+
     convenience init() {
         self.init(viewProvider: ReusableViewProvider())
     }
@@ -46,6 +64,7 @@ final class ChatMarkdownView: MarkdownStreamView {
         // streamed into them is revealed the same way.
         animator = LTXFadeInAnimator(configuration: Self.reveal)
         contextViewFadeDuration = Self.revealDuration
+        textLabelView.tiledDrawing = Self.tiledDrawing
     }
 
     @available(*, unavailable)

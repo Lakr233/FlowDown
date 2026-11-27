@@ -46,4 +46,59 @@ struct ChatMarkdownViewTests {
         #expect(recolored !== first)
         #expect(recolored.resolvedColor(with: .current).cgColor.alpha < 1)
     }
+
+    @Test
+    @MainActor
+    func `a reply draws a tall text in tiles and a view made while that is off does not`() {
+        let setting = ChatMarkdownView.tiledDrawing
+        defer { ChatMarkdownView.tiledDrawing = setting }
+        // On for the Mac only, until it has been checked on a device.
+        #if targetEnvironment(macCatalyst)
+            #expect(setting != nil)
+        #else
+            #expect(setting == nil)
+        #endif
+
+        ChatMarkdownView.tiledDrawing = .init()
+        #expect(ChatMarkdownView().textLabelView.tiledDrawing == TextLabelView.TiledDrawing())
+
+        ChatMarkdownView.tiledDrawing = nil
+        #expect(ChatMarkdownView().textLabelView.tiledDrawing == nil)
+    }
+
+    /// The list asks every reply on screen after it lays out. Only a reply
+    /// drawn in tiles, and tall enough to be, is given a layout pass for it.
+    @Test
+    @MainActor
+    func `only a tiled reply is laid out again after the list moves its rows`() {
+        let setting = ChatMarkdownView.tiledDrawing
+        defer { ChatMarkdownView.tiledDrawing = setting }
+        let text = (0 ..< 40).map { "Paragraph \($0) of a reply long enough to pass the threshold." }.joined(separator: "\n\n")
+
+        func row(tiled: TextLabelView.TiledDrawing?, markdown: String, height: CGFloat) -> AiMessageView {
+            ChatMarkdownView.tiledDrawing = tiled
+            let row = AiMessageView()
+            row.frame = CGRect(x: 0, y: 0, width: 400, height: height)
+            row.markdownView.setContentImmediately(content(markdown, theme: row.markdownView.theme))
+            row.layoutIfNeeded()
+            row.markdownView.layoutIfNeeded()
+            row.markdownView.textLabelView.layoutIfNeeded()
+            return row
+        }
+
+        let tiled = row(tiled: .init(threshold: 300), markdown: text, height: 2400)
+        #expect(tiled.markdownView.textLabelView.bounds.height > 300)
+        #expect(!tiled.markdownView.textLabelView.layer.needsLayout())
+        tiled.updateTilesAfterListLayout()
+        #expect(tiled.markdownView.textLabelView.layer.needsLayout())
+
+        let short = row(tiled: .init(threshold: 300), markdown: "One line.", height: 60)
+        #expect(short.markdownView.textLabelView.bounds.height <= 300)
+        short.updateTilesAfterListLayout()
+        #expect(!short.markdownView.textLabelView.layer.needsLayout())
+
+        let untiled = row(tiled: nil, markdown: text, height: 2400)
+        untiled.updateTilesAfterListLayout()
+        #expect(!untiled.markdownView.textLabelView.layer.needsLayout())
+    }
 }

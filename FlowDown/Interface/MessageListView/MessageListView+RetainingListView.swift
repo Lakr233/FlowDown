@@ -121,6 +121,11 @@ extension MessageListView {
 
         override func layoutContent() {
             super.layoutContent()
+            // The list has just moved its rows, which is not something a view is
+            // told: a reply drawn in tiles has to look at where it now is.
+            for case let row as AiMessageView in visibleRowViews {
+                row.updateTilesAfterListLayout()
+            }
             let width = bounds.width
             guard width > 0, width != preparationWidth else { return }
             preparationWidth = width

@@ -92,6 +92,21 @@ final class AiMessageView: MessageListRowView {
         }
     }
 
+    /// Has a reply drawn in tiles bring them to where the list just put it, in
+    /// the frame that shows it there.
+    ///
+    /// A label keeps tiles around the part of it on screen and finds that part
+    /// itself when a scroll view scrolls. A list also moves a row without
+    /// scrolling: measuring the rows above it shifts every row below, by more
+    /// than a screen after a resize. The label looks in its own layout pass, so
+    /// asking for one here, while the list is laying out, makes its tiles in
+    /// the same frame. A reply that is not tiled is left alone.
+    func updateTilesAfterListLayout() {
+        let label = markdownView.textLabelView
+        guard let tiles = label.tiledDrawing, label.bounds.height > tiles.threshold else { return }
+        label.setNeedsLayout()
+    }
+
     /// The height of the reply at `width`, measured on the view that draws
     /// it, or nil unless that view shows exactly `package`: a reply still
     /// streaming, or one whose update has yet to reach the view, would be
