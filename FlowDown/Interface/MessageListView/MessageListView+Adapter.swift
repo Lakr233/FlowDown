@@ -83,6 +83,10 @@ extension MessageListView {
                     guard let self, case let .aiContent(_, message) = entry else { return 0 }
                     return aiRowHeight(for: message, of: entry, inListWidth: context.width, buildsRow: context.willMount)
                 }
+                .prepare { [weak self] entry, context in
+                    guard let self, case let .aiContent(_, message) = entry else { return false }
+                    return prepareAiRow(for: message, of: entry, inListWidth: context.width)
+                }
                 .configure { [weak self] row, entry, _ in
                     guard let self, case let .aiContent(messageID, message) = entry else { return }
                     prepare(row, for: entry)
@@ -175,11 +179,37 @@ extension MessageListView {
             return (row as? AiMessageView)?.contentHeight(showing: package, width: width)
         }
         guard buildsRow, let registration = listView.registrationIndex(for: entry) else { return nil }
+        let row = makeAiRow(showing: package, for: message)
+        listView.keep(row, for: entry.id, registration: registration)
+        return row.contentHeight(showing: package, width: width)
+    }
+
+    /// A row filled in with a finished reply, as the list would mount it.
+    private func makeAiRow(showing package: MarkdownContent, for message: MessageRepresentation) -> AiMessageView {
         let row = AiMessageView()
         row.theme = theme
         row.setMarkdownPackage(package, for: message.id, isStreaming: false)
-        listView.keep(row, for: entry.id, registration: registration)
-        return row.contentHeight(showing: package, width: width)
+        return row
+    }
+
+    /// One slice of getting a reply's row ready before the list mounts it,
+    /// and whether another is left. Showing a reply for the first time is
+    /// one block of work otherwise, as long as the reply makes it: here its
+    /// row is built in one step between frames and typeset in the next, and
+    /// the mount only has to draw it.
+    func prepareAiRow(for message: MessageRepresentation, of entry: Entry, inListWidth listWidth: CGFloat) -> Bool {
+        guard !message.isStreaming else { return false }
+        let containerWidth = max(0, listWidth - MessageListView.listRowInsets(for: listWidth).horizontal)
+        guard containerWidth > 0 else { return false }
+        let package = markdownPackageCache.package(for: message, theme: theme)
+        guard let row = listView.row(for: entry.id) else {
+            guard let registration = listView.registrationIndex(for: entry) else { return false }
+            listView.keep(makeAiRow(showing: package, for: message), for: entry.id, registration: registration)
+            return true
+        }
+        guard let row = row as? AiMessageView, row.typesetWidth != containerWidth else { return false }
+        _ = row.contentHeight(showing: package, width: containerWidth)
+        return false
     }
 
     /// Wraps a content height in the shared row insets, mirroring the layout
