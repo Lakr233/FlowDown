@@ -432,16 +432,26 @@ class ChatView: UIView {
         guard let currentMessageListView else { return }
         let visibleEditorTop = min(editor.frame.minY, editorBackgroundView.frame.minY)
 
+        let contentBottom = bounds.height - visibleEditorTop + 16
+
         currentMessageListView.contentSafeAreaInsets = .init(
             top: title.frame.maxY + 16,
             left: 0,
-            bottom: bounds.height - visibleEditorTop + 16,
+            bottom: contentBottom,
             right: 0,
         )
+        #if targetEnvironment(macCatalyst)
+            let indicatorBottom = bounds.height - visibleEditorTop
+        #else
+            // Ends where the content does, above the input's soft edge: run
+            // into it, its end showed through the blur as a grey dot above
+            // the input. The Mac's band under the input is solid.
+            let indicatorBottom = contentBottom
+        #endif
         currentMessageListView.scrollIndicatorInsets = .init(
             top: title.frame.maxY,
             left: 0,
-            bottom: bounds.height - visibleEditorTop,
+            bottom: indicatorBottom,
             right: 0,
         )
     }
