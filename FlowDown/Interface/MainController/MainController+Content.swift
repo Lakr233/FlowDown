@@ -55,6 +55,9 @@ extension MainController {
 
         #if !targetEnvironment(macCatalyst)
             contentView.keyboardLayoutGuide.usesBottomSafeArea = false
+            // The column ends inside the bottom safe area only where that
+            // goes unused (`relaxedSidebarBottomInset`); its rows end with it.
+            sidebarLayoutView.keyboardLayoutGuide.usesBottomSafeArea = false
             contentView.contentView.snp.remakeConstraints { make in
                 make.left.right.top.equalToSuperview()
                 make.bottom.equalTo(contentView.keyboardLayoutGuide.snp.top)
