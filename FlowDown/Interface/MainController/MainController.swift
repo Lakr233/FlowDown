@@ -363,6 +363,15 @@ class MainController: UIViewController {
         }
     }
 
+    #if !targetEnvironment(macCatalyst)
+        /// The sidebar column's bottom follows the safe area
+        /// (`relaxedSidebarBottomInset`), which can change without the frame.
+        override func viewSafeAreaInsetsDidChange() {
+            super.viewSafeAreaInsetsDidChange()
+            view.setNeedsUpdateConstraints()
+        }
+    #endif
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateShadowPath()

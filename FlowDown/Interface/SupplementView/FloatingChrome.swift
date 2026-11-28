@@ -62,6 +62,46 @@ enum FloatingChrome {
         max(0, controlBottom) + pageTail
     }
 
+    /// How far the sidebar's settings row stands above the bottom edge where
+    /// the bottom safe area goes unused, level with the input's model row,
+    /// which keeps the input's own 10 pt below it.
+    static let unusedBottomSafeAreaMargin: CGFloat = 10
+
+    /// The bottom safe area nothing is drawn in: all of it on an open iPhone
+    /// Duo held so its window is wider than tall, nothing everywhere else.
+    ///
+    /// There the status bar stands in a column at the side, so the top has no
+    /// safe area, and there is no Home indicator, yet 34 pt are still kept at
+    /// the bottom. Laid out against them, the input's model row and the
+    /// sidebar's settings row stood 44 and 54 pt above the edge while the
+    /// header stands 8 pt below the top. Without them they stand
+    /// `unusedBottomSafeAreaMargin` above it (product lead and designer,
+    /// 2026-11-28). A portrait iPhone, an iPad and the Mac keep the safe area.
+    static func unusedBottomSafeArea(
+        safeArea: UIEdgeInsets,
+        windowSize: CGSize,
+        idiom: UIUserInterfaceIdiom,
+    ) -> CGFloat {
+        #if targetEnvironment(macCatalyst)
+            return 0
+        #else
+            guard idiom == .phone,
+                  safeArea.top == 0,
+                  windowSize.width > windowSize.height
+            else { return 0 }
+            return max(0, safeArea.bottom)
+        #endif
+    }
+
+    /// `unusedBottomSafeArea` for the window `view` stands in.
+    static func unusedBottomSafeArea(of view: UIView) -> CGFloat {
+        unusedBottomSafeArea(
+            safeArea: view.safeAreaInsets,
+            windowSize: view.window?.bounds.size ?? view.bounds.size,
+            idiom: view.traitCollection.userInterfaceIdiom,
+        )
+    }
+
     /// The edges' numbers (designer Colo + owner, 2026-11-10): full strength
     /// at the screen edge, falling in a straight line to nothing at the far
     /// end — a 4 pt blur and a light frost, no hold.

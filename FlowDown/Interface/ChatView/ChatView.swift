@@ -61,6 +61,11 @@ class ChatView: UIView {
     #endif
 
     let editor = RichEditorView()
+    #if !targetEnvironment(macCatalyst)
+        /// The input's bottom on the safe area, lowered past the part of it
+        /// that goes unused (`FloatingChrome.unusedBottomSafeArea`).
+        private var editorBottomConstraint: Constraint?
+    #endif
     #if targetEnvironment(macCatalyst)
         let editorBackgroundView = UIView().with {
             $0.backgroundColor = .background
@@ -154,8 +159,9 @@ class ChatView: UIView {
                 make.width.equalToSuperview().priority(.low)
             #else
                 // Kept between the side insets too: an iPhone Duo keeps the
-                // clock and the camera in a column along one side.
-                make.bottom.equalTo(safeAreaLayoutGuide)
+                // clock and the camera in a column along one side. Below the
+                // bottom safe area where it goes unused (`layoutSubviews`).
+                editorBottomConstraint = make.bottom.equalTo(safeAreaLayoutGuide).constraint
                 make.centerX.equalTo(safeAreaLayoutGuide)
                 make.width.lessThanOrEqualTo(750)
                 make.width.lessThanOrEqualTo(safeAreaLayoutGuide)
@@ -376,6 +382,15 @@ class ChatView: UIView {
     }
 
     override func layoutSubviews() {
+        #if !targetEnvironment(macCatalyst)
+            // Before the pass, so the input stands at its new place in it.
+            let unusedBottom = FloatingChrome.unusedBottomSafeArea(of: self)
+            if let editorBottomConstraint,
+               editorBottomConstraint.layoutConstraints.first?.constant != unusedBottom
+            {
+                editorBottomConstraint.update(offset: unusedBottom)
+            }
+        #endif
         super.layoutSubviews()
         #if !targetEnvironment(macCatalyst)
             // The title bar is one level down with `topEdgeElements`; its frame
@@ -432,16 +447,26 @@ class ChatView: UIView {
         guard let currentMessageListView else { return }
         let visibleEditorTop = min(editor.frame.minY, editorBackgroundView.frame.minY)
 
+        let contentBottom = bounds.height - visibleEditorTop + 16
+
         currentMessageListView.contentSafeAreaInsets = .init(
             top: title.frame.maxY + 16,
             left: 0,
-            bottom: bounds.height - visibleEditorTop + 16,
+            bottom: contentBottom,
             right: 0,
         )
+        #if targetEnvironment(macCatalyst)
+            let indicatorBottom = bounds.height - visibleEditorTop
+        #else
+            // Ends where the content does, above the input's soft edge: run
+            // into it, its end showed through the blur as a grey dot above
+            // the input. The Mac's band under the input is solid.
+            let indicatorBottom = contentBottom
+        #endif
         currentMessageListView.scrollIndicatorInsets = .init(
             top: title.frame.maxY,
             left: 0,
-            bottom: bounds.height - visibleEditorTop,
+            bottom: indicatorBottom,
             right: 0,
         )
     }

@@ -125,6 +125,16 @@ extension MainController {
         }
     }
 
+    /// How far the relaxed layout's sidebar column ends above the bottom of
+    /// the safe area: 20 pt, or where the bottom safe area goes unused
+    /// (`FloatingChrome.unusedBottomSafeArea`), past it to
+    /// `FloatingChrome.unusedBottomSafeAreaMargin` above the bottom edge.
+    var relaxedSidebarBottomInset: CGFloat {
+        let unused = FloatingChrome.unusedBottomSafeArea(of: view)
+        guard unused > 0 else { return 20 }
+        return FloatingChrome.unusedBottomSafeAreaMargin - unused
+    }
+
     func setupLayoutAsRelaxedStyle() {
         // A partly folded iPhone Duo puts the sidebar before the fold and the
         // chat after it. Without a fold the user's width applies.
@@ -138,7 +148,8 @@ extension MainController {
         case true:
             sidebarLayoutView.snp.remakeConstraints { make in
                 make.left.equalToSuperview().offset(-50)
-                make.top.bottom.equalTo(view.safeAreaLayoutGuide).inset(20)
+                make.top.equalTo(view.safeAreaLayoutGuide).inset(20)
+                make.bottom.equalTo(view.safeAreaLayoutGuide).inset(relaxedSidebarBottomInset)
                 make.width.equalTo(sidebarWidth)
             }
             gestureLayoutGuide.snp.remakeConstraints { make in
@@ -155,7 +166,8 @@ extension MainController {
             removeShadow()
         case false:
             sidebarLayoutView.snp.remakeConstraints { make in
-                make.top.bottom.equalTo(view.safeAreaLayoutGuide).inset(20)
+                make.top.equalTo(view.safeAreaLayoutGuide).inset(20)
+                make.bottom.equalTo(view.safeAreaLayoutGuide).inset(relaxedSidebarBottomInset)
                 make.left.equalTo(view.safeAreaLayoutGuide).inset(Self.relaxedLayoutSpacing)
                 make.width.equalTo(sidebarWidth)
             }
