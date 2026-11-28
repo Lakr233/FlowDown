@@ -224,6 +224,12 @@ final class MessageListView: UIView {
         listView.scrollIndicatorInsets = scrollIndicatorInsets
 
         if isAutoScrollingToBottom || wasNearBottom {
+            // The list has just been given its size and has not laid out at it:
+            // at a new width every row it shows is measured again in that pass,
+            // and its end is wherever that leaves it. Read before, the end is
+            // still where it was, and a list resting on it would be left short
+            // by as much as its rows grew with nothing to send it on.
+            listView.layoutIfNeeded()
             let targetOffset = listView.maximumContentOffset
             if abs(listView.contentOffset.y - targetOffset.y) > autoScrollTolerance {
                 #if DEBUG
