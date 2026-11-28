@@ -235,6 +235,17 @@ extension MessageListView {
         window?.windowScene?.screen.scale ?? traitCollection.displayScale
     }
 
+    /// The picture Copy as Image puts on the pasteboard: the whole row,
+    /// whatever part of it is on screen. Rendered from the layer tree, which
+    /// a reply drawn in tiles answers with all of its text; a snapshot of the
+    /// row would hold only the tiles near the screen.
+    static func image(ofRow rowView: UIView) -> UIImage {
+        let render = UIGraphicsImageRenderer(bounds: rowView.bounds)
+        return render.image { ctx in
+            rowView.layer.render(in: ctx.cgContext)
+        }
+    }
+
     /// Applies the state every row shares: the current theme, and a context
     /// menu bound to the concrete row view so menu actions (eg. Copy as Image)
     /// can render it without querying snapshots or indexes.
@@ -440,11 +451,7 @@ extension MessageListView {
                     UIAction(title: String(localized: "Copy as Image"), image: .init(systemName: "text.below.photo")) { [weak self] _ in
                         guard let self else { return }
                         guard let rowView = referenceView else { return }
-                        let render = UIGraphicsImageRenderer(bounds: rowView.bounds)
-                        let image = render.image { ctx in
-                            rowView.layer.render(in: ctx.cgContext)
-                        }
-                        UIPasteboard.general.image = image
+                        UIPasteboard.general.image = Self.image(ofRow: rowView)
                         Indicator.present(
                             title: "Copied",
                             preset: .done,

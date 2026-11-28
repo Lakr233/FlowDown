@@ -52,12 +52,8 @@ struct ChatMarkdownViewTests {
     func `a reply draws a tall text in tiles and a view made while that is off does not`() {
         let setting = ChatMarkdownView.tiledDrawing
         defer { ChatMarkdownView.tiledDrawing = setting }
-        // On for the Mac only, until it has been checked on a device.
-        #if targetEnvironment(macCatalyst)
-            #expect(setting != nil)
-        #else
-            #expect(setting == nil)
-        #endif
+        // On wherever the app runs.
+        #expect(setting == TextLabelView.TiledDrawing())
 
         ChatMarkdownView.tiledDrawing = .init()
         #expect(ChatMarkdownView().textLabelView.tiledDrawing == TextLabelView.TiledDrawing())
