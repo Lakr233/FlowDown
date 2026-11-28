@@ -41,17 +41,13 @@ final class ChatMarkdownView: MarkdownStreamView {
     /// update. `nil` draws every reply into one bitmap. Read when a view is
     /// made.
     ///
-    /// On for the Mac, where tiles were compared with one bitmap capture by
-    /// capture. Off elsewhere until that has been done on a device: a context
-    /// menu's preview there is a snapshot of the row, and a snapshot holds
-    /// only the tiles near the screen.
-    static var tiledDrawing: TextLabelView.TiledDrawing? = {
-        #if targetEnvironment(macCatalyst)
-            .init()
-        #else
-            nil
-        #endif
-    }()
+    /// A picture rendered from the layer tree holds the whole text either
+    /// way, which is how Copy as Image and Save Image make theirs. A snapshot
+    /// taken through the render server holds only the tiles near the screen.
+    /// A context menu's preview is one, and loses nothing by it: a row tall
+    /// enough to be tiled is past what such a snapshot can hold, and its
+    /// preview was blank before there were tiles.
+    static var tiledDrawing: TextLabelView.TiledDrawing? = .init()
 
     convenience init() {
         self.init(viewProvider: ReusableViewProvider())
